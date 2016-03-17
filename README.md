@@ -4,13 +4,18 @@ mruby/c is an another implementation of mruby.
 The features of mruby/c are followings.
 
 - Small memory consumption
+- Limited class libraries
+
+### Comparison between mruby and mruby/c
+
+
 
 ## Documents
 
 
-## Developper team
+## Developer team
 
-- [Shimane IT Open-Inovation Center](http://www.s-itoc.jp/)
+- [Shimane IT Open-Innovation Center](http://www.s-itoc.jp/)
 - [Kyushu Institute of Technology](http://www.kyutech.ac.jp/)
 
 ## License
