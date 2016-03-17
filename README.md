@@ -5,7 +5,7 @@ The features of mruby/c are followings.
 
 - Small memory consumption
 
-# Documents
+## Documents
 
 
 ## Developper team
@@ -14,3 +14,5 @@ The features of mruby/c are followings.
 - [Kyushu Institute of Technology](http://www.kyutech.ac.jp/)
 
 ## License
+
+mruby/c is released under the Revised BSD License(aka 3-clause license).
