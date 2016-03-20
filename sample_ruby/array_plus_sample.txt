@@ -1,0 +1,165 @@
+mruby 1.1.1 (2014-11-19) 
+00001 NODE_SCOPE:
+00011   local variables:
+00011     a, b
+00001   NODE_BEGIN:
+00001     NODE_DEF:
+00008       eachputs
+00001       local variables:
+00001         ary, i, n
+00001       mandatory args:
+00001         NODE_ARG ary
+00002       NODE_BEGIN:
+00002         NODE_ASGN:
+00002           lhs:
+00002             NODE_LVAR i
+00002           rhs:
+00002             NODE_INT 0 base 10
+00003         NODE_ASGN:
+00003           lhs:
+00003             NODE_LVAR n
+00003           rhs:
+00003             NODE_CALL:
+00003               NODE_LVAR ary
+00003               method='size' (139)
+00004         NODE_WHILE:
+00007           cond:
+00004             NODE_CALL:
+00004               NODE_LVAR i
+00004               method='<' (229)
+00004               args:
+00004                 NODE_LVAR n
+00007           body:
+00005             NODE_BEGIN:
+00005               NODE_CALL:
+00005                 NODE_SELF
+00005                 method='puts' (230)
+00005                 args:
+00005                   NODE_CALL:
+00005                     NODE_LVAR ary
+00005                     method='[]' (117)
+00005                     args:
+00005                       NODE_LVAR i
+00006               NODE_ASGN:
+00006                 lhs:
+00006                   NODE_LVAR i
+00006                 rhs:
+00006                   NODE_CALL:
+00006                     NODE_LVAR i
+00006                     method='+' (121)
+00006                     args:
+00006                       NODE_INT 1 base 10
+00011     NODE_ASGN:
+00011       lhs:
+00011         NODE_LVAR a
+00011       rhs:
+00011         NODE_ARRAY:
+00011           NODE_INT 0 base 10
+00011           NODE_INT 1 base 10
+00011           NODE_INT 2 base 10
+00012     NODE_ASGN:
+00012       lhs:
+00012         NODE_LVAR b
+00012       rhs:
+00012         NODE_CALL:
+00012           NODE_LVAR a
+00012           method='+' (121)
+00012           args:
+00012             NODE_ARRAY:
+00012               NODE_INT 3 base 10
+00012               NODE_INT 4 base 10
+00014     NODE_CALL:
+00014       NODE_SELF
+00014       method='eachputs' (225)
+00014       args:
+00014         NODE_LVAR a
+00015     NODE_CALL:
+00015       NODE_SELF
+00015       method='eachputs' (225)
+00015       args:
+00015         NODE_LVAR b
+00017     NODE_ASGN:
+00017       lhs:
+00017         NODE_LVAR a
+00017       rhs:
+00017         NODE_ARRAY:
+00018     NODE_ASGN:
+00018       lhs:
+00018         NODE_LVAR b
+00018       rhs:
+00018         NODE_CALL:
+00018           NODE_LVAR a
+00018           method='+' (121)
+00018           args:
+00018             NODE_ARRAY:
+00018               NODE_INT 5 base 10
+00018               NODE_INT 6 base 10
+00019     NODE_CALL:
+00019       NODE_SELF
+00019       method='eachputs' (225)
+00019       args:
+00019         NODE_LVAR a
+00020     NODE_CALL:
+00020       NODE_SELF
+00020       method='eachputs' (225)
+00020       args:
+00020         NODE_LVAR b
+irep 0x7fd9d1505800 nregs=6 nlocals=3 pools=0 syms=2 reps=1
+file: array_plus_sample.rb
+    1 000 OP_TCLASS	R3		
+    1 001 OP_LAMBDA	R4	I(+1)	1
+    1 002 OP_METHOD	R3	:eachputs
+   11 003 OP_LOADI	R3	0	
+   11 004 OP_LOADI	R4	1	
+   11 005 OP_LOADI	R5	2	
+   11 006 OP_ARRAY	R1	R3	3	; R1:a
+   12 007 OP_MOVE	R3	R1		; R1:a
+   12 008 OP_LOADI	R4	3	
+   12 009 OP_LOADI	R5	4	
+   12 010 OP_ARRAY	R4	R4	2
+   12 011 OP_ADD	R3	:+	1
+   12 012 OP_MOVE	R2	R3		; R2:b
+   14 013 OP_LOADSELF	R3		
+   14 014 OP_MOVE	R4	R1		; R1:a
+   14 015 OP_SEND	R3	:eachputs	1
+   15 016 OP_LOADSELF	R3		
+   15 017 OP_MOVE	R4	R2		; R2:b
+   15 018 OP_SEND	R3	:eachputs	1
+   17 019 OP_ARRAY	R1	R3	0	; R1:a
+   18 020 OP_MOVE	R3	R1		; R1:a
+   18 021 OP_LOADI	R4	5	
+   18 022 OP_LOADI	R5	6	
+   18 023 OP_ARRAY	R4	R4	2
+   18 024 OP_ADD	R3	:+	1
+   18 025 OP_MOVE	R2	R3		; R2:b
+   19 026 OP_LOADSELF	R3		
+   19 027 OP_MOVE	R4	R1		; R1:a
+   19 028 OP_SEND	R3	:eachputs	1
+   20 029 OP_LOADSELF	R3		
+   20 030 OP_MOVE	R4	R2		; R2:b
+   20 031 OP_SEND	R3	:eachputs	1
+   20 032 OP_STOP
+
+irep 0x7fd9d1505ae0 nregs=9 nlocals=5 pools=0 syms=5 reps=0
+file: array_plus_sample.rb
+    1 000 OP_ENTER	1:0:0:0:0:0:0
+    2 001 OP_LOADI	R3	0		; R3:i
+    3 002 OP_MOVE	R5	R1		; R1:ary
+    3 003 OP_SEND	R5	:size	0
+    3 004 OP_MOVE	R4	R5		; R4:n
+    4 005 OP_JMP	014
+    5 006 OP_LOADSELF	R5		
+    5 007 OP_MOVE	R6	R1		; R1:ary
+    5 008 OP_MOVE	R7	R3		; R3:i
+    5 009 OP_SEND	R6	:[]	1
+    5 010 OP_SEND	R5	:puts	1
+    6 011 OP_MOVE	R5	R3		; R3:i
+    6 012 OP_ADDI	R5	:+	1
+    6 013 OP_MOVE	R3	R5		; R3:i
+    4 014 OP_MOVE	R5	R3		; R3:i
+    4 015 OP_MOVE	R6	R4		; R4:n
+    4 016 OP_LT	R5	:<	1
+    4 017 OP_JMPIF	R5	006
+    4 018 OP_LOADNIL	R5		
+    4 019 OP_RETURN	R5	return	
+

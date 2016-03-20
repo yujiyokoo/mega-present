@@ -1,0 +1,51 @@
+mruby 1.1.1 (2014-11-19) 
+00003 NODE_SCOPE:
+00003   local variables:
+00003     a
+00003   NODE_BEGIN:
+00003     NODE_ASGN:
+00003       lhs:
+00003         NODE_LVAR a
+00003       rhs:
+00003         NODE_FLOAT 1.0
+00004     NODE_WHILE:
+00007       cond:
+00004         NODE_CALL:
+00004           NODE_LVAR a
+00004           method='<' (226)
+00004           args:
+00004             NODE_INT 5 base 10
+00007       body:
+00005         NODE_BEGIN:
+00005           NODE_ASGN:
+00005             lhs:
+00005               NODE_LVAR a
+00005             rhs:
+00005               NODE_CALL:
+00005                 NODE_LVAR a
+00005                 method='+' (121)
+00005                 args:
+00005                   NODE_FLOAT 0.7
+00006           NODE_CALL:
+00006             NODE_SELF
+00006             method='puts' (227)
+00006             args:
+00006               NODE_LVAR a
+irep 0x7f967ac0bff0 nregs=5 nlocals=2 pools=2 syms=3 reps=0
+file: sample12.rb
+    3 000 OP_LOADL	R1	L(0)	; 1	; R1:a
+    4 001 OP_JMP	009
+    5 002 OP_MOVE	R2	R1		; R1:a
+    5 003 OP_LOADL	R3	L(1)	; 0.7
+    5 004 OP_ADD	R2	:+	1
+    5 005 OP_MOVE	R1	R2		; R1:a
+    6 006 OP_LOADSELF	R2		
+    6 007 OP_MOVE	R3	R1		; R1:a
+    6 008 OP_SEND	R2	:puts	1
+    4 009 OP_MOVE	R2	R1		; R1:a
+    4 010 OP_LOADI	R3	5	
+    4 011 OP_LT	R2	:<	1
+    4 012 OP_JMPIF	R2	002
+    4 013 OP_LOADNIL	R2		
+    4 014 OP_STOP
+

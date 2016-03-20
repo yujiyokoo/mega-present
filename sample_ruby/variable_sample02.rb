@@ -1,0 +1,9 @@
+
+CONST1 = 1
+CONST2 = 2
+
+puts CONST1
+
+CONST2 = 3
+
+puts CONST2

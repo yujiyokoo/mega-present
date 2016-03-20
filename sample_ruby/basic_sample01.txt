@@ -1,0 +1,42 @@
+mruby 1.1.1 (2014-11-19) 
+00002 NODE_SCOPE:
+00002   local variables:
+00002     a, b, c
+00002   NODE_BEGIN:
+00002     NODE_ASGN:
+00002       lhs:
+00002         NODE_LVAR a
+00002       rhs:
+00002         NODE_INT 10 base 10
+00003     NODE_ASGN:
+00003       lhs:
+00003         NODE_LVAR b
+00003       rhs:
+00003         NODE_INT 20 base 10
+00004     NODE_ASGN:
+00004       lhs:
+00004         NODE_LVAR c
+00004       rhs:
+00004         NODE_CALL:
+00004           NODE_LVAR a
+00004           method='+' (121)
+00004           args:
+00004             NODE_LVAR b
+00005     NODE_CALL:
+00005       NODE_SELF
+00005       method='puts' (228)
+00005       args:
+00005         NODE_LVAR c
+irep 0x7fc4c05000b0 nregs=7 nlocals=4 pools=0 syms=2 reps=0
+file: sample01.rb
+    2 000 OP_LOADI	R1	10		; R1:a
+    3 001 OP_LOADI	R2	20		; R2:b
+    4 002 OP_MOVE	R4	R1		; R1:a
+    4 003 OP_MOVE	R5	R2		; R2:b
+    4 004 OP_ADD	R4	:+	1
+    4 005 OP_MOVE	R3	R4		; R3:c
+    5 006 OP_LOADSELF	R4		
+    5 007 OP_MOVE	R5	R3		; R3:c
+    5 008 OP_SEND	R4	:puts	1
+    5 009 OP_STOP
+

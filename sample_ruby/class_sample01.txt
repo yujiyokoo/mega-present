@@ -1,0 +1,65 @@
+mruby 1.1.1 (2014-11-19) 
+00002 NODE_SCOPE:
+00002   local variables:
+00002     a, b
+00002   NODE_BEGIN:
+00002     NODE_ASGN:
+00002       lhs:
+00002         NODE_LVAR a
+00002       rhs:
+00002         NODE_FALSE
+00003     NODE_ASGN:
+00003       lhs:
+00003         NODE_LVAR b
+00003       rhs:
+00003         NODE_TRUE
+00005     NODE_IF:
+00007       cond:
+00005         NODE_CALL:
+00005           NODE_LVAR a
+00005           method='!=' (69)
+00005           args:
+00005             NODE_LVAR b
+00007       then:
+00006         NODE_BEGIN:
+00006           NODE_CALL:
+00006             NODE_SELF
+00006             method='puts' (227)
+00006             args:
+00006               NODE_INT 1 base 10
+00009     NODE_IF:
+00011       cond:
+00009         NODE_CALL:
+00009           NODE_LVAR b
+00009           method='!=' (69)
+00009           args:
+00009             NODE_LVAR a
+00011       then:
+00010         NODE_BEGIN:
+00010           NODE_CALL:
+00010             NODE_SELF
+00010             method='puts' (227)
+00010             args:
+00010               NODE_INT 2 base 10
+irep 0x7ff68840d5d0 nregs=6 nlocals=3 pools=0 syms=2 reps=0
+file: sample10.rb
+    2 000 OP_LOADF	R1			; R1:a
+    3 001 OP_LOADT	R2			; R2:b
+    5 002 OP_MOVE	R3	R1		; R1:a
+    5 003 OP_MOVE	R4	R2		; R2:b
+    5 004 OP_SEND	R3	:!=	1
+    5 005 OP_JMPNOT	R3	009
+    6 006 OP_LOADSELF	R3		
+    6 007 OP_LOADI	R4	1	
+    6 008 OP_SEND	R3	:puts	1
+    9 009 OP_MOVE	R3	R2		; R2:b
+    9 010 OP_MOVE	R4	R1		; R1:a
+    9 011 OP_SEND	R3	:!=	1
+    9 012 OP_JMPNOT	R3	017
+   10 013 OP_LOADSELF	R3		
+   10 014 OP_LOADI	R4	2	
+   10 015 OP_SEND	R3	:puts	1
+   10 016 OP_JMP	018
+   10 017 OP_LOADNIL	R3		
+   10 018 OP_STOP
+
