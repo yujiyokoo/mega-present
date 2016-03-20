@@ -16,6 +16,8 @@ mruby/c is an another implementation of mruby.
 
 ## Documents
 
+[How to compile?](doc/compile.md)
+
 
 ## Developer team
 
