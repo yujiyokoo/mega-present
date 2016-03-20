@@ -1,0 +1,17 @@
+# Executables
+mrubyc
+mrubyc_sample
+mrubyc_concurrent
+
+# Object files
+*.o
+*.a
+
+# Mruby bytecode
+*.mrb
+
+# backup file
+*~
+
+# Mac
+.DS_Store
