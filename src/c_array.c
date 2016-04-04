@@ -26,7 +26,7 @@ static void c_array_size(mrb_vm *vm, mrb_value *v)
 }
 
 
-// Array - []]
+// Array - []
 static void c_array_get(mrb_vm *vm, mrb_value *v)
 {
   int pos = GET_INT_ARG(0);
