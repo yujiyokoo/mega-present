@@ -1,8 +1,11 @@
+# Global variable
+ 
+$var1 = 1
 
-$a = 1
+puts $var1
 
-puts $a
+$var2 = $var1 - 4
 
-$b = $a - 4
+puts $var2
 
-puts $b
+
