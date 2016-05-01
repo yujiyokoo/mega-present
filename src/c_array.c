@@ -42,6 +42,24 @@ static void c_array_get(mrb_vm *vm, mrb_value *v)
   }
 }
 
+// Array - []=
+static void c_array_set(mrb_vm *vm, mrb_value *v)
+{
+  int pos = GET_INT_ARG(0); 
+
+  mrb_object *obj = v->value.obj;
+  while( pos > 0 && obj != 0 ){
+    pos--;
+    obj = obj->next;
+  }
+  if( obj ){
+    //    if( tt == MRB_TT_
+  } else {
+    SET_NIL_RETURN();
+  }
+}
+
+
 // Array - operator +
 static void c_array_plus(mrb_vm *vm, mrb_value *v)
 {
@@ -193,11 +211,6 @@ static void c_array_pop(mrb_vm *vm, mrb_value *v)
 	SET_INT_RETURN(tmp->value.i);
 }
 
-static void  c_array_replace(mrb_vm *vm, mrb_value *v)
-{
-//	*v->value.obj = *GET_ARY_ARG(0);
-}
-
 void mrb_init_class_array(void)
 {
 	// Array
@@ -207,7 +220,7 @@ void mrb_init_class_array(void)
 	//mrb_define_method(static_class_array, "*", c_array_times);
 	//mrb_define_method(static_class_array, "<<", c_array_push);
 	mrb_define_method(static_class_array, "[]", c_array_get);
-	//mrb_define_method(static_class_array, "[]=", c_array_set);
+	mrb_define_method(static_class_array, "[]=", c_array_set);
 //	mrb_define_method(static_class_array, "concat", c_array_concat);
 //	mrb_define_method(static_class_array, "delete_at", c_array_delete_at);
 	//mrb_define_method(static_class_array, "empty?", c_array_empty);
@@ -219,7 +232,7 @@ void mrb_init_class_array(void)
 	mrb_define_method(static_class_array, "length", c_array_size);
 	mrb_define_method(static_class_array, "pop", c_array_pop);
 	//mrb_define_method(static_class_array, "push", c_array_push);
-	mrb_define_method(static_class_array, "replace", c_array_replace);
+	//mrb_define_method(static_class_array, "replace", c_array_replace);
 	//mrb_define_method(static_class_array, "reverse", c_array_reverse);
 	//mrb_define_method(static_class_array, "reverse!", c_array_reverse_bang);
 	//mrb_define_method(static_class_array, "rindex", c_array_rindex);
