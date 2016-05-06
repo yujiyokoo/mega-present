@@ -804,19 +804,20 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int c = GETARG_C(code);
+  // int c = GETARG_C(code); // TODO: Add flags support for OP_LAMBDA
+  int b = GETARG_b(code); // sequence position in irep list
   mrb_proc *proc = mrb_rproc_alloc("(lambda)");
-  mrb_irep *p = vm->irep;
-  while( c > 0 ) {
+  mrb_irep *current = vm->irep;
+  mrb_irep *p = current->next; //starting from next for current sequence;
+  // code length is p->ilen * sizeof(uint32_t);
+  for (int i=0; i < b; i++) {
     p = p->next;
-    c--;
   }
   proc->c_func = 0;
   proc->func.irep = p;
   int a = GETARG_A(code);
   regs[a].tt = MRB_TT_PROC;
   regs[a].value.proc = proc;
-
   return 0;
 }
 

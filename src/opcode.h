@@ -26,6 +26,10 @@ extern "C" {
 #define GETARG_C(code)              (((code) >>  7) & 0x7f)
 #define GETARG_Ax(code)             (((code) >>  7) & 0x1ffffff)
 
+#define GETARG_b(code)              GETARG_UNPACK_b(code,14,2)
+
+#define GETARG_UNPACK_b(i,n1,n2)    ((((code)) >> (7+(n2))) & (((1<<(n1))-1)))
+
 
 #define MAXARG_Bx                   (0xffff)
 #define MAXARG_sBx                  (MAXARG_Bx>>1)
