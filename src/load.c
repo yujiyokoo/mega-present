@@ -2,11 +2,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#ifdef __MACH__ //to be sure that loader compiles with clang too
-#include <stdlib.h>
-#else
-#include <malloc.h>
-#endif
 #include "vm.h"
 #include "vm_config.h"
 #include "load.h"
