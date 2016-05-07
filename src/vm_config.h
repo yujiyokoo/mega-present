@@ -49,8 +49,8 @@
 /* maximum size of global objects */
 #define MAX_GLOBAL_OBJECT_SIZE 20
 
-
-
+/* maximum size of consts */
+#define MAX_CONST_COUNT 20
 
 /* Configure environment */
 /* 0: NOT USE */

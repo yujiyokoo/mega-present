@@ -253,6 +253,49 @@ inline static int op_setglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
   return 0;
 }
 
+//================================================================
+/*!@brief
+  Execute GETCONST
+
+  R(A) := constget(Syms(Bx))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_getconst( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int ra = GETARG_A(code);
+  int rb = GETARG_Bx(code);
+  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = add_sym(sym);
+  regs[ra] = const_get(sym_id);
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
+  Execute SETCONST
+
+  constset(Syms(Bx),R(A))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+
+inline static int op_setconst( mrb_vm *vm, uint32_t code, mrb_value *regs ) {
+  int ra = GETARG_A(code);
+  int rb = GETARG_Bx(code);
+  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = add_sym(sym);
+  const_add(sym_id, &regs[ra]);
+  return 0;
+}
+
 
 //================================================================
 /*!@brief
@@ -1056,6 +1099,8 @@ int vm_run_step( mrb_vm *vm )
     case OP_LOADF:      ret = op_loadf     (vm, code, regs); break;
     case OP_GETGLOBAL:  ret = op_getglobal (vm, code, regs); break;
     case OP_SETGLOBAL:  ret = op_setglobal (vm, code, regs); break;
+    case OP_GETCONST:   ret = op_getconst  (vm, code, regs); break;
+    case OP_SETCONST:   ret = op_setconst  (vm, code, regs); break;
     case OP_JMP:        ret = op_jmp       (vm, code, regs); break;
     case OP_JMPIF:      ret = op_jmpif     (vm, code, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, code, regs); break;

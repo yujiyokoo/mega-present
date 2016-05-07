@@ -51,6 +51,7 @@ extern mrb_class *static_class_fixnum;
 extern mrb_class *static_class_float;
 #endif
 
+extern mrb_constobject static_const[];
 /* Global Objects */
 extern mrb_globalobject static_global[];
 

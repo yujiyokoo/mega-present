@@ -21,6 +21,8 @@ mrb_class *static_pool_class;
 static mrb_proc static_proc[MAX_PROC_COUNT];
 mrb_proc *static_pool_proc;
 
+mrb_constobject static_const[MAX_CONST_COUNT];
+
 mrb_globalobject static_global[MAX_GLOBAL_OBJECT_SIZE];
 
 /* Class Tree */
@@ -73,6 +75,10 @@ void init_static(void)
   /* global objects */
   for( i=0 ; i<MAX_GLOBAL_OBJECT_SIZE ; i++ ){
     static_global[i].sym_id = -1;
+  }
+
+  for( i=0 ; i<MAX_CONST_COUNT; i++ ){
+    static_const[i].sym_id = -1;
   }
 
   /* symbol */
