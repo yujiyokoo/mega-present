@@ -853,7 +853,8 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_irep *current = vm->irep;
   mrb_irep *p = current->next; //starting from next for current sequence;
   // code length is p->ilen * sizeof(uint32_t);
-  for (int i=0; i < b; i++) {
+  int i;
+  for (i=0; i < b; i++) {
     p = p->next;
   }
   proc->c_func = 0;
