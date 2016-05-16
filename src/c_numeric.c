@@ -5,10 +5,11 @@
 #include "class.h"
 #include "static.h"
 #include "value.h"
+#include "syslog.h"
 
 static void c_fixnum_eq(mrb_vm *vm, mrb_value *v)
 {
-  printf("ERROR ==\n");
+  syslog_message("ERROR ==\n");
 }
 
 // Operator %

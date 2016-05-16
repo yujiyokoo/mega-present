@@ -22,7 +22,6 @@ int load_header(struct VM *vm, char **pos)
 
   /* Ignore size */
   // int sz = get_int_4(p+10);
-  // printf("[%d]", sz);
 
   if( !check_str_4(p+14, "MATZ") ){
     return LOAD_FILE_HEADER_ERROR_MATZ;

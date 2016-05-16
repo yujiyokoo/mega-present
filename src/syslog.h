@@ -19,6 +19,7 @@
 extern "C" {
 #endif
 
+  void syslog_message(char *);
 
 
 
