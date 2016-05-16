@@ -1,3 +1,8 @@
+# Array test for following methods:
+#   index
+#   []
+#   []=
+
 a = [1,2,3,4]
 puts a.index(1)
 puts a.index(3)

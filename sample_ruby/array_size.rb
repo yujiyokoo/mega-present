@@ -1,3 +1,5 @@
+# Array test for following methods:
+#  size
 
 a = []
 puts a.size
