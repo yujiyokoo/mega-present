@@ -17,16 +17,23 @@ static int array_size(mrb_value *v)
   return cnt;
 }
 
+// Array = empty?
+static void c_array_empty(mrb_vm *vm, mrb_value *v)
+{
+  if(array_size(v) > 0)
+   {SET_FALSE_RETURN();}
+  else
+   {SET_TRUE_RETURN();}
+}
 
-// Array - size
+// Array = size
 static void c_array_size(mrb_vm *vm, mrb_value *v)
 {
   int cnt = array_size(v);
   SET_INT_RETURN( cnt );
 }
 
-
-// Array - []
+// Array = []
 static void c_array_get(mrb_vm *vm, mrb_value *v)
 {
   int pos = GET_INT_ARG(0);
@@ -42,10 +49,10 @@ static void c_array_get(mrb_vm *vm, mrb_value *v)
   }
 }
 
-// Array - []=
+// Array = []=
 static void c_array_set(mrb_vm *vm, mrb_value *v)
 {
-  int pos = GET_INT_ARG(0); 
+  int pos = GET_INT_ARG(0);
 
   mrb_object *obj = v->value.obj;
   while( pos > 0 && obj != 0 ){
@@ -59,8 +66,7 @@ static void c_array_set(mrb_vm *vm, mrb_value *v)
   }
 }
 
-
-// Array - operator +
+// Array = operator +
 static void c_array_plus(mrb_vm *vm, mrb_value *v)
 {
   if( GET_TT_ARG(0) == MRB_TT_ARRAY ){
@@ -107,7 +113,6 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
   }
 }
 
-
 // Join other array to this array's last
 /*
 static void c_array_concat(mrb_vm *vm, mrb_value *v)
@@ -144,7 +149,6 @@ static void c_array_delete_at(mrb_vm *vm, mrb_value *v)
   }
 }
 */
-
 
 static void c_array_index(mrb_vm *vm, mrb_value *v)
 {
@@ -223,7 +227,7 @@ void mrb_init_class_array(void)
 	mrb_define_method(static_class_array, "[]=", c_array_set);
 //	mrb_define_method(static_class_array, "concat", c_array_concat);
 //	mrb_define_method(static_class_array, "delete_at", c_array_delete_at);
-	//mrb_define_method(static_class_array, "empty?", c_array_empty);
+	mrb_define_method(static_class_array, "empty?", c_array_empty);
 	//mrb_define_method(static_class_array, "first", c_array_first);
 	mrb_define_method(static_class_array, "index", c_array_index);
 	//mrb_define_method(static_class_array, "initialize_copy", c_array_replace);
@@ -240,5 +244,4 @@ void mrb_init_class_array(void)
 	mrb_define_method(static_class_array, "size", c_array_size);
 	//mrb_define_method(static_class_array, "slice", c_array_get);
 	//mrb_define_method(static_class_array, "unshift", c_array_unshift);
-
 }
