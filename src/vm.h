@@ -33,9 +33,9 @@ typedef struct IREP {
   int16_t unused;       //! unused flag
   struct IREP *next;         //! irep linked list
 
-  void *code;
+  uint8_t *code;
   mrb_object *ptr_to_pool;
-  void *ptr_to_sym;
+  uint8_t *ptr_to_sym;
 
   int16_t nlocals;
   int16_t nregs;
