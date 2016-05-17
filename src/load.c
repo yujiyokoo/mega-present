@@ -80,7 +80,7 @@ int load_irep(struct VM *vm, char **pos)
     p = (char *)( ( (unsigned long)p + 3 ) & ~3L );
 
     // code
-    irep->code = p;
+    irep->code = (uint8_t *)p;
     p += irep->ilen * 4;
 
     // pool
@@ -117,7 +117,7 @@ int load_irep(struct VM *vm, char **pos)
     }
 
     //  syms
-    irep->ptr_to_sym = p;
+    irep->ptr_to_sym = (uint8_t*)p;
     int slen = get_int_4(p);    p += 4;
     for( i=0 ; i<slen ; i++ ){
       int s = get_int_2(p);     p += 2;

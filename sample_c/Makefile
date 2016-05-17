@@ -7,7 +7,7 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
-CPPFLAGS = -g -I ../src
+CPPFLAGS = -g -I ../src -Wall -Wpointer-arith
 LDFLAGS = -L ../src
 LDLIBS = -lmrubyc
 

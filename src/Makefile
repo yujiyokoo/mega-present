@@ -7,8 +7,7 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
-#CC = clang
-CFLAGS = -O0 -Wall -g # -std=c99 -pedantic -pedantic-errors -DDEBUG
+CFLAGS = -Wall -Wpointer-arith -g # -std=c99 -pedantic -pedantic-errors -DDEBUG
 
 COMMON_OBJ = class.o global.o load.o vm.o static.o value.o common.o symbol.o
 RUBY_LIBS = c_array.o c_numeric.o
