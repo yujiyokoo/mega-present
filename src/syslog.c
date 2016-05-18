@@ -51,6 +51,10 @@ void syslog_printf(const char *fmt, ...)
     c = *fmt++;
 
     switch( toupper(c) ){
+    case 'S':{
+      char *value = va_arg(params, char*);
+      syslog_print(value);
+    } break;
     case 'D':{
       int value = va_arg(params, int);
       int sign = 1;
