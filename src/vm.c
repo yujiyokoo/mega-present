@@ -13,7 +13,6 @@
   </pre>
 */
 
-#include <stdio.h>
 #include <stdint.h>
 #include "vm.h"
 #include "static.h"
@@ -21,6 +20,7 @@
 #include "opcode.h"
 #include "class.h"
 #include "symbol.h"
+#include "syslog.h"
 
 
 //================================================================
@@ -55,7 +55,7 @@ char *find_irep_symbol( void *p, int n )
 */
 void not_supported(void)
 {
-  printf("Not supported!\n");
+  syslog_printf("Not supported!\n");
 }
 
 
@@ -375,7 +375,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_proc *m = find_method(vm, recv, sym_id);
 
   if( m == 0 ) {
-    printf("no method(%s)!\n", sym);
+    syslog_printf("no method(%s)!\n", sym);
   } else {
     if( m->c_func == 0 ) {
       // Ruby method
@@ -969,12 +969,12 @@ inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 void debug_irep(mrb_vm *vm, mrb_irep *irep)
 {
   if( irep->unused == 1 ) {
-    printf("  not used.\n");
+    syslog_printf("  not used.\n");
     return;
   }
-  printf("  code:0x%x\n", (int)((char *)irep->code - (char *)vm->mrb));
-  printf("  regs:%d\n", irep->nregs);
-  printf("  locals:%d\n", irep->nlocals);
+  syslog_printf("  code:0x%x\n", (int)((char *)irep->code - (char *)vm->mrb));
+  syslog_printf("  regs:%d\n", irep->nregs);
+  syslog_printf("  locals:%d\n", irep->nlocals);
 }
 
 
@@ -1124,7 +1124,7 @@ int vm_run_step( mrb_vm *vm )
     case OP_TCLASS:     ret = op_tclass    (vm, code, regs); break;
     case OP_STOP:       ret = op_stop      (vm, code, regs); break;
     default:
-      printf("Skip OP=%02x\n", GET_OPCODE(code));
+      syslog_printf("Skip OP=%02x\n", GET_OPCODE(code));
       break;
   }
 
