@@ -1,7 +1,7 @@
-#include <stdio.h>
 #include "value.h"
 #include "class.h"
 #include "static.h"
+#include "syslog.h"
 
 #include "c_array.h"
 #include "c_numeric.h"
@@ -101,21 +101,21 @@ void c_puts(mrb_vm *vm, mrb_value *v)
   mrb_object *arg0 = v+1;
   switch( arg0->tt ){
   case MRB_TT_FIXNUM:
-    printf("%d", arg0->value.i);
+    syslog_printf("%d", arg0->value.i);
     break;
   case MRB_TT_FALSE:
-//    printf("nil");
+//    syslog_printf("nil");
     break;
 #if MRUBYC_USE_FLOAT
   case MRB_TT_FLOAT:
-    printf("%f", arg0->value.d);
+    syslog_printf("%f", arg0->value.d);
     break;
 #endif
   default:
-    printf("Not supported: MRB_TT_XX(%d)", arg0->tt);
+    syslog_printf("Not supported: MRB_TT_XX(%d)", arg0->tt);
     break;
   }
-  printf("\n");
+  syslog_printf("\n");
 }
 
 // Object - add

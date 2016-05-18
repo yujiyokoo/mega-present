@@ -9,7 +9,7 @@
 
 static void c_fixnum_eq(mrb_vm *vm, mrb_value *v)
 {
-  syslog_message("ERROR ==\n");
+  syslog_printf("ERROR ==\n");
 }
 
 // Operator %

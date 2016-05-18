@@ -19,16 +19,9 @@
 extern "C" {
 #endif
 
-  void syslog_message(char *);
-
-
-
-
-
-
-
-
-
+  void syslog_putchar(const char c);
+  void syslog_print(const char *str);
+  void syslog_printf(const char *fmt, ...);
 
 #ifdef __cplusplus
 }
