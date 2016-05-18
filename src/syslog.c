@@ -38,6 +38,7 @@ void syslog_print(const char *str)
 void syslog_printf(const char *fmt, ...)
 {
   va_list params;
+  char buf[21];
 
   va_start(params, fmt);
 
@@ -52,7 +53,22 @@ void syslog_printf(const char *fmt, ...)
     switch( toupper(c) ){
     case 'D':{
       int value = va_arg(params, int);
-      printf("%d", value);
+      int sign = 1;
+      if( value < 0 ){
+	sign = -1;
+	value = -value;
+      }
+      int idx = 0;
+      while( value > 0 ){
+	buf[idx++] = (value % 10) + '0';
+	value /= 10;
+      }
+      
+      if( sign < 0 ) syslog_putchar('-');
+      while( --idx >= 0 ){
+	syslog_putchar(buf[idx]);
+      }
+
     } break;
     case '\0':
       return;
