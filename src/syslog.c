@@ -16,7 +16,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include "syslog.h"
-
+#include "common.h"
 
 // put char
 // target dependent function: putchar
@@ -113,8 +113,20 @@ void syslog_printf(const char *fmt, ...)
   L_exit:
     switch( toupper(c) ){
     case 'S':{
-      char *value = va_arg(params, char*);
-      syslog_print(value);
+      char *ptr = va_arg(params, char*);
+      int n_pad = w - my_strlen(ptr);
+      if( n_pad < 0 ) n_pad = 0;
+      if( dir == 1 ){
+	while( n_pad-- > 0 ){
+	  syslog_putchar(pad);
+	}
+      }
+      syslog_print(ptr);
+      if( dir == -1 ){
+	while( n_pad-- > 0 ){
+	  syslog_putchar(pad);
+	}
+      }
     } break;
     case 'D':
       syslog_print_value(va_arg(params, int), dir, w, 10, pad);
