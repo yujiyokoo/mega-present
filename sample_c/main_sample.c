@@ -18,7 +18,7 @@ int main(void)
   init_static();
 
   vm = vm_open();
-  if( vm == 0 ){
+  if( vm == NULL ){
     printf("VM open Error\n");
     return -1;
   }
