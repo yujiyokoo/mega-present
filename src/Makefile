@@ -9,7 +9,7 @@
 
 CFLAGS = -Wall -Wpointer-arith -g # -std=c99 -pedantic -pedantic-errors -DDEBUG
 
-COMMON_OBJ = class.o global.o load.o vm.o static.o value.o common.o symbol.o syslog.o
+COMMON_OBJ = class.o global.o load.o vm.o static.o value.o common.o symbol.o console.o
 RUBY_LIBS = c_array.o c_numeric.o
 
 all: libmrubyc.a
@@ -27,7 +27,7 @@ load.o:		load.h vm.h vm_config.h errorcode.h static.h value.h
 main.o:		vm.h load.h errorcode.h static.h
 static.o:	static.h vm_config.h common.h
 symbol.o: symbol.h
-syslog.o: syslog.h
+console.o: console.h
 value.o:	value.h static.h vm_config.h
 vm.o:		vm.h static.h vm_config.h opcode.h class.h
 

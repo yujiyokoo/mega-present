@@ -15,27 +15,27 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <ctype.h>
-#include "syslog.h"
+#include "console.h"
 #include "common.h"
 
 // put char
 // target dependent function: putchar
-void syslog_putchar(const char c)
+void console_putchar(const char c)
 {
   putchar(c);
 }
 
 // simple string
-void syslog_print(const char *str)
+void console_print(const char *str)
 {
   char c;
   while( (c = *str++) ){
-    syslog_putchar(c);
+    console_putchar(c);
   }
 }
 
 // format output
-static void syslog_print_value(int value, int dir, int w, int base, char pad)
+static void console_print_value(int value, int dir, int w, int base, char pad)
 {
   char buf[21];
   const char hex[16] = "0123456789ABCDEF";
@@ -58,25 +58,25 @@ static void syslog_print_value(int value, int dir, int w, int base, char pad)
   int n_pad = w - idx;
   if( dir == 1 ){
     while( n_pad-- > 0 ){
-      syslog_putchar(pad);
+      console_putchar(pad);
     }
   }
   
-  if( sign < 0 ) syslog_putchar('-');
+  if( sign < 0 ) console_putchar('-');
   while( --idx >= 0 ){
-    syslog_putchar(buf[idx]);
+    console_putchar(buf[idx]);
   }
 
   if( dir == -1 ){
     while( n_pad-- > 0 ){
-      syslog_putchar(pad);
+      console_putchar(pad);
     }
   }
 }
 
 
 // format string
-void syslog_printf(const char *fmt, ...)
+void console_printf(const char *fmt, ...)
 {
   va_list params;
  
@@ -85,7 +85,7 @@ void syslog_printf(const char *fmt, ...)
   char c;
   while( (c = *fmt++) ){
     if( c != '%' ){
-      syslog_putchar(c);
+      console_putchar(c);
       continue;
     }
 
@@ -118,26 +118,26 @@ void syslog_printf(const char *fmt, ...)
       if( n_pad < 0 ) n_pad = 0;
       if( dir == 1 ){
 	while( n_pad-- > 0 ){
-	  syslog_putchar(pad);
+	  console_putchar(pad);
 	}
       }
-      syslog_print(ptr);
+      console_print(ptr);
       if( dir == -1 ){
 	while( n_pad-- > 0 ){
-	  syslog_putchar(pad);
+	  console_putchar(pad);
 	}
       }
     } break;
     case 'D':
-      syslog_print_value(va_arg(params, int), dir, w, 10, pad);
+      console_print_value(va_arg(params, int), dir, w, 10, pad);
       break;
     case 'X':
-      syslog_print_value(va_arg(params, int), dir, w, 16, pad);
+      console_print_value(va_arg(params, int), dir, w, 16, pad);
       break;
     case '\0':
       return;
     default:
-      syslog_putchar(c);
+      console_putchar(c);
       continue;
     }
 
