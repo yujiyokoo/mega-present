@@ -13,5 +13,8 @@ mrubyc_concurrent
 # backup file
 *~
 
+# sample_ruby
+sample_ruby/*.txt
+
 # Mac
 .DS_Store
