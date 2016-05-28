@@ -40,7 +40,7 @@
 | 06 | nregs | 2 | binary | number of register variable |
 | 08 | rlen | 2 | binary | number of child irep ? |
 | 0A | ilen | 4 | binary | number of instruction |
-| 0E | irep | (ilen)*4 | bunary |  instructions |
+| 0E | irep | (ilen)*4 | binary |  instructions |
 | POOL |
 | 0E+(ilen)*4 | pools | 4 | binary | number of pools |
 | (00) | pool TT | 1 | binary | type of pool |

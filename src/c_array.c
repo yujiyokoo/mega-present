@@ -215,6 +215,25 @@ static void c_array_pop(mrb_vm *vm, mrb_value *v)
 	SET_INT_RETURN(tmp->value.i);
 }
 
+// Array = reverse!
+/*
+static void c_array_reverse_bang(mrb_vm *vm, mrb_value *v)
+{
+mrb_value ret;
+mrb_value *one = v->value.obj;
+
+  ret.tt = MRB_TT_ARRAY;
+  ret.value.obj = 0;
+
+  if(array_size(v) > 1)
+   {
+   mrb_value *two = one->next;
+   mrb_value *tmp;
+   }
+  SET_RETURN(ret);
+} */
+
+
 void mrb_init_class_array(void)
 {
 	// Array

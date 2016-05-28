@@ -134,7 +134,20 @@ inline static int op_loadi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   regs[GETARG_A(code)].value.i = GETARG_sBx(code);
   regs[GETARG_A(code)].tt = MRB_TT_FIXNUM;
-  return 0;
+
+return 0;
+}
+
+inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int ra = GETARG_A(code);
+  int rb = GETARG_Bx(code);
+  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+
+  mrb_sym sym_id = add_sym(sym);
+  regs[ra] = global_object_get(sym_id);
+
+return 0;
 }
 
 
@@ -1094,6 +1107,7 @@ int vm_run_step( mrb_vm *vm )
     case OP_MOVE:       ret = op_move      (vm, code, regs); break;
     case OP_LOADL:      ret = op_loadl     (vm, code, regs); break;
     case OP_LOADI:      ret = op_loadi     (vm, code, regs); break;
+    case OP_LOADSYM:    ret = op_loadsym   (vm, code, regs); break;
     case OP_LOADNIL:    ret = op_loadnil   (vm, code, regs); break;
     case OP_LOADSELF:   ret = op_loadself  (vm, code, regs); break;
     case OP_LOADT:      ret = op_loadt     (vm, code, regs); break;
