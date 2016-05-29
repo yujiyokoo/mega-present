@@ -1,5 +1,7 @@
 # mruby/c
 
+[![Join the chat at https://gitter.im/mrubyc/mrubyc](https://badges.gitter.im/mrubyc/mrubyc.svg)](https://gitter.im/mrubyc/mrubyc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 mruby/c is an another implementation of mruby.
 
 - Small memory consumption
