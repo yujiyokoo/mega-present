@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "alloc.h"
 #include "vm.h"
 #include "load.h"
 #include "errorcode.h"
@@ -15,6 +16,7 @@ void mrubyc(char *fn)
   struct VM *vm;
 
   init_static();
+  mrbc_init_alloc();
 
   vm = vm_open();
   if( vm == 0 ){

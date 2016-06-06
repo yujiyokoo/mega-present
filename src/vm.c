@@ -15,6 +15,7 @@
 
 #include <stdint.h>
 #include "vm.h"
+#include "alloc.h"
 #include "static.h"
 #include "vm_config.h"
 #include "opcode.h"
