@@ -20,16 +20,16 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void mrbc_init_alloc(void);
 uint8_t *mrbc_alloc(int vm_id, int size);
 void mrbc_free(int vm_id, void *ptr);
 void mrbc_compact(int vm_id);
 void mrbc_inc_ref(uint8_t *ptr);
 void mrbc_dec_ref(uint8_t *ptr);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // assignment
 // dst = src
