@@ -33,13 +33,14 @@ end
 
 ARGV.each do |file|
   mrb_file = file.gsub('.rb', '.mrb')
+  txt_file = file.gsub('.rb', '.txt')
 
   unless File.exists?(mrb_file) then
-    `#{$mrbc_exe} -E #{file}`
+    `#{$mrbc_exe} -v -E #{file} > #{txt_file}`
   end
 
   if File.mtime(file) > File.mtime(mrb_file) then
-    `#{$mrbc_exe} -E #{file}`
+    `#{$mrbc_exe} -v -E #{file} > #{txt_file}`
   end
 
   if File.exists?(mrb_file) then
