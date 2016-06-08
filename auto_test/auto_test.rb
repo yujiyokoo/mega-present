@@ -38,6 +38,10 @@ ARGV.each do |file|
     `#{$mrbc_exe} -E #{file}`
   end
 
+  if File.mtime(file) > File.mtime(mrb_file) then
+    `#{$mrbc_exe} -E #{file}`
+  end
+
   if File.exists?(mrb_file) then
     result_mruby = `#{$mruby_exe} #{file}`
     result_mrubyc = `#{$mrubyc_exe} #{mrb_file}`
