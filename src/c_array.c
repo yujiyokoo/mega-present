@@ -60,7 +60,15 @@ static void c_array_set(mrb_vm *vm, mrb_value *v)
     obj = obj->next;
   }
   if( obj ){
-    //    if( tt == MRB_TT_
+    int tt = GET_TT_ARG(1);
+    obj->tt = tt;
+    if( tt == MRB_TT_FIXNUM ){
+      obj->value.i = GET_INT_ARG(1);
+    } else if( tt == MRB_TT_FLOAT ){
+      obj->value.i = GET_INT_ARG(1);
+    } else {
+      //
+    }
   } else {
     SET_NIL_RETURN();
   }

@@ -16,5 +16,10 @@ eachputs(b)
 
 a = [10,20,30]
 c = a + [40,50]
-eachputs(b)
+eachputs(a)
 eachputs(c)
+
+a = [60,70]
+eachputs(a)
+eachputs(c)
+
