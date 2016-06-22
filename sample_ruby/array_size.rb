@@ -1,5 +1,5 @@
 # Array test for following methods:
-#  size
+#  size, count, empty?
 
 a = []
 puts a.size
