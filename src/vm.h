@@ -83,9 +83,9 @@ typedef struct VM {
 
 
 
-int check_str_4(char *s1, char *s2);
-int get_int_4(char *s);
-int get_int_2(char *s);
+  //int check_str_4(char *s1, char *s2);
+  //int get_int_4(char *s);
+  //int get_int_2(char *s);
 
 mrb_irep *new_irep(void);
 
