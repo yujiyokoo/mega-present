@@ -251,6 +251,7 @@ void mrb_init_class_array(void)
 	//mrb_define_method(static_class_array, "*", c_array_times);
 	//mrb_define_method(static_class_array, "<<", c_array_push);
 	mrb_define_method(static_class_array, "[]", c_array_get);
+	mrb_define_method(static_class_array, "at", c_array_get);
 	mrb_define_method(static_class_array, "[]=", c_array_set);
 //	mrb_define_method(static_class_array, "concat", c_array_concat);
 //	mrb_define_method(static_class_array, "delete_at", c_array_delete_at);
