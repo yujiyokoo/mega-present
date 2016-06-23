@@ -1,4 +1,4 @@
-mruby 1.1.1 (2014-11-19) 
+mruby 1.2.0 (2015-11-17) 
 00002 NODE_SCOPE:
 00002   local variables:
 00002     a, b, c
@@ -19,16 +19,16 @@ mruby 1.1.1 (2014-11-19)
 00004       rhs:
 00004         NODE_CALL:
 00004           NODE_LVAR a
-00004           method='+' (121)
+00004           method='+' (122)
 00004           args:
 00004             NODE_LVAR b
 00005     NODE_CALL:
 00005       NODE_SELF
-00005       method='puts' (228)
+00005       method='puts' (230)
 00005       args:
 00005         NODE_LVAR c
-irep 0x7fc4c05000b0 nregs=7 nlocals=4 pools=0 syms=2 reps=0
-file: sample01.rb
+irep 0x1f6fa70 nregs=7 nlocals=4 pools=0 syms=2 reps=0
+file: basic_sample01.rb
     2 000 OP_LOADI	R1	10		; R1:a
     3 001 OP_LOADI	R2	20		; R2:b
     4 002 OP_MOVE	R4	R1		; R1:a

@@ -63,8 +63,13 @@ static void console_print_value(int value, int dir, int w, int base, char pad)
   }
   
   if( sign < 0 ) console_putchar('-');
-  while( --idx >= 0 ){
-    console_putchar(buf[idx]);
+
+  if( idx==0 ){
+    console_putchar('0');
+  } else {
+    while( --idx >= 0 ) {
+      console_putchar(buf[idx]);
+    } 
   }
 
   if( dir == -1 ){
