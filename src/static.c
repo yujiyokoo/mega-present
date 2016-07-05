@@ -12,9 +12,6 @@ mrb_vm *static_pool_vm;
 static mrb_object static_object[MAX_OBJECT_COUNT];
 mrb_object *static_pool_object;
 
-static mrb_class static_class[MAX_CLASS_COUNT];
-mrb_class *static_pool_class;
-
 mrb_constobject static_const[MAX_CONST_COUNT];
 
 mrb_globalobject static_global[MAX_GLOBAL_OBJECT_SIZE];
@@ -48,11 +45,6 @@ void init_static(void)
   }
   static_object[MAX_OBJECT_COUNT-1].next = 0;
 
-  static_pool_class = static_class;
-  for( i=0 ; i<MAX_CLASS_COUNT-1 ; i++ ){
-    static_class[i].next = static_class + i + 1;
-  }
-  static_class[MAX_CLASS_COUNT-1].next = 0;
 
   /* global objects */
   for( i=0 ; i<MAX_GLOBAL_OBJECT_SIZE ; i++ ){

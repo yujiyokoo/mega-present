@@ -30,9 +30,6 @@ extern mrb_vm *static_pool_vm;
 /* Object */
 extern mrb_object *static_pool_object;
 
-/* Class */
-extern mrb_class *static_pool_class;
-
 
 /* Class Tree */
 extern mrb_class *static_class_object;

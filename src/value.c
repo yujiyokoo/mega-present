@@ -17,9 +17,8 @@ mrb_object *mrb_obj_alloc(mrb_vtype tt)
 
 mrb_class *mrb_class_alloc(const char *name, mrb_class *super)
 {
-  mrb_class *ptr = static_pool_class;
-  if( ptr != 0 ){
-    static_pool_class = ptr->next;
+  mrb_class *ptr = (mrb_class *)mrbc_alloc(0, sizeof(mrb_class));
+  if( ptr ){
     ptr->tt = MRB_TT_CLASS;
     ptr->super = super;
     ptr->name = add_sym(name);
@@ -32,7 +31,7 @@ mrb_class *mrb_class_alloc(const char *name, mrb_class *super)
 mrb_proc *mrb_rproc_alloc(const char *name)
 {
   mrb_proc *ptr = (mrb_proc *)mrbc_alloc(0, sizeof(mrb_proc));
-    ptr->sym_id = add_sym(name);
+  ptr->sym_id = add_sym(name);
   ptr->next = 0;
   return ptr;
 }
