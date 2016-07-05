@@ -1,4 +1,6 @@
+#include <stdint.h>
 #include "common.h"
+
 
 // simple strcmp
 int my_strcmp(const char *s1, const char *s2)
@@ -36,9 +38,9 @@ int check_str_4(char *s1, char *s2)
   return ret;
 }
 
-int get_int_4(char *s)
+int get_int_4(void *s)
 {
-  unsigned char *s1 = (unsigned char *)s;
+  uint8_t *s1 = (uint8_t *)s;
   int ret = *s1++;
   ret = (ret << 8) + *s1++;
   ret = (ret << 8) + *s1++;
@@ -46,9 +48,9 @@ int get_int_4(char *s)
   return  ret;
 }
 
-int get_int_2(char *s)
+int get_int_2(void *s)
 {
-  unsigned char *s1 = (unsigned char *)s;
+  uint8_t *s1 = (uint8_t *)s;
   int ret = *s1++;
   return (ret << 8) + *s1;
 }

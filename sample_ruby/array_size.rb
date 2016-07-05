@@ -1,11 +1,15 @@
 # Array test for following methods:
-#  size, count, empty?
+#   size
+#   count
+#   empty?
 
 a = []
 puts a.size
+puts a.count
 
 a = [1,2,3]
 puts a.size
+puts a.count
 
 puts a[0]
 puts a[2]

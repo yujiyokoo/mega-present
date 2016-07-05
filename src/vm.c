@@ -22,6 +22,7 @@
 #include "class.h"
 #include "symbol.h"
 #include "console.h"
+#include "common.h"
 
 
 //================================================================
@@ -32,7 +33,7 @@
   @param  n
   @return  symbol string
 */
-char *find_irep_symbol( void *p, int n )
+char *find_irep_symbol( uint8_t *p, int n )
 {
   int cnt = get_int_4(p);
   if( n >= cnt ) return 0;
@@ -42,7 +43,7 @@ char *find_irep_symbol( void *p, int n )
     p += 2+s+1;   // size(2 bytes) + symbol len + '\0'
     n--;
   }
-  return p+2;  // skip size(2 bytes)
+  return (char *)p+2;  // skip size(2 bytes)
 }
 
 

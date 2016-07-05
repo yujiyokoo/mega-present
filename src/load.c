@@ -8,6 +8,7 @@
 #include "errorcode.h"
 #include "static.h"
 #include "value.h"
+#include "common.h"
 
 
 int load_header(struct VM *vm, char **pos)
