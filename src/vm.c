@@ -1004,11 +1004,7 @@ void debug_irep(mrb_vm *vm, mrb_irep *irep)
 */
 mrb_irep *new_irep(void)
 {
-  mrb_irep *p = static_pool_irep;
-  if( p != 0 ){
-    static_pool_irep = p->next;
-    p->next = 0;
-  }
+  mrb_irep *p = (mrb_irep *)mrbc_alloc(0, sizeof(mrb_irep));
   return p;
 }
 

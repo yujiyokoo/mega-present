@@ -2,6 +2,7 @@
 #include "value.h"
 #include "static.h"
 #include "symbol.h"
+#include "alloc.h"
 
 mrb_object *mrb_obj_alloc(mrb_vtype tt)
 {
@@ -30,12 +31,9 @@ mrb_class *mrb_class_alloc(const char *name, mrb_class *super)
 
 mrb_proc *mrb_rproc_alloc(const char *name)
 {
-  mrb_proc *ptr = static_pool_proc;
-  if( ptr != 0 ){
-    static_pool_proc = ptr->next;
+  mrb_proc *ptr = (mrb_proc *)mrbc_alloc(0, sizeof(mrb_proc));
     ptr->sym_id = add_sym(name);
-    ptr->next = 0;
-  }
+  ptr->next = 0;
   return ptr;
 }
 

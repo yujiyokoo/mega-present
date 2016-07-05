@@ -15,8 +15,8 @@ void mrubyc(char *fn)
 {
   struct VM *vm;
 
-  init_static();
   mrbc_init_alloc();
+  init_static();
 
   vm = vm_open();
   if( vm == 0 ){

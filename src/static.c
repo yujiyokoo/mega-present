@@ -9,17 +9,11 @@
 static mrb_vm static_vm[MAX_VM_COUNT];
 mrb_vm *static_pool_vm;
 
-static mrb_irep static_irep[MAX_IREP_COUNT];
-mrb_irep *static_pool_irep;
-
 static mrb_object static_object[MAX_OBJECT_COUNT];
 mrb_object *static_pool_object;
 
 static mrb_class static_class[MAX_CLASS_COUNT];
 mrb_class *static_pool_class;
-
-static mrb_proc static_proc[MAX_PROC_COUNT];
-mrb_proc *static_pool_proc;
 
 mrb_constobject static_const[MAX_CONST_COUNT];
 
@@ -48,12 +42,6 @@ void init_static(void)
   }
   static_vm[MAX_VM_COUNT-1].next = 0;
 
-  static_pool_irep = static_irep;
-  for( i=0 ; i<MAX_IREP_COUNT-1 ; i++ ) {
-    static_irep[i].next = static_irep + i + 1;
-  }
-  static_irep[MAX_IREP_COUNT-1].next = 0;
-
   static_pool_object = static_object;
   for( i=0 ; i<MAX_OBJECT_COUNT-1 ; i++ ){
     static_object[i].next = static_object + i + 1;
@@ -65,12 +53,6 @@ void init_static(void)
     static_class[i].next = static_class + i + 1;
   }
   static_class[MAX_CLASS_COUNT-1].next = 0;
-
-  static_pool_proc = static_proc;
-  for( i=0 ; i<MAX_PROC_COUNT-1 ; i++ ){
-    static_proc[i].next = static_proc + i + 1;
-  }
-  static_proc[MAX_PROC_COUNT-1].next = 0;
 
   /* global objects */
   for( i=0 ; i<MAX_GLOBAL_OBJECT_SIZE ; i++ ){

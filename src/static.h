@@ -27,17 +27,12 @@ extern "C" {
 /* VM */
 extern mrb_vm *static_pool_vm;
 
-/* IREP */
-extern mrb_irep *static_pool_irep;
-
 /* Object */
 extern mrb_object *static_pool_object;
 
 /* Class */
 extern mrb_class *static_pool_class;
 
-/* Proc */
-extern mrb_proc *static_pool_proc;
 
 /* Class Tree */
 extern mrb_class *static_class_object;

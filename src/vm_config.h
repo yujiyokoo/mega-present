@@ -18,12 +18,6 @@
 /* maximum number of VMs */
 #define MAX_VM_COUNT 5
 
-/* max of IREP block in mrb */
-#define MAX_IREP_SIZE 500
-
-/* maximum number of ireps */
-#define MAX_IREP_COUNT 50
-
 /* maximum size of registers */
 #define MAX_REGS_SIZE 100
 
@@ -35,9 +29,6 @@
 
 /* maximum number of classes */
 #define MAX_CLASS_COUNT 20
-
-/* maximum number of procs */
-#define MAX_PROC_COUNT 50
 
 /* maximum size of symbol table */
 #define MAX_SYMBOLS_SIZE 200
