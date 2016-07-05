@@ -10,6 +10,8 @@ end
 a = [1,2,3,4]
 eachputs(a)
 
+puts a.last
+
 b = a.last(3)
 eachputs(b)
 
