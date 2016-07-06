@@ -28,7 +28,7 @@ extern "C" {
 extern mrb_vm *static_pool_vm;
 
 /* Object */
-extern mrb_object *static_pool_object;
+//extern mrb_object *static_pool_object;
 
 
 /* Class Tree */

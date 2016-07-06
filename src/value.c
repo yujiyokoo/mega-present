@@ -6,11 +6,10 @@
 
 mrb_object *mrb_obj_alloc(mrb_vtype tt)
 {
-  mrb_object *ptr = static_pool_object;
-  if( ptr != 0 ){
-    static_pool_object = ptr->next;
-    ptr->next = 0;
+  mrb_object *ptr = (mrb_object *)mrbc_alloc(0, sizeof(mrb_object));
+  if( ptr  ){
     ptr->tt = tt;
+    ptr->next = 0;
   }
   return ptr;
 }
