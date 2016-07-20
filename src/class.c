@@ -37,6 +37,11 @@ mrb_class *find_class_by_object(struct VM *vm, mrb_object *obj)
       cls = static_class_float;
       break;
 #endif
+#if MRUBYC_USE_STRING
+    case MRB_TT_STRING:
+      cls = static_class_string;
+      break;
+#endif
     default:
       break;
   }
@@ -196,6 +201,9 @@ void mrb_init_class(void)
   mrb_init_class_fixnum();
 #if MRUBYC_USE_FLOAT
   mrb_init_class_float();
+#endif
+#if MRUBYC_USE_STRING
+  mrb_init_class_string();
 #endif
 
   mrb_init_class_array();

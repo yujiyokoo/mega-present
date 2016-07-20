@@ -29,9 +29,20 @@ char *mrb_string_cat(char *s1, const char *s2)
 }
 
 
+// String . size
+static void c_string_size(mrb_vm *vm, mrb_value *v)
+{
+  int cnt = my_strlen(v->value.str);
+  SET_INT_RETURN( cnt );
+}
+
+
+
 void mrb_init_class_string(void)
 {
   static_class_string = mrb_class_alloc("String", static_class_object);
+
+  mrb_define_method(static_class_string, "size", c_string_size);
 
   
 }
