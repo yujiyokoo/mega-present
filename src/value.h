@@ -70,6 +70,7 @@ typedef struct RClass {
 } mrb_class;
 
 
+
 //================================================================
 /*!@brief
 
@@ -79,10 +80,10 @@ typedef struct RObject {
   mrb_vtype tt;
   union {
     int i;        // MRB_TT_FIXNUM
-    struct RObject *obj;    // MRB_TT_OBJECT : link to object
+    struct RObject *obj;   // MRB_TT_OBJECT : link to object
     struct RClass *cls;    // MRB_TT_CLASS : link to class
-    struct RProc *proc;   // MRB_TT_PROC : link to proc
-    struct RObject *ary;  // MRB_TT_ARRAY : link to objects
+    struct RProc *proc;    // MRB_TT_PROC : link to proc
+    struct RArray *array;  // MRB_TT_ARRAY : array ob object
 #if MRUBYC_USE_FLOAT
     double d;
 #endif
@@ -93,6 +94,17 @@ typedef struct RObject mrb_value;
 
 struct VM;
 typedef void (*mrb_func_t)(struct VM *vm, mrb_value *v);
+
+
+//================================================================
+/*!@brief
+
+*/ 
+struct RArray {
+  int len;
+  struct RObject data[0];
+};
+
 
 
 //================================================================

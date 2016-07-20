@@ -8,11 +8,13 @@
 #include "load.h"
 #include "errorcode.h"
 #include "static.h"
+#include "alloc.h"
 
 int main(int argc, char *argv[])
 {
   struct VM *vm[10];
 
+  mrbc_init_alloc();
   init_static();
 
   int vm_cnt = argc-1;
