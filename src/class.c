@@ -111,6 +111,11 @@ void c_puts(mrb_vm *vm, mrb_value *v)
     console_printf("%f", arg0->value.d);
     break;
 #endif
+#if MRUBYC_USE_STRING
+  case MRB_TT_STRING:
+    console_printf("%s", arg0->value.str);
+    break;
+#endif
   default:
     console_printf("Not supported: MRB_TT_XX(%d)", arg0->tt);
     break;

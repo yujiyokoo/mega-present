@@ -95,6 +95,12 @@ int load_irep(struct VM *vm, char **pos)
         return LOAD_FILE_IREP_ERROR_ALLOCATION;
       }
       switch( tt ){
+#if MRUBYC_USE_STRING
+        case 0: { // IREP_TT_STRING
+          ptr->tt = MRB_TT_FLOAT;
+	  ptr->value.str = p;
+        } break;
+#endif
 #if MRUBYC_USE_FLOAT
         case 2: { // IREP_TT_FLOAT
           char buf[obj_size+1];

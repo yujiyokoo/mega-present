@@ -53,4 +53,7 @@
 /* USE Float. Support Float class */
 #define MRUBYC_USE_FLOAT 1
 
+/* USE String. Support String class */
+#define MRUBYC_USE_STRING 1
+
 #endif

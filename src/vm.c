@@ -24,6 +24,7 @@
 #include "console.h"
 #include "common.h"
 
+#include "c_string.h"
 
 //================================================================
 /*!@brief
@@ -851,6 +852,37 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
+  Create string object  
+
+  R(A) := str_dup(Lit(Bx))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  mrb_value v;
+  v.tt = MRB_TT_STRING;
+
+  int arg_b = GETARG_Bx(code);
+  mrb_object *ptr = vm->pc_irep->ptr_to_pool;
+  while( arg_b > 0 ){
+    ptr = ptr->next;
+    arg_b--;
+  }
+  v.value.str = mrb_string_dup(ptr->value.str);
+
+  int arg_a = GETARG_A(code);
+  regs[arg_a] = v;
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute  LAMBDA
 
   R(A) := lambda(SEQ[Bz],Cz)
@@ -1026,11 +1058,13 @@ mrb_irep *new_irep(void)
 struct VM *vm_open(void)
 {
   mrb_vm *p = static_pool_vm;
-  static_pool_vm = p->next;
-
-  p->priority = 1;
-  p->pc = 0;
-  p->callinfo_top = 0;
+  if( p != 0 ){
+    static_pool_vm = p->next;
+    
+    p->priority = 1;
+    p->pc = 0;
+    p->callinfo_top = 0;
+  }
   return p;
 }
 
@@ -1130,6 +1164,7 @@ int vm_run_step( mrb_vm *vm )
     case OP_GT:         ret = op_gt        (vm, code, regs); break;
     case OP_GE:         ret = op_ge        (vm, code, regs); break;
     case OP_ARRAY:      ret = op_array     (vm, code, regs); break;
+    case OP_STRING:     ret = op_string    (vm, code, regs); break;
     case OP_LAMBDA:     ret = op_lambda    (vm, code, regs); break;
     case OP_CLASS:      ret = op_class     (vm, code, regs); break;
     case OP_METHOD:     ret = op_method    (vm, code, regs); break;

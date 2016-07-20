@@ -54,6 +54,7 @@ typedef enum {
   MRB_TT_CLASS,
   MRB_TT_PROC,
   MRB_TT_ARRAY,
+  MRB_TT_STRING,
 } mrb_vtype;
 
 
@@ -83,10 +84,13 @@ typedef struct RObject {
     struct RObject *obj;   // MRB_TT_OBJECT : link to object
     struct RClass *cls;    // MRB_TT_CLASS : link to class
     struct RProc *proc;    // MRB_TT_PROC : link to proc
-    struct RArray *array;  // MRB_TT_ARRAY : array ob object
+    struct RArray *array;  // MRB_TT_ARRAY : array object
 #if MRUBYC_USE_FLOAT
-    double d;
+    double d;              // MRB_TT_FLOAT : float
 #endif
+#if MRUBYC_USE_STRING
+    char *str;             // MRB_TT_STRING : C-string
+#endif    
   } value;
 } mrb_object;
 typedef struct RObject mrb_value;

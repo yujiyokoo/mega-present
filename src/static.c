@@ -5,7 +5,7 @@
 #include "symbol.h"
 
 /* Static Variables */
-/* Shared Objects */
+/* VM contains regs, stack, PC, and so on */
 static mrb_vm static_vm[MAX_VM_COUNT];
 mrb_vm *static_pool_vm;
 
@@ -28,6 +28,10 @@ mrb_class *static_class_fixnum;
 #if MRUBYC_USE_FLOAT
 mrb_class *static_class_float;
 #endif
+#if MRUBYC_USE_STRING
+mrb_class *static_class_string;
+#endif
+
 
 void init_static(void)
 {

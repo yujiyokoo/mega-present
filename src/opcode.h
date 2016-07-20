@@ -79,6 +79,8 @@ enum OPCODE {
   OP_GE        = 0x36,
   OP_ARRAY     = 0x37,
 
+  OP_STRING    = 0x3d,
+
   OP_LAMBDA    = 0x40,
 
   OP_CLASS     = 0x43,
