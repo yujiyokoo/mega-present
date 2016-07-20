@@ -487,6 +487,11 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
       op_send(vm, code, regs);
     }
 #endif
+#if MRUBYC_USE_STRING
+  } else if( regs[rr].tt == MRB_TT_STRING && regs[rr+1].tt == MRB_TT_STRING ){
+    regs[rr].value.str = mrb_string_cat(regs[rr].value.str, regs[rr+1].value.str);
+
+#endif
   } else {
     op_send(vm, code, regs);
   }

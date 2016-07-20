@@ -7,5 +7,6 @@
 a = "abcd"
 puts a
 b = "1234"
+puts b
 c = a + b
 puts c

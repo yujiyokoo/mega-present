@@ -23,7 +23,8 @@ extern "C" {
 
 void mrb_init_class_string(void);
 
-char* mrb_string_dup(const char *str);
+char *mrb_string_dup(const char *str);
+char *mrb_string_cat(char *s1, const char *s2);
 
 #ifdef __cplusplus
 }
