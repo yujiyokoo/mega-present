@@ -5,6 +5,7 @@
 
 #include "c_array.h"
 #include "c_numeric.h"
+#include "c_string.h"
 
 
 
@@ -128,12 +129,6 @@ void c_puts(mrb_vm *vm, mrb_value *v)
   console_printf("\n");
 }
 
-// Object - add
-void c_add(mrb_vm *vm, mrb_value *v)
-{
-  SET_INT_RETURN( GET_INT_ARG(0) + GET_INT_ARG(1) );
-}
-
 
 static void mrb_init_class_object(void)
 {
@@ -141,7 +136,6 @@ static void mrb_init_class_object(void)
   static_class_object = mrb_class_alloc("Object", 0);
   // Methods
   mrb_define_method(static_class_object, "puts", c_puts);
-  mrb_define_method(static_class_object, "add", c_add);
 
 }
 
@@ -205,6 +199,5 @@ void mrb_init_class(void)
 #if MRUBYC_USE_STRING
   mrb_init_class_string();
 #endif
-
   mrb_init_class_array();
 }

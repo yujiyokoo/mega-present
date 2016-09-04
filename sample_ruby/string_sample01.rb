@@ -17,5 +17,4 @@ puts c
 
 puts a.size
 puts a[2]
-a[2] = "@"
 puts a

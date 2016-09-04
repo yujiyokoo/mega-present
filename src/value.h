@@ -153,6 +153,10 @@ mrb_proc *mrb_rproc_alloc_to_class(const char *name, mrb_class *cls);
 #define GET_FLOAT_ARG(n)          v[(n)+1].value.d
 #endif
 
+#if MRUBYC_USE_STRING
+#define GET_STRING_ARG(n)          v[(n)+1].value.str
+#endif
+
 #ifdef __cplusplus
 }
 #endif
