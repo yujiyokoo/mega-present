@@ -16,13 +16,13 @@ LIBMRUBYC = ../src/libmrubyc.a
 all: mrubyc mrubyc_sample mrubyc_concurrent
 
 mrubyc: main.o $(LIBMRUBYC)
-	gcc $^ $(LDFLAGS) $(LDLIBS) -o $@
+	$(CC) $^ $(LDFLAGS) $(LDLIBS) -o $@
 
 mrubyc_sample: main_sample.o $(LIBMRUBYC)
-	gcc $^ $(LDFLAGS) $(LDLIBS) -o $@
+	$(CC) $^ $(LDFLAGS) $(LDLIBS) -o $@
 
 mrubyc_concurrent: main_concurrent.o $(LIBMRUBYC)
-	gcc $^ $(LDFLAGS) $(LDLIBS) -o $@
+	$(CC) $^ $(LDFLAGS) $(LDLIBS) -o $@
 
 clean:
 	@rm -f *.o mrubyc mrubyc_sample mrubyc_concurrent
