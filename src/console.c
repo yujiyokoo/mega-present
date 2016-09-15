@@ -14,9 +14,10 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include <ctype.h>
 #include "console.h"
-#include "common.h"
+
 
 // put char
 // target dependent function: putchar
@@ -119,7 +120,7 @@ void console_printf(const char *fmt, ...)
     switch( toupper(c) ){
     case 'S':{
       char *ptr = va_arg(params, char*);
-      int n_pad = w - my_strlen(ptr);
+      int n_pad = w - strlen(ptr);
       if( n_pad < 0 ) n_pad = 0;
       if( dir == 1 ){
 	while( n_pad-- > 0 ){

@@ -1,8 +1,8 @@
+#include <string.h>
 #include "c_string.h"
 
 #include "alloc.h"
 #include "class.h"
-#include "common.h"
 #include "static.h"
 #include "value.h"
 
@@ -11,9 +11,9 @@
 // returns duplicated string pointer
 char* mrb_string_dup(const char *str)
 {
-  int len = my_strlen((char *)str);
+  int len = strlen((char *)str);
   char *ptr = (char *)mrbc_alloc(0, len+1);
-  my_strcpy(ptr, str);
+  strcpy(ptr, str);
   return ptr;
 }
 
@@ -21,11 +21,11 @@ char* mrb_string_dup(const char *str)
 // returns new string
 char *mrb_string_cat(char *s1, const char *s2)
 {
-  int len1 = my_strlen(s1);
-  int len2 = my_strlen(s2);
+  int len1 = strlen(s1);
+  int len2 = strlen(s2);
   char *ptr = (char *)mrbc_alloc(0, len1+len2+1);
-  my_strcpy(ptr, s1);
-  my_strcpy(ptr+len1, s2);
+  strcpy(ptr, s1);
+  strcpy(ptr+len1, s2);
   return ptr;
 }
 
@@ -47,7 +47,7 @@ static char *mrb_string_substr(char *s, int start, int len)
 // string size
 static void c_string_size(mrb_vm *vm, mrb_value *v)
 {
-  int cnt = my_strlen(v->value.str);
+  int cnt = strlen(v->value.str);
   SET_INT_RETURN( cnt );
 }
 

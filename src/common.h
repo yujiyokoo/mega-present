@@ -20,10 +20,6 @@ extern "C" {
 #endif
 
 
-int my_strcmp(const char *s1, const char *s2);
-int my_strlen(const char *s);
-void my_strcpy(char *s1, const char *s2);
-
 int check_str_4(char *s1, char *s2);
 int get_int_4(void *s);
 int get_int_2(void *s);

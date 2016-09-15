@@ -1,4 +1,4 @@
-#include "common.h"
+#include <string.h>
 #include "symbol.h"
 #include "static.h"
 
@@ -42,8 +42,8 @@ mrb_sym add_sym(const char *str)
     sym_index[sym_index_pos].pos = sym_table_tail;
     sym_id = sym_index_pos;
     sym_index_pos++;
-    my_strcpy(sym_table_tail, str);
-    sym_table_tail += my_strlen(str)+1;
+    strcpy(sym_table_tail, str);
+    sym_table_tail += strlen(str)+1;
   }
   return sym_id;
 }
@@ -55,7 +55,7 @@ mrb_sym str_to_symid(const char *str)
   int i;
   for( i=0 ; i<sym_index_pos ; i++ ){
     if( sym_index[i].hash == h ){
-      if( my_strcmp(str, sym_index[i].pos) == 0 ){
+      if( strcmp(str, sym_index[i].pos) == 0 ){
         return i;
       }
     }
