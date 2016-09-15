@@ -44,13 +44,15 @@ typedef int32_t mrb_sym;
 
 */
 typedef enum {
+  /* primitive */
   MRB_TT_EMPTY = 0,
   MRB_TT_TRUE,
   MRB_TT_FALSE,
   MRB_TT_NIL,
   MRB_TT_FIXNUM,
   MRB_TT_FLOAT,
-  MRB_TT_OBJECT,
+  /* non-primitive */
+  MRB_TT_OBJECT = 64,
   MRB_TT_CLASS,
   MRB_TT_PROC,
   MRB_TT_ARRAY,
