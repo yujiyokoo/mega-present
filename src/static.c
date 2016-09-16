@@ -38,6 +38,7 @@ void init_static(void)
 
   for( i=0 ; i<MAX_VM_COUNT ; i++ ){
     static_vm[i].vm_id = i+1;
+    static_vm[i].priority = -1;
   }
 
   /* global objects */

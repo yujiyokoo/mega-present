@@ -1076,6 +1076,7 @@ struct VM *vm_open(void)
     p->pc = 0;
     p->callinfo_top = 0;
   }
+
   return p;
 }
 
