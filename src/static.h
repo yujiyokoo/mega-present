@@ -25,7 +25,7 @@ extern "C" {
 
 
 /* VM */
-extern mrb_vm *static_pool_vm;
+extern mrb_vm static_vm[];
 
 /* Object */
 //extern mrb_object *static_pool_object;

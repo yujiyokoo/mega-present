@@ -6,8 +6,7 @@
 
 /* Static Variables */
 /* VM contains regs, stack, PC, and so on */
-static mrb_vm static_vm[MAX_VM_COUNT];
-mrb_vm *static_pool_vm;
+mrb_vm static_vm[MAX_VM_COUNT];
 
 //static mrb_object static_object[MAX_OBJECT_COUNT];
 //mrb_object *static_pool_object;
@@ -37,11 +36,9 @@ void init_static(void)
 {
   int i;
 
-  static_pool_vm = static_vm;
-  for( i=0 ; i<MAX_VM_COUNT-1 ; i++ ){
-    static_vm[i].next = static_vm + i + 1;
+  for( i=0 ; i<MAX_VM_COUNT ; i++ ){
+    static_vm[i].vm_id = i+1;
   }
-  static_vm[MAX_VM_COUNT-1].next = 0;
 
   /* global objects */
   for( i=0 ; i<MAX_GLOBAL_OBJECT_SIZE ; i++ ){

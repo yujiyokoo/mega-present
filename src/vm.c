@@ -1062,10 +1062,16 @@ mrb_irep *new_irep(void)
 */
 struct VM *vm_open(void)
 {
-  mrb_vm *p = static_pool_vm;
+  int i;
+  mrb_vm *p = 0;
+  for( i=0 ; i<MAX_VM_COUNT ; i++ ){
+    if( static_vm[i].priority < 0 ){
+      p = static_vm + i;
+      break;
+    }
+  }
+
   if( p != 0 ){
-    static_pool_vm = p->next;
-    
     p->priority = 1;
     p->pc = 0;
     p->callinfo_top = 0;
@@ -1084,8 +1090,7 @@ struct VM *vm_open(void)
 void vm_close(struct VM *vm)
 {
   vm->priority = -1;
-  vm->next = static_pool_vm;
-  static_pool_vm = vm;
+  // TODO: release memory block
 }
 
 

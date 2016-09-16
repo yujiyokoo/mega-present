@@ -63,10 +63,12 @@ typedef struct CALLINFO {
 
 */
 typedef struct VM {
-  struct VM *next;  // linked list
-  mrb_irep *irep;     // irep linked list
-  int16_t priority;
-  char *mrb;
+  //  struct VM *next;   // linked list
+  mrb_irep *irep;    // irep linked list
+
+  uint8_t vm_id;     // vm_id : 1..n
+  int16_t priority;  //
+  char *mrb;         // bytecode
 
   mrb_irep *pc_irep;  // PC
   int16_t pc;       // PC
