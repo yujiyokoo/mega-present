@@ -39,12 +39,8 @@ extern mrb_class *static_class_true;
 extern mrb_class *static_class_nil;
 extern mrb_class *static_class_array;
 extern mrb_class *static_class_fixnum;
-#if MRUBYC_USE_FLOAT
 extern mrb_class *static_class_float;
-#endif
-#if MRUBYC_USE_STRING
 extern mrb_class *static_class_string;
-#endif
 
 
 extern mrb_constobject static_const[];

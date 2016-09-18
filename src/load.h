@@ -22,10 +22,7 @@ extern "C" {
 
 int loca_mrb_array(struct VM *vm, char *ptr);
 int load_mrb(struct VM *vm);
-
-#ifdef MRUBYC_USE_FILEIO
 int load_mrb_file(struct VM *vm, char *fn);
-#endif
 
 
 #ifdef __cplusplus
