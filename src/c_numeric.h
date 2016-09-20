@@ -21,10 +21,7 @@ extern "C" {
 
 
 void mrb_init_class_fixnum(void);
-
-#if MRUBYC_USE_FLOAT
 void mrb_init_class_float(void);
-#endif
 
 #ifdef __cplusplus
 }

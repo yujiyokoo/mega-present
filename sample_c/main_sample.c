@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "alloc.h"
 #include "vm.h"
 #include "load.h"
 #include "errorcode.h"
@@ -15,6 +16,7 @@ int main(void)
 {
   struct VM *vm;
 
+  mrbc_init_alloc();
   init_static();
 
   vm = vm_open();

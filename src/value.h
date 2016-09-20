@@ -82,17 +82,13 @@ typedef struct RObject {
   struct RObject *next;
   mrb_vtype tt;
   union {
-    int i;        // MRB_TT_FIXNUM
+    int32_t i;             // MRB_TT_FIXNUM
     struct RObject *obj;   // MRB_TT_OBJECT : link to object
     struct RClass *cls;    // MRB_TT_CLASS : link to class
     struct RProc *proc;    // MRB_TT_PROC : link to proc
     struct RArray *array;  // MRB_TT_ARRAY : array object
-#if MRUBYC_USE_FLOAT
     double d;              // MRB_TT_FLOAT : float
-#endif
-#if MRUBYC_USE_STRING
     char *str;             // MRB_TT_STRING : C-string
-#endif    
   } value;
 } mrb_object;
 typedef struct RObject mrb_value;
@@ -150,14 +146,8 @@ mrb_proc *mrb_rproc_alloc_to_class(const char *name, mrb_class *cls);
 #define GET_TT_ARG(n)             v[(n)+1].tt
 #define GET_INT_ARG(n)            v[(n)+1].value.i
 #define GET_ARY_ARG(n)            v[(n)+1]
-
-#if MRUBYC_USE_FLOAT
 #define GET_FLOAT_ARG(n)          v[(n)+1].value.d
-#endif
-
-#if MRUBYC_USE_STRING
 #define GET_STRING_ARG(n)          v[(n)+1].value.str
-#endif
 
 #ifdef __cplusplus
 }
