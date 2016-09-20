@@ -82,7 +82,7 @@ typedef struct RObject {
   struct RObject *next;
   mrb_vtype tt;
   union {
-    int i;        // MRB_TT_FIXNUM
+    int32_t i;             // MRB_TT_FIXNUM
     struct RObject *obj;   // MRB_TT_OBJECT : link to object
     struct RClass *cls;    // MRB_TT_CLASS : link to class
     struct RProc *proc;    // MRB_TT_PROC : link to proc
