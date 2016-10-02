@@ -85,13 +85,13 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
     mrb_value **dst = &ary.value.obj;
     // SRC
     if( src ){
-      *dst = mrb_obj_alloc(MRB_TT_OBJECT);
+      *dst = mrb_obj_alloc(vm, MRB_TT_OBJECT);
       **dst = *src;
       (*dst)->next = 0;
       dst = &((*dst)->next);
       src = src->next;
       while( src ){
-        *dst = mrb_obj_alloc(MRB_TT_OBJECT);
+        *dst = mrb_obj_alloc(vm, MRB_TT_OBJECT);
         **dst = *src;
         (*dst)->next = 0;
         dst = &((*dst)->next);
@@ -101,13 +101,13 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
     // DST
     src = GET_ARY_ARG(0).value.obj;
     if( src ){
-      *dst = mrb_obj_alloc(MRB_TT_OBJECT);
+      *dst = mrb_obj_alloc(vm, MRB_TT_OBJECT);
       **dst = *src;
       (*dst)->next = 0;
       dst = &((*dst)->next);
       src = src->next;
       while( src ){
-        *dst = mrb_obj_alloc(MRB_TT_OBJECT);
+        *dst = mrb_obj_alloc(vm, MRB_TT_OBJECT);
         **dst = *src;
         (*dst)->next = 0;
         dst = &((*dst)->next);
@@ -192,13 +192,13 @@ static void c_array_last(mrb_vm *vm, mrb_value *v)
       obj = obj->next;
     }
     if( obj ){
-      mrb_value *ptr = mrb_obj_alloc(MRB_TT_OBJECT);
+      mrb_value *ptr = mrb_obj_alloc(vm, MRB_TT_OBJECT);
       ret.value.obj = ptr;
       *ptr = *obj;
       ptr->next = 0;
       obj = obj->next;
       while( obj ){
-        ptr->next = mrb_obj_alloc(MRB_TT_OBJECT);
+        ptr->next = mrb_obj_alloc(vm, MRB_TT_OBJECT);
         ptr = ptr->next;
         *ptr = *obj;
         ptr->next = 0;
@@ -242,34 +242,34 @@ mrb_value *one = v->value.obj;
 } */
 
 
-void mrb_init_class_array(void)
+void mrb_init_class_array(mrb_vm *vm)
 {
-	// Array
-	static_class_array = mrb_class_alloc("Array", static_class_object);
-	mrb_define_method(static_class_array, "count", c_array_size);
-	mrb_define_method(static_class_array, "+", c_array_plus);
-	//mrb_define_method(static_class_array, "*", c_array_times);
-	//mrb_define_method(static_class_array, "<<", c_array_push);
-	mrb_define_method(static_class_array, "[]", c_array_get);
-	mrb_define_method(static_class_array, "at", c_array_get);
-	mrb_define_method(static_class_array, "[]=", c_array_set);
-//	mrb_define_method(static_class_array, "concat", c_array_concat);
-//	mrb_define_method(static_class_array, "delete_at", c_array_delete_at);
-	mrb_define_method(static_class_array, "empty?", c_array_empty);
-	//mrb_define_method(static_class_array, "first", c_array_first);
-	mrb_define_method(static_class_array, "index", c_array_index);
-	//mrb_define_method(static_class_array, "initialize_copy", c_array_replace);
-	//mrb_define_method(static_class_array, "join", c_array_join);
-	mrb_define_method(static_class_array, "last", c_array_last);
-	mrb_define_method(static_class_array, "length", c_array_size);
-	mrb_define_method(static_class_array, "pop", c_array_pop);
-	//mrb_define_method(static_class_array, "push", c_array_push);
-	//mrb_define_method(static_class_array, "replace", c_array_replace);
-	//mrb_define_method(static_class_array, "reverse", c_array_reverse);
-	//mrb_define_method(static_class_array, "reverse!", c_array_reverse_bang);
-	//mrb_define_method(static_class_array, "rindex", c_array_rindex);
-	//mrb_define_method(static_class_array, "shift", c_array_shift);
-	mrb_define_method(static_class_array, "size", c_array_size);
-	//mrb_define_method(static_class_array, "slice", c_array_get);
-	//mrb_define_method(static_class_array, "unshift", c_array_unshift);
+  // Array
+  static_class_array = mrb_class_alloc(vm, "Array", static_class_object);
+  mrb_define_method(vm, static_class_array, "count", c_array_size);
+  mrb_define_method(vm, static_class_array, "+", c_array_plus);
+  //mrb_define_method(vm, static_class_array, "*", c_array_times);
+  //mrb_define_method(vm, static_class_array, "<<", c_array_push);
+  mrb_define_method(vm, static_class_array, "[]", c_array_get);
+  mrb_define_method(vm, static_class_array, "at", c_array_get);
+  mrb_define_method(vm, static_class_array, "[]=", c_array_set);
+  //	mrb_define_method(vm, static_class_array, "concat", c_array_concat);
+  //	mrb_define_method(vm, static_class_array, "delete_at", c_array_delete_at);
+  mrb_define_method(vm, static_class_array, "empty?", c_array_empty);
+  //mrb_define_method(vm, static_class_array, "first", c_array_first);
+  mrb_define_method(vm, static_class_array, "index", c_array_index);
+  //mrb_define_method(vm, static_class_array, "initialize_copy", c_array_replace);
+  //mrb_define_method(vm, static_class_array, "join", c_array_join);
+  mrb_define_method(vm, static_class_array, "last", c_array_last);
+  mrb_define_method(vm, static_class_array, "length", c_array_size);
+  mrb_define_method(vm, static_class_array, "pop", c_array_pop);
+  //mrb_define_method(vm, static_class_array, "push", c_array_push);
+  //mrb_define_method(vm, static_class_array, "replace", c_array_replace);
+  //mrb_define_method(vm, static_class_array, "reverse", c_array_reverse);
+  //mrb_define_method(vm, static_class_array, "reverse!", c_array_reverse_bang);
+  //mrb_define_method(vm, static_class_array, "rindex", c_array_rindex);
+  //mrb_define_method(vm, static_class_array, "shift", c_array_shift);
+  mrb_define_method(vm, static_class_array, "size", c_array_size);
+  //mrb_define_method(vm, static_class_array, "slice", c_array_get);
+  //mrb_define_method(vm, static_class_array, "unshift", c_array_unshift);
 }

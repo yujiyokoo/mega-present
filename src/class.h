@@ -28,8 +28,8 @@ mrb_proc *find_method(struct VM *vm, mrb_value recv, mrb_sym sym_id);
 
 
 void mrb_init_class(void);
-void mrb_define_method(mrb_class *cls, const char *name, mrb_func_t func);
-void mrb_define_method_proc(mrb_class *cls, mrb_sym sym_id, mrb_proc *rproc);
+  void mrb_define_method(struct VM *vm, mrb_class *cls, const char *name, mrb_func_t func);
+  void mrb_define_method_proc(struct VM *vm, mrb_class *cls, mrb_sym sym_id, mrb_proc *rproc);
 
 
 #ifdef __cplusplus

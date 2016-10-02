@@ -3,10 +3,11 @@
 #include "static.h"
 #include "symbol.h"
 #include "alloc.h"
+#include "vm.h"
 
-mrb_object *mrb_obj_alloc(mrb_vtype tt)
+mrb_object *mrb_obj_alloc(mrb_vm *vm, mrb_vtype tt)
 {
-  mrb_object *ptr = (mrb_object *)mrbc_alloc(0, sizeof(mrb_object));
+  mrb_object *ptr = (mrb_object *)mrbc_alloc(vm, sizeof(mrb_object));
   if( ptr  ){
     ptr->tt = tt;
     ptr->next = 0;
@@ -14,9 +15,9 @@ mrb_object *mrb_obj_alloc(mrb_vtype tt)
   return ptr;
 }
 
-mrb_class *mrb_class_alloc(const char *name, mrb_class *super)
+mrb_class *mrb_class_alloc(mrb_vm *vm, const char *name, mrb_class *super)
 {
-  mrb_class *ptr = (mrb_class *)mrbc_alloc(0, sizeof(mrb_class));
+  mrb_class *ptr = (mrb_class *)mrbc_alloc(vm, sizeof(mrb_class));
   if( ptr ){
     ptr->tt = MRB_TT_CLASS;
     ptr->super = super;
@@ -27,17 +28,17 @@ mrb_class *mrb_class_alloc(const char *name, mrb_class *super)
   return ptr;
 }
 
-mrb_proc *mrb_rproc_alloc(const char *name)
+mrb_proc *mrb_rproc_alloc(mrb_vm *vm, const char *name)
 {
-  mrb_proc *ptr = (mrb_proc *)mrbc_alloc(0, sizeof(mrb_proc));
+  mrb_proc *ptr = (mrb_proc *)mrbc_alloc(vm, sizeof(mrb_proc));
   ptr->sym_id = add_sym(name);
   ptr->next = 0;
   return ptr;
 }
 
-mrb_proc *mrb_rproc_alloc_to_class(const char *name, mrb_class *cls)
+mrb_proc *mrb_rproc_alloc_to_class(mrb_vm *vm, const char *name, mrb_class *cls)
 {
-  mrb_proc *rproc = mrb_rproc_alloc(name);
+  mrb_proc *rproc = mrb_rproc_alloc(vm, name);
   if( rproc != 0 ){
     rproc->next = cls->procs;
     cls->procs = rproc;

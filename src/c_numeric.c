@@ -82,7 +82,7 @@ static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v)
   } else {
     i--;
   }
-  char *str = (char *)mrbc_alloc(0, i+2);
+  char *str = (char *)mrbc_alloc(vm, i+2);
   while( i>=0 ){
     str[j++] = buf[i--];
   }
@@ -94,19 +94,19 @@ static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v)
 
 
 
-void mrb_init_class_fixnum(void)
+void mrb_init_class_fixnum(mrb_vm *vm)
 {
   // Fixnum
-  static_class_fixnum = mrb_class_alloc("Fixnum", static_class_object);
-  mrb_define_method(static_class_fixnum, "==", c_fixnum_eq);
-  mrb_define_method(static_class_fixnum, "%", c_fixnum_mod);
-  mrb_define_method(static_class_fixnum, "<=>", c_fixnum_comp);
-  mrb_define_method(static_class_fixnum, "~", c_fixnum_deny);
-  mrb_define_method(static_class_fixnum, "&", c_fixnum_and);
-  mrb_define_method(static_class_fixnum, "<<", c_fixnum_lshift);
-  mrb_define_method(static_class_fixnum, ">>", c_fixnum_rshift);
+  static_class_fixnum = mrb_class_alloc(vm, "Fixnum", static_class_object);
+  mrb_define_method(vm, static_class_fixnum, "==", c_fixnum_eq);
+  mrb_define_method(vm, static_class_fixnum, "%", c_fixnum_mod);
+  mrb_define_method(vm, static_class_fixnum, "<=>", c_fixnum_comp);
+  mrb_define_method(vm, static_class_fixnum, "~", c_fixnum_deny);
+  mrb_define_method(vm, static_class_fixnum, "&", c_fixnum_and);
+  mrb_define_method(vm, static_class_fixnum, "<<", c_fixnum_lshift);
+  mrb_define_method(vm, static_class_fixnum, ">>", c_fixnum_rshift);
 #if MRUBYC_USE_STRING
-  mrb_define_method(static_class_fixnum, "to_s", c_fixnum_to_s);
+  mrb_define_method(vm, static_class_fixnum, "to_s", c_fixnum_to_s);
 #endif
 }
 
@@ -114,10 +114,10 @@ void mrb_init_class_fixnum(void)
 // Float
 #if MRUBYC_USE_FLOAT
 
-void mrb_init_class_float(void)
+void mrb_init_class_float(mrb_vm *vm)
 {
   // Float
-  static_class_float = mrb_class_alloc("Float", static_class_object);
+  static_class_float = mrb_class_alloc(vm, "Float", static_class_object);
 
 }
 

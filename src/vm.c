@@ -489,7 +489,7 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
 #endif
 #if MRUBYC_USE_STRING
   } else if( regs[rr].tt == MRB_TT_STRING && regs[rr+1].tt == MRB_TT_STRING ){
-    regs[rr].value.str = mrb_string_cat(regs[rr].value.str, regs[rr+1].value.str);
+    regs[rr].value.str = mrb_string_cat(vm, regs[rr].value.str, regs[rr+1].value.str);
 
 #endif
   } else {
@@ -832,7 +832,7 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
   v.value.obj = 0;
 
   if( arg_c > 0 ){
-    ptr = mrb_obj_alloc( regs[arg_b].tt );
+    ptr = mrb_obj_alloc(vm, regs[arg_b].tt );
     v.value.obj = ptr;
     ptr->value = regs[arg_b].value;
     ptr->next = 0;
@@ -840,7 +840,7 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
     arg_b++;
 
     while( arg_c > 0 ){
-      ptr->next = mrb_obj_alloc( regs[arg_b].tt );
+      ptr->next = mrb_obj_alloc(vm, regs[arg_b].tt );
       ptr = ptr->next;
       ptr->value = regs[arg_b].value;
       ptr->next = 0;
@@ -877,7 +877,7 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
     ptr = ptr->next;
     arg_b--;
   }
-  v.value.str = mrb_string_dup(ptr->value.str);
+  v.value.str = mrb_string_dup(vm, ptr->value.str);
 
   int arg_a = GETARG_A(code);
   regs[arg_a] = v;
@@ -901,7 +901,7 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   // int c = GETARG_C(code); // TODO: Add flags support for OP_LAMBDA
   int b = GETARG_b(code); // sequence position in irep list
-  mrb_proc *proc = mrb_rproc_alloc("(lambda)");
+  mrb_proc *proc = mrb_rproc_alloc(vm, "(lambda)");
   mrb_irep *current = vm->irep;
   mrb_irep *p = current->next; //starting from next for current sequence;
   // code length is p->ilen * sizeof(uint32_t);
@@ -964,7 +964,7 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
     mrb_irep *cur_irep = vm->pc_irep;
     char *sym = find_irep_symbol(cur_irep->ptr_to_sym, b);
     int sym_id = add_sym( sym );
-    mrb_define_method_proc(cls, sym_id, rproc);
+    mrb_define_method_proc(vm, cls, sym_id, rproc);
   }
 
   return 0;
@@ -1039,9 +1039,9 @@ void debug_irep(mrb_vm *vm, mrb_irep *irep)
   @param  irep
   @return
 */
-mrb_irep *new_irep(void)
+mrb_irep *new_irep(mrb_vm *vm)
 {
-  mrb_irep *p = (mrb_irep *)mrbc_alloc(0, sizeof(mrb_irep));
+  mrb_irep *p = (mrb_irep *)mrbc_alloc(vm, sizeof(mrb_irep));
   return p;
 }
 
@@ -1109,7 +1109,7 @@ void vm_boot(struct VM *vm)
   vm->pc = 0;
   vm->reg_top = 0;
   // set self to reg[0]
-  vm->top_self = mrb_obj_alloc(MRB_TT_OBJECT);
+  vm->top_self = mrb_obj_alloc(vm, MRB_TT_OBJECT);
   vm->top_self->value.cls = static_class_object;
   vm->regs[0].tt = MRB_TT_OBJECT;
   vm->regs[0].value.obj = vm->top_self;

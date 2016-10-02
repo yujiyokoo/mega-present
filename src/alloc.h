@@ -19,13 +19,14 @@
 #define MRUBYC_SRC_ALLOC_H_
 
 #include <stdint.h>
+#include "vm.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void mrbc_init_alloc(void);
-uint8_t *mrbc_alloc(int vm_id, int size);
+uint8_t *mrbc_alloc(mrb_vm *vm, int size);
 void mrbc_free(int vm_id, void *ptr);
 void mrbc_compact(int vm_id);
 void mrbc_inc_ref(uint8_t *ptr);

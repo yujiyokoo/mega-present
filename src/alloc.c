@@ -120,11 +120,18 @@ static uint8_t *_page_alloc(int page, struct _ALLOC_INFO *info, int size)
   return NULL;
 }
 
+static inline uint8_t get_vm_id(mrb_vm *vm)
+{
+  if( vm==0 ) return 0;
+  return vm->vm_id;
+}
+
 
 // memory allocation
-uint8_t *mrbc_alloc(int vm_id, int size)
+uint8_t *mrbc_alloc(mrb_vm *vm, int size)
 {
   int page;
+  int vm_id = get_vm_id(vm);
   int empty_page = -1;
   struct _ALLOC_INFO *info;
   for( page=0 ; page<_ALLOC_PAGE_NUM ; page++ ){

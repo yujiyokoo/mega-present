@@ -89,7 +89,7 @@ typedef struct VM {
   //int get_int_4(char *s);
   //int get_int_2(char *s);
 
-mrb_irep *new_irep(void);
+mrb_irep *new_irep(mrb_vm *vm);
 
 
 struct VM *vm_open(void);
