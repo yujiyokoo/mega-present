@@ -163,8 +163,9 @@ uint8_t *mrbc_alloc(mrb_vm *vm, int size)
 
 // free an allocated memory block
 // linear search is used...
-void mrbc_free(int vm_id, void *ptr)
+void mrbc_free(mrb_vm *vm, void *ptr)
 {
+  int vm_id = get_vm_id(vm);
   uint8_t page = address_to_page(ptr);
   struct _ALLOC_INFO *info = page_to_info(page);
   // check owner
@@ -289,7 +290,7 @@ void mrbc_dec_ref(uint8_t *ptr)
   if( block->count == 0 ){
     // free
     struct _ALLOC_INFO *info = page_to_info(page);
-    mrbc_free(info->owner, ptr);
+    //    mrbc_free(info->owner, ptr);
   }
 }
 

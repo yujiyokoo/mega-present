@@ -27,7 +27,7 @@ extern "C" {
 
 void mrbc_init_alloc(void);
 uint8_t *mrbc_alloc(mrb_vm *vm, int size);
-void mrbc_free(int vm_id, void *ptr);
+void mrbc_free(mrb_vm *vm, void *ptr);
 void mrbc_compact(int vm_id);
 void mrbc_inc_ref(uint8_t *ptr);
 void mrbc_dec_ref(uint8_t *ptr);

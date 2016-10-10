@@ -75,6 +75,8 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
   for( i=0 ; i<len2 ; i++ ){
     *p++ = array2[i+1];
   }
+  mrbc_free(vm, array1);
+  mrbc_free(vm, array2);
   // return
   v->value.array = new_array;
 }
