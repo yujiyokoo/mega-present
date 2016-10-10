@@ -825,25 +825,25 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int arg_a = GETARG_A(code);
   int arg_b = GETARG_B(code);
   int arg_c = GETARG_C(code);
-  mrb_object *ptr;
+  mrb_value *ptr;
 
   mrb_value v;
   v.tt = MRB_TT_ARRAY;
   v.value.obj = 0;
 
-  if( arg_c > 0 ){
-    ptr = mrb_obj_alloc(vm, regs[arg_b].tt );
+  if( arg_c >= 0 ){
+    mrb_object *p;
+    // ptr[0] : array info
+    // ptr[1..] : array elements
+    ptr = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c + 1));
     v.value.obj = ptr;
-    ptr->value = regs[arg_b].value;
-    ptr->next = 0;
-    arg_c--;
-    arg_b++;
+    ptr->value.array_len = arg_c;
 
+    p = ptr + 1;
     while( arg_c > 0 ){
-      ptr->next = mrb_obj_alloc(vm, regs[arg_b].tt );
-      ptr = ptr->next;
-      ptr->value = regs[arg_b].value;
-      ptr->next = 0;
+      p->tt = regs[arg_b].tt;
+      p->value = regs[arg_b].value;
+      p++;
       arg_c--;
       arg_b++;
     }
