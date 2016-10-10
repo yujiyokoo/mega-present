@@ -15,12 +15,14 @@
 #ifndef MRUBYC_SRC_C_ARRAY_H_
 #define MRUBYC_SRC_C_ARRAY_H_
 
+#include "vm.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-void mrb_init_class_array(void);
+void mrb_init_class_array(mrb_vm *vm);
 
 
 #ifdef __cplusplus

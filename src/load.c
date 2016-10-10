@@ -53,7 +53,7 @@ int load_irep(struct VM *vm, char **pos)
     int sz2 = get_int_4(p);  p += 4;
 
     // new irep
-    mrb_irep *irep = new_irep();
+    mrb_irep *irep = new_irep(vm);
     if( irep == 0 ){
       return LOAD_FILE_IREP_ERROR_ALLOCATION;
     }
@@ -90,7 +90,7 @@ int load_irep(struct VM *vm, char **pos)
     for( i=0 ; i<plen ; i++ ){
       int tt = (int)*p++;
       int obj_size = get_int_2(p);   p += 2;
-      mrb_object *ptr = mrb_obj_alloc(MRB_TT_FALSE);
+      mrb_object *ptr = mrb_obj_alloc(vm, MRB_TT_FALSE);
       if( ptr == 0 ){
         return LOAD_FILE_IREP_ERROR_ALLOCATION;
       }

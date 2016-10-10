@@ -85,13 +85,13 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
     mrb_value **dst = &ary.value.obj;
     // SRC
     if( src ){
-      *dst = mrb_obj_alloc(MRB_TT_OBJECT);
+      *dst = mrb_obj_alloc(vm, MRB_TT_OBJECT);
       **dst = *src;
       (*dst)->next = 0;
       dst = &((*dst)->next);
       src = src->next;
       while( src ){
-        *dst = mrb_obj_alloc(MRB_TT_OBJECT);
+        *dst = mrb_obj_alloc(vm, MRB_TT_OBJECT);
         **dst = *src;
         (*dst)->next = 0;
         dst = &((*dst)->next);
@@ -101,13 +101,13 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
     // DST
     src = GET_ARY_ARG(0).value.obj;
     if( src ){
-      *dst = mrb_obj_alloc(MRB_TT_OBJECT);
+      *dst = mrb_obj_alloc(vm, MRB_TT_OBJECT);
       **dst = *src;
       (*dst)->next = 0;
       dst = &((*dst)->next);
       src = src->next;
       while( src ){
-        *dst = mrb_obj_alloc(MRB_TT_OBJECT);
+        *dst = mrb_obj_alloc(vm, MRB_TT_OBJECT);
         **dst = *src;
         (*dst)->next = 0;
         dst = &((*dst)->next);
@@ -192,13 +192,13 @@ static void c_array_last(mrb_vm *vm, mrb_value *v)
       obj = obj->next;
     }
     if( obj ){
-      mrb_value *ptr = mrb_obj_alloc(MRB_TT_OBJECT);
+      mrb_value *ptr = mrb_obj_alloc(vm, MRB_TT_OBJECT);
       ret.value.obj = ptr;
       *ptr = *obj;
       ptr->next = 0;
       obj = obj->next;
       while( obj ){
-        ptr->next = mrb_obj_alloc(MRB_TT_OBJECT);
+        ptr->next = mrb_obj_alloc(vm, MRB_TT_OBJECT);
         ptr = ptr->next;
         *ptr = *obj;
         ptr->next = 0;
@@ -224,7 +224,7 @@ static void c_array_pop(mrb_vm *vm, mrb_value *v)
 }
 
 
-void mrb_init_class_array(void)
+void mrb_init_class_array(mrb_vm *vm)
 {
   // Array
   static_class_array = mrb_class_alloc("Array", static_class_object);

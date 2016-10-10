@@ -116,15 +116,15 @@ typedef struct RProc {
 
 
 // alloc one object
-mrb_object *mrb_obj_alloc(mrb_vtype tt);
+mrb_object *mrb_obj_alloc(struct VM *vm, mrb_vtype tt);
 
 // alloc one class
-mrb_class *mrb_class_alloc(const char *name, mrb_class *super);
+mrb_class *mrb_class_alloc(struct VM *vm, const char *name, mrb_class *super);
 
 
 // alloc one RProc
-mrb_proc *mrb_rproc_alloc(const char *name);
-mrb_proc *mrb_rproc_alloc_to_class(const char *name, mrb_class *cls);
+mrb_proc *mrb_rproc_alloc(struct VM *vm, const char *name);
+  mrb_proc *mrb_rproc_alloc_to_class(struct VM *vm, const char *name, mrb_class *cls);
 
 
 // for C call

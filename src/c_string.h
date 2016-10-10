@@ -15,16 +15,18 @@
 #ifndef MRUBYC_SRC_C_STRING_H_
 #define MRUBYC_SRC_C_STRING_H_
 
+#include <stdint.h>
+#include "vm.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
 
-void mrb_init_class_string(void);
+void mrb_init_class_string(mrb_vm *vm);
 
-char *mrb_string_dup(const char *str);
-char *mrb_string_cat(char *s1, const char *s2);
+char *mrb_string_dup(mrb_vm *vm, const char *str);
+char *mrb_string_cat(mrb_vm *vm, char *s1, const char *s2);
 
 #ifdef __cplusplus
 }
