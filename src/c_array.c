@@ -1,5 +1,6 @@
 #include "c_array.h"
 
+#include "alloc.h"
 #include "class.h"
 #include "static.h"
 #include "value.h"
@@ -57,7 +58,25 @@ static void c_array_set(mrb_vm *vm, mrb_value *v)
 // Array = operator +
 static void c_array_plus(mrb_vm *vm, mrb_value *v)
 {
-
+  // because realloc is not ready in alloc.c, 
+  // use free and alloc
+  mrb_value *array1 = v->value.array;
+  mrb_value *array2 = GET_ARY_ARG(0).value.array;
+  int len1 = array1->value.array_len;
+  int len2 = array2->value.array_len;
+  mrb_value *new_array = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(len1+len2+1));
+  
+  new_array->value.array_len = len1+len2;
+  mrb_value *p = new_array + 1;
+  int i;
+  for( i=0 ; i<len1 ; i++ ){
+    *p++ = array1[i+1];
+  }
+  for( i=0 ; i<len2 ; i++ ){
+    *p++ = array2[i+1];
+  }
+  // return
+  v->value.array = new_array;
 }
 
 
