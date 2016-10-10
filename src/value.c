@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <string.h>
 #include "value.h"
 #include "static.h"
 #include "symbol.h"
@@ -45,3 +46,27 @@ mrb_proc *mrb_rproc_alloc_to_class(mrb_vm *vm, const char *name, mrb_class *cls)
   }
   return rproc;
 }
+
+
+// EQ? two objects
+int mrb_eq(mrb_value *v1, mrb_value *v2)
+{
+  // TT_XXX is NEQ
+  if( v1->tt != v2->tt ) return 0;
+  // check value
+  switch( v1->tt ){
+  case MRB_TT_TRUE:
+  case MRB_TT_FALSE:
+  case MRB_TT_NIL:
+    return 1;
+  case MRB_TT_FIXNUM:
+    return v1->value.i == v2->value.i;
+  case MRB_TT_FLOAT:
+    return v1->value.d == v2->value.d;
+  case MRB_TT_STRING:
+    return !strcmp(v1->value.str, v2->value.str);
+  default:
+    return 0;
+  }
+}
+

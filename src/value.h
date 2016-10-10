@@ -126,6 +126,9 @@ mrb_class *mrb_class_alloc(struct VM *vm, const char *name, mrb_class *super);
 mrb_proc *mrb_rproc_alloc(struct VM *vm, const char *name);
   mrb_proc *mrb_rproc_alloc_to_class(struct VM *vm, const char *name, mrb_class *cls);
 
+// EQ two objects
+int mrb_eq(mrb_value *v1, mrb_value *v2);
+
 
 // for C call
 #define SET_INT_RETURN(n)         {v[0].tt=MRB_TT_FIXNUM;v[0].value.i=(n);}
@@ -137,6 +140,7 @@ mrb_proc *mrb_rproc_alloc(struct VM *vm, const char *name);
 #define GET_TT_ARG(n)             v[(n)+1].tt
 #define GET_INT_ARG(n)            v[(n)+1].value.i
 #define GET_ARY_ARG(n)            v[(n)+1]
+#define GET_ARG(n)                v[(n)+1]
 #define GET_FLOAT_ARG(n)          v[(n)+1].value.d
 #define GET_STRING_ARG(n)          v[(n)+1].value.str
 
