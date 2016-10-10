@@ -57,6 +57,7 @@ typedef enum {
   MRB_TT_PROC,
   MRB_TT_ARRAY,
   MRB_TT_STRING,
+  MRB_TT_RANGE,
 } mrb_vtype;
 
 

@@ -25,6 +25,7 @@
 #include "common.h"
 
 #include "c_string.h"
+#include "c_range.h"
 
 //================================================================
 /*!@brief
@@ -920,6 +921,27 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
+  Execute  RANGE
+
+  R(A) := R(A) := range_new(R(B),R(B+1),C)
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_range( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int a = GETARG_A(code);
+  int b = GETARG_B(code);
+  int c = GETARG_C(code);
+  regs[a] = mrb_range_new(vm, &regs[b], &regs[b+1], c);
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
   Execute CLASS
 
     R(A) := newclass(R(A),Syms(B),R(A+1))
@@ -1177,6 +1199,7 @@ int vm_run_step( mrb_vm *vm )
     case OP_ARRAY:      ret = op_array     (vm, code, regs); break;
     case OP_STRING:     ret = op_string    (vm, code, regs); break;
     case OP_LAMBDA:     ret = op_lambda    (vm, code, regs); break;
+    case OP_RANGE:      ret = op_range     (vm, code, regs); break;
     case OP_CLASS:      ret = op_class     (vm, code, regs); break;
     case OP_METHOD:     ret = op_method    (vm, code, regs); break;
     case OP_TCLASS:     ret = op_tclass    (vm, code, regs); break;

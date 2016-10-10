@@ -105,7 +105,7 @@ void mrb_define_method_proc(mrb_vm *vm, mrb_class *cls, mrb_sym sym_id, mrb_proc
 // Object - puts
 void c_puts(mrb_vm *vm, mrb_value *v)
 {
-  mrb_object *arg0 = v+1;
+  mrb_value *arg0 = v+1;
   switch( arg0->tt ){
   case MRB_TT_FIXNUM:
     console_printf("%d", arg0->value.i);
@@ -123,6 +123,14 @@ void c_puts(mrb_vm *vm, mrb_value *v)
     console_printf("%s", arg0->value.str);
     break;
 #endif
+  case MRB_TT_RANGE:{
+    mrb_value *ptr = arg0->value.range;
+    if( ptr[0].tt == MRB_TT_TRUE ){
+      console_printf("%d...%d", ptr[1].value.i, ptr[2].value.i);
+    } else {
+      console_printf("%d..%d", ptr[1].value.i, ptr[2].value.i);
+    }
+  } break;
   default:
     console_printf("Not supported: MRB_TT_XX(%d)", arg0->tt);
     break;
