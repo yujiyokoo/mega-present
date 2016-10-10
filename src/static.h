@@ -41,6 +41,7 @@ extern mrb_class *static_class_array;
 extern mrb_class *static_class_fixnum;
 extern mrb_class *static_class_float;
 extern mrb_class *static_class_string;
+extern mrb_class *static_class_range;
 
 
 extern mrb_constobject static_const[];

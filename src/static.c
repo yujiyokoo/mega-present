@@ -30,7 +30,7 @@ mrb_class *static_class_float;
 #if MRUBYC_USE_STRING
 mrb_class *static_class_string;
 #endif
-
+mrb_class *static_class_range;
 
 void init_static(void)
 {

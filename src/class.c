@@ -6,6 +6,7 @@
 #include "c_array.h"
 #include "c_numeric.h"
 #include "c_string.h"
+#include "c_range.h"
 
 
 
@@ -200,4 +201,5 @@ void mrb_init_class(void)
   mrb_init_class_string(0);
 #endif
   mrb_init_class_array(0);
+  mrb_init_class_range(0);
 }

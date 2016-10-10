@@ -82,6 +82,7 @@ enum OPCODE {
   OP_STRING    = 0x3d,
 
   OP_LAMBDA    = 0x40,
+  OP_RANGE     = 0x41,
 
   OP_CLASS     = 0x43,
 
