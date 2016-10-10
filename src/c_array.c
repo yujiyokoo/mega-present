@@ -10,8 +10,9 @@
 static int array_size(mrb_value *v)
 {
   mrb_value *array = v->value.obj;
-  return array->value.array_len;
+  return array->value.i;
 }
+
 
 // Array = empty?
 static void c_array_empty(mrb_vm *vm, mrb_value *v)
@@ -36,7 +37,7 @@ static void c_array_get(mrb_vm *vm, mrb_value *v)
   int pos = GET_INT_ARG(0);
   mrb_value *array = v->value.obj;
 
-  if( pos >= 0 && pos < array->value.array_len ){
+  if( pos >= 0 && pos < array->value.i ){
     *v = array[pos+1];
   } else {
     SET_NIL_RETURN();
@@ -49,7 +50,7 @@ static void c_array_set(mrb_vm *vm, mrb_value *v)
   int pos = GET_INT_ARG(0);
   mrb_value *array = v->value.obj;
 
-  if( pos >= 0 && pos < array->value.array_len ){
+  if( pos >= 0 && pos < array->value.i ){
     array[pos+1] = GET_ARG(1);
   } else {
     SET_NIL_RETURN();
@@ -63,11 +64,12 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
   // use free and alloc
   mrb_value *array1 = v->value.array;
   mrb_value *array2 = GET_ARY_ARG(0).value.array;
-  int len1 = array1->value.array_len;
-  int len2 = array2->value.array_len;
+  int len1 = array1->value.i;
+  int len2 = array2->value.i;
   mrb_value *new_array = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(len1+len2+1));
   
-  new_array->value.array_len = len1+len2;
+  new_array->tt = MRB_TT_FIXNUM;
+  new_array->value.i = len1+len2;
   mrb_value *p = new_array + 1;
   int i;
   for( i=0 ; i<len1 ; i++ ){
@@ -85,7 +87,7 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
 
 static void c_array_index(mrb_vm *vm, mrb_value *v)
 {
-  int len = v->value.array->value.array_len;
+  int len = v->value.array->value.i;
   mrb_value *array = v->value.array + 1;
   mrb_value value = GET_ARG(0);
 

@@ -837,7 +837,8 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
     // ptr[1..] : array elements
     ptr = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c + 1));
     v.value.obj = ptr;
-    ptr->value.array_len = arg_c;
+    ptr->tt = MRB_TT_FIXNUM;
+    ptr->value.i = arg_c;
 
     p = ptr + 1;
     while( arg_c > 0 ){
