@@ -86,7 +86,8 @@ typedef struct RObject {
     struct RObject *obj;   // MRB_TT_OBJECT : link to object
     struct RClass *cls;    // MRB_TT_CLASS : link to class
     struct RProc *proc;    // MRB_TT_PROC : link to proc
-    struct RArray *array;  // MRB_TT_ARRAY : array object
+    struct RObject *array; // MRB_TT_ARRAY : array of objects
+    int32_t array_len;     // MRB_TT_ARRAY : array length
     double d;              // MRB_TT_FLOAT : float
     char *str;             // MRB_TT_STRING : C-string
   } value;
@@ -96,16 +97,6 @@ typedef struct RObject mrb_value;
 
 struct VM;
 typedef void (*mrb_func_t)(struct VM *vm, mrb_value *v);
-
-
-//================================================================
-/*!@brief
-
-*/ 
-struct RArray {
-  int len;
-  struct RObject data[0];
-};
 
 
 
