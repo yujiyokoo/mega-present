@@ -87,7 +87,6 @@ typedef struct RObject {
     struct RClass *cls;    // MRB_TT_CLASS : link to class
     struct RProc *proc;    // MRB_TT_PROC : link to proc
     struct RObject *array; // MRB_TT_ARRAY : array of objects
-    int32_t array_len;     // MRB_TT_ARRAY : array length
     struct RObject *range; // MRB_TT_RANGE : link to range
     double d;              // MRB_TT_FLOAT : float
     char *str;             // MRB_TT_STRING : C-string
