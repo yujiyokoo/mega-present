@@ -41,7 +41,39 @@ mruby 1.2.0 (2015-11-17)
 00008       method='puts' (230)
 00008       args:
 00008         NODE_LVAR d
-irep 0x17a5a90 nregs=8 nlocals=5 pools=0 syms=3 reps=0
+00010     NODE_ASGN:
+00010       lhs:
+00010         NODE_LVAR a
+00010       rhs:
+00010         NODE_CALL:
+00010           NODE_LVAR a
+00010           method='*' (123)
+00010           args:
+00010             NODE_INT 2 base 10
+00011     NODE_ASGN:
+00011       lhs:
+00011         NODE_LVAR b
+00011       rhs:
+00011         NODE_CALL:
+00011           NODE_LVAR b
+00011           method='/' (183)
+00011           args:
+00011             NODE_INT 2 base 10
+00012     NODE_ASGN:
+00012       lhs:
+00012         NODE_LVAR c
+00012       rhs:
+00012         NODE_CALL:
+00012           NODE_LVAR a
+00012           method='+' (122)
+00012           args:
+00012             NODE_LVAR b
+00013     NODE_CALL:
+00013       NODE_SELF
+00013       method='puts' (230)
+00013       args:
+00013         NODE_LVAR c
+irep 0x2058a90 nregs=8 nlocals=5 pools=0 syms=5 reps=0
 file: basic_sample01.rb
     2 000 OP_LOADI	R1	10		; R1:a
     3 001 OP_LOADI	R2	20		; R2:b
@@ -59,5 +91,20 @@ file: basic_sample01.rb
     8 013 OP_LOADSELF	R5		
     8 014 OP_MOVE	R6	R4		; R4:d
     8 015 OP_SEND	R5	:puts	1
-    8 016 OP_STOP
+   10 016 OP_MOVE	R5	R1		; R1:a
+   10 017 OP_LOADI	R6	2	
+   10 018 OP_MUL	R5	:*	1
+   10 019 OP_MOVE	R1	R5		; R1:a
+   11 020 OP_MOVE	R5	R2		; R2:b
+   11 021 OP_LOADI	R6	2	
+   11 022 OP_DIV	R5	:/	1
+   11 023 OP_MOVE	R2	R5		; R2:b
+   12 024 OP_MOVE	R5	R1		; R1:a
+   12 025 OP_MOVE	R6	R2		; R2:b
+   12 026 OP_ADD	R5	:+	1
+   12 027 OP_MOVE	R3	R5		; R3:c
+   13 028 OP_LOADSELF	R5		
+   13 029 OP_MOVE	R6	R3		; R3:c
+   13 030 OP_SEND	R5	:puts	1
+   13 031 OP_STOP
 

@@ -542,7 +542,7 @@ inline static int op_sub( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int rr = GETARG_A(code);
 
-  // support Fixnum + Fixnum
+  // support Fixnum - Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     regs[rr].value.i -= regs[rr+1].value.i;
 #if MRUBYC_USE_FLOAT
@@ -581,6 +581,78 @@ inline static int op_subi( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + (value)
   if( regs[rr].tt == MRB_TT_FIXNUM ) {
     regs[rr].value.i -= GETARG_C(code);
+  } else {
+    not_supported();
+  }
+
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
+  Execute
+
+  R(A) := R(A)*R(A+1) (Syms[B]=:*)
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_mul( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int rr = GETARG_A(code);
+
+  // support Fixnum * Fixnum
+  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
+    regs[rr].value.i *= regs[rr+1].value.i;
+#if MRUBYC_USE_FLOAT
+  } else if( regs[rr].tt == MRB_TT_FLOAT ){
+    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
+      regs[rr].value.d *= regs[rr+1].value.i;
+    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
+      regs[rr].value.d *= regs[rr+1].value.d;
+    } else {
+      not_supported();
+    }
+#endif
+  } else {
+    not_supported();
+  }
+
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
+  Execute
+
+  R(A) := R(A)/R(A+1) (Syms[B]=:/)
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_div( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int rr = GETARG_A(code);
+
+  // support Fixnum * Fixnum
+  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
+    regs[rr].value.i /= regs[rr+1].value.i;
+#if MRUBYC_USE_FLOAT
+  } else if( regs[rr].tt == MRB_TT_FLOAT ){
+    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
+      regs[rr].value.d /= regs[rr+1].value.i;
+    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
+      regs[rr].value.d /= regs[rr+1].value.d;
+    } else {
+      not_supported();
+    }
+#endif
   } else {
     not_supported();
   }
@@ -1192,6 +1264,8 @@ int vm_run_step( mrb_vm *vm )
     case OP_ADDI:       ret = op_addi      (vm, code, regs); break;
     case OP_SUB:        ret = op_sub       (vm, code, regs); break;
     case OP_SUBI:       ret = op_subi      (vm, code, regs); break;
+    case OP_MUL:        ret = op_mul       (vm, code, regs); break;
+    case OP_DIV:        ret = op_div       (vm, code, regs); break;
     case OP_EQ:         ret = op_eq        (vm, code, regs); break;
     case OP_LT:         ret = op_lt        (vm, code, regs); break;
     case OP_LE:         ret = op_le        (vm, code, regs); break;
