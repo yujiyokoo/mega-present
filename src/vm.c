@@ -696,8 +696,8 @@ inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
   } else if( regs[rr].tt == MRB_TT_FALSE ){
     result = regs[rr+1].tt == MRB_TT_FALSE;
   } else {
-    result = 0;
     op_send(vm,code,regs);
+    result = regs[rr].tt == MRB_TT_TRUE;
   }
   if( result ) {
     regs[rr].tt = MRB_TT_TRUE;
