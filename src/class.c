@@ -110,8 +110,11 @@ void c_puts(mrb_vm *vm, mrb_value *v)
   case MRB_TT_FIXNUM:
     console_printf("%d", arg0->value.i);
     break;
+  case MRB_TT_TRUE:
+    console_printf("true");
+    break;
   case MRB_TT_FALSE:
-//    console_printf("nil");
+    console_printf("false");
     break;
 #if MRUBYC_USE_FLOAT
   case MRB_TT_FLOAT:
