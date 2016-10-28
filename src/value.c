@@ -49,9 +49,11 @@ mrb_proc *mrb_rproc_alloc_to_class(mrb_vm *vm, const char *name, mrb_class *cls)
 
 
 // EQ? two objects
+// EQ: return true
+// NEQ: return false
 int mrb_eq(mrb_value *v1, mrb_value *v2)
 {
-  // TT_XXX is NEQ
+  // TT_XXX is different
   if( v1->tt != v2->tt ) return 0;
   // check value
   switch( v1->tt ){
@@ -65,6 +67,20 @@ int mrb_eq(mrb_value *v1, mrb_value *v2)
     return v1->value.d == v2->value.d;
   case MRB_TT_STRING:
     return !strcmp(v1->value.str, v2->value.str);
+  case MRB_TT_ARRAY: {
+    mrb_value *array1 = v1->value.obj;
+    mrb_value *array2 = v2->value.obj;
+    int i, len = array1[0].value.i;
+    if( len != array2[0].value.i ) return 0;
+    for( i=1 ; i<=len ; i++ ){
+      if( !mrb_eq(array1+i, array2+i) ) break;
+    }
+    if( i > len ){
+      return 1;
+    } else {
+      return 0;
+    }
+  } break;
   default:
     return 0;
   }

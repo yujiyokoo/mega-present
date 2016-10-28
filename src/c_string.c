@@ -51,20 +51,6 @@ static void c_string_size(mrb_vm *vm, mrb_value *v)
   SET_INT_RETURN( cnt );
 }
 
-// method
-// string size
-static void c_string_equal(mrb_vm *vm, mrb_value *v)
-{
-  if( GET_TT_ARG(0) == MRB_TT_STRING ){
-    if( strcmp(v->value.str, GET_STRING_ARG(0)) == 0 ){
-      SET_TRUE_RETURN();
-    } else {
-      SET_FALSE_RETURN();
-    }
-  } else {
-    SET_FALSE_RETURN();
-  }
-}
 
 // method
 // string []
@@ -98,7 +84,6 @@ void mrb_init_class_string(mrb_vm *vm)
 {
   static_class_string = mrb_class_alloc(vm, "String", static_class_object);
 
-  mrb_define_method(vm, static_class_string, "==", c_string_equal);
   mrb_define_method(vm, static_class_string, "size", c_string_size);
   mrb_define_method(vm, static_class_string, "length", c_string_size);
   mrb_define_method(vm, static_class_string, "[]", c_string_idx_get);

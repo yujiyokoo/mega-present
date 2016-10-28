@@ -6,6 +6,8 @@ puts a==a
 
 puts a==[1,2,3]
 
+puts a==[1,2,3,4]
+
 b = [1,2,3]
 puts a==b
 

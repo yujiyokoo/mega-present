@@ -14,6 +14,16 @@ static int array_size(mrb_value *v)
 }
 
 
+// Array#!=
+static void c_array_neq(mrb_vm *vm, mrb_value *v)
+{
+  if( mrb_eq(v, v+1) ){
+    SET_FALSE_RETURN();
+  } else {
+    SET_TRUE_RETURN();
+  }
+}
+
 // Array = empty?
 static void c_array_empty(mrb_vm *vm, mrb_value *v)
 {
@@ -154,6 +164,7 @@ void mrb_init_class_array(mrb_vm *vm)
   // Array
   static_class_array = mrb_class_alloc(vm, "Array", static_class_object);
   
+  mrb_define_method(vm, static_class_array, "!=", c_array_neq);
   mrb_define_method(vm, static_class_array, "count", c_array_size);
   mrb_define_method(vm, static_class_array, "length", c_array_size);
   mrb_define_method(vm, static_class_array, "size", c_array_size);

@@ -676,6 +676,14 @@ inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int rr = GETARG_A(code);
   int result;
+  
+  //
+  if( mrb_eq(&regs[rr], &regs[rr+1]) ){
+    regs[rr].tt = MRB_TT_TRUE;
+  } else {
+    regs[rr].tt = MRB_TT_FALSE;
+  }
+  return 1;
 
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
