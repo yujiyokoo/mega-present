@@ -53,6 +53,17 @@ static void c_string_size(mrb_vm *vm, mrb_value *v)
 
 
 // method
+// string !=
+static void c_string_neq(mrb_vm *vm, mrb_value *v)
+{
+  if( mrb_eq(v, v+1) ){
+    SET_FALSE_RETURN();
+  } else {
+    SET_TRUE_RETURN();
+  }
+}
+
+// method
 // string []
 //  string[Fixnum]
 static void c_string_idx_get(mrb_vm *vm, mrb_value *v)
@@ -86,6 +97,7 @@ void mrb_init_class_string(mrb_vm *vm)
 
   mrb_define_method(vm, static_class_string, "size", c_string_size);
   mrb_define_method(vm, static_class_string, "length", c_string_size);
-  mrb_define_method(vm, static_class_string, "[]", c_string_idx_get);
+  mrb_define_method(vm, static_class_string, "size", c_string_size);
+  mrb_define_method(vm, static_class_string, "!=", c_string_neq);
   mrb_define_method(vm, static_class_string, "to_i", c_string_to_fixnum);
 }
