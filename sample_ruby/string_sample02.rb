@@ -2,25 +2,15 @@
 # method ==
 
 a = "abcd"
-if a=="abcd" then
-  puts "OK"
-else
-  puts "NG"
-end
+puts a=="abcd" 
 
 b = "abcd"
-if a==b then
-  puts "OK"
-else
-  puts "NG"
-end
+puts a==b 
+puts a!=b 
 
 a = "abcde"
-if a=="abcd" then
-  puts "NG"
-else
-  puts "OK"
-end
+puts a=="abcd" 
+puts a!="abcd" 
 
 
 
