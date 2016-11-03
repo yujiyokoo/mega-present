@@ -8,7 +8,7 @@
 #define _ALLOC_PAGE_SIZE (_ALLOC_STEP * 0x100)
 
 // number of page
-#define _ALLOC_PAGE_NUM 5
+#define _ALLOC_PAGE_NUM 10
 
 // minimum block for free
 #define _ALLOC_MIN_FREE (_ALLOC_STEP * 3)
