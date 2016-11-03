@@ -164,6 +164,10 @@ void c_false_ne(mrb_vm *vm, mrb_value *v)
   }
 }
 
+void c_false_not(mrb_vm *vm, mrb_value *v)
+{
+  SET_TRUE_RETURN();
+}
 
 static void mrb_init_class_false(mrb_vm *vm)
 {
@@ -171,7 +175,7 @@ static void mrb_init_class_false(mrb_vm *vm)
   static_class_false = mrb_class_alloc(vm, "FalseClass", static_class_object);
   // Methods
   mrb_define_method(vm, static_class_false, "!=", c_false_ne);
-
+  mrb_define_method(vm, static_class_false, "!", c_false_not);
 }
 
 
@@ -187,6 +191,12 @@ void c_true_ne(mrb_vm *vm, mrb_value *v)
   }
 }
 
+void c_true_not(mrb_vm *vm, mrb_value *v)
+{
+  SET_FALSE_RETURN();
+}
+
+
 
 static void mrb_init_class_true(mrb_vm *vm)
 {
@@ -194,6 +204,7 @@ static void mrb_init_class_true(mrb_vm *vm)
   static_class_true = mrb_class_alloc(vm, "TrueClass", static_class_object);
   // Methods
   mrb_define_method(vm, static_class_true, "!=", c_true_ne);
+  mrb_define_method(vm, static_class_true, "!", c_true_not);
 
 }
 
