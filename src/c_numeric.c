@@ -51,14 +51,22 @@ static void c_fixnum_and(mrb_vm *vm, mrb_value *v)
 static void c_fixnum_lshift(mrb_vm *vm, mrb_value *v)
 {
   int num = GET_INT_ARG(0);
-  SET_INT_RETURN(v->value.i << num);
+  if( num >= 0 ){
+    SET_INT_RETURN(v->value.i << num);
+  } else {
+    SET_INT_RETURN(v->value.i >> -num);
+  }
 }
 
 // Operator <<; bit operation RIGHT_SHIFT
 static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v)
 {
   int num = GET_INT_ARG(0);
-  SET_INT_RETURN(v->value.i >> num);
+  if( num >= 0 ){
+    SET_INT_RETURN(v->value.i >> num);
+  } else {
+    SET_INT_RETURN(v->value.i << -num);
+  }
 }
 
 #if MRUBYC_USE_STRING
