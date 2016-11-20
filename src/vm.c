@@ -403,7 +403,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
       callinfo->pc = vm->pc;
       vm->callinfo_top++;
       // target irep
-      vm->pc = 0;
+      vm->pc = GETARG_C(code) + 1;
       vm->pc_irep = m->func.irep;
       // new regs
       vm->reg_top += GETARG_A(code);
