@@ -113,6 +113,16 @@ static void c_array_index(mrb_vm *vm, mrb_value *v)
   }
 }
 
+static void c_array_first(mrb_vm *vm, mrb_value *v)
+{
+  if( GET_TT_ARG(0) == MRB_TT_FIXNUM ){
+    mrb_value *array = v->value.array + 1;
+    SET_RETURN( array[0] );
+  } else {
+    SET_NIL_RETURN();
+  }
+}
+
 static void c_array_last(mrb_vm *vm, mrb_value *v)
 {
   if( GET_TT_ARG(0) == MRB_TT_FIXNUM ){
@@ -153,6 +163,8 @@ void mrb_init_class_array(mrb_vm *vm)
   mrb_define_method(vm, static_class_array, "[]=", c_array_set);
   mrb_define_method(vm, static_class_array, "index", c_array_index);
 
+
+  mrb_define_method(vm, static_class_array, "first", c_array_first);
   mrb_define_method(vm, static_class_array, "last", c_array_last);
   mrb_define_method(vm, static_class_array, "pop", c_array_pop);
 }
