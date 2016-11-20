@@ -116,31 +116,9 @@ static void c_array_index(mrb_vm *vm, mrb_value *v)
 static void c_array_last(mrb_vm *vm, mrb_value *v)
 {
   if( GET_TT_ARG(0) == MRB_TT_FIXNUM ){
-    int num = GET_INT_ARG(0);
-    int cnt = array_size(v);
-    mrb_value ret;
-    ret.tt = MRB_TT_ARRAY;
-    ret.value.obj = 0;
-    mrb_value *obj = v->value.obj;
-    while( obj && cnt > num ){
-      num++;
-      obj = obj->next;
-    }
-    if( obj ){
-      mrb_value *ptr = mrb_obj_alloc(vm, MRB_TT_OBJECT);
-      ret.value.obj = ptr;
-      *ptr = *obj;
-      ptr->next = 0;
-      obj = obj->next;
-      while( obj ){
-        ptr->next = mrb_obj_alloc(vm, MRB_TT_OBJECT);
-        ptr = ptr->next;
-        *ptr = *obj;
-        ptr->next = 0;
-        obj = obj->next;
-      }
-    }
-    SET_RETURN(ret);
+    int len = v->value.array->value.i;
+    mrb_value *array = v->value.array + 1;
+    SET_RETURN( array[len-1] );
   } else {
     SET_NIL_RETURN();
   }
