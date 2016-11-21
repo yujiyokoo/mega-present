@@ -47,26 +47,33 @@ static void c_fixnum_and(mrb_vm *vm, mrb_value *v)
   SET_INT_RETURN(v->value.i & num);
 }
 
+// x-bit left shift for x
+static int32_t shift(int32_t x, int32_t y)
+{
+  if( y >= 33 ){
+    x = 0;
+  } else if( y >= 0 ){
+    x <<= y;
+  } else if( y > -33 ){
+    x = x >> -y;
+  } else {
+    x = 0;
+  }
+  return x;
+} 
+
 // Operator <<; bit operation LEFT_SHIFT
 static void c_fixnum_lshift(mrb_vm *vm, mrb_value *v)
 {
   int num = GET_INT_ARG(0);
-  if( num >= 0 ){
-    SET_INT_RETURN(v->value.i << num);
-  } else {
-    SET_INT_RETURN(v->value.i >> -num);
-  }
+  SET_INT_RETURN( shift(v->value.i, num) );
 }
 
-// Operator <<; bit operation RIGHT_SHIFT
+// Operator >>; bit operation RIGHT_SHIFT
 static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v)
 {
   int num = GET_INT_ARG(0);
-  if( num >= 0 ){
-    SET_INT_RETURN(v->value.i >> num);
-  } else {
-    SET_INT_RETURN(v->value.i << -num);
-  }
+  SET_INT_RETURN( shift(v->value.i, -num) );
 }
 
 #if MRUBYC_USE_STRING
