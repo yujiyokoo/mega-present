@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
+#include "hal/hal.h"
 #include "console.h"
 
 
@@ -23,7 +24,7 @@
 // target dependent function: putchar
 void console_putchar(const char c)
 {
-  putchar(c);
+  hal_write(1, &c, 1);
 }
 
 // simple string
@@ -55,14 +56,14 @@ static void console_print_value(int value, int dir, int w, int base, char pad)
 
   if( sign == -1 ) w--;
   if( idx > w ) w = idx;
- 
+
   int n_pad = w - idx;
   if( dir == 1 ){
     while( n_pad-- > 0 ){
       console_putchar(pad);
     }
   }
-  
+
   if( sign < 0 ) console_putchar('-');
 
   if( idx==0 ){
@@ -70,7 +71,7 @@ static void console_print_value(int value, int dir, int w, int base, char pad)
   } else {
     while( --idx >= 0 ) {
       console_putchar(buf[idx]);
-    } 
+    }
   }
 
   if( dir == -1 ){
@@ -85,7 +86,7 @@ static void console_print_value(int value, int dir, int w, int base, char pad)
 void console_printf(const char *fmt, ...)
 {
   va_list params;
- 
+
   va_start(params, fmt);
 
   char c;
