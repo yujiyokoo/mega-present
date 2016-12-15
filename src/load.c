@@ -97,17 +97,24 @@ int load_irep(struct VM *vm, char **pos)
       switch( tt ){
 #if MRUBYC_USE_STRING
         case 0: { // IREP_TT_STRING
-          ptr->tt = MRB_TT_FLOAT;
+          ptr->tt = MRB_TT_STRING;
 	  ptr->value.str = p;
         } break;
 #endif
+        case 1: { // IREP_TT_FIXNUM
+          char buf[obj_size+1];
+          memcpy(buf, p, obj_size);
+          buf[obj_size] = '\0';
+          ptr->tt = MRB_TT_FIXNUM;
+          ptr->value.i = atoi(buf);
+        } break;
 #if MRUBYC_USE_FLOAT
         case 2: { // IREP_TT_FLOAT
           char buf[obj_size+1];
           memcpy(buf, p, obj_size);
           buf[obj_size] = '\0';
-          sscanf(buf, "%lf", &ptr->value.d);
           ptr->tt = MRB_TT_FLOAT;
+          ptr->value.d = atof(buf);
         } break;
 #endif
         default:
