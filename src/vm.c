@@ -433,8 +433,9 @@ inline static int op_enter( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 1;
   uint32_t enter_param = GETARG_Ax(code);
   int def_args = (enter_param >> 13) & 0x1f;
+  int args = (enter_param >> 18) & 0x1f;
   if( def_args > 0 ){
-    vm->pc += callinfo->n_args;
+    vm->pc += callinfo->n_args - args;
   }
   return 0;
 }
@@ -1263,7 +1264,7 @@ int vm_run_step( mrb_vm *vm )
   code = code << 8 | *p;
 
   // for debug use
-  //output_debug_info( vm, GET_OPCODE(code) );
+  // output_debug_info( vm, GET_OPCODE(code) );
 
   // next PC
   vm->pc += 1;
