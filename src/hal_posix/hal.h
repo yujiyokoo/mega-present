@@ -69,7 +69,7 @@ inline static ssize_t hal_write(int fd, const void *buf, size_t nbytes)
 
   @param  fd    dummy, but 1.
 */
-inline static int flush(int fd)
+inline static int hal_flush(int fd)
 {
   return fsync(1);
 }
