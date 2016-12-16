@@ -139,9 +139,21 @@ inline static int op_loadi( mrb_vm *vm, uint32_t code, mrb_value *regs )
   regs[GETARG_A(code)].value.i = GETARG_sBx(code);
   regs[GETARG_A(code)].tt = MRB_TT_FIXNUM;
 
-return 0;
+  return 0;
 }
 
+
+//================================================================
+/*!@brief
+  Execute LOADSYM
+
+  R(A) := Syms(Bx)
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
 inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
@@ -151,7 +163,7 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_sym sym_id = add_sym(sym);
   regs[ra] = global_object_get(sym_id);
 
-return 0;
+  return 0;
 }
 
 
@@ -683,7 +695,7 @@ inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int rr = GETARG_A(code);
   int result;
-  
+
   //
   if( mrb_eq(&regs[rr], &regs[rr+1]) ){
     regs[rr].tt = MRB_TT_TRUE;
@@ -946,7 +958,7 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Create string object  
+  Create string object
 
   R(A) := str_dup(Lit(Bx))
 
@@ -1114,6 +1126,7 @@ inline static int op_tclass( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  vm->flag_preemption = 1;
   return -1;
 }
 
@@ -1225,6 +1238,7 @@ void vm_boot(struct VM *vm)
   vm->regs[0].value.obj = vm->top_self;
   // target_class
   vm->target_class = vm->top_self->value.cls;
+  vm->flag_preemption = 0;
 }
 
 
@@ -1232,7 +1246,7 @@ void vm_boot(struct VM *vm)
 
 //================================================================
 /*!@brief
-  Output debug info of vm 
+  Output debug info of vm
 
   @param  vm      A pointer of VM.
   @param  opcode  opcode at pc
@@ -1247,34 +1261,32 @@ static void output_debug_info( mrb_vm *vm, uint32_t opcode )
 
 //================================================================
 /*!@brief
-  Fetch a bytecode and execute 1 step.
+  Fetch a bytecode and execute
 
   @param  vm    A pointer of VM.
   @retval 0  No error.
 */
-int vm_run_step( mrb_vm *vm )
+int vm_run( mrb_vm *vm )
 {
   int ret = 0;
 
-  // get one bytecode
-  uint8_t *p = (uint8_t *)(vm->pc_irep->code+vm->pc*4);
-  uint32_t code = *p++;
-  code = code << 8 | *p++;
-  code = code << 8 | *p++;
-  code = code << 8 | *p;
+  do {
+    // get one bytecode
+    uint8_t *p = (uint8_t *)(vm->pc_irep->code+vm->pc*4);
+    uint32_t code = *p++;
+    code = code << 8 | *p++;
+    code = code << 8 | *p++;
+    code = code << 8 | *p;
 
-  // for debug use
-  // output_debug_info( vm, GET_OPCODE(code) );
+    // next PC
+    vm->pc += 1;
 
-  // next PC
-  vm->pc += 1;
+    // regs
+    mrb_value *regs = vm->regs + vm->reg_top;
 
-  // regs
-  mrb_value *regs = vm->regs + vm->reg_top;
-
-  // Dispatch
-  enum OPCODE opcode = GET_OPCODE(code);
-  switch( opcode ) {
+    // Dispatch
+    enum OPCODE opcode = GET_OPCODE(code);
+    switch( opcode ) {
     case OP_NOP:        ret = op_nop       (vm, code, regs); break;
     case OP_MOVE:       ret = op_move      (vm, code, regs); break;
     case OP_LOADL:      ret = op_loadl     (vm, code, regs); break;
@@ -1316,7 +1328,8 @@ int vm_run_step( mrb_vm *vm )
     default:
       console_printf("Skip OP=%02x\n", GET_OPCODE(code));
       break;
-  }
+    }
+  } while( !vm->flag_preemption );
 
   return ret;
 }
