@@ -53,8 +53,9 @@ typedef struct IREP {
 */
 typedef struct CALLINFO {
   mrb_irep *pc_irep;
-  int pc;
-  int reg_top;
+  uint32_t pc;
+  uint32_t reg_top;
+  uint8_t n_args;   // num of args
 } mrb_callinfo;
 
 
@@ -63,7 +64,6 @@ typedef struct CALLINFO {
 
 */
 typedef struct VM {
-  //  struct VM *next;   // linked list
   mrb_irep *irep;    // irep linked list
 
   uint8_t vm_id;     // vm_id : 1..n
@@ -81,13 +81,9 @@ typedef struct VM {
   mrb_class *target_class;
   mrb_object *top_self;  // ?
 
+  volatile int8_t flag_preemption;
 } mrb_vm;
 
-
-
-  //int check_str_4(char *s1, char *s2);
-  //int get_int_4(char *s);
-  //int get_int_2(char *s);
 
 mrb_irep *new_irep(mrb_vm *vm);
 
@@ -95,7 +91,7 @@ mrb_irep *new_irep(mrb_vm *vm);
 struct VM *vm_open(void);
 void vm_close(struct VM *vm);
 void vm_boot(struct VM *vm);
-int vm_run_step(struct VM *vm);
+int vm_run(struct VM *vm);
 
 
 #ifdef __cplusplus

@@ -20,7 +20,7 @@ all:
 	$(MAKE) $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(AR) $(ARFLAGS) $@ $?
 
 class.o: class.c value.h vm_config.h class.h vm.h static.h global.h \
   console.h c_array.h c_numeric.h c_string.h c_range.h

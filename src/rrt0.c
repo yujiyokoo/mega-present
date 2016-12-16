@@ -41,7 +41,6 @@ static MrbcTcb *q_ready_;
 static MrbcTcb *q_waiting_;
 static MrbcTcb *q_suspended_;
 static volatile uint32_t tick_;
-static volatile int flag_preemption_;
 
 
 /***** Global variables *****************************************************/
@@ -272,7 +271,6 @@ static void c_get_tcb(mrb_vm *vm, mrb_value *v)
 }
 
 
-
 /***** Global functions *****************************************************/
 
 //================================================================
@@ -282,6 +280,7 @@ static void c_get_tcb(mrb_vm *vm, mrb_value *v)
 void mrbc_tick(void)
 {
   MrbcTcb *tcb;
+  int flag_preemption = 0;
 
   tick_++;
 
@@ -291,7 +290,7 @@ void mrbc_tick(void)
      (tcb->state == TASKSTATE_RUNNING) &&
      (tcb->timeslice > 0)) {
     tcb->timeslice--;
-    if( tcb->timeslice == 0 ) flag_preemption_ = 1;
+    if( tcb->timeslice == 0 ) tcb->vm->flag_preemption = 1;
   }
 
   // 待ちタスクキューから、ウェイクアップすべきタスクを探す
@@ -305,7 +304,15 @@ void mrbc_tick(void)
       t->state     = TASKSTATE_READY;
       t->timeslice = TIMESLICE_TICK;
       q_insert_task(t);
-      flag_preemption_ = 1;
+      flag_preemption = 1;
+    }
+  }
+
+  if( flag_preemption ) {
+    tcb = q_ready_;
+    while( tcb != NULL ) {
+      if( tcb->state == TASKSTATE_RUNNING ) tcb->vm->flag_preemption = 1;
+      tcb = tcb->next;
     }
   }
 }
@@ -396,23 +403,24 @@ int mrbc_run(void)
     }
 
     // 実行開始
-    int res = 0;
     tcb->state = TASKSTATE_RUNNING;
-    while( !flag_preemption_ ) {
-      res = vm_run_step(tcb->vm);
+    int res = 0;
 
-#ifdef MRBC_NO_TIMER
-      if( tcb->timeslice > 0 ) {
-        tcb->timeslice--;
-        if( tcb->timeslice == 0 ) {
-          flag_preemption_ = 1;
-          mrbc_tick();
-        }
-      }
-#endif
+#ifndef MRBC_NO_TIMER
+    tcb->vm->flag_preemption = 0;
+    res = vm_run(tcb->vm);
+
+#else
+    /* ifdef MRBC_NO_TIMER */
+    while( tcb->timeslice > 0 ) {
+      res = vm_run_step(tcb->vm);
+      tcb->timeslice--;
+
       if( res < 0 ) break;
+      if( tcb->state != TASKSTATE_RUNNING ) break;
     }
-    flag_preemption_ = 0;
+    mrbc_tick();
+#endif /* ifndef MRBC_NO_TIMER */
 
     // タスク終了？
     if( res < 0 ) {
@@ -459,7 +467,7 @@ void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms)
   q_insert_task(tcb);
   hal_enable_irq();
 
-  flag_preemption_ = 1;
+  tcb->vm->flag_preemption = 1;
 }
 
 
@@ -469,8 +477,8 @@ void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms)
 */
 void mrbc_relinquish(MrbcTcb *tcb)
 {
-  tcb->timeslice   = 0;
-  flag_preemption_ = 1;
+  tcb->timeslice           = 0;
+  tcb->vm->flag_preemption = 1;
 }
 
 
@@ -483,7 +491,7 @@ void mrbc_change_priority(MrbcTcb *tcb, int priority)
   tcb->priority            = (uint8_t)priority;
   tcb->priority_preemption = (uint8_t)priority;
   tcb->timeslice           = 0;
-  flag_preemption_         = 1;
+  tcb->vm->flag_preemption = 1;
 }
 
 
@@ -499,7 +507,7 @@ void mrbc_suspend_task(MrbcTcb *tcb)
   q_insert_task(tcb);
   hal_enable_irq();
 
-  flag_preemption_ = 1;
+  tcb->vm->flag_preemption = 1;
 }
 
 
@@ -510,10 +518,63 @@ void mrbc_suspend_task(MrbcTcb *tcb)
 void mrbc_resume_task(MrbcTcb *tcb)
 {
   hal_disable_irq();
+
+  MrbcTcb *t = q_ready_;
+  while( t != NULL ) {
+    if( t->state == TASKSTATE_RUNNING ) t->vm->flag_preemption = 1;
+    t = t->next;
+  }
+
   q_delete_task(tcb);
   tcb->state = TASKSTATE_READY;
   q_insert_task(tcb);
   hal_enable_irq();
-
-  flag_preemption_ = 1;
 }
+
+
+#ifdef DEBUG
+#include "console.h"
+
+//================================================================
+/*! DEBUG print queue
+
+ */
+void pq(MrbcTcb *p_tcb)
+{
+  MrbcTcb *p;
+
+  p = p_tcb;
+  while( p != NULL ) {
+    console_printf("%08x ", (int)((uint64_t)p & 0xffffffff));
+    p = p->next;
+  }
+  console_printf("\n");
+
+  p = p_tcb;
+  while( p != NULL ) {
+    console_printf(" pri: %2d ", p->priority_preemption);
+    p = p->next;
+  }
+  console_printf("\n");
+
+  p = p_tcb;
+  while( p != NULL ) {
+    console_printf(" nx:%04x ", (int)((uint64_t)p->next & 0xffff));
+    p = p->next;
+  }
+  console_printf("\n");
+}
+
+
+void pqall(void)
+{
+  //  console_printf("<<<<< DOMANT >>>>>\n");
+  //  pq(q_domant_);
+  console_printf("<<<<< READY >>>>>\n");
+  pq(q_ready_);
+  console_printf("<<<<< WAITING >>>>>\n");
+  pq(q_waiting_);
+  console_printf("<<<<< SUSPENDED >>>>>\n");
+  pq(q_suspended_);
+}
+#endif
