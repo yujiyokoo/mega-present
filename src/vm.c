@@ -401,9 +401,10 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
       callinfo->reg_top = vm->reg_top;
       callinfo->pc_irep = vm->pc_irep;
       callinfo->pc = vm->pc;
+      callinfo->n_args = GETARG_C(code);
       vm->callinfo_top++;
       // target irep
-      vm->pc = GETARG_C(code) + 1;
+      vm->pc = 0;
       vm->pc_irep = m->func.irep;
       // new regs
       vm->reg_top += GETARG_A(code);
@@ -429,7 +430,13 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_enter( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  // not implemented....
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 1;
+  uint32_t enter_param = GETARG_Ax(code);
+  int def_args = (enter_param >> 13) & 0x1f;
+  int args = (enter_param >> 18) & 0x1f;
+  if( def_args > 0 ){
+    vm->pc += callinfo->n_args - args;
+  }
   return 0;
 }
 
@@ -1222,6 +1229,22 @@ void vm_boot(struct VM *vm)
 
 
 
+
+//================================================================
+/*!@brief
+  Output debug info of vm 
+
+  @param  vm      A pointer of VM.
+  @param  opcode  opcode at pc
+  @retval 0  No error.
+*/
+static void output_debug_info( mrb_vm *vm, uint32_t opcode )
+{
+  console_printf("pc=%d, op=%02x\n", vm->pc, opcode);
+}
+
+
+
 //================================================================
 /*!@brief
   Fetch a bytecode and execute 1 step.
@@ -1239,6 +1262,9 @@ int vm_run_step( mrb_vm *vm )
   code = code << 8 | *p++;
   code = code << 8 | *p++;
   code = code << 8 | *p;
+
+  // for debug use
+  // output_debug_info( vm, GET_OPCODE(code) );
 
   // next PC
   vm->pc += 1;
