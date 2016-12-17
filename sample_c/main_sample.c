@@ -32,14 +32,7 @@ int main(void)
   }
 
   vm_boot( vm );
-
-  int keep_execute = 1;
-  while( keep_execute ){
-    if( vm_run_step(vm) < 0 ){
-      keep_execute = 0;
-    }
-  }
-
+  vm_run( vm );
   vm_close( vm );
 
   return 0;

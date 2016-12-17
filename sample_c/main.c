@@ -5,10 +5,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "vm.h"
-#include "load.h"
-#include "errorcode.h"
 #include "static.h"
+#include "load.h"
+#include "vm.h"
+#include "errorcode.h"
+
+
+int load_mrb_file(struct VM *vm, const char *filename)
+{
+  FILE *fp = fopen(filename, "rb");
+
+  if( fp == NULL ) {
+    fprintf(stderr, "File not found\n");
+    return -1;
+  }
+
+  // get filesize
+  fseek(fp, 0, SEEK_END);
+  size_t size = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+
+  // allocate memory
+  vm->mrb = malloc(size);
+  if( vm->mrb == NULL ) {
+    fprintf(stderr, "Memory allocate error.\n");
+    return -1;
+  }
+  fread(vm->mrb, sizeof(char), size, fp);
+  fclose(fp);
+
+  // load mruby VM code
+  int ret = load_mrb(vm);
+  if( ret != NO_ERROR ) {
+    fprintf(stderr, "MRB Load Error (%04x_%04x)\n", ret >> 16, ret & 0xffff);
+    return -1;
+  }
+
+  return 0;
+}
 
 
 void mrubyc(char *fn)
@@ -19,26 +53,23 @@ void mrubyc(char *fn)
   init_static();
 
   vm = vm_open();
-  if( vm == 0 ){
-    printf("VM open Error\n");
+  if( vm == 0 ) {
+    fprintf(stderr, "VM open Error\n");
     return;
   }
-  int ret = load_mrb_file(vm, fn);
-  if( ret != NO_ERROR ){
-    printf("MRB Load Error (%04x_%04x)\n", ret>>16, ret&0xffff);
-    return;
-  }
+  if( load_mrb_file(vm, fn) != 0 ) return;
 
-  vm_boot( vm );
+  vm_boot(vm);
   vm_run(vm);
-  vm_close( vm );
+  vm_close(vm);
 }
+
 
 int main(int argc, char *argv[])
 {
-  if( argc != 2 ){
+  if( argc != 2 ) {
     printf("Usage: %s <xxxx.mrb>\n", argv[0]);
-    return -1;
+    return 1;
   }
 
   mrubyc(argv[1]);
