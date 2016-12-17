@@ -1,4 +1,16 @@
-#include <stdio.h>
+/*! @file
+  @brief
+  mruby bytecode loader.
+
+  <pre>
+  Copyright (C) 2015 Kyushu Institute of Technology.
+  Copyright (C) 2015 Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  </pre>
+*/
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -11,7 +23,15 @@
 #include "common.h"
 
 
-int load_header(struct VM *vm, char **pos)
+//================================================================
+/*!@brief
+
+
+  @param  vm    A pointer of VM.
+  @param  pos
+
+*/
+static int load_header(struct VM *vm, char **pos)
 {
   char *p = *pos;
 
@@ -35,7 +55,16 @@ int load_header(struct VM *vm, char **pos)
   return NO_ERROR;
 }
 
-int load_irep(struct VM *vm, char **pos)
+
+//================================================================
+/*!@brief
+
+
+  @param  vm    A pointer of VM.
+  @param  pos
+
+*/
+static int load_irep(struct VM *vm, char **pos)
 {
   char *p = *pos;
   int i;
@@ -148,6 +177,14 @@ int load_irep(struct VM *vm, char **pos)
 }
 
 
+//================================================================
+/*!@brief
+
+
+  @param  vm    A pointer of VM.
+  @param  pos
+
+*/
 int load_lvar(struct VM *vm, char **pos)
 {
   char *p = *pos;
@@ -160,6 +197,14 @@ int load_lvar(struct VM *vm, char **pos)
 }
 
 
+//================================================================
+/*!@brief
+
+
+  @param  vm    A pointer of VM.
+  @param  pos
+
+*/
 int load_mrb(struct VM *vm)
 {
   /* setup mrb program */
@@ -183,28 +228,16 @@ int load_mrb(struct VM *vm)
 }
 
 
+//================================================================
+/*!@brief
+
+
+  @param  vm    A pointer of VM.
+  @param  pos
+
+*/
 int loca_mrb_array(struct VM *vm, char *ptr)
 {
   vm->mrb = ptr;
   return load_mrb(vm);
 }
-
-#ifdef MRUBYC_USE_FILEIO
-int load_mrb_file(struct VM *vm, char *fn)
-{
-  /* load to memory */
-  FILE *fp = fopen(fn, "rb");
-  if( fp==NULL ) return LOAD_FILE_ERROR_NOFILE;
-  fseek( fp, 0, SEEK_END );
-  int sz = ftell( fp );
-  fseek( fp, 0, SEEK_SET );
-  vm->mrb = (char *)malloc(sizeof(char)*sz);
-  if( vm->mrb == NULL ){
-    return LOAD_FILE_ERROR_MALLOC;
-  }
-  fread(vm->mrb, sizeof(char), sz, fp);
-  fclose(fp);
-
-  return load_mrb(vm);
-}
-#endif

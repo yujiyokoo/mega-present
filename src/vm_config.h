@@ -42,7 +42,7 @@
 
 /* maximum size of symbol table */
 #ifndef MAX_SYMBOLS_SIZE
-#define MAX_SYMBOLS_SIZE 200
+#define MAX_SYMBOLS_SIZE 400
 #endif
 
 /* maximum number of symbols */
@@ -64,9 +64,6 @@
 /* Configure environment */
 /* 0: NOT USE */
 /* 1: USE */
-
-/* USE FileIO, fopen, fread, ... */
-#define MRUBYC_USE_FILEIO 1
 
 /* USE Float. Support Float class */
 #define MRUBYC_USE_FLOAT 1
