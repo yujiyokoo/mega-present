@@ -411,11 +411,10 @@ int mrbc_run(void)
     res = vm_run(tcb->vm);
 
 #else
-    /* ifdef MRBC_NO_TIMER */
     while( tcb->timeslice > 0 ) {
-      res = vm_run_step(tcb->vm);
+      tcb->vm->flag_preemption = 1;
+      res = vm_run(tcb->vm);
       tcb->timeslice--;
-
       if( res < 0 ) break;
       if( tcb->state != TASKSTATE_RUNNING ) break;
     }
@@ -431,6 +430,9 @@ int mrbc_run(void)
       hal_enable_irq();
       vm_close(tcb->vm);
       tcb->vm = 0;
+
+      if( q_ready_ == NULL && q_waiting_ == NULL &&
+          q_suspended_ == NULL ) break;
       continue;
     }
 
