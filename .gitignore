@@ -16,5 +16,8 @@ mrubyc_concurrent
 # sample_ruby
 sample_ruby/*.txt
 
+# ignore hal
+src/hal
+
 # Mac
 .DS_Store
