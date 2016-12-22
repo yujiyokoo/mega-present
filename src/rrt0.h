@@ -10,8 +10,8 @@
   </pre>
 */
 
-#ifndef MRBC_RRT0_H_
-#define MRBC_RRT0_H_
+#ifndef MRBC_SRC_RRT0_H_
+#define MRBC_SRC_RRT0_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,7 +64,7 @@ typedef volatile struct MrbcTcb {
 /***** Function prototypes **************************************************/
 void mrbc_tick(void);
 void mrbc_init(void);
-MrbcTcb *mrbc_create_task(const uint8_t *vm_code, const MrbcTcb *param);
+MrbcTcb *mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb);
 int mrbc_run(void);
 void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms);
 void mrbc_relinquish(MrbcTcb *tcb);

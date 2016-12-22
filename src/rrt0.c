@@ -35,7 +35,6 @@ const int TIMESLICE_TICK = 10; // 10 * 1ms(HardwareTimer)  255 max
 /***** Typedefs *************************************************************/
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
-static MrbcTcb  tcb_[MAX_VM_COUNT];
 static MrbcTcb *q_domant_;
 static MrbcTcb *q_ready_;
 static MrbcTcb *q_waiting_;
@@ -344,37 +343,29 @@ void mrbc_init(void)
 /*! specify running VM code.
 
   @param        vm_code pointer of VM byte code.
-  @param        param   parameters.
+  @param        tcb	Task control block with parameter, or NULL.
   @retval       Pointer of MrbcTcb.
   @retval       NULL is error.
 
 */
-MrbcTcb* mrbc_create_task(const uint8_t *vm_code, const MrbcTcb *param)
+MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
 {
-  int i;
+  // allocate Task Control Block
+  if( tcb == NULL ) {
+    tcb = (MrbcTcb*)mrbc_alloc( 0, sizeof(MrbcTcb) );
+    if( tcb == NULL ) return NULL;	// error return.
 
-  // find free TCB
-  for( i = 0; i < MAX_VM_COUNT; i++ ) {
-    if( tcb_[i].vm == 0 ) break;
-  }
-  if( i == MAX_VM_COUNT ) return 0;  // error. not enough TCB blocks.
-
-  MrbcTcb *tcb = &tcb_[i];
-
-  // assign VM on TCB
-  if( param ) {
-    *tcb = *param;
-  }
-  else {
     static const MrbcTcb init_val = MRBC_TCB_INITIALIZER;
     *tcb = init_val;
   }
   tcb->timeslice           = TIMESLICE_TICK;
   tcb->priority_preemption = tcb->priority;
 
+  // assign VM on TCB
   if( tcb->state != TASKSTATE_DOMANT ) {
     tcb->vm = vm_open();
-    if( !tcb->vm ) return 0;  // error. can't open VM.
+    if( !tcb->vm ) return 0;    // error. can't open VM.
+				// NOTE: memory leak MrbcTcb. but ignore.
 
     loca_mrb_array(tcb->vm, vm_code);
     vm_boot(tcb->vm);
