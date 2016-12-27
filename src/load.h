@@ -14,12 +14,14 @@
 #ifndef MRUBYC_SRC_LOAD_H_
 #define MRUBYC_SRC_LOAD_H_
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-int loca_mrb_array(struct VM *vm, char *ptr);
+int loca_mrb_array(struct VM *vm, const uint8_t *ptr);
 int load_mrb(struct VM *vm);
 
 

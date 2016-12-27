@@ -1238,6 +1238,7 @@ void vm_boot(struct VM *vm)
   vm->regs[0].value.obj = vm->top_self;
   // target_class
   vm->target_class = vm->top_self->value.cls;
+  vm->error_code = 0;
   vm->flag_preemption = 0;
 }
 

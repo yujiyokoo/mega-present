@@ -68,7 +68,7 @@ typedef struct VM {
 
   uint8_t vm_id;     // vm_id : 1..n
   int16_t priority;  //
-  char *mrb;         // bytecode
+  const uint8_t *mrb;      // bytecode
 
   mrb_irep *pc_irep;  // PC
   int16_t pc;       // PC
@@ -80,6 +80,8 @@ typedef struct VM {
 
   mrb_class *target_class;
   mrb_object *top_self;  // ?
+
+  int32_t error_code;
 
   volatile int8_t flag_preemption;
 } mrb_vm;
