@@ -13,8 +13,35 @@
 
 #include <stdarg.h>
 #include <string.h>
+#include <stdint.h>
 #include "hal/hal.h"
 #include "console.h"
+
+
+//================================================================
+/*! output string with format
+
+  @param  value		output value
+  @param  align		left(-1) or right(1)
+  @param  w		width
+  @param  base		n base
+  @param  pad		padding character
+*/
+static void format_output_str(const char *value, int align, int w, char pad)
+{
+  int len = strlen(value);
+  int n_pad = w - len;
+
+  if( align == 1 ) {
+    while( n_pad-- > 0 ) {
+      console_putchar(pad);
+    }
+  }
+  hal_write(1, value, len);
+  while( n_pad-- > 0 ) {
+    console_putchar(pad);
+  }
+}
 
 
 //================================================================
@@ -26,11 +53,12 @@
   @param  base		n base
   @param  pad		padding character
 */
-static void format_output_int(int value, int align, int w, int base, char pad)
+static void format_output_int(int32_t value, int align, int w, int base, char pad)
 {
   char buf[21];
-  int idx = 0;
   int sign = 0;
+  int idx = sizeof(buf);
+  buf[--idx] = 0;
 
   if( value < 0 ) {
     sign  = -1;
@@ -38,31 +66,42 @@ static void format_output_int(int value, int align, int w, int base, char pad)
   }
 
   do {
-    buf[idx++] = "0123456789ABCDEF"[value % base];
+    buf[--idx] = "0123456789ABCDEF"[value % base];
     value /= base;
-  } while( value > 0 );
+  } while( value != 0 && idx != 0 );
 
   if( sign < 0 && align > 0 && pad == '0' ) {
     console_putchar('-');	// when "%08d",-12345 then "-0012345"
     w--;
-  } else if( sign < 0 ) {
-    buf[idx++] = '-';
+  } else if( sign < 0 && idx != 0 ) {
+    buf[--idx] = '-';
   }
 
-  int n_pad = w - idx;
-  if( align == 1 ) {
-    while( n_pad-- > 0 ) {
-      console_putchar(pad);
-    }
-  }
-  while( --idx >= 0 ) {
-    console_putchar(buf[idx]);
-  }
-  if( align == -1 ) {
-    while( n_pad-- > 0 ) {
-      console_putchar(pad);
-    }
-  }
+  format_output_str(buf + idx, align, w, pad);
+}
+
+
+//================================================================
+/*! output unsigned int value with format
+
+  @param  value		output value
+  @param  align		left(-1) or right(1)
+  @param  w		width
+  @param  base		n base
+  @param  pad		padding character
+*/
+static void format_output_uint(uint32_t value, int align, int w, int base, char pad)
+{
+  char buf[21];
+  int idx = sizeof(buf);
+  buf[--idx] = 0;
+
+  do {
+    buf[--idx] = "0123456789ABCDEF"[value % base];
+    value /= base;
+  } while( value != 0 && idx != 0 );
+
+  format_output_str(buf + idx, align, w, pad);
 }
 
 
@@ -97,10 +136,9 @@ void console_print(const char *str)
 void console_printf(const char *fmt, ...)
 {
   va_list params;
-
   va_start(params, fmt);
 
-  char c;
+  int c;
   while((c = *fmt++)) {
     if( c != '%' ) {
       console_putchar(c);
@@ -110,8 +148,8 @@ void console_printf(const char *fmt, ...)
     int  align = 1;	// left(-1) or right(1)
     char pad   = ' ';	// padding
     int  w     = 0;	// width
-    while((c = *fmt++)) {
-      switch( c ) {
+    while( 1 ) {
+      switch( (c = *fmt++) ) {
       case '-':
         align = -1;
         break;
@@ -128,40 +166,36 @@ void console_printf(const char *fmt, ...)
         w = w * 10 + (c - '0');
         break;
 
+      case '\0':
+	goto L_return;
+
       default:
         goto L_exit;
       }
     }
-    return;
 
 L_exit:
     switch(c) {
-    case 'S':
-    case 's': {
-      char *ptr   = va_arg(params, char *);
-      int   n_pad = w - strlen(ptr);
-      if( n_pad < 0 ) n_pad = 0;
-      if( align == 1 ) {
-        while( n_pad-- > 0 ) {
-          console_putchar(pad);
-        }
-      }
-      console_print(ptr);
-      if( align == -1 ) {
-        while( n_pad-- > 0 ) {
-          console_putchar(pad);
-        }
-      }
-    } break;
+    case 's':
+      format_output_str(va_arg(params, char *), align, w, pad);
+      break;
 
-    case 'D':
     case 'd':
+    case 'i':
       format_output_int(va_arg(params, int), align, w, 10, pad);
+      break;
+
+    case 'u':
+      format_output_uint(va_arg(params, unsigned int), align, w, 10, pad);
       break;
 
     case 'X':
     case 'x':
-      format_output_int(va_arg(params, int), align, w, 16, pad);
+      format_output_uint(va_arg(params, unsigned int), align, w, 16, pad);
+      break;
+
+    case 'c':
+      console_putchar(va_arg(params, int));	// ignore "%03c" and others.
       break;
 
     default:
@@ -169,5 +203,6 @@ L_exit:
     }
   }
 
+L_return:
   va_end(params);
 }
