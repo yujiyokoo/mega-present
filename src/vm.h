@@ -40,7 +40,7 @@ typedef struct IREP {
   int16_t nlocals;
   int16_t nregs;
   int16_t rlen;
-  int16_t ilen;
+  int32_t ilen;
 
   int16_t iseq;
 
