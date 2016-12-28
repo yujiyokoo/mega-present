@@ -2,16 +2,7 @@
 #include "common.h"
 
 
-int check_str_4(char *s1, char *s2)
-{
-  int ret = *s1++ == *s2++;
-  ret = ret && (*s1++ == *s2++);
-  ret = ret && (*s1++ == *s2++);
-  ret = ret && (*s1   == *s2  );
-  return ret;
-}
-
-int get_int_4(void *s)
+int get_int_4(const void *s)
 {
   uint8_t *s1 = (uint8_t *)s;
   int ret = *s1++;
@@ -21,7 +12,7 @@ int get_int_4(void *s)
   return  ret;
 }
 
-int get_int_2(void *s)
+int get_int_2(const void *s)
 {
   uint8_t *s1 = (uint8_t *)s;
   int ret = *s1++;

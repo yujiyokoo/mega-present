@@ -19,10 +19,8 @@
 extern "C" {
 #endif
 
-
-int check_str_4(char *s1, char *s2);
-int get_int_4(void *s);
-int get_int_2(void *s);
+int get_int_4(const void *s);
+int get_int_2(const void *s);
 
 
 #ifdef __cplusplus

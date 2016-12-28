@@ -213,7 +213,7 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
 
   /* TODO: size */
   *pos += section_size;
-  return NO_ERROR;
+  return 0;
 }
 
 
@@ -238,22 +238,21 @@ static int load_lvar(struct VM *vm, const uint8_t **pos)
 
 //================================================================
 /*!@brief
+  Setup mrb program
 
   @param  vm    A pointer of VM.
-  @param  pos
-  @return int
+  @return int	zero if no error.
 */
 int load_mrb(struct VM *vm)
 {
-  /* setup mrb program */
-  int ret      = UNKNOWN_ERROR;
+  int ret = -1;
   const uint8_t *pos = vm->mrb;
 
-  do {
-    if( memcmp(pos, "RITE", 4) == 0 ) {
-      ret = load_header(vm, &pos);
-    }
-    else if( memcmp(pos, "IREP", 4) == 0 ) {
+  if( memcmp(pos, "RITE", 4) == 0 ) {
+    ret = load_header(vm, &pos);
+  }
+  while( ret == 0 ) {
+    if( memcmp(pos, "IREP", 4) == 0 ) {
       ret = load_irep(vm, &pos);
     }
     else if( memcmp(pos, "LVAR", 4) == 0 ) {
@@ -262,10 +261,7 @@ int load_mrb(struct VM *vm)
     else if( memcmp(pos, "END\0", 4) == 0 ) {
       break;
     }
-    else {
-      ret = UNKNOWN_ERROR;
-    }
-  } while( ret == NO_ERROR );
+  }
 
   return ret;
 }
@@ -276,7 +272,7 @@ int load_mrb(struct VM *vm)
 
 
   @param  vm    A pointer of VM.
-  @param  pos
+  @param  ptr	A pointer of RITE (.mrb) code.
 
 */
 int loca_mrb_array(struct VM *vm, const uint8_t *ptr)
