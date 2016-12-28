@@ -26,13 +26,14 @@ int load_mrb_file(struct VM *vm, const char *filename)
   fseek(fp, 0, SEEK_SET);
 
   // allocate memory
-  vm->mrb = malloc(size);
-  if( vm->mrb == NULL ) {
+  uint8_t *p = malloc(size);
+  if( p == NULL ) {
     fprintf(stderr, "Memory allocate error.\n");
     return -1;
   }
-  fread(vm->mrb, sizeof(char), size, fp);
+  fread(p, sizeof(char), size, fp);
   fclose(fp);
+  vm->mrb = p;
 
   // load mruby VM code
   int ret = load_mrb(vm);

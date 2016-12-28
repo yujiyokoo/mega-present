@@ -25,75 +25,116 @@
 
 //================================================================
 /*!@brief
-
+  Parse header section.
 
   @param  vm    A pointer of VM.
-  @param  pos
+  @param  pos	A pointer of pointer of RITE header.
+  @return int	zero if no error.
 
+  <pre>
+  Structure
+   "RITE"	identifier
+   "0003"	version
+   0000		CRC
+   0000_0000	total size
+   "MATZ"	compiler name
+   "0000"	compiler version
+  </pre>
 */
-static int load_header(struct VM *vm, char **pos)
+static int load_header(struct VM *vm, const uint8_t **pos)
 {
-  char *p = *pos;
+  const uint8_t *p = *pos;
 
-  if( !check_str_4(p+4, "0003") ){
-    return LOAD_FILE_HEADER_ERROR_VERSION;
+  if( memcmp(p + 4, "0003", 4) != 0 ) {
+    vm->error_code = LOAD_FILE_HEADER_ERROR_VERSION;
+    return -1;
   }
 
   /* Ignore CRC */
 
   /* Ignore size */
-  // int sz = get_int_4(p+10);
 
-  if( !check_str_4(p+14, "MATZ") ){
-    return LOAD_FILE_HEADER_ERROR_MATZ;
+  if( memcmp(p + 14, "MATZ", 4) != 0 ) {
+    vm->error_code = LOAD_FILE_HEADER_ERROR_MATZ;
+    return -1;
   }
-  if( !check_str_4(p+18, "0000") ){
-    return LOAD_FILE_HEADER_ERROR_VERSION;
+  if( memcmp(p + 18, "0000", 4) != 0 ) {
+    vm->error_code = LOAD_FILE_HEADER_ERROR_VERSION;
+    return -1;
   }
 
   *pos += 22;
-  return NO_ERROR;
+  return 0;
 }
 
 
 //================================================================
 /*!@brief
-
+  Parse IREP section.
 
   @param  vm    A pointer of VM.
-  @param  pos
+  @param  pos	A pointer of pointer of IREP section.
+  @return int	zero if no error.
 
+  <pre>
+  Structure
+   "IREP"	section identifier
+   0000_0000	section size
+   "0000"	rite version
+
+   (loop n of child irep bellow)
+   0000_0000	record size
+   0000		n of local variable
+   0000		n of register
+   0000		n of child irep
+
+   0000_0000	n of byte code  (ISEQ BLOCK)
+   ...		byte codes
+
+   0000_0000	n of pool	(POOL BLOCK)
+   (loop n of pool)
+     00		type
+     0000	length
+     ...	pool data
+
+   0000_0000	n of symbol	(SYMS BLOCK)
+   (loop n of symbol)
+     0000	length
+     ...	symbol data
+  </pre>
 */
-static int load_irep(struct VM *vm, char **pos)
+static int load_irep(struct VM *vm, const uint8_t **pos)
 {
-  char *p = *pos;
-  int i;
-
+  const uint8_t *p = *pos;
   p += 4;
-  int sz = get_int_4(p);  p += 4;
+  int section_size = get_int_4(p);
+  p += 4;
 
-  if( !check_str_4(p, "0000") ){
-    return LOAD_FILE_IREP_ERROR_VERSION;
+  if( memcmp(p, "0000", 4) != 0 ) {
+    vm->error_code = LOAD_FILE_IREP_ERROR_VERSION;
+    return -1;
   }
   p += 4;
 
   int cnt = 0;
-  while( cnt < sz ){
-    int sz2 = get_int_4(p);  p += 4;
+  while( cnt < section_size ) {
+    cnt += get_int_4(p) + 8;
+    p += 4;
 
     // new irep
     mrb_irep *irep = new_irep(vm);
-    if( irep == 0 ){
-      return LOAD_FILE_IREP_ERROR_ALLOCATION;
+    if( irep == 0 ) {
+      vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
+      return -1;
     }
 
     // add irep into vm->irep (at tail)
     // TODO: Optimize this process
-    if( vm->irep == 0 ){
+    if( vm->irep == 0 ) {
       vm->irep = irep;
     } else {
       mrb_irep *p = vm->irep;
-      while( p->next != 0 ){
+      while( p->next != 0 ) {
         p = p->next;
       }
       p->next = irep;
@@ -107,27 +148,29 @@ static int load_irep(struct VM *vm, char **pos)
     irep->ilen = get_int_4(p);     p += 4;
 
     // padding (align=4 ?)
-    p = (char *)( ( (unsigned long)p + 3 ) & ~3L );
+    p = (uint8_t *)( ( (unsigned long)p + 3 ) & ~3L );
 
-    // code
+    // ISEQ (code) BLOCK
     irep->code = (uint8_t *)p;
     p += irep->ilen * 4;
 
-    // pool
+    // POOL BLOCK
     irep->ptr_to_pool = 0;
     int plen = get_int_4(p);    p += 4;
+    int i;
     for( i=0 ; i<plen ; i++ ){
       int tt = (int)*p++;
       int obj_size = get_int_2(p);   p += 2;
       mrb_object *ptr = mrb_obj_alloc(vm, MRB_TT_FALSE);
       if( ptr == 0 ){
-        return LOAD_FILE_IREP_ERROR_ALLOCATION;
+        vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
+	return -1;
       }
       switch( tt ){
 #if MRUBYC_USE_STRING
         case 0: { // IREP_TT_STRING
           ptr->tt = MRB_TT_STRING;
-	  ptr->value.str = p;
+	  ptr->value.str = (char*)p;
         } break;
 #endif
         case 1: { // IREP_TT_FIXNUM
@@ -159,70 +202,66 @@ static int load_irep(struct VM *vm, char **pos)
       p += obj_size;
     }
 
-    //  syms
+    // SYMS BLOCK
     irep->ptr_to_sym = (uint8_t*)p;
     int slen = get_int_4(p);    p += 4;
     for( i=0 ; i<slen ; i++ ){
       int s = get_int_2(p);     p += 2;
       p += s+1;
     }
-
-    // cnt
-    cnt += sz2 + 8;
   }
 
   /* TODO: size */
-  *pos += sz;
-  return NO_ERROR;
+  *pos += section_size;
+  return 0;
 }
 
 
 //================================================================
 /*!@brief
-
+  Parse LVAR section.
 
   @param  vm    A pointer of VM.
-  @param  pos
-
+  @param  pos	A pointer of pointer of LVAR section.
+  @return int	zero if no error.
 */
-int load_lvar(struct VM *vm, char **pos)
+static int load_lvar(struct VM *vm, const uint8_t **pos)
 {
-  char *p = *pos;
+  const uint8_t *p = *pos;
 
   /* size */
-  int sz = get_int_4(p+4);
-  *pos += sz;
+  *pos += get_int_4(p+4);
 
-  return NO_ERROR;
+  return 0;
 }
 
 
 //================================================================
 /*!@brief
-
+  Setup mrb program
 
   @param  vm    A pointer of VM.
-  @param  pos
-
+  @return int	zero if no error.
 */
 int load_mrb(struct VM *vm)
 {
-  /* setup mrb program */
-  int ret = UNKNOWN_ERROR;
-  char *pos = vm->mrb;
-  do {
-    if( check_str_4(pos, "RITE") ){
-      ret = load_header(vm, &pos);
-    } else if( check_str_4(pos, "IREP") ){
+  int ret = -1;
+  const uint8_t *pos = vm->mrb;
+
+  if( memcmp(pos, "RITE", 4) == 0 ) {
+    ret = load_header(vm, &pos);
+  }
+  while( ret == 0 ) {
+    if( memcmp(pos, "IREP", 4) == 0 ) {
       ret = load_irep(vm, &pos);
-    } else if( check_str_4(pos, "LVAR") ){
-      ret = load_lvar(vm, &pos);
-    } else if( check_str_4(pos, "END\0") ){
-      break;
-    } else {
-      ret = UNKNOWN_ERROR;
     }
-  } while( ret == NO_ERROR );
+    else if( memcmp(pos, "LVAR", 4) == 0 ) {
+      ret = load_lvar(vm, &pos);
+    }
+    else if( memcmp(pos, "END\0", 4) == 0 ) {
+      break;
+    }
+  }
 
   return ret;
 }
@@ -233,10 +272,10 @@ int load_mrb(struct VM *vm)
 
 
   @param  vm    A pointer of VM.
-  @param  pos
+  @param  ptr	A pointer of RITE (.mrb) code.
 
 */
-int loca_mrb_array(struct VM *vm, char *ptr)
+int loca_mrb_array(struct VM *vm, const uint8_t *ptr)
 {
   vm->mrb = ptr;
   return load_mrb(vm);
