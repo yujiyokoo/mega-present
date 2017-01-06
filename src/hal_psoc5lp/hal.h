@@ -12,8 +12,8 @@
   </pre>
 */
 
-#ifndef MRBC_HAL_H_
-#define MRBC_HAL_H_
+#ifndef MRBC_SRC_HAL_H_
+#define MRBC_SRC_HAL_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,7 +22,6 @@ extern "C" {
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
 #include <project.h>
-#include <sys/types.h>
 
 
 /***** Local headers ********************************************************/
@@ -48,7 +47,7 @@ extern "C" {
 /***** Typedefs *************************************************************/
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
-ssize_t hal_write(int fd, const void *buf, size_t nbytes);
+int hal_write(int fd, const void *buf, size_t nbytes);
 int hal_flush(int fd);
 
 

@@ -12,8 +12,8 @@
   </pre>
 */
 
-#ifndef MRBC_HAL_H_
-#define MRBC_HAL_H_
+#ifndef MRBC_SRC_HAL_H_
+#define MRBC_SRC_HAL_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,7 +57,7 @@ void hal_disable_irq(void);
   @param  buf   pointer of buffer.
   @param  nbytes        output byte length.
 */
-inline static ssize_t hal_write(int fd, const void *buf, size_t nbytes)
+inline static int hal_write(int fd, const void *buf, size_t nbytes)
 {
   return write(1, buf, nbytes);
 }
