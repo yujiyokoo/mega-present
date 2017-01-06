@@ -509,7 +509,7 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
 #endif
 #if MRUBYC_USE_STRING
   } else if( regs[rr].tt == MRB_TT_STRING && regs[rr+1].tt == MRB_TT_STRING ){
-    regs[rr].value.str = mrb_string_cat(vm, regs[rr].value.str, regs[rr+1].value.str);
+    regs[rr].value.str = mrbc_string_cat(vm, regs[rr].value.str, regs[rr+1].value.str);
 
 #endif
   } else {
@@ -697,7 +697,7 @@ inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int result;
 
   //
-  if( mrb_eq(&regs[rr], &regs[rr+1]) ){
+  if( mrbc_eq(&regs[rr], &regs[rr+1]) ){
     regs[rr].tt = MRB_TT_TRUE;
   } else {
     regs[rr].tt = MRB_TT_FALSE;
@@ -978,7 +978,7 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
     ptr = ptr->next;
     arg_b--;
   }
-  v.value.str = mrb_string_dup(vm, ptr->value.str);
+  v.value.str = mrbc_string_dup(vm, ptr->value.str);
 
   int arg_a = GETARG_A(code);
   regs[arg_a] = v;
@@ -1002,7 +1002,7 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   // int c = GETARG_C(code); // TODO: Add flags support for OP_LAMBDA
   int b = GETARG_b(code); // sequence position in irep list
-  mrb_proc *proc = mrb_rproc_alloc(vm, "(lambda)");
+  mrb_proc *proc = mrbc_rproc_alloc(vm, "(lambda)");
   mrb_irep *current = vm->irep;
   mrb_irep *p = current->next; //starting from next for current sequence;
   // code length is p->ilen * sizeof(uint32_t);
@@ -1035,7 +1035,7 @@ inline static int op_range( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int a = GETARG_A(code);
   int b = GETARG_B(code);
   int c = GETARG_C(code);
-  regs[a] = mrb_range_new(vm, &regs[b], &regs[b+1], c);
+  regs[a] = mrbc_range_new(vm, &regs[b], &regs[b+1], c);
   return 0;
 }
 
@@ -1086,7 +1086,7 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
     mrb_irep *cur_irep = vm->pc_irep;
     char *sym = find_irep_symbol(cur_irep->ptr_to_sym, b);
     int sym_id = add_sym( sym );
-    mrb_define_method_proc(vm, cls, sym_id, rproc);
+    mrbc_define_method_proc(vm, cls, sym_id, rproc);
   }
 
   return 0;
@@ -1232,7 +1232,7 @@ void vm_boot(struct VM *vm)
   vm->pc = 0;
   vm->reg_top = 0;
   // set self to reg[0]
-  vm->top_self = mrb_obj_alloc(vm, MRB_TT_OBJECT);
+  vm->top_self = mrbc_obj_alloc(vm, MRB_TT_OBJECT);
   vm->top_self->value.cls = static_class_object;
   vm->regs[0].tt = MRB_TT_OBJECT;
   vm->regs[0].value.obj = vm->top_self;

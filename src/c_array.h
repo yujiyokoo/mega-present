@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 
-void mrb_init_class_array(mrb_vm *vm);
+void mrbc_init_class_array(mrb_vm *vm);
 
 
 #ifdef __cplusplus

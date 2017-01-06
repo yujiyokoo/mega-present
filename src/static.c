@@ -54,5 +54,5 @@ void init_static(void)
   init_sym();
 
   /* init class */
-  mrb_init_class();
+  mrbc_init_class();
 }

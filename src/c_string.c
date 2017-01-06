@@ -9,7 +9,7 @@
 
 // dupulicate string (clone)
 // returns duplicated string pointer
-char* mrb_string_dup(mrb_vm *vm, const char *str)
+char* mrbc_string_dup(mrb_vm *vm, const char *str)
 {
   int len = strlen((char *)str);
   char *ptr = (char *)mrbc_alloc(vm, len+1);
@@ -19,7 +19,7 @@ char* mrb_string_dup(mrb_vm *vm, const char *str)
 
 // catination string
 // returns new string
-char *mrb_string_cat(mrb_vm *vm, char *s1, const char *s2)
+char *mrbc_string_cat(mrb_vm *vm, char *s1, const char *s2)
 {
   int len1 = strlen(s1);
   int len2 = strlen(s2);
@@ -31,7 +31,7 @@ char *mrb_string_cat(mrb_vm *vm, char *s1, const char *s2)
 
 // substr
 // returns new string
-static char *mrb_string_substr(mrb_vm *vm, char *s, int start, int len)
+static char *mrbc_string_substr(mrb_vm *vm, char *s, int start, int len)
 {
   char *ptr = (char *)mrbc_alloc(vm, len+1);
   int i;
@@ -56,7 +56,7 @@ static void c_string_size(mrb_vm *vm, mrb_value *v)
 // string !=
 static void c_string_neq(mrb_vm *vm, mrb_value *v)
 {
-  if( mrb_eq(v, v+1) ){
+  if( mrbc_eq(v, v+1) ){
     SET_FALSE_RETURN();
   } else {
     SET_TRUE_RETURN();
@@ -69,7 +69,7 @@ static void c_string_neq(mrb_vm *vm, mrb_value *v)
 static void c_string_idx_get(mrb_vm *vm, mrb_value *v)
 {
   int index = GET_INT_ARG(0);
-  char *str = mrb_string_substr(vm, v->value.str, index, 1);
+  char *str = mrbc_string_substr(vm, v->value.str, index, 1);
   v->value.str = str;
 }
 
@@ -91,13 +91,13 @@ static void c_string_to_fixnum(mrb_vm *vm, mrb_value *v)
 
 
 // init class
-void mrb_init_class_string(mrb_vm *vm)
+void mrbc_init_class_string(mrb_vm *vm)
 {
-  static_class_string = mrb_class_alloc(vm, "String", static_class_object);
+  static_class_string = mrbc_class_alloc(vm, "String", static_class_object);
 
-  mrb_define_method(vm, static_class_string, "size", c_string_size);
-  mrb_define_method(vm, static_class_string, "length", c_string_size);
-  mrb_define_method(vm, static_class_string, "size", c_string_size);
-  mrb_define_method(vm, static_class_string, "!=", c_string_neq);
-  mrb_define_method(vm, static_class_string, "to_i", c_string_to_fixnum);
+  mrbc_define_method(vm, static_class_string, "size", c_string_size);
+  mrbc_define_method(vm, static_class_string, "length", c_string_size);
+  mrbc_define_method(vm, static_class_string, "size", c_string_size);
+  mrbc_define_method(vm, static_class_string, "!=", c_string_neq);
+  mrbc_define_method(vm, static_class_string, "to_i", c_string_to_fixnum);
 }

@@ -22,13 +22,12 @@
 extern "C" {
 #endif
 
-mrb_value mrb_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclude);
+mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclude);
 
-void mrb_init_class_range(mrb_vm *vm);
+void mrbc_init_class_range(mrb_vm *vm);
 
 
 #ifdef __cplusplus
 }
 #endif
 #endif
-

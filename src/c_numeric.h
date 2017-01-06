@@ -22,8 +22,8 @@ extern "C" {
 #endif
 
 
-void mrb_init_class_fixnum(mrb_vm *vm);
-void mrb_init_class_float(mrb_vm *vm);
+void mrbc_init_class_fixnum(mrb_vm *vm);
+void mrbc_init_class_float(mrb_vm *vm);
 
 #ifdef __cplusplus
 }
