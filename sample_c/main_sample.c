@@ -4,11 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "vm.h"
-#include "load.h"
-#include "errorcode.h"
-#include "static.h"
+#include "mrubyc.h"
 
 #include "sample01.c"
 
@@ -26,7 +22,7 @@ int main(void)
   }
 
   int ret = loca_mrb_array(vm, ary);
-  if( ret != NO_ERROR ){
+  if( ret != 0 ){
     printf("MRB Load Error (%04x_%04x)\n", ret>>16, ret&0xffff);
     return -1;
   }

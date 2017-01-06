@@ -4,12 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "static.h"
-#include "load.h"
-#include "vm.h"
-#include "errorcode.h"
-
+#include "mrubyc.h"
 
 int load_mrb_file(struct VM *vm, const char *filename)
 {
@@ -37,8 +32,9 @@ int load_mrb_file(struct VM *vm, const char *filename)
 
   // load mruby VM code
   int ret = load_mrb(vm);
-  if( ret != NO_ERROR ) {
-    fprintf(stderr, "MRB Load Error (%04x_%04x)\n", ret >> 16, ret & 0xffff);
+  if( ret != 0 ) {
+    fprintf(stderr, "MRB Load Error (%04x_%04x)\n",
+            vm->error_code >> 16, vm->error_code & 0xffff );
     return -1;
   }
 

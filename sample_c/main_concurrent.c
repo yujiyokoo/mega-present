@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "rrt0.h"
+#include "mrubyc.h"
 
 
 uint8_t * load_to_memory( const char *filename )
