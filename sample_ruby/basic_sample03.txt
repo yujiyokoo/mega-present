@@ -1,4 +1,4 @@
-mruby 1.1.1 (2014-11-19) 
+mruby 1.2.0 (2015-11-17) 
 00001 NODE_SCOPE:
 00001   local variables:
 00001     a
@@ -9,12 +9,12 @@ mruby 1.1.1 (2014-11-19)
 00001       rhs:
 00001         NODE_CALL:
 00001           NODE_INT 10 base 10
-00001           method='%' (189)
+00001           method='%' (190)
 00001           args:
 00001             NODE_INT 4 base 10
 00002     NODE_CALL:
 00002       NODE_SELF
-00002       method='puts' (226)
+00002       method='puts' (228)
 00002       args:
 00002         NODE_LVAR a
 00004     NODE_ASGN:
@@ -28,7 +28,7 @@ mruby 1.1.1 (2014-11-19)
 00004             NODE_INT 1 base 10
 00005     NODE_CALL:
 00005       NODE_SELF
-00005       method='puts' (226)
+00005       method='puts' (228)
 00005       args:
 00005         NODE_LVAR a
 00007     NODE_ASGN:
@@ -37,10 +37,10 @@ mruby 1.1.1 (2014-11-19)
 00007       rhs:
 00007         NODE_CALL:
 00007           NODE_INT 3 base 10
-00007           method='~' (190)
+00007           method='~' (191)
 00008     NODE_CALL:
 00008       NODE_SELF
-00008       method='puts' (226)
+00008       method='puts' (228)
 00008       args:
 00008         NODE_LVAR a
 00010     NODE_ASGN:
@@ -54,7 +54,7 @@ mruby 1.1.1 (2014-11-19)
 00010             NODE_INT 3 base 10
 00011     NODE_CALL:
 00011       NODE_SELF
-00011       method='puts' (226)
+00011       method='puts' (228)
 00011       args:
 00011         NODE_LVAR a
 00013     NODE_ASGN:
@@ -63,12 +63,12 @@ mruby 1.1.1 (2014-11-19)
 00013       rhs:
 00013         NODE_CALL:
 00013           NODE_INT 2 base 10
-00013           method='<<' (150)
+00013           method='<<' (151)
 00013           args:
 00013             NODE_INT 1 base 10
 00014     NODE_CALL:
 00014       NODE_SELF
-00014       method='puts' (226)
+00014       method='puts' (228)
 00014       args:
 00014         NODE_LVAR a
 00016     NODE_ASGN:
@@ -77,15 +77,15 @@ mruby 1.1.1 (2014-11-19)
 00016       rhs:
 00016         NODE_CALL:
 00016           NODE_INT 2 base 10
-00016           method='>>' (191)
+00016           method='>>' (192)
 00016           args:
 00016             NODE_INT 1 base 10
 00017     NODE_CALL:
 00017       NODE_SELF
-00017       method='puts' (226)
+00017       method='puts' (228)
 00017       args:
 00017         NODE_LVAR a
-irep 0x7fe581f002f0 nregs=5 nlocals=2 pools=0 syms=7 reps=0
+irep 0x2256a30 nregs=5 nlocals=2 pools=0 syms=7 reps=0
 file: basic_sample03.rb
     1 000 OP_LOADI	R2	10	
     1 001 OP_LOADI	R3	4	

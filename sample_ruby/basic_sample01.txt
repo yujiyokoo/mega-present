@@ -73,7 +73,7 @@ mruby 1.2.0 (2015-11-17)
 00013       method='puts' (230)
 00013       args:
 00013         NODE_LVAR c
-irep 0x2058a90 nregs=8 nlocals=5 pools=0 syms=5 reps=0
+irep 0x9a5a90 nregs=8 nlocals=5 pools=0 syms=5 reps=0
 file: basic_sample01.rb
     2 000 OP_LOADI	R1	10		; R1:a
     3 001 OP_LOADI	R2	20		; R2:b
