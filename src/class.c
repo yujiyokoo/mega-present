@@ -224,4 +224,5 @@ void mrb_init_class(void)
 #endif
   mrb_init_class_array(0);
   mrb_init_class_range(0);
+  mrb_init_class_hash(0);
 }

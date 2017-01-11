@@ -31,6 +31,7 @@ mrb_class *static_class_float;
 mrb_class *static_class_string;
 #endif
 mrb_class *static_class_range;
+mrb_class *static_class_hash;
 
 void init_static(void)
 {
