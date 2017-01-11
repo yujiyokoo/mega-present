@@ -1,331 +1,301 @@
-#include <stdio.h>  // this is for debug
+/*! @file
+  @brief
+  mrubyc memory management.
+
+  <pre>
+  Copyright (C) 2015 Kyushu Institute of Technology.
+  Copyright (C) 2015 Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  Memory management for objects in mruby/c.
+
+  </pre>
+*/
+
+#include <stdio.h>
 #include "alloc.h"
 
-// minimum allocation size
-#define _ALLOC_STEP 2
+//  
+#define ALLOC_TOTAL_MEMORY_SIZE 0x2800
 
-// each page has 0x100 entries of minimum allocation
-#define _ALLOC_PAGE_SIZE (_ALLOC_STEP * 0x100)
+// address space 16bit, 64KB
+#define ALLOC_MAX_BIT 16
 
-// number of page
-#define _ALLOC_PAGE_NUM 10
+// Layer 1st(f) and 2nd(s) model
+// last 4bit is ignored
+// f : size 
+// 0 : 0000-007f 
+// 1 : 0080-00ff
+// 2 : 0100-01ff
+// 3 : 0200-03ff
+// 4 : 0400-07ff 
+// 5 : 0800-0fff
+// 6 : 1000-1fff
+// 7 : 2000-3fff
+// 8 : 4000-7fff
+// 9 : 8000-ffff
 
-// minimum block for free
-#define _ALLOC_MIN_FREE (_ALLOC_STEP * 3)
+#define ALLOC_1ST_LAYER 8
+#define ALLOC_1ST_LAYER_BIT ALLOC_1ST_LAYER
+#define ALLOC_1ST_LAYER_MASK 0xff80
 
+// 2nd layer size
+#define ALLOC_2ND_LAYER 8
+#define ALLOC_2ND_LAYER_BIT 3
+#define ALLOC_2ND_LAYER_MASK 0x0070
 
-// allocation info in each page
-struct _ALLOC_INFO {
-  uint8_t owner;     // owner vm id, 0xff:Empty
-  uint8_t top_idx;   // pointer to the first allocated block, linked list, 0:NULL 
-  uint8_t free_idx;  // free blocks, linked list, 0:NULL
-  uint8_t reserved;  // padding
+// memory
+static uint8_t memory_pool[ALLOC_TOTAL_MEMORY_SIZE];
+
+// memory block header
+struct USED_BLOCK {
+  unsigned int t: 1;  /* 0: not tail,  1: tail */
+  unsigned int f: 1;  /* 0: not free,  1: free */
+  unsigned int size: 14; /* block size, header included */
+  struct USED_BLOCK *prev;  /* link to previous block */
+  uint8_t data[0];
 };
 
-// bi-directional linked list 
-struct _ALLOC_BLOCK {
-  uint8_t next_idx;  // 0:NULL
-  uint8_t size;      // size of this block, MALLOC_STEP should be multiplied
-  uint16_t count;    // reference count
-  uint8_t block[0];  // allocated memory block
+struct FREE_BLOCK {
+  unsigned int t: 1;  /* 0: not tail,  1: tail */
+  unsigned int f: 1;  /* 0: not free,  1: free */
+  unsigned int size: 14; /* block size, header included */
+  struct FREE_BLOCK *prev;  /* link to previous block */
+  struct FREE_BLOCK *next_free;
+  struct FREE_BLOCK *prev_free;
 };
 
-// heap, all allocatable memory
-static uint8_t _heap[_ALLOC_PAGE_SIZE * _ALLOC_PAGE_NUM];
+// free memory bitmap
+static struct FREE_BLOCK *free_blocks[ALLOC_1ST_LAYER * ALLOC_2ND_LAYER];
 
 
-
-
-// (page) -> pointer to info 
-static inline struct _ALLOC_INFO *page_to_info(uint8_t page)
+// calc f and s, and returns index of free_blocks
+static int calc_index(uint32_t alloc_size)
 {
-  return (struct _ALLOC_INFO *)(_heap + _ALLOC_PAGE_SIZE * page);
+  if( alloc_size < 16 ) alloc_size = 16;
+
+  // 1st layer
+  int f = 0;
+  uint32_t f_bit = ALLOC_1ST_LAYER_MASK;
+  uint32_t s_bit = ALLOC_2ND_LAYER_MASK;
+  while( (alloc_size & f_bit) != 0 ){
+    f++;
+    f_bit <<= 1;
+    s_bit <<= 1;
+  }
+
+  // 2nd layer
+  int s = (alloc_size & s_bit) >> (f + 4);
+
+  return f * ALLOC_2ND_LAYER + s;
 }
 
-// (page,idx) -> pointer to block 
-static inline struct _ALLOC_BLOCK *idx_to_block(uint8_t page, uint8_t idx)
+
+// 
+static void add_free_block(struct FREE_BLOCK *block)
 {
-  return (struct _ALLOC_BLOCK *)(_heap + _ALLOC_PAGE_SIZE * page + idx * _ALLOC_STEP);
+  block->f = 1;
+  int index = calc_index(block->size);
+
+  block->prev_free = NULL;
+  block->next_free = free_blocks[index];
+  if( free_blocks[index] != NULL ){
+    free_blocks[index]->prev_free = block;
+  }
+  free_blocks[index] = block;
 }
 
-// (pointer) -> page
-static inline uint8_t address_to_page(uint8_t *ptr)
-{
-  return (ptr - _heap) / _ALLOC_PAGE_SIZE;
-}
 
-// (pointer) -> idx
-static inline uint8_t address_to_idx(uint8_t *ptr)
-{
-  int offset = ptr - _heap;
-  return ((offset % _ALLOC_PAGE_SIZE) - sizeof(struct _ALLOC_BLOCK)) / _ALLOC_STEP;
-}
-
-// init a page
-static void _alloc_init_page(int page)
-{
-  struct _ALLOC_INFO *info = page_to_info(page);
-  info->owner = 0xff;
-  info->top_idx = 0;
-  info->free_idx = sizeof(struct _ALLOC_INFO) / _ALLOC_STEP;
-  // first free block
-  struct _ALLOC_BLOCK *block = idx_to_block(page, info->free_idx);
-  block->next_idx = 0;
-  block->size = (_ALLOC_PAGE_SIZE - sizeof(struct _ALLOC_INFO) - sizeof(struct _ALLOC_BLOCK)) / _ALLOC_STEP;		  
-}
-
-// init pages
+// initialize free block
 void mrbc_init_alloc(void)
 {
-  int page;
-  for( page=0 ; page<_ALLOC_PAGE_NUM ; page++){
-    _alloc_init_page(page);
+  // clear links to free block
+  int i;
+  for( i=0 ; i<ALLOC_1ST_LAYER*ALLOC_2ND_LAYER ; i++ ){
+    free_blocks[i] = NULL;
   }
+
+  // memory pool
+  struct FREE_BLOCK *block = (struct FREE_BLOCK *)memory_pool;
+  block->t = 1;
+  block->size = ALLOC_TOTAL_MEMORY_SIZE;
+  add_free_block(block);
 }
 
-// allocate memory in a page
-static uint8_t *_page_alloc(int page, struct _ALLOC_INFO *info, int size)
+// split block *alloc by size
+static struct FREE_BLOCK *split_block(struct FREE_BLOCK *alloc, int size)
 {
-  int alloc_size = (sizeof(struct _ALLOC_BLOCK) + size + _ALLOC_STEP - 1) / _ALLOC_STEP;
-  uint8_t *free_idx_p = &info->free_idx;
-  uint8_t free_idx = *free_idx_p;
-  while( free_idx ){
-    struct _ALLOC_BLOCK *block = idx_to_block(page, free_idx);
-    if( block->size >= alloc_size ){
-      uint8_t next_idx = block->next_idx;
-      int free_size = block->size;
-      // memory allocate
-      struct _ALLOC_BLOCK *allocated = block;
-      allocated->next_idx = info->top_idx;
-      allocated->count = 1;
-      info->top_idx = free_idx;
-      if( free_size - alloc_size <= _ALLOC_MIN_FREE ){
-	// rest is too small, whole free block is used
-	*free_idx_p = next_idx;
-      } else {
-	// rest is enough, split a block to allocated and free
-	allocated->size = alloc_size;
-	free_idx += alloc_size;
-	struct _ALLOC_BLOCK *freeblock = idx_to_block(page, free_idx);
-	*free_idx_p = free_idx;
-	freeblock->size = free_size - alloc_size - sizeof(struct _ALLOC_BLOCK)/_ALLOC_STEP;
-	freeblock->next_idx = next_idx;
-      }
-      // return allocated memory
-      return allocated->block;
+  if( alloc->size < size + 24 ) return NULL;
+  
+  // split block, free
+  uint8_t *p = (uint8_t *)alloc;
+  struct FREE_BLOCK *split = (struct FREE_BLOCK *)(p + size);
+  struct FREE_BLOCK *next = (struct FREE_BLOCK *)(p + alloc->size);
+  split->size = alloc->size - size;
+  split->prev = alloc;
+  split->f = 1;
+  split->t = alloc->t;
+  alloc->size = size;
+  alloc->f = 0;
+  alloc->t = 0;
+  if( split->t == 0 ){
+    next->prev = split;
+  }
+
+  return split;
+}
+
+
+// just remove the free_block *remove from index
+static void remove_index(struct FREE_BLOCK *remove)
+{
+  // remove is top of linked list?
+  if( remove->prev_free == NULL ){
+    int index = calc_index(remove->size);
+    free_blocks[index] = remove->next_free;
+    if( free_blocks[index] != NULL ){
+      free_blocks[index]->prev = NULL;
     }
-    free_idx_p = &(block->next_idx);
-    free_idx = *free_idx_p;
+  } else {
+    remove->prev_free->next_free = remove->next_free;
+    if( remove->next_free != NULL ){
+      remove->next_free->prev_free = remove->prev_free;
+    }
   }
-  return NULL;
 }
-
-static inline uint8_t get_vm_id(mrb_vm *vm)
-{
-  if( vm==0 ) return 0;
-  return vm->vm_id;
-}
-
 
 // memory allocation
+uint8_t *mrbc_raw_alloc(uint32_t size)
+{
+  uint32_t alloc_size = size + sizeof(struct USED_BLOCK);
+ 
+  int index = calc_index(alloc_size);
+  while( index < ALLOC_1ST_LAYER*ALLOC_2ND_LAYER && free_blocks[index] == NULL ){
+    index++;
+  }
+  if( index >= ALLOC_1ST_LAYER*ALLOC_2ND_LAYER ){
+    // out of memory
+    return NULL;
+  }
+
+  // alloc a free block
+  struct FREE_BLOCK *alloc = free_blocks[index];
+  alloc->f = 0;
+  remove_index(alloc);
+
+  // split a block
+  struct FREE_BLOCK *release = split_block(alloc, alloc_size);
+  if( release != NULL ){
+    // split alloc -> alloc + release
+    int index = calc_index(release->size);
+    release->next_free = free_blocks[index];
+    release->prev_free = NULL;
+    free_blocks[index] = release;
+    if( release->next_free != NULL ){
+      release->next_free->prev_free = release;
+    }
+  }
+
+  return ((struct USED_BLOCK *)alloc)->data;
+}
+
+
+// merge ptr1 and ptr2
+// ptr2 will disappear
+static void merge(struct FREE_BLOCK *ptr1, struct FREE_BLOCK *ptr2)
+{
+  // merge ptr1 and ptr2
+  ptr1->t = ptr2->t;
+  ptr1->size += ptr2->size;
+
+  // update block info
+  if( ptr1->t == 0 ){
+    uint8_t *p = (uint8_t *)ptr1;
+    struct FREE_BLOCK *next = (struct FREE_BLOCK *)(p + ptr1->size);
+    next->prev = ptr1;
+  }
+}
+
+// memory release
+void mrbc_raw_free(void *ptr)
+{
+  // get free block
+  uint8_t *p = ptr;
+  struct FREE_BLOCK *free_ptr = (struct FREE_BLOCK *)(p - sizeof(struct USED_BLOCK));
+  free_ptr->f = 1;
+
+  // check next block, merge?
+  p = (uint8_t *)free_ptr;
+  struct FREE_BLOCK *next_ptr = (struct FREE_BLOCK *)(p + free_ptr->size); 
+  if( free_ptr->t == 0 && next_ptr->f == 1 ){
+    remove_index(next_ptr);
+    merge(free_ptr, next_ptr);
+  }
+
+  // check prev block, merge?
+  struct FREE_BLOCK *prev_ptr = free_ptr->prev;
+  if( prev_ptr != NULL && prev_ptr->f == 1 ){
+    remove_index(prev_ptr);
+    merge(prev_ptr, free_ptr);
+    free_ptr = prev_ptr;
+  }
+
+  // free, add to index
+  add_free_block(free_ptr);
+}
+
+// for debug 
+void mrbc_alloc_debug(void)
+{
+  struct FREE_BLOCK *ptr = (struct FREE_BLOCK *)memory_pool;
+  printf("-----\naddress f size\n");
+  do {
+    uint8_t *p = (uint8_t *)ptr;
+    printf("%p: %d %x\n", p, ptr->f, ptr->size);
+    if( ptr->t == 1 ) break;
+    p += ptr->size;
+    ptr = (struct FREE_BLOCK *)p;
+  } while(1);
+
+  printf("-----\n");
+  int i;
+  for( i=0 ; i<ALLOC_1ST_LAYER * ALLOC_2ND_LAYER ; i++ ){
+    if( free_blocks[i] == NULL ) continue;
+    printf("free[%d]\n", i);
+    struct FREE_BLOCK *ptr = free_blocks[i];
+    while( ptr != NULL ){
+      printf("  %p: size=%d\n", ptr, ptr->size);
+      ptr = ptr->next_free;
+    }
+  }
+}
+
+//// for mruby/c
+
+struct MEM_WITH_VM {
+  uint8_t vm_id;
+  uint8_t data[];
+};
+
 uint8_t *mrbc_alloc(mrb_vm *vm, int size)
 {
-  int page;
-  int vm_id = get_vm_id(vm);
-  int empty_page = -1;
-  struct _ALLOC_INFO *info;
-  for( page=0 ; page<_ALLOC_PAGE_NUM ; page++ ){
-    // get info
-    info = page_to_info(page);
-    // skip empty
-    if( info->owner == 0xff ){
-      if( empty_page < 0 ) empty_page = page;
-      continue;
-    }
-    // skip not owner
-    if( info->owner != vm_id ) continue;
-    // try to allocate
-    uint8_t *ptr = _page_alloc(page, info, size); 
-    if( ptr != NULL ) return ptr;
+  int alloc_size = size + sizeof(struct MEM_WITH_VM);
+  uint8_t *ptr = mrbc_raw_alloc(alloc_size);
+  struct MEM_WITH_VM *alloc_block = (struct MEM_WITH_VM *)ptr;
+  if( vm != NULL ){
+    alloc_block->vm_id = vm->vm_id;
+  } else {
+    alloc_block->vm_id = 0;
   }
-  // can not allocate from vm's page
-  // new page for vm_id
-  if( empty_page >= 0 ){
-    _alloc_init_page(empty_page);
-    info = page_to_info(empty_page);
-    info->owner = vm_id;
-    return _page_alloc(empty_page, page_to_info(empty_page), size); 
-  }
-
-  // out of memory
-  return NULL;
+  return alloc_block->data;
 }
 
-// free an allocated memory block
-// linear search is used...
+
 void mrbc_free(mrb_vm *vm, void *ptr)
 {
-  int vm_id = get_vm_id(vm);
-  uint8_t page = address_to_page(ptr);
-  struct _ALLOC_INFO *info = page_to_info(page);
-  // check owner
-  if( info->owner != vm_id ) return;
-  // get target block
-  uint8_t target_idx = address_to_idx(ptr);
-  uint8_t *idx_p = &info->top_idx;
-  uint8_t idx;
-  while( (idx = *idx_p) ){
-    struct _ALLOC_BLOCK *block = idx_to_block(page, idx);
-    if( idx == target_idx ){
-      // target block -> free list 
-      uint8_t original_free_idx = info->free_idx;
-      info->free_idx = idx;
-      // used list update
-      *(idx_p) = block->next_idx;
-      // free list update
-      block->next_idx = original_free_idx;
-      return;
-    }
-    idx_p = &(block->next_idx);
-  }
-
-  // if here, ptr is a wrong pointer
-  return;
-}
-
-// bit set
-static inline void _page_compact_set_bit(uint8_t map[], uint8_t idx)
-{
-  uint8_t *p = &map[idx / 8];
-  *p |= 0x01 << (idx % 8);
-}
-
-// get bit
-static inline int _page_compact_get_bit(uint8_t map[], uint8_t idx)
-{
-  uint8_t *p = &map[idx / 8];
-  return  *p & (0x01 << (idx % 8));
-}
-
-// compaction a page
-static void _page_compact(uint8_t page, struct _ALLOC_INFO *info)
-{
-  uint8_t map[32];  // free map
-  int i;
-  // clear bits
-  for( i=0 ; i<32 ; i++ ) map[i] = 0x00;
-  // set free bits
-  uint8_t idx = info->free_idx;
-  while( idx ){
-    struct _ALLOC_BLOCK *block = idx_to_block(page, idx);
-    uint8_t i;
-    for( i=0 ; i<block->size ; i++ ){
-      _page_compact_set_bit(map, idx+i);
-    }
-    idx = block->next_idx;
-  }
-  // find free block, compaction
-  info->free_idx = 0;
-  idx = 0xff;
-  while( 1 ){
-    uint8_t top_idx, end_idx;  
-    // find bottom of free block
-    while( !_page_compact_get_bit(map, idx) ){
-      idx--;
-      if( idx == 0x00 ) return;
-    }
-    end_idx = idx--;
-    // find top of free block
-    while( _page_compact_get_bit(map, idx) ){
-      idx--;
-      if( idx == 0x00 ) return;
-    }
-    top_idx = idx+1;
-    // free block
-    struct _ALLOC_BLOCK *block = idx_to_block(page, top_idx);
-    block->next_idx = info->free_idx;
-    info->free_idx = top_idx;
-    block->size = end_idx - top_idx + 1 - sizeof(struct _ALLOC_BLOCK)/_ALLOC_STEP;
-  }
-}
-
-
-
-// compaction
-void mrbc_compact(int vm_id)
-{
-  int page;
-  for( page=0 ; page<_ALLOC_PAGE_NUM ; page++ ){
-    struct _ALLOC_INFO *info;
-    // get info
-    info = page_to_info(page);
-    // skip empty
-    if( info->owner == 0xff ) continue;
-    // skip not owner
-    if( info->owner != vm_id ) continue;
-    // compaction
-    _page_compact(page, info);
-  }
-}
-
-
-// reference counter inc
-void mrbc_inc_ref(uint8_t *ptr)
-{
-  if( ptr == NULL ) return;
-  uint8_t idx = address_to_idx(ptr);
-  uint8_t page = address_to_page(ptr);
-  struct _ALLOC_BLOCK *block = idx_to_block(page, idx);
-  block->count++;
-}
-
-// reference counter dec
-void mrbc_dec_ref(uint8_t *ptr)
-{
-  if( ptr == NULL ) return;
-  uint8_t idx = address_to_idx(ptr);
-  uint8_t page = address_to_page(ptr);
-  struct _ALLOC_BLOCK *block = idx_to_block(page, idx);
-  block->count--;
-  if( block->count == 0 ){
-    // free
-    struct _ALLOC_INFO *info = page_to_info(page);
-    //    mrbc_free(info->owner, ptr);
-  }
-}
-
-
-// for dubug use
-void disp_page(int page)
-{
-  struct _ALLOC_INFO *info = page_to_info(page);
-  printf("Page %d ", page);
-  if( info->owner == 0xff ){
-    printf("(empty)\n");
-    return;
-  }    
-  printf("(owner=%d)\n", info->owner);
-  uint8_t idx = info->top_idx;
-  printf("* ALOC SIZE COUNT\n");
-  while( idx ){
-    struct _ALLOC_BLOCK *block = idx_to_block(page, idx);
-    printf("   %3d %4d %5d\n", idx, block->size, block->count);
-    idx = block->next_idx;
-  }
-  printf("* FREE SIZE\n");
-  idx = info->free_idx;
-  while( idx ){
-    struct _ALLOC_BLOCK *block = idx_to_block(page, idx);
-    printf("   %3d %4d\n", idx, block->size);
-    idx = block->next_idx;
-  }
-}
-
-void disp_memory(void)
-{
-  int page;
-  for( page=0 ; page<_ALLOC_PAGE_NUM ; page++ ){
-    disp_page(page);
-  }
+  uint8_t *p = (uint8_t *)ptr;
+  struct MEM_WITH_VM *free_block = (struct MEM_WITH_VM *)(p-sizeof(struct MEM_WITH_VM));
+  mrbc_raw_free(free_block);
 }
 
