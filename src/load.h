@@ -11,8 +11,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_LOAD_H_
-#define MRUBYC_SRC_LOAD_H_
+#ifndef MRBC_SRC_LOAD_H_
+#define MRBC_SRC_LOAD_H_
 
 #include <stdint.h>
 

@@ -167,7 +167,7 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
 	return -1;
       }
       switch( tt ){
-#if MRUBYC_USE_STRING
+#if MRBC_USE_STRING
         case 0: { // IREP_TT_STRING
           ptr->tt = MRB_TT_STRING;
 	  ptr->value.str = (char*)p;
@@ -180,7 +180,7 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
           ptr->tt = MRB_TT_FIXNUM;
           ptr->value.i = atoi(buf);
         } break;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
         case 2: { // IREP_TT_FLOAT
           char buf[obj_size+1];
           memcpy(buf, p, obj_size);

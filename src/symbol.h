@@ -1,5 +1,5 @@
-#ifndef MRUBYC_SRC_SYMBOL_H_
-#define MRUBYC_SRC_SYMBOL_H_
+#ifndef MRBC_SRC_SYMBOL_H_
+#define MRBC_SRC_SYMBOL_H_
 
 #include "value.h"
 

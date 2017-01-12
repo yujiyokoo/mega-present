@@ -47,12 +47,12 @@ mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
     case MRB_TT_TRUE:
       cls = mrbc_class_true;
       break;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
     case MRB_TT_FLOAT:
       cls = mrbc_class_float;
       break;
 #endif
-#if MRUBYC_USE_STRING
+#if MRBC_USE_STRING
     case MRB_TT_STRING:
       cls = mrbc_class_string;
       break;
@@ -129,12 +129,12 @@ void c_puts(mrb_vm *vm, mrb_value *v)
   case MRB_TT_FALSE:
     console_printf("false");
     break;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   case MRB_TT_FLOAT:
     console_printf("%f", arg0->value.d);
     break;
 #endif
-#if MRUBYC_USE_STRING
+#if MRBC_USE_STRING
   case MRB_TT_STRING:
     console_printf("%s", arg0->value.str);
     break;
@@ -229,10 +229,10 @@ void mrbc_init_class(void)
   mrbc_init_class_true(0);
 
   mrbc_init_class_fixnum(0);
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   mrbc_init_class_float(0);
 #endif
-#if MRUBYC_USE_STRING
+#if MRBC_USE_STRING
   mrbc_init_class_string(0);
 #endif
   mrbc_init_class_array(0);

@@ -12,8 +12,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_VM_CONFIG_H_
-#define MRUBYC_SRC_VM_CONFIG_H_
+#ifndef MRBC_SRC_VM_CONFIG_H_
+#define MRBC_SRC_VM_CONFIG_H_
 
 /* maximum number of VMs */
 #ifndef MAX_VM_COUNT
@@ -66,9 +66,9 @@
 /* 1: USE */
 
 /* USE Float. Support Float class */
-#define MRUBYC_USE_FLOAT 1
+#define MRBC_USE_FLOAT 1
 
 /* USE String. Support String class */
-#define MRUBYC_USE_STRING 1
+#define MRBC_USE_STRING 1
 
 #endif

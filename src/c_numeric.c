@@ -76,7 +76,7 @@ static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v)
   SET_INT_RETURN( shift(v->value.i, -num) );
 }
 
-#if MRUBYC_USE_STRING
+#if MRBC_USE_STRING
 static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v)
 {
   int num = v->value.i;
@@ -120,14 +120,14 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_fixnum, "&", c_fixnum_and);
   mrbc_define_method(vm, mrbc_class_fixnum, "<<", c_fixnum_lshift);
   mrbc_define_method(vm, mrbc_class_fixnum, ">>", c_fixnum_rshift);
-#if MRUBYC_USE_STRING
+#if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_fixnum, "to_s", c_fixnum_to_s);
 #endif
 }
 
 
 // Float
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
 
 void mrbc_init_class_float(mrb_vm *vm)
 {

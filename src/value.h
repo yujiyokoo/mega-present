@@ -12,8 +12,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_VALUE_H_
-#define MRUBYC_SRC_VALUE_H_
+#ifndef MRBC_SRC_VALUE_H_
+#define MRBC_SRC_VALUE_H_
 
 #include <stdint.h>
 #include "vm_config.h"

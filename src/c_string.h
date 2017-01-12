@@ -12,8 +12,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_C_STRING_H_
-#define MRUBYC_SRC_C_STRING_H_
+#ifndef MRBC_SRC_C_STRING_H_
+#define MRBC_SRC_C_STRING_H_
 
 #include <stdint.h>
 #include "vm.h"

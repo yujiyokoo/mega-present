@@ -12,8 +12,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_SYSLOG_H_
-#define MRUBYC_SRC_SYSLOG_H_
+#ifndef MRBC_SRC_CONSOLE_H_
+#define MRBC_SRC_CONSOLE_H_
 
 #ifdef __cplusplus
 extern "C" {

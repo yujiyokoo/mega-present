@@ -12,8 +12,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_C_ARRAY_H_
-#define MRUBYC_SRC_C_ARRAY_H_
+#ifndef MRBC_SRC_C_ARRAY_H_
+#define MRBC_SRC_C_ARRAY_H_
 
 #include "vm.h"
 

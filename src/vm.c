@@ -497,7 +497,7 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     regs[rr].value.i += regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       regs[rr].value.d += regs[rr+1].value.i;
@@ -507,7 +507,7 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
       op_send(vm, code, regs);
     }
 #endif
-#if MRUBYC_USE_STRING
+#if MRBC_USE_STRING
   } else if( regs[rr].tt == MRB_TT_STRING && regs[rr+1].tt == MRB_TT_STRING ){
     regs[rr].value.str = mrbc_string_cat(vm, regs[rr].value.str, regs[rr+1].value.str);
 
@@ -564,7 +564,7 @@ inline static int op_sub( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum - Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     regs[rr].value.i -= regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       regs[rr].value.d -= regs[rr+1].value.i;
@@ -626,7 +626,7 @@ inline static int op_mul( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum * Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     regs[rr].value.i *= regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       regs[rr].value.d *= regs[rr+1].value.i;
@@ -662,7 +662,7 @@ inline static int op_div( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum * Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     regs[rr].value.i /= regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       regs[rr].value.d /= regs[rr+1].value.i;
@@ -707,7 +707,7 @@ inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     result = (regs[rr].value.i == regs[rr+1].value.i);
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   if( regs[rr].tt == MRB_TT_FLOAT ) {
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       result = (regs[rr].value.d == regs[rr+1].value.i );
@@ -755,7 +755,7 @@ inline static int op_lt( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     result = regs[rr].value.i < regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       result = regs[rr].value.d < regs[rr+1].value.i;
@@ -799,7 +799,7 @@ inline static int op_le( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     result = regs[rr].value.i <= regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       result = regs[rr].value.d <= regs[rr+1].value.i;
@@ -842,7 +842,7 @@ inline static int op_gt( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     result = regs[rr].value.i > regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       result = regs[rr].value.d > regs[rr+1].value.i;
@@ -885,7 +885,7 @@ inline static int op_ge( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     result = regs[rr].value.i >= regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       result = regs[rr].value.d >= regs[rr+1].value.i;
