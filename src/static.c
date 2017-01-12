@@ -62,9 +62,6 @@ void init_static(void)
     mrbc_const[i].sym_id = -1;
   }
 
-  /* symbol */
-  init_sym();
-
   /* init class */
   mrbc_init_class();
 }
