@@ -1188,8 +1188,8 @@ struct VM *vm_open(void)
   int i;
   mrb_vm *p = 0;
   for( i=0 ; i<MAX_VM_COUNT ; i++ ){
-    if( static_vm[i].priority < 0 ){
-      p = static_vm + i;
+    if( mrbc_vm[i].priority < 0 ){
+      p = mrbc_vm + i;
       break;
     }
   }
@@ -1233,7 +1233,7 @@ void vm_boot(struct VM *vm)
   vm->reg_top = 0;
   // set self to reg[0]
   vm->top_self = mrbc_obj_alloc(vm, MRB_TT_OBJECT);
-  vm->top_self->value.cls = static_class_object;
+  vm->top_self->value.cls = mrbc_class_object;
   vm->regs[0].tt = MRB_TT_OBJECT;
   vm->regs[0].value.obj = vm->top_self;
   // target_class

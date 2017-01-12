@@ -1,3 +1,15 @@
+/*! @file
+  @brief
+  Declare static data.
+
+  <pre>
+  Copyright (C) 2015-2016 Kyushu Institute of Technology.
+  Copyright (C) 2015-2016 Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+  </pre>
+*/
+
 #include "common.h"
 #include "static.h"
 #include "vm_config.h"
@@ -6,48 +18,48 @@
 
 /* Static Variables */
 /* VM contains regs, stack, PC, and so on */
-mrb_vm static_vm[MAX_VM_COUNT];
+mrb_vm mrbc_vm[MAX_VM_COUNT];
 
-//static mrb_object static_object[MAX_OBJECT_COUNT];
-//mrb_object *static_pool_object;
+//static mrb_object mrbc_object[MAX_OBJECT_COUNT];
+//mrb_object *mrbc_pool_object;
 
-mrb_constobject static_const[MAX_CONST_COUNT];
+mrb_constobject mrbc_const[MAX_CONST_COUNT];
 
-mrb_globalobject static_global[MAX_GLOBAL_OBJECT_SIZE];
+mrb_globalobject mrbc_global[MAX_GLOBAL_OBJECT_SIZE];
 
 /* Class Tree */
-mrb_class *static_class_object;
+mrb_class *mrbc_class_object;
 
 /* Classes */
-mrb_class *static_class_false;
-mrb_class *static_class_true;
-mrb_class *static_class_nil;
-mrb_class *static_class_array;
-mrb_class *static_class_fixnum;
+mrb_class *mrbc_class_false;
+mrb_class *mrbc_class_true;
+mrb_class *mrbc_class_nil;
+mrb_class *mrbc_class_array;
+mrb_class *mrbc_class_fixnum;
 #if MRUBYC_USE_FLOAT
-mrb_class *static_class_float;
+mrb_class *mrbc_class_float;
 #endif
 #if MRUBYC_USE_STRING
-mrb_class *static_class_string;
+mrb_class *mrbc_class_string;
 #endif
-mrb_class *static_class_range;
+mrb_class *mrbc_class_range;
 
 void init_static(void)
 {
   int i;
 
   for( i=0 ; i<MAX_VM_COUNT ; i++ ){
-    static_vm[i].vm_id = i+1;
-    static_vm[i].priority = -1;
+    mrbc_vm[i].vm_id = i+1;
+    mrbc_vm[i].priority = -1;
   }
 
   /* global objects */
   for( i=0 ; i<MAX_GLOBAL_OBJECT_SIZE ; i++ ){
-    static_global[i].sym_id = -1;
+    mrbc_global[i].sym_id = -1;
   }
 
   for( i=0 ; i<MAX_CONST_COUNT; i++ ){
-    static_const[i].sym_id = -1;
+    mrbc_const[i].sym_id = -1;
   }
 
   /* symbol */

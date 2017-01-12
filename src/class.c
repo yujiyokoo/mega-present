@@ -33,28 +33,28 @@
 */
 mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
 {
-  mrb_class *cls = static_class_object;
+  mrb_class *cls = mrbc_class_object;
   switch( obj->tt ){
     case MRB_TT_ARRAY:
-      cls = static_class_array;
+      cls = mrbc_class_array;
       break;
     case MRB_TT_FIXNUM:
-      cls = static_class_fixnum;
+      cls = mrbc_class_fixnum;
       break;
     case MRB_TT_FALSE:
-      cls = static_class_false;
+      cls = mrbc_class_false;
       break;
     case MRB_TT_TRUE:
-      cls = static_class_true;
+      cls = mrbc_class_true;
       break;
 #if MRUBYC_USE_FLOAT
     case MRB_TT_FLOAT:
-      cls = static_class_float;
+      cls = mrbc_class_float;
       break;
 #endif
 #if MRUBYC_USE_STRING
     case MRB_TT_STRING:
-      cls = static_class_string;
+      cls = mrbc_class_string;
       break;
 #endif
     default:
@@ -158,9 +158,9 @@ void c_puts(mrb_vm *vm, mrb_value *v)
 static void mrbc_init_class_object(mrb_vm *vm)
 {
   // Class
-  static_class_object = mrbc_class_alloc(vm, "Object", 0);
+  mrbc_class_object = mrbc_class_alloc(vm, "Object", 0);
   // Methods
-  mrbc_define_method(vm, static_class_object, "puts", c_puts);
+  mrbc_define_method(vm, mrbc_class_object, "puts", c_puts);
 
 }
 
@@ -185,10 +185,10 @@ void c_false_not(mrb_vm *vm, mrb_value *v)
 static void mrbc_init_class_false(mrb_vm *vm)
 {
   // Class
-  static_class_false = mrbc_class_alloc(vm, "FalseClass", static_class_object);
+  mrbc_class_false = mrbc_class_alloc(vm, "FalseClass", mrbc_class_object);
   // Methods
-  mrbc_define_method(vm, static_class_false, "!=", c_false_ne);
-  mrbc_define_method(vm, static_class_false, "!", c_false_not);
+  mrbc_define_method(vm, mrbc_class_false, "!=", c_false_ne);
+  mrbc_define_method(vm, mrbc_class_false, "!", c_false_not);
 }
 
 
@@ -214,10 +214,10 @@ void c_true_not(mrb_vm *vm, mrb_value *v)
 static void mrbc_init_class_true(mrb_vm *vm)
 {
   // Class
-  static_class_true = mrbc_class_alloc(vm, "TrueClass", static_class_object);
+  mrbc_class_true = mrbc_class_alloc(vm, "TrueClass", mrbc_class_object);
   // Methods
-  mrbc_define_method(vm, static_class_true, "!=", c_true_ne);
-  mrbc_define_method(vm, static_class_true, "!", c_true_not);
+  mrbc_define_method(vm, mrbc_class_true, "!=", c_true_ne);
+  mrbc_define_method(vm, mrbc_class_true, "!", c_true_not);
 
 }
 

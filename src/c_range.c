@@ -30,7 +30,7 @@ mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclu
 // init class
 void mrbc_init_class_range(mrb_vm *vm)
 {
-  static_class_range = mrbc_class_alloc(vm, "Range", static_class_object);
+  mrbc_class_range = mrbc_class_alloc(vm, "Range", mrbc_class_object);
 
 
 }

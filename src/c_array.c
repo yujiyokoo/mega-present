@@ -150,21 +150,21 @@ static void c_array_pop(mrb_vm *vm, mrb_value *v)
 void mrbc_init_class_array(mrb_vm *vm)
 {
   // Array
-  static_class_array = mrbc_class_alloc(vm, "Array", static_class_object);
+  mrbc_class_array = mrbc_class_alloc(vm, "Array", mrbc_class_object);
 
-  mrbc_define_method(vm, static_class_array, "!=", c_array_neq);
-  mrbc_define_method(vm, static_class_array, "count", c_array_size);
-  mrbc_define_method(vm, static_class_array, "length", c_array_size);
-  mrbc_define_method(vm, static_class_array, "size", c_array_size);
-  mrbc_define_method(vm, static_class_array, "+", c_array_plus);
-  mrbc_define_method(vm, static_class_array, "empty?", c_array_empty);
-  mrbc_define_method(vm, static_class_array, "[]", c_array_get);
-  mrbc_define_method(vm, static_class_array, "at", c_array_get);
-  mrbc_define_method(vm, static_class_array, "[]=", c_array_set);
-  mrbc_define_method(vm, static_class_array, "index", c_array_index);
+  mrbc_define_method(vm, mrbc_class_array, "!=", c_array_neq);
+  mrbc_define_method(vm, mrbc_class_array, "count", c_array_size);
+  mrbc_define_method(vm, mrbc_class_array, "length", c_array_size);
+  mrbc_define_method(vm, mrbc_class_array, "size", c_array_size);
+  mrbc_define_method(vm, mrbc_class_array, "+", c_array_plus);
+  mrbc_define_method(vm, mrbc_class_array, "empty?", c_array_empty);
+  mrbc_define_method(vm, mrbc_class_array, "[]", c_array_get);
+  mrbc_define_method(vm, mrbc_class_array, "at", c_array_get);
+  mrbc_define_method(vm, mrbc_class_array, "[]=", c_array_set);
+  mrbc_define_method(vm, mrbc_class_array, "index", c_array_index);
 
 
-  mrbc_define_method(vm, static_class_array, "first", c_array_first);
-  mrbc_define_method(vm, static_class_array, "last", c_array_last);
-  mrbc_define_method(vm, static_class_array, "pop", c_array_pop);
+  mrbc_define_method(vm, mrbc_class_array, "first", c_array_first);
+  mrbc_define_method(vm, mrbc_class_array, "last", c_array_last);
+  mrbc_define_method(vm, mrbc_class_array, "pop", c_array_pop);
 }

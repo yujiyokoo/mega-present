@@ -112,16 +112,16 @@ static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v)
 void mrbc_init_class_fixnum(mrb_vm *vm)
 {
   // Fixnum
-  static_class_fixnum = mrbc_class_alloc(vm, "Fixnum", static_class_object);
-  mrbc_define_method(vm, static_class_fixnum, "==", c_fixnum_eq);
-  mrbc_define_method(vm, static_class_fixnum, "%", c_fixnum_mod);
-  mrbc_define_method(vm, static_class_fixnum, "<=>", c_fixnum_comp);
-  mrbc_define_method(vm, static_class_fixnum, "~", c_fixnum_deny);
-  mrbc_define_method(vm, static_class_fixnum, "&", c_fixnum_and);
-  mrbc_define_method(vm, static_class_fixnum, "<<", c_fixnum_lshift);
-  mrbc_define_method(vm, static_class_fixnum, ">>", c_fixnum_rshift);
+  mrbc_class_fixnum = mrbc_class_alloc(vm, "Fixnum", mrbc_class_object);
+  mrbc_define_method(vm, mrbc_class_fixnum, "==", c_fixnum_eq);
+  mrbc_define_method(vm, mrbc_class_fixnum, "%", c_fixnum_mod);
+  mrbc_define_method(vm, mrbc_class_fixnum, "<=>", c_fixnum_comp);
+  mrbc_define_method(vm, mrbc_class_fixnum, "~", c_fixnum_deny);
+  mrbc_define_method(vm, mrbc_class_fixnum, "&", c_fixnum_and);
+  mrbc_define_method(vm, mrbc_class_fixnum, "<<", c_fixnum_lshift);
+  mrbc_define_method(vm, mrbc_class_fixnum, ">>", c_fixnum_rshift);
 #if MRUBYC_USE_STRING
-  mrbc_define_method(vm, static_class_fixnum, "to_s", c_fixnum_to_s);
+  mrbc_define_method(vm, mrbc_class_fixnum, "to_s", c_fixnum_to_s);
 #endif
 }
 
@@ -132,7 +132,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
 void mrbc_init_class_float(mrb_vm *vm)
 {
   // Float
-  static_class_float = mrbc_class_alloc(vm, "Float", static_class_object);
+  mrbc_class_float = mrbc_class_alloc(vm, "Float", mrbc_class_object);
 
 }
 

@@ -69,8 +69,8 @@ typedef struct RClass {
   struct RClass *next;  // linked list
   mrb_vtype tt:8;
   mrb_sym name;   // class name
-  struct RClass *super;    // static_class[super]
-  struct RProc *procs;   // static_proc[rprocs], linked list
+  struct RClass *super;    // mrbc_class[super]
+  struct RProc *procs;   // mrbc_proc[rprocs], linked list
 } mrb_class;
 
 
