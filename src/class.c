@@ -1,3 +1,16 @@
+/*! @file
+  @brief
+
+  <pre>
+  Copyright (C) 2015-2016 Kyushu Institute of Technology.
+  Copyright (C) 2015-2016 Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+
+  </pre>
+*/
+
 #include "value.h"
 #include "class.h"
 #include "static.h"
@@ -80,9 +93,9 @@ mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrb_sym sym_id)
 
 
 
-void mrb_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t cfunc)
+void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t cfunc)
 {
-  mrb_proc *rproc = mrb_rproc_alloc(vm, name);
+  mrb_proc *rproc = mrbc_rproc_alloc(vm, name);
   rproc->c_func = 1;  // c-func
   rproc->next = cls->procs;
   cls->procs = rproc;
@@ -92,7 +105,7 @@ void mrb_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t 
 
 
 
-void mrb_define_method_proc(mrb_vm *vm, mrb_class *cls, mrb_sym sym_id, mrb_proc *rproc)
+void mrbc_define_method_proc(mrb_vm *vm, mrb_class *cls, mrb_sym sym_id, mrb_proc *rproc)
 {
   rproc->c_func = 0;
   rproc->sym_id = sym_id;
@@ -142,12 +155,12 @@ void c_puts(mrb_vm *vm, mrb_value *v)
 }
 
 
-static void mrb_init_class_object(mrb_vm *vm)
+static void mrbc_init_class_object(mrb_vm *vm)
 {
   // Class
-  static_class_object = mrb_class_alloc(vm, "Object", 0);
+  static_class_object = mrbc_class_alloc(vm, "Object", 0);
   // Methods
-  mrb_define_method(vm, static_class_object, "puts", c_puts);
+  mrbc_define_method(vm, static_class_object, "puts", c_puts);
 
 }
 
@@ -169,13 +182,13 @@ void c_false_not(mrb_vm *vm, mrb_value *v)
   SET_TRUE_RETURN();
 }
 
-static void mrb_init_class_false(mrb_vm *vm)
+static void mrbc_init_class_false(mrb_vm *vm)
 {
   // Class
-  static_class_false = mrb_class_alloc(vm, "FalseClass", static_class_object);
+  static_class_false = mrbc_class_alloc(vm, "FalseClass", static_class_object);
   // Methods
-  mrb_define_method(vm, static_class_false, "!=", c_false_ne);
-  mrb_define_method(vm, static_class_false, "!", c_false_not);
+  mrbc_define_method(vm, static_class_false, "!=", c_false_ne);
+  mrbc_define_method(vm, static_class_false, "!", c_false_not);
 }
 
 
@@ -198,30 +211,30 @@ void c_true_not(mrb_vm *vm, mrb_value *v)
 
 
 
-static void mrb_init_class_true(mrb_vm *vm)
+static void mrbc_init_class_true(mrb_vm *vm)
 {
   // Class
-  static_class_true = mrb_class_alloc(vm, "TrueClass", static_class_object);
+  static_class_true = mrbc_class_alloc(vm, "TrueClass", static_class_object);
   // Methods
-  mrb_define_method(vm, static_class_true, "!=", c_true_ne);
-  mrb_define_method(vm, static_class_true, "!", c_true_not);
+  mrbc_define_method(vm, static_class_true, "!=", c_true_ne);
+  mrbc_define_method(vm, static_class_true, "!", c_true_not);
 
 }
 
 
-void mrb_init_class(void)
+void mrbc_init_class(void)
 {
-  mrb_init_class_object(0);
-  mrb_init_class_false(0);
-  mrb_init_class_true(0);
+  mrbc_init_class_object(0);
+  mrbc_init_class_false(0);
+  mrbc_init_class_true(0);
 
-  mrb_init_class_fixnum(0);
+  mrbc_init_class_fixnum(0);
 #if MRUBYC_USE_FLOAT
-  mrb_init_class_float(0);
+  mrbc_init_class_float(0);
 #endif
 #if MRUBYC_USE_STRING
-  mrb_init_class_string(0);
+  mrbc_init_class_string(0);
 #endif
-  mrb_init_class_array(0);
-  mrb_init_class_range(0);
+  mrbc_init_class_array(0);
+  mrbc_init_class_range(0);
 }
