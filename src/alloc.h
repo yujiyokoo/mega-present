@@ -27,6 +27,8 @@ void mrbc_init_alloc(void);
 uint8_t *mrbc_raw_alloc(uint32_t size);
 void mrbc_raw_free(void *ptr);
 
+void mrbc_alloc_debug(void);
+
 uint8_t *mrbc_alloc(mrb_vm *vm, int size);
 void mrbc_free(mrb_vm *vm, void *ptr);
 

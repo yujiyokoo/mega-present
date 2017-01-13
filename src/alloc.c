@@ -246,6 +246,7 @@ void mrbc_raw_free(void *ptr)
 }
 
 // for debug 
+#ifdef MRBC_DEBUG
 void mrbc_alloc_debug(void)
 {
   struct FREE_BLOCK *ptr = (struct FREE_BLOCK *)memory_pool;
@@ -270,6 +271,7 @@ void mrbc_alloc_debug(void)
     }
   }
 }
+#endif
 
 //// for mruby/c
 
