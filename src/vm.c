@@ -989,6 +989,52 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
+  Create HASH object
+
+  R(A) := hash_new(R(B),R(B+1)..R(B+C))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int arg_a = GETARG_A(code);
+  int arg_b = GETARG_B(code);
+  int arg_c = GETARG_C(code);
+  mrb_value *ptr;
+  
+  mrb_value v;
+  v.tt = MRB_TT_HASH;
+  v.value.obj = 0;
+
+  if( arg_c >= 0 ){
+    mrb_value *p;
+    ptr = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c*2+1));
+    v.value.obj = ptr;
+    ptr->tt = MRB_TT_FIXNUM;
+    ptr->value.i = arg_c;
+
+    p = ptr + 1;
+    arg_c *= 2;
+    while( arg_c > 0 ){
+      p->tt = regs[arg_b].tt;
+      p->value = regs[arg_b].value;
+      p++;
+      arg_c--;
+      arg_b++;
+    }
+  }
+
+  regs[arg_a] = v;
+
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
   Execute  LAMBDA
 
   R(A) := lambda(SEQ[Bz],Cz)
@@ -1258,8 +1304,6 @@ static void output_debug_info( mrb_vm *vm, uint32_t opcode )
   console_printf("pc=%d, op=%02x\n", vm->pc, opcode);
 }
 
-
-
 //================================================================
 /*!@brief
   Fetch a bytecode and execute
@@ -1320,6 +1364,7 @@ int vm_run( mrb_vm *vm )
     case OP_GE:         ret = op_ge        (vm, code, regs); break;
     case OP_ARRAY:      ret = op_array     (vm, code, regs); break;
     case OP_STRING:     ret = op_string    (vm, code, regs); break;
+    case OP_HASH:       ret = op_hash      (vm, code, regs); break;
     case OP_LAMBDA:     ret = op_lambda    (vm, code, regs); break;
     case OP_RANGE:      ret = op_range     (vm, code, regs); break;
     case OP_CLASS:      ret = op_class     (vm, code, regs); break;

@@ -58,6 +58,7 @@ typedef enum {
   MRB_TT_ARRAY,
   MRB_TT_STRING,
   MRB_TT_RANGE,
+  MRB_TT_HASH,
 } mrb_vtype;
 
 
