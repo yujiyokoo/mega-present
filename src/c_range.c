@@ -7,7 +7,7 @@
 #include "vm.h"
 
 
-mrb_value mrb_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclude)
+mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclude)
 {
   mrb_value value;
   mrb_value *ptr = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value)*3);
@@ -28,9 +28,9 @@ mrb_value mrb_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclud
 
 
 // init class
-void mrb_init_class_range(mrb_vm *vm)
+void mrbc_init_class_range(mrb_vm *vm)
 {
-  static_class_range = mrb_class_alloc(vm, "Range", static_class_object);
+  mrbc_class_range = mrbc_class_alloc(vm, "Range", mrbc_class_object);
 
 
 }

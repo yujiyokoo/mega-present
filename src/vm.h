@@ -13,8 +13,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_VM_H_
-#define MRUBYC_SRC_VM_H_
+#ifndef MRBC_SRC_VM_H_
+#define MRBC_SRC_VM_H_
 
 #include <stdint.h>
 #include "value.h"

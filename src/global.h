@@ -11,8 +11,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_GLOBAL_H_
-#define MRUBYC_SRC_GLOBAL_H_
+#ifndef MRBC_SRC_GLOBAL_H_
+#define MRBC_SRC_GLOBAL_H_
 
 #include "value.h"
 

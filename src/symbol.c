@@ -1,31 +1,44 @@
+/*! @file
+  @brief
+  Symbol
+
+  <pre>
+  Copyright (C) 2015-2016 Kyushu Institute of Technology.
+  Copyright (C) 2015-2016 Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  </pre>
+*/
+
 #include <string.h>
 #include "symbol.h"
-#include "static.h"
+#include "console.h"
+
 
 struct SYM_INDEX {
-  uint16_t hash;
-  char *pos;
+  uint16_t hash;	//!< hash value, returned by calc_hash().
+  char    *pos;		//!< point to the symbol string. maybe in sym_table[].
 };
 
-static int sym_index_pos;
+
 static struct SYM_INDEX sym_index[MAX_SYMBOLS_COUNT];
-static char *sym_table_tail;
-static char sym_table[MAX_SYMBOLS_SIZE];
+static int sym_index_pos;	// point to the last(free) sym_index array.
+static char  sym_table[MAX_SYMBOLS_SIZE];	// symbol string table.
+static char *sym_table_pos = sym_table;	// point to the last(free) sym_table.
 
-void init_sym(void)
-{
-  int i;
-  for( i=0 ; i<MAX_SYMBOLS_COUNT ; i++ ){
-    sym_index[i].pos = 0;
-  }
-  sym_index_pos = 0;
-  sym_table_tail = sym_table;
-}
 
+//================================================================
+/*! Caliculate hash value.
+
+  @param  str		Target string.
+  @return uint16_t	Hash value.
+*/
 static uint16_t calc_hash(const char *str)
 {
   uint16_t h = 0;
-  while( *str != '\0' ){
+
+  while( *str != '\0' ) {
     h = h * 37 + *str;
     str++;
   }
@@ -33,29 +46,58 @@ static uint16_t calc_hash(const char *str)
 }
 
 
+//================================================================
+/*! Add symbol to symbol table.
+
+  @param  str		Target string.
+  @return mrb_sym	Symbol value.
+  @retval -1		If error occurred.
+*/
 mrb_sym add_sym(const char *str)
 {
   mrb_sym sym_id = str_to_symid(str);
-  if( sym_id < 0 ){
-    uint16_t h = calc_hash(str);
-    sym_index[sym_index_pos].hash = h;
-    sym_index[sym_index_pos].pos = sym_table_tail;
+
+  if( sym_id < 0 ) {
+    // check overflow.
+    if( sym_index_pos >= MAX_SYMBOLS_COUNT ) {
+      console_printf( "Overflow %s '%s'\n", "MAX_SYMBOLS_COUNT", str );
+      return -1;
+    }
+    int len = strlen(str);
+    if( len == 0 ) return -1;
+    len++;
+    if( len > (MAX_SYMBOLS_SIZE - (sym_table_pos - sym_table)) ) {
+      console_printf( "Overflow %s '%s'\n", "MAX_SYMBOLS_SIZE", str );
+      return -1;
+    }
+
+    // ok! go.
+    sym_index[sym_index_pos].hash = calc_hash(str);
+    sym_index[sym_index_pos].pos = sym_table_pos;
     sym_id = sym_index_pos;
     sym_index_pos++;
-    strcpy(sym_table_tail, str);
-    sym_table_tail += strlen(str)+1;
+    memcpy(sym_table_pos, str, len);
+    sym_table_pos += len;
   }
+
   return sym_id;
 }
 
 
+//================================================================
+/*! Convert string to symbol value.
+
+  @param  str		Target string.
+  @return mrb_sym	Symbol value.
+*/
 mrb_sym str_to_symid(const char *str)
 {
   uint16_t h = calc_hash(str);
   int i;
-  for( i=0 ; i<sym_index_pos ; i++ ){
-    if( sym_index[i].hash == h ){
-      if( strcmp(str, sym_index[i].pos) == 0 ){
+
+  for( i = 0; i < sym_index_pos; i++ ) {
+    if( sym_index[i].hash == h ) {
+      if( strcmp(str, sym_index[i].pos) == 0 ) {
         return i;
       }
     }
@@ -63,7 +105,18 @@ mrb_sym str_to_symid(const char *str)
   return -1;
 }
 
-const char *symid_to_str(mrb_sym sym_id)
+
+//================================================================
+/*! Convert symbol value to string.
+
+  @param  mrb_sym	Symbol value.
+  @return const char*	String.
+  @retval NULL		Invalid sym_id was given.
+*/
+const char* symid_to_str(mrb_sym sym_id)
 {
+  if( sym_id < 0 ) return NULL;
+  if( sym_id >= sym_index_pos ) return NULL;
+
   return sym_index[sym_id].pos;
 }
