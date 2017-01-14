@@ -330,12 +330,12 @@ void mrbc_init(void)
 
   // TODO 関数呼び出しが、c_XXX => mrbc_XXX の daisy chain になっている。
   //      不要な複雑さかもしれない。要リファクタリング。
-  mrb_define_method(0, static_class_object, "sleep",           c_sleep);
-  mrb_define_method(0, static_class_object, "sleep_ms",        c_sleep_ms);
-  mrb_define_method(0, static_class_object, "relinquish",      c_relinquish);
-  mrb_define_method(0, static_class_object, "change_priority", c_change_priority);
-  mrb_define_method(0, static_class_object, "suspend_task",    c_suspend_task);
-  mrb_define_method(0, static_class_object, "resume_task",     c_resume_task);
+  mrbc_define_method(0, mrbc_class_object, "sleep",           c_sleep);
+  mrbc_define_method(0, mrbc_class_object, "sleep_ms",        c_sleep_ms);
+  mrbc_define_method(0, mrbc_class_object, "relinquish",      c_relinquish);
+  mrbc_define_method(0, mrbc_class_object, "change_priority", c_change_priority);
+  mrbc_define_method(0, mrbc_class_object, "suspend_task",    c_suspend_task);
+  mrbc_define_method(0, mrbc_class_object, "resume_task",     c_resume_task);
 }
 
 

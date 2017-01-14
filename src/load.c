@@ -161,13 +161,13 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
     for( i=0 ; i<plen ; i++ ){
       int tt = (int)*p++;
       int obj_size = get_int_2(p);   p += 2;
-      mrb_object *ptr = mrb_obj_alloc(vm, MRB_TT_FALSE);
+      mrb_object *ptr = mrbc_obj_alloc(vm, MRB_TT_FALSE);
       if( ptr == 0 ){
         vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
 	return -1;
       }
       switch( tt ){
-#if MRUBYC_USE_STRING
+#if MRBC_USE_STRING
         case 0: { // IREP_TT_STRING
           ptr->tt = MRB_TT_STRING;
 	  ptr->value.str = (char*)p;
@@ -180,7 +180,7 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
           ptr->tt = MRB_TT_FIXNUM;
           ptr->value.i = atoi(buf);
         } break;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
         case 2: { // IREP_TT_FLOAT
           char buf[obj_size+1];
           memcpy(buf, p, obj_size);

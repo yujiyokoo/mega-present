@@ -12,8 +12,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_VALUE_H_
-#define MRUBYC_SRC_VALUE_H_
+#ifndef MRBC_SRC_VALUE_H_
+#define MRBC_SRC_VALUE_H_
 
 #include <stdint.h>
 #include "vm_config.h"
@@ -51,6 +51,7 @@ typedef enum {
   MRB_TT_NIL,
   MRB_TT_FIXNUM,
   MRB_TT_FLOAT,
+  MRB_TT_SYMBOL,
   /* non-primitive */
   MRB_TT_OBJECT = 64,
   MRB_TT_CLASS,
@@ -58,6 +59,7 @@ typedef enum {
   MRB_TT_ARRAY,
   MRB_TT_STRING,
   MRB_TT_RANGE,
+  MRB_TT_HASH,
 } mrb_vtype;
 
 
@@ -69,8 +71,8 @@ typedef struct RClass {
   struct RClass *next;  // linked list
   mrb_vtype tt:8;
   mrb_sym name;   // class name
-  struct RClass *super;    // static_class[super]
-  struct RProc *procs;   // static_proc[rprocs], linked list
+  struct RClass *super;    // mrbc_class[super]
+  struct RProc *procs;   // mrbc_proc[rprocs], linked list
 } mrb_class;
 
 
@@ -116,23 +118,23 @@ typedef struct RProc {
 
 
 // alloc one object
-mrb_object *mrb_obj_alloc(struct VM *vm, mrb_vtype tt);
+mrb_object *mrbc_obj_alloc(struct VM *vm, mrb_vtype tt);
 
 // alloc one class
-mrb_class *mrb_class_alloc(struct VM *vm, const char *name, mrb_class *super);
+mrb_class *mrbc_class_alloc(struct VM *vm, const char *name, mrb_class *super);
 
 
 // alloc one RProc
-mrb_proc *mrb_rproc_alloc(struct VM *vm, const char *name);
-  mrb_proc *mrb_rproc_alloc_to_class(struct VM *vm, const char *name, mrb_class *cls);
+mrb_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
+mrb_proc *mrbc_rproc_alloc_to_class(struct VM *vm, const char *name, mrb_class *cls);
 
 // EQ two objects
-int mrb_eq(mrb_value *v1, mrb_value *v2);
+int mrbc_eq(mrb_value *v1, mrb_value *v2);
 
 
 // for C call
 #define SET_INT_RETURN(n)         {v[0].tt=MRB_TT_FIXNUM;v[0].value.i=(n);}
-#define SET_NIL_RETURN()          v[0].tt=MRB_TT_FALSE
+#define SET_NIL_RETURN()          v[0].tt=MRB_TT_NIL
 #define SET_FALSE_RETURN()        v[0].tt=MRB_TT_FALSE
 #define SET_TRUE_RETURN()         v[0].tt=MRB_TT_TRUE
 #define SET_RETURN(n)             v[0]=n

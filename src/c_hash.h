@@ -12,16 +12,18 @@
   </pre>
 */
 
-#ifndef MRBC_SRC_CONSOLE_H_
-#define MRBC_SRC_CONSOLE_H_
+#ifndef MRUBYC_SRC_C_HASH_H_
+#define MRUBYC_SRC_C_HASH_H_
+
+#include "vm.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void console_putchar(const char c);
-void console_print(const char *str);
-void console_printf(const char *fmt, ...);
+
+void mrbc_init_class_hash(mrb_vm *vm);
+
 
 #ifdef __cplusplus
 }

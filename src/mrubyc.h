@@ -11,8 +11,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_MRUBYC_H_
-#define MRUBYC_SRC_MRUBYC_H_
+#ifndef MRBC_SRC_MRUBYC_H_
+#define MRBC_SRC_MRUBYC_H_
 
 #include "errorcode.h"
 #include "vm.h"

@@ -6,7 +6,7 @@
 #include "alloc.h"
 #include "vm.h"
 
-mrb_object *mrb_obj_alloc(mrb_vm *vm, mrb_vtype tt)
+mrb_object *mrbc_obj_alloc(mrb_vm *vm, mrb_vtype tt)
 {
   mrb_object *ptr = (mrb_object *)mrbc_alloc(vm, sizeof(mrb_object));
   if( ptr  ){
@@ -16,7 +16,7 @@ mrb_object *mrb_obj_alloc(mrb_vm *vm, mrb_vtype tt)
   return ptr;
 }
 
-mrb_class *mrb_class_alloc(mrb_vm *vm, const char *name, mrb_class *super)
+mrb_class *mrbc_class_alloc(mrb_vm *vm, const char *name, mrb_class *super)
 {
   mrb_class *ptr = (mrb_class *)mrbc_alloc(vm, sizeof(mrb_class));
   if( ptr ){
@@ -29,7 +29,7 @@ mrb_class *mrb_class_alloc(mrb_vm *vm, const char *name, mrb_class *super)
   return ptr;
 }
 
-mrb_proc *mrb_rproc_alloc(mrb_vm *vm, const char *name)
+mrb_proc *mrbc_rproc_alloc(mrb_vm *vm, const char *name)
 {
   mrb_proc *ptr = (mrb_proc *)mrbc_alloc(vm, sizeof(mrb_proc));
   ptr->sym_id = add_sym(name);
@@ -37,9 +37,9 @@ mrb_proc *mrb_rproc_alloc(mrb_vm *vm, const char *name)
   return ptr;
 }
 
-mrb_proc *mrb_rproc_alloc_to_class(mrb_vm *vm, const char *name, mrb_class *cls)
+mrb_proc *mrbc_rproc_alloc_to_class(mrb_vm *vm, const char *name, mrb_class *cls)
 {
-  mrb_proc *rproc = mrb_rproc_alloc(vm, name);
+  mrb_proc *rproc = mrbc_rproc_alloc(vm, name);
   if( rproc != 0 ){
     rproc->next = cls->procs;
     cls->procs = rproc;
@@ -51,7 +51,7 @@ mrb_proc *mrb_rproc_alloc_to_class(mrb_vm *vm, const char *name, mrb_class *cls)
 // EQ? two objects
 // EQ: return true
 // NEQ: return false
-int mrb_eq(mrb_value *v1, mrb_value *v2)
+int mrbc_eq(mrb_value *v1, mrb_value *v2)
 {
   // TT_XXX is different
   if( v1->tt != v2->tt ) return 0;
@@ -62,6 +62,7 @@ int mrb_eq(mrb_value *v1, mrb_value *v2)
   case MRB_TT_NIL:
     return 1;
   case MRB_TT_FIXNUM:
+  case MRB_TT_SYMBOL:
     return v1->value.i == v2->value.i;
   case MRB_TT_FLOAT:
     return v1->value.d == v2->value.d;
@@ -73,7 +74,7 @@ int mrb_eq(mrb_value *v1, mrb_value *v2)
     int i, len = array1[0].value.i;
     if( len != array2[0].value.i ) return 0;
     for( i=1 ; i<=len ; i++ ){
-      if( !mrb_eq(array1+i, array2+i) ) break;
+      if( !mrbc_eq(array1+i, array2+i) ) break;
     }
     if( i > len ){
       return 1;
@@ -85,4 +86,3 @@ int mrb_eq(mrb_value *v1, mrb_value *v2)
     return 0;
   }
 }
-

@@ -12,8 +12,8 @@
   </pre>
 */
 
-#ifndef MRUBYC_SRC_C_NUMERIC_H_
-#define MRUBYC_SRC_C_NUMERIC_H_
+#ifndef MRBC_SRC_C_NUMERIC_H_
+#define MRBC_SRC_C_NUMERIC_H_
 
 #include "vm.h"
 
@@ -22,8 +22,8 @@ extern "C" {
 #endif
 
 
-void mrb_init_class_fixnum(mrb_vm *vm);
-void mrb_init_class_float(mrb_vm *vm);
+void mrbc_init_class_fixnum(mrb_vm *vm);
+void mrbc_init_class_float(mrb_vm *vm);
 
 #ifdef __cplusplus
 }

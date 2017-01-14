@@ -161,7 +161,9 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
 
   mrb_sym sym_id = add_sym(sym);
-  regs[ra] = global_object_get(sym_id);
+
+  regs[ra].value.i = sym_id;
+  regs[ra].tt = MRB_TT_SYMBOL;
 
   return 0;
 }
@@ -497,7 +499,7 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     regs[rr].value.i += regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       regs[rr].value.d += regs[rr+1].value.i;
@@ -507,9 +509,9 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
       op_send(vm, code, regs);
     }
 #endif
-#if MRUBYC_USE_STRING
+#if MRBC_USE_STRING
   } else if( regs[rr].tt == MRB_TT_STRING && regs[rr+1].tt == MRB_TT_STRING ){
-    regs[rr].value.str = mrb_string_cat(vm, regs[rr].value.str, regs[rr+1].value.str);
+    regs[rr].value.str = mrbc_string_cat(vm, regs[rr].value.str, regs[rr+1].value.str);
 
 #endif
   } else {
@@ -564,7 +566,7 @@ inline static int op_sub( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum - Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     regs[rr].value.i -= regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       regs[rr].value.d -= regs[rr+1].value.i;
@@ -626,7 +628,7 @@ inline static int op_mul( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum * Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     regs[rr].value.i *= regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       regs[rr].value.d *= regs[rr+1].value.i;
@@ -662,7 +664,7 @@ inline static int op_div( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum * Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     regs[rr].value.i /= regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       regs[rr].value.d /= regs[rr+1].value.i;
@@ -697,7 +699,7 @@ inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int result;
 
   //
-  if( mrb_eq(&regs[rr], &regs[rr+1]) ){
+  if( mrbc_eq(&regs[rr], &regs[rr+1]) ){
     regs[rr].tt = MRB_TT_TRUE;
   } else {
     regs[rr].tt = MRB_TT_FALSE;
@@ -707,7 +709,7 @@ inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     result = (regs[rr].value.i == regs[rr+1].value.i);
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   if( regs[rr].tt == MRB_TT_FLOAT ) {
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       result = (regs[rr].value.d == regs[rr+1].value.i );
@@ -755,7 +757,7 @@ inline static int op_lt( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     result = regs[rr].value.i < regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       result = regs[rr].value.d < regs[rr+1].value.i;
@@ -799,7 +801,7 @@ inline static int op_le( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     result = regs[rr].value.i <= regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       result = regs[rr].value.d <= regs[rr+1].value.i;
@@ -842,7 +844,7 @@ inline static int op_gt( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     result = regs[rr].value.i > regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       result = regs[rr].value.d > regs[rr+1].value.i;
@@ -885,7 +887,7 @@ inline static int op_ge( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
     result = regs[rr].value.i >= regs[rr+1].value.i;
-#if MRUBYC_USE_FLOAT
+#if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
       result = regs[rr].value.d >= regs[rr+1].value.i;
@@ -978,13 +980,59 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
     ptr = ptr->next;
     arg_b--;
   }
-  v.value.str = mrb_string_dup(vm, ptr->value.str);
+  v.value.str = mrbc_string_dup(vm, ptr->value.str);
 
   int arg_a = GETARG_A(code);
   regs[arg_a] = v;
   return 0;
 }
 
+
+
+//================================================================
+/*!@brief
+  Create HASH object
+
+  R(A) := hash_new(R(B),R(B+1)..R(B+C))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int arg_a = GETARG_A(code);
+  int arg_b = GETARG_B(code);
+  int arg_c = GETARG_C(code);
+  mrb_value *ptr;
+  
+  mrb_value v;
+  v.tt = MRB_TT_HASH;
+  v.value.obj = 0;
+
+  if( arg_c >= 0 ){
+    mrb_value *p;
+    ptr = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c*2+1));
+    v.value.obj = ptr;
+    ptr->tt = MRB_TT_FIXNUM;
+    ptr->value.i = arg_c;
+
+    p = ptr + 1;
+    arg_c *= 2;
+    while( arg_c > 0 ){
+      p->tt = regs[arg_b].tt;
+      p->value = regs[arg_b].value;
+      p++;
+      arg_c--;
+      arg_b++;
+    }
+  }
+
+  regs[arg_a] = v;
+
+  return 0;
+}
 
 
 //================================================================
@@ -1002,7 +1050,7 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   // int c = GETARG_C(code); // TODO: Add flags support for OP_LAMBDA
   int b = GETARG_b(code); // sequence position in irep list
-  mrb_proc *proc = mrb_rproc_alloc(vm, "(lambda)");
+  mrb_proc *proc = mrbc_rproc_alloc(vm, "(lambda)");
   mrb_irep *current = vm->irep;
   mrb_irep *p = current->next; //starting from next for current sequence;
   // code length is p->ilen * sizeof(uint32_t);
@@ -1035,7 +1083,7 @@ inline static int op_range( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int a = GETARG_A(code);
   int b = GETARG_B(code);
   int c = GETARG_C(code);
-  regs[a] = mrb_range_new(vm, &regs[b], &regs[b+1], c);
+  regs[a] = mrbc_range_new(vm, &regs[b], &regs[b+1], c);
   return 0;
 }
 
@@ -1086,7 +1134,7 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
     mrb_irep *cur_irep = vm->pc_irep;
     char *sym = find_irep_symbol(cur_irep->ptr_to_sym, b);
     int sym_id = add_sym( sym );
-    mrb_define_method_proc(vm, cls, sym_id, rproc);
+    mrbc_define_method_proc(vm, cls, sym_id, rproc);
   }
 
   return 0;
@@ -1188,8 +1236,8 @@ struct VM *vm_open(void)
   int i;
   mrb_vm *p = 0;
   for( i=0 ; i<MAX_VM_COUNT ; i++ ){
-    if( static_vm[i].priority < 0 ){
-      p = static_vm + i;
+    if( mrbc_vm[i].priority < 0 ){
+      p = mrbc_vm + i;
       break;
     }
   }
@@ -1232,8 +1280,8 @@ void vm_boot(struct VM *vm)
   vm->pc = 0;
   vm->reg_top = 0;
   // set self to reg[0]
-  vm->top_self = mrb_obj_alloc(vm, MRB_TT_OBJECT);
-  vm->top_self->value.cls = static_class_object;
+  vm->top_self = mrbc_obj_alloc(vm, MRB_TT_OBJECT);
+  vm->top_self->value.cls = mrbc_class_object;
   vm->regs[0].tt = MRB_TT_OBJECT;
   vm->regs[0].value.obj = vm->top_self;
   // target_class
@@ -1257,8 +1305,6 @@ static void output_debug_info( mrb_vm *vm, uint32_t opcode )
 {
   console_printf("pc=%d, op=%02x\n", vm->pc, opcode);
 }
-
-
 
 //================================================================
 /*!@brief
@@ -1320,6 +1366,7 @@ int vm_run( mrb_vm *vm )
     case OP_GE:         ret = op_ge        (vm, code, regs); break;
     case OP_ARRAY:      ret = op_array     (vm, code, regs); break;
     case OP_STRING:     ret = op_string    (vm, code, regs); break;
+    case OP_HASH:       ret = op_hash      (vm, code, regs); break;
     case OP_LAMBDA:     ret = op_lambda    (vm, code, regs); break;
     case OP_RANGE:      ret = op_range     (vm, code, regs); break;
     case OP_CLASS:      ret = op_class     (vm, code, regs); break;
