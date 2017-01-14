@@ -40,7 +40,7 @@ mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
       cls = mrbc_class_array;
       break;
     case MRB_TT_HASH:
-      cls = static_class_hash;
+      cls = mrbc_class_hash;
       break;
     case MRB_TT_FIXNUM:
       cls = mrbc_class_fixnum;

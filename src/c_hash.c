@@ -55,10 +55,10 @@ static void c_hash_set(mrb_vm *vm, mrb_value *v)
 void mrb_init_class_hash(mrb_vm *vm)
 {
   // Hash
-  static_class_hash = mrb_class_alloc(vm, "Hash", static_class_object);
+  mrbc_class_hash = mrb_class_alloc(vm, "Hash", mrbc_class_object);
   
-  mrb_define_method(vm, static_class_hash, "size", c_hash_size);
-  mrb_define_method(vm, static_class_hash, "[]", c_hash_get);
-  mrb_define_method(vm, static_class_hash, "[]=", c_hash_set);
+  mrb_define_method(vm, mrbc_class_hash, "size", c_hash_size);
+  mrb_define_method(vm, mrbc_class_hash, "[]", c_hash_get);
+  mrb_define_method(vm, mrbc_class_hash, "[]=", c_hash_set);
 
 }

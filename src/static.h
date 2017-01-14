@@ -32,15 +32,15 @@ extern mrb_vm mrbc_vm[];
 /* Class Tree */
 extern mrb_class *mrbc_class_object;
 
-extern mrb_class *static_class_false;
-extern mrb_class *static_class_true;
-extern mrb_class *static_class_nil;
-extern mrb_class *static_class_array;
-extern mrb_class *static_class_fixnum;
-extern mrb_class *static_class_float;
-extern mrb_class *static_class_string;
-extern mrb_class *static_class_range;
-extern mrb_class *static_class_hash;
+extern mrb_class *mrbc_class_false;
+extern mrb_class *mrbc_class_true;
+extern mrb_class *mrbc_class_nil;
+extern mrb_class *mrbc_class_array;
+extern mrb_class *mrbc_class_fixnum;
+extern mrb_class *mrbc_class_float;
+extern mrb_class *mrbc_class_string;
+extern mrb_class *mrbc_class_range;
+extern mrb_class *mrbc_class_hash;
 
 
 extern mrb_constobject mrbc_const[];

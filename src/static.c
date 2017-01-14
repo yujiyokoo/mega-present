@@ -42,8 +42,8 @@ mrb_class *mrbc_class_float;
 #if MRBC_USE_STRING
 mrb_class *mrbc_class_string;
 #endif
-mrb_class *static_class_range;
-mrb_class *static_class_hash;
+mrb_class *mrbc_class_range;
+mrb_class *mrbc_class_hash;
 
 void init_static(void)
 {
