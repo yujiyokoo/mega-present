@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 
-void mrb_init_class_hash(mrb_vm *vm);
+void mrbc_init_class_hash(mrb_vm *vm);
 
 
 #ifdef __cplusplus

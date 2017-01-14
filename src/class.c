@@ -242,7 +242,7 @@ void mrbc_init_class(void)
 #if MRBC_USE_STRING
   mrbc_init_class_string(0);
 #endif
-  mrb_init_class_array(0);
-  mrb_init_class_range(0);
-  mrb_init_class_hash(0);
+  mrbc_init_class_array(0);
+  mrbc_init_class_range(0);
+  mrbc_init_class_hash(0);
 }
