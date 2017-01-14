@@ -62,6 +62,7 @@ int mrb_eq(mrb_value *v1, mrb_value *v2)
   case MRB_TT_NIL:
     return 1;
   case MRB_TT_FIXNUM:
+  case MRB_TT_SYMBOL:
     return v1->value.i == v2->value.i;
   case MRB_TT_FLOAT:
     return v1->value.d == v2->value.d;

@@ -4,6 +4,7 @@
 #include "console.h"
 
 #include "c_array.h"
+#include "c_hash.h"
 #include "c_numeric.h"
 #include "c_string.h"
 #include "c_range.h"
@@ -24,6 +25,9 @@ mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
   switch( obj->tt ){
     case MRB_TT_ARRAY:
       cls = static_class_array;
+      break;
+    case MRB_TT_HASH:
+      cls = static_class_hash;
       break;
     case MRB_TT_FIXNUM:
       cls = static_class_fixnum;
@@ -109,6 +113,9 @@ void c_puts(mrb_vm *vm, mrb_value *v)
   switch( arg0->tt ){
   case MRB_TT_FIXNUM:
     console_printf("%d", arg0->value.i);
+    break;
+  case MRB_TT_NIL:
+    console_printf("");
     break;
   case MRB_TT_TRUE:
     console_printf("true");

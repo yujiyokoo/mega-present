@@ -161,7 +161,9 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
 
   mrb_sym sym_id = add_sym(sym);
-  regs[ra] = global_object_get(sym_id);
+
+  regs[ra].value.i = sym_id;
+  regs[ra].tt = MRB_TT_SYMBOL;
 
   return 0;
 }

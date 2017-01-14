@@ -51,6 +51,7 @@ typedef enum {
   MRB_TT_NIL,
   MRB_TT_FIXNUM,
   MRB_TT_FLOAT,
+  MRB_TT_SYMBOL,
   /* non-primitive */
   MRB_TT_OBJECT = 64,
   MRB_TT_CLASS,
@@ -133,7 +134,7 @@ int mrb_eq(mrb_value *v1, mrb_value *v2);
 
 // for C call
 #define SET_INT_RETURN(n)         {v[0].tt=MRB_TT_FIXNUM;v[0].value.i=(n);}
-#define SET_NIL_RETURN()          v[0].tt=MRB_TT_FALSE
+#define SET_NIL_RETURN()          v[0].tt=MRB_TT_NIL
 #define SET_FALSE_RETURN()        v[0].tt=MRB_TT_FALSE
 #define SET_TRUE_RETURN()         v[0].tt=MRB_TT_TRUE
 #define SET_RETURN(n)             v[0]=n
