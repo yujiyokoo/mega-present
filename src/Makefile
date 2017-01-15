@@ -10,7 +10,7 @@
 CFLAGS = -Wall -Wpointer-arith -g # -std=c99 -pedantic -pedantic-errors -DDEBUG
 
 COMMON_SRCS = alloc.c class.c common.c console.c global.c load.c rrt0.c static.c symbol.c value.c vm.c hal/hal.c
-RUBY_LIB_SRCS = c_array.c c_hash.c c_numeric.c c_range.c c_string.c
+RUBY_LIB_SRCS = c_array.c c_hash.c c_numeric.c c_range.c c_string.c c_symbol.c
 TARGET = libmrubyc.a
 OBJS = $(COMMON_SRCS:.c=.o) $(RUBY_LIB_SRCS:.c=.o)
 
@@ -50,7 +50,9 @@ c_string.o: c_string.c c_string.h vm.h value.h vm_config.h alloc.h \
   class.h static.h global.h
 c_range.o: c_range.c c_range.h vm.h value.h vm_config.h alloc.h class.h \
   static.h global.h
-c_range.o: c_hash.c c_range.h vm.h value.h vm_config.h alloc.h class.h \
+c_hash.o: c_hash.c vm.h value.h vm_config.h alloc.h class.h \
+  static.h global.h
+c_symbol.o: c_symbol.c vm.h value.h vm_config.h alloc.h class.h \
   static.h global.h
 
 

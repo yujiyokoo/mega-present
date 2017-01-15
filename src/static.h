@@ -39,6 +39,7 @@ extern mrb_class *mrbc_class_array;
 extern mrb_class *mrbc_class_fixnum;
 extern mrb_class *mrbc_class_float;
 extern mrb_class *mrbc_class_string;
+extern mrb_class *mrbc_class_symbol;
 extern mrb_class *mrbc_class_range;
 extern mrb_class *mrbc_class_hash;
 

@@ -20,6 +20,7 @@
 #include "c_hash.h"
 #include "c_numeric.h"
 #include "c_string.h"
+#include "c_symbol.h"
 #include "c_range.h"
 
 
@@ -236,6 +237,7 @@ void mrbc_init_class(void)
   mrbc_init_class_true(0);
 
   mrbc_init_class_fixnum(0);
+  mrbc_init_class_symbol(0);
 #if MRBC_USE_FLOAT
   mrbc_init_class_float(0);
 #endif

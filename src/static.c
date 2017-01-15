@@ -36,6 +36,7 @@ mrb_class *mrbc_class_true;
 mrb_class *mrbc_class_nil;
 mrb_class *mrbc_class_array;
 mrb_class *mrbc_class_fixnum;
+mrb_class *mrbc_class_symbol;
 #if MRBC_USE_FLOAT
 mrb_class *mrbc_class_float;
 #endif
