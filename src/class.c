@@ -46,6 +46,9 @@ mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
     case MRB_TT_FIXNUM:
       cls = mrbc_class_fixnum;
       break;
+    case MRB_TT_SYMBOL:
+      cls = mrbc_class_symbol;
+      break;
     case MRB_TT_FALSE:
       cls = mrbc_class_false;
       break;
