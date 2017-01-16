@@ -34,6 +34,7 @@ void mrbc_init_class_symbol(mrb_vm *vm)
   mrbc_class_symbol = mrbc_class_alloc(vm, "Symbol", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_symbol, "to_s", c_symbol_to_s);
+  mrbc_define_method(vm, mrbc_class_symbol, "id2name", c_symbol_to_s);
   mrbc_define_method(vm, mrbc_class_symbol, "to_sym", c_symbol_to_sym);
   mrbc_define_method(vm, mrbc_class_symbol, "===", c_symbol_equal);
 }
