@@ -20,6 +20,7 @@
 #include "c_hash.h"
 #include "c_numeric.h"
 #include "c_string.h"
+#include "c_symbol.h"
 #include "c_range.h"
 
 
@@ -44,6 +45,9 @@ mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
       break;
     case MRB_TT_FIXNUM:
       cls = mrbc_class_fixnum;
+      break;
+    case MRB_TT_SYMBOL:
+      cls = mrbc_class_symbol;
       break;
     case MRB_TT_FALSE:
       cls = mrbc_class_false;
@@ -236,6 +240,7 @@ void mrbc_init_class(void)
   mrbc_init_class_true(0);
 
   mrbc_init_class_fixnum(0);
+  mrbc_init_class_symbol(0);
 #if MRBC_USE_FLOAT
   mrbc_init_class_float(0);
 #endif
