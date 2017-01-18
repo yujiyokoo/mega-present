@@ -165,6 +165,15 @@ void c_puts(mrb_vm *vm, mrb_value *v)
   console_printf("\n");
 }
 
+// Object !=
+void c_object_neq(mrb_vm *vm, mrb_value *v)
+{
+  if( mrbc_eq(v, &GET_ARG(0)) ){
+    SET_FALSE_RETURN();
+  } else {
+    SET_TRUE_RETURN();
+  }
+}
 
 static void mrbc_init_class_object(mrb_vm *vm)
 {
@@ -172,7 +181,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_class_object = mrbc_class_alloc(vm, "Object", 0);
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "puts", c_puts);
-
+  mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
 }
 
 
