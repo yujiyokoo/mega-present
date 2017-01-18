@@ -17,7 +17,7 @@
 #define MRBC_SRC_ALLOC_H_
 
 #include <stdint.h>
-#include "vm.h"
+#include "vm.h"    // for mruby/c
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,11 +25,14 @@ extern "C" {
 
 void mrbc_init_alloc(void);
 uint8_t *mrbc_raw_alloc(uint32_t size);
+uint8_t *mrbc_raw_realloc(uint8_t *ptr, uint32_t size);
 void mrbc_raw_free(void *ptr);
 
 void mrbc_alloc_debug(void);
 
+// for mruby/c
 uint8_t *mrbc_alloc(mrb_vm *vm, int size);
+  uint8_t *mrbc_realloc(mrb_vm *vm, void *ptr, int size);
 void mrbc_free(mrb_vm *vm, void *ptr);
 
 

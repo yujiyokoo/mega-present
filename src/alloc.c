@@ -245,6 +245,34 @@ void mrbc_raw_free(void *ptr)
   add_free_block(free_ptr);
 }
 
+
+// simple realloc
+uint8_t *mrbc_raw_realloc(uint8_t *ptr, uint32_t size)
+{
+  uint8_t *new_ptr = mrbc_raw_alloc(size);
+
+  // get block info
+  uint8_t *src_ptr = ptr;
+  struct USED_BLOCK *src_block = (struct USED_BLOCK *)(src_ptr - sizeof(struct USED_BLOCK));
+
+  // copy size
+  int copy_size;
+  if( size > src_block->size-sizeof(struct USED_BLOCK) ){
+    copy_size = src_block->size - sizeof(struct USED_BLOCK);
+  } else {
+    copy_size = size;
+  }
+
+  // copy
+  uint8_t *dst_ptr = new_ptr; 
+  while( copy_size-- > 0 ){
+    *dst_ptr++ = *src_ptr++;
+  } 
+  mrbc_raw_free(ptr);
+
+  return new_ptr;
+}
+
 // for debug 
 #ifdef MRBC_DEBUG
 void mrbc_alloc_debug(void)
@@ -284,7 +312,23 @@ uint8_t *mrbc_alloc(mrb_vm *vm, int size)
 {
   int alloc_size = size + sizeof(struct MEM_WITH_VM);
   uint8_t *ptr = mrbc_raw_alloc(alloc_size);
+
   struct MEM_WITH_VM *alloc_block = (struct MEM_WITH_VM *)ptr;
+  if( vm != NULL ){
+    alloc_block->vm_id = vm->vm_id;
+  } else {
+    alloc_block->vm_id = 0;
+  }
+  return alloc_block->data;
+}
+
+
+uint8_t *mrbc_realloc(mrb_vm *vm, void *ptr, int size)
+{
+  int alloc_size = size + sizeof(struct MEM_WITH_VM);
+  uint8_t *new_ptr = mrbc_raw_realloc(ptr, alloc_size);
+
+  struct MEM_WITH_VM *alloc_block = (struct MEM_WITH_VM *)new_ptr;
   if( vm != NULL ){
     alloc_block->vm_id = vm->vm_id;
   } else {
