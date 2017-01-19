@@ -87,13 +87,50 @@ typedef struct VM {
 } mrb_vm;
 
 
+
 mrb_irep *new_irep(mrb_vm *vm);
-
-
 struct VM *vm_open(void);
 void vm_close(struct VM *vm);
 void vm_boot(struct VM *vm);
 int vm_run(struct VM *vm);
+
+
+//================================================================
+/*!@brief
+  Get 32bit value from memory big endian.
+
+  @param  p	Pointer of memory.
+  @return	32bit unsigned value.
+*/
+inline static uint32_t bin_to_uint32( const void *s )
+{
+  uint8_t *s1 = (uint8_t *)s;
+  uint32_t ret;
+
+  ret = *s1++;
+  ret = (ret << 8) + *s1++;
+  ret = (ret << 8) + *s1++;
+  ret = (ret << 8) + *s1;
+  return ret;
+}
+
+
+//================================================================
+/*!@brief
+  Get 16bit value from memory big endian.
+
+  @param  p	Pointer of memory.
+  @return	16bit unsigned value.
+*/
+inline static uint16_t bin_to_uint16( const void *s )
+{
+  uint8_t *s1 = (uint8_t *)s;
+  uint16_t ret;
+
+  ret = *s1++;
+  ret = (ret << 8) + *s1;
+  return ret;
+}
 
 
 #ifdef __cplusplus

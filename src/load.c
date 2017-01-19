@@ -20,7 +20,6 @@
 #include "errorcode.h"
 #include "static.h"
 #include "value.h"
-#include "common.h"
 
 
 //================================================================
@@ -107,7 +106,7 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos;
   p += 4;
-  int section_size = get_int_4(p);
+  int section_size = bin_to_uint32(p);
   p += 4;
 
   if( memcmp(p, "0000", 4) != 0 ) {
@@ -118,7 +117,7 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
 
   int cnt = 0;
   while( cnt < section_size ) {
-    cnt += get_int_4(p) + 8;
+    cnt += bin_to_uint32(p) + 8;
     p += 4;
 
     // new irep
@@ -142,10 +141,10 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
     irep->next = 0;
 
     // nlocals,nregs,rlen
-    irep->nlocals = get_int_2(p);  p += 2;
-    irep->nregs = get_int_2(p);    p += 2;
-    irep->rlen = get_int_2(p);     p += 2;
-    irep->ilen = get_int_4(p);     p += 4;
+    irep->nlocals = bin_to_uint16(p);  p += 2;
+    irep->nregs = bin_to_uint16(p);    p += 2;
+    irep->rlen = bin_to_uint16(p);     p += 2;
+    irep->ilen = bin_to_uint32(p);     p += 4;
 
     // padding (align=4 ?)
     p = (uint8_t *)( ( (unsigned long)p + 3 ) & ~3L );
@@ -156,11 +155,11 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
 
     // POOL BLOCK
     irep->ptr_to_pool = 0;
-    int plen = get_int_4(p);    p += 4;
+    int plen = bin_to_uint32(p);    p += 4;
     int i;
     for( i=0 ; i<plen ; i++ ){
       int tt = (int)*p++;
-      int obj_size = get_int_2(p);   p += 2;
+      int obj_size = bin_to_uint16(p);   p += 2;
       mrb_object *ptr = mrbc_obj_alloc(vm, MRB_TT_FALSE);
       if( ptr == 0 ){
         vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
@@ -204,9 +203,9 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
 
     // SYMS BLOCK
     irep->ptr_to_sym = (uint8_t*)p;
-    int slen = get_int_4(p);    p += 4;
+    int slen = bin_to_uint32(p);    p += 4;
     for( i=0 ; i<slen ; i++ ){
-      int s = get_int_2(p);     p += 2;
+      int s = bin_to_uint16(p);     p += 2;
       p += s+1;
     }
   }
@@ -230,7 +229,7 @@ static int load_lvar(struct VM *vm, const uint8_t **pos)
   const uint8_t *p = *pos;
 
   /* size */
-  *pos += get_int_4(p+4);
+  *pos += bin_to_uint32(p+4);
 
   return 0;
 }
