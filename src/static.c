@@ -10,7 +10,6 @@
   </pre>
 */
 
-#include "common.h"
 #include "static.h"
 #include "vm_config.h"
 #include "class.h"

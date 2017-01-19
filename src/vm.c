@@ -22,7 +22,6 @@
 #include "class.h"
 #include "symbol.h"
 #include "console.h"
-#include "common.h"
 
 #include "c_string.h"
 #include "c_range.h"
@@ -36,13 +35,13 @@
   @param  n
   @return  symbol string
 */
-char *find_irep_symbol( uint8_t *p, int n )
+static char *find_irep_symbol( uint8_t *p, int n )
 {
-  int cnt = get_int_4(p);
+  int cnt = bin_to_uint32(p);
   if( n >= cnt ) return 0;
   p += 4;
   while( n > 0 ) {
-    int s = get_int_2(p);
+    uint16_t s = bin_to_uint16(p);
     p += 2+s+1;   // size(2 bytes) + symbol len + '\0'
     n--;
   }
@@ -54,7 +53,7 @@ char *find_irep_symbol( uint8_t *p, int n )
 /*!@brief
 
 */
-void not_supported(void)
+static void not_supported(void)
 {
   console_printf("Not supported!\n");
 }
@@ -1175,11 +1174,10 @@ inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
+  Allocate new IREP
 
-
-  @param  vm  Pointer of VM.
-  @param  irep
-  @return
+  @param  vm	Pointer of VM.
+  @return	Pointer of new IREP.
 */
 mrb_irep *new_irep(mrb_vm *vm)
 {
@@ -1272,14 +1270,8 @@ int vm_run( mrb_vm *vm )
 
   do {
     // get one bytecode
-    uint8_t *p = (uint8_t *)(vm->pc_irep->code+vm->pc*4);
-    uint32_t code = *p++;
-    code = code << 8 | *p++;
-    code = code << 8 | *p++;
-    code = code << 8 | *p;
-
-    // next PC
-    vm->pc += 1;
+    uint32_t code = bin_to_uint32(vm->pc_irep->code + vm->pc * 4);
+    vm->pc++;
 
     // regs
     mrb_value *regs = vm->regs + vm->reg_top;
