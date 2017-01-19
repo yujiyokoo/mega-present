@@ -525,7 +525,7 @@ void mrbc_resume_task(MrbcTcb *tcb)
 }
 
 
-#ifdef DEBUG
+#ifdef MRBC_DEBUG
 #include "console.h"
 
 //================================================================

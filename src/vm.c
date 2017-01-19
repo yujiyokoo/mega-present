@@ -27,6 +27,7 @@
 #include "c_string.h"
 #include "c_range.h"
 
+
 //================================================================
 /*!@brief
   find sym[n] from symbol table in irep
@@ -49,10 +50,6 @@ char *find_irep_symbol( uint8_t *p, int n )
 }
 
 
-
-
-
-
 //================================================================
 /*!@brief
 
@@ -61,7 +58,6 @@ void not_supported(void)
 {
   console_printf("Not supported!\n");
 }
-
 
 
 //================================================================
@@ -283,6 +279,7 @@ inline static int op_setglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
   global_object_add(sym_id, &regs[ra]);
   return 0;
 }
+
 
 //================================================================
 /*!@brief
@@ -988,7 +985,6 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
 }
 
 
-
 //================================================================
 /*!@brief
   Create HASH object
@@ -1006,7 +1002,7 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int arg_b = GETARG_B(code);
   int arg_c = GETARG_C(code);
   mrb_value *ptr;
-  
+
   mrb_value v;
   v.tt = MRB_TT_HASH;
   v.value.obj = 0;
@@ -1109,8 +1105,6 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
 }
 
 
-
-
 //================================================================
 /*!@brief
   Execute METHOD
@@ -1179,29 +1173,6 @@ inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 }
 
 
-
-
-//================================================================
-/*!@brief
-
-
-  @param  vm  Pointer of VM.
-  @param  irep
-  @return
-*/
-void debug_irep(mrb_vm *vm, mrb_irep *irep)
-{
-  if( irep->unused == 1 ) {
-    console_printf("  not used.\n");
-    return;
-  }
-  console_printf("  code:0x%x\n", (int)((char *)irep->code - (char *)vm->mrb));
-  console_printf("  regs:%d\n", irep->nregs);
-  console_printf("  locals:%d\n", irep->nlocals);
-}
-
-
-
 //================================================================
 /*!@brief
 
@@ -1215,7 +1186,6 @@ mrb_irep *new_irep(mrb_vm *vm)
   mrb_irep *p = (mrb_irep *)mrbc_alloc(vm, sizeof(mrb_irep));
   return p;
 }
-
 
 
 //================================================================
@@ -1252,7 +1222,6 @@ struct VM *vm_open(void)
 }
 
 
-
 //================================================================
 /*!@brief
   VM finalizer.
@@ -1264,7 +1233,6 @@ void vm_close(struct VM *vm)
   vm->priority = -1;
   // TODO: release memory block
 }
-
 
 
 //================================================================
@@ -1290,21 +1258,6 @@ void vm_boot(struct VM *vm)
   vm->flag_preemption = 0;
 }
 
-
-
-
-//================================================================
-/*!@brief
-  Output debug info of vm
-
-  @param  vm      A pointer of VM.
-  @param  opcode  opcode at pc
-  @retval 0  No error.
-*/
-static void output_debug_info( mrb_vm *vm, uint32_t opcode )
-{
-  console_printf("pc=%d, op=%02x\n", vm->pc, opcode);
-}
 
 //================================================================
 /*!@brief
@@ -1381,3 +1334,25 @@ int vm_run( mrb_vm *vm )
 
   return ret;
 }
+
+
+#ifdef MRBC_DEBUG
+
+//================================================================
+/*!@brief
+
+  @param  vm  Pointer of VM.
+  @param  irep
+  @return
+*/
+void debug_irep(mrb_vm *vm, mrb_irep *irep)
+{
+  if( irep->unused == 1 ) {
+    console_printf("  not used.\n");
+    return;
+  }
+  console_printf("  code:0x%x\n", (int)((char *)irep->code - (char *)vm->mrb));
+  console_printf("  regs:%d\n", irep->nregs);
+  console_printf("  locals:%d\n", irep->nlocals);
+}
+#endif
