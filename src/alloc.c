@@ -14,6 +14,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include "alloc.h"
 
 //  
@@ -263,11 +264,8 @@ uint8_t *mrbc_raw_realloc(uint8_t *ptr, uint32_t size)
     copy_size = size;
   }
 
-  // copy
-  uint8_t *dst_ptr = new_ptr; 
-  while( copy_size-- > 0 ){
-    *dst_ptr++ = *src_ptr++;
-  } 
+  // copy and free
+  memcpy(new_ptr, src_ptr, copy_size);
   mrbc_raw_free(ptr);
 
   return new_ptr;

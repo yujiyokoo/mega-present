@@ -1,110 +1,110 @@
 mruby 1.2.0 (2015-11-17) 
-00002 NODE_SCOPE:
-00002   local variables:
-00002     a, b, c, d
-00002   NODE_BEGIN:
+00001 NODE_SCOPE:
+00001   local variables:
+00001     a, b, c, d
+00001   NODE_BEGIN:
+00001     NODE_ASGN:
+00001       lhs:
+00001         NODE_LVAR a
+00001       rhs:
+00001         NODE_INT 10 base 10
 00002     NODE_ASGN:
 00002       lhs:
-00002         NODE_LVAR a
+00002         NODE_LVAR b
 00002       rhs:
-00002         NODE_INT 10 base 10
+00002         NODE_INT 20 base 10
 00003     NODE_ASGN:
 00003       lhs:
-00003         NODE_LVAR b
+00003         NODE_LVAR c
 00003       rhs:
-00003         NODE_INT 20 base 10
-00004     NODE_ASGN:
-00004       lhs:
+00003         NODE_CALL:
+00003           NODE_LVAR a
+00003           method='+' (122)
+00003           args:
+00003             NODE_LVAR b
+00004     NODE_CALL:
+00004       NODE_SELF
+00004       method='puts' (230)
+00004       args:
 00004         NODE_LVAR c
-00004       rhs:
-00004         NODE_CALL:
-00004           NODE_LVAR a
-00004           method='+' (122)
-00004           args:
-00004             NODE_LVAR b
-00005     NODE_CALL:
-00005       NODE_SELF
-00005       method='puts' (230)
-00005       args:
-00005         NODE_LVAR c
-00007     NODE_ASGN:
-00007       lhs:
+00006     NODE_ASGN:
+00006       lhs:
+00006         NODE_LVAR d
+00006       rhs:
+00006         NODE_CALL:
+00006           NODE_LVAR a
+00006           method='-' (189)
+00006           args:
+00006             NODE_LVAR b
+00007     NODE_CALL:
+00007       NODE_SELF
+00007       method='puts' (230)
+00007       args:
 00007         NODE_LVAR d
-00007       rhs:
-00007         NODE_CALL:
-00007           NODE_LVAR a
-00007           method='-' (189)
-00007           args:
-00007             NODE_LVAR b
-00008     NODE_CALL:
-00008       NODE_SELF
-00008       method='puts' (230)
-00008       args:
-00008         NODE_LVAR d
+00009     NODE_ASGN:
+00009       lhs:
+00009         NODE_LVAR a
+00009       rhs:
+00009         NODE_CALL:
+00009           NODE_LVAR a
+00009           method='*' (123)
+00009           args:
+00009             NODE_INT 2 base 10
 00010     NODE_ASGN:
 00010       lhs:
-00010         NODE_LVAR a
+00010         NODE_LVAR b
 00010       rhs:
 00010         NODE_CALL:
-00010           NODE_LVAR a
-00010           method='*' (123)
+00010           NODE_LVAR b
+00010           method='/' (183)
 00010           args:
 00010             NODE_INT 2 base 10
 00011     NODE_ASGN:
 00011       lhs:
-00011         NODE_LVAR b
+00011         NODE_LVAR c
 00011       rhs:
 00011         NODE_CALL:
-00011           NODE_LVAR b
-00011           method='/' (183)
+00011           NODE_LVAR a
+00011           method='+' (122)
 00011           args:
-00011             NODE_INT 2 base 10
-00012     NODE_ASGN:
-00012       lhs:
+00011             NODE_LVAR b
+00012     NODE_CALL:
+00012       NODE_SELF
+00012       method='puts' (230)
+00012       args:
 00012         NODE_LVAR c
-00012       rhs:
-00012         NODE_CALL:
-00012           NODE_LVAR a
-00012           method='+' (122)
-00012           args:
-00012             NODE_LVAR b
-00013     NODE_CALL:
-00013       NODE_SELF
-00013       method='puts' (230)
-00013       args:
-00013         NODE_LVAR c
-irep 0x9a5a90 nregs=8 nlocals=5 pools=0 syms=5 reps=0
+irep 0xd44a90 nregs=8 nlocals=5 pools=0 syms=5 reps=0
 file: basic_sample01.rb
-    2 000 OP_LOADI	R1	10		; R1:a
-    3 001 OP_LOADI	R2	20		; R2:b
-    4 002 OP_MOVE	R5	R1		; R1:a
-    4 003 OP_MOVE	R6	R2		; R2:b
-    4 004 OP_ADD	R5	:+	1
-    4 005 OP_MOVE	R3	R5		; R3:c
-    5 006 OP_LOADSELF	R5		
-    5 007 OP_MOVE	R6	R3		; R3:c
-    5 008 OP_SEND	R5	:puts	1
-    7 009 OP_MOVE	R5	R1		; R1:a
-    7 010 OP_MOVE	R6	R2		; R2:b
-    7 011 OP_SUB	R5	:-	1
-    7 012 OP_MOVE	R4	R5		; R4:d
-    8 013 OP_LOADSELF	R5		
-    8 014 OP_MOVE	R6	R4		; R4:d
-    8 015 OP_SEND	R5	:puts	1
-   10 016 OP_MOVE	R5	R1		; R1:a
-   10 017 OP_LOADI	R6	2	
-   10 018 OP_MUL	R5	:*	1
-   10 019 OP_MOVE	R1	R5		; R1:a
-   11 020 OP_MOVE	R5	R2		; R2:b
-   11 021 OP_LOADI	R6	2	
-   11 022 OP_DIV	R5	:/	1
-   11 023 OP_MOVE	R2	R5		; R2:b
-   12 024 OP_MOVE	R5	R1		; R1:a
-   12 025 OP_MOVE	R6	R2		; R2:b
-   12 026 OP_ADD	R5	:+	1
-   12 027 OP_MOVE	R3	R5		; R3:c
-   13 028 OP_LOADSELF	R5		
-   13 029 OP_MOVE	R6	R3		; R3:c
-   13 030 OP_SEND	R5	:puts	1
-   13 031 OP_STOP
+    1 000 OP_LOADI	R1	10		; R1:a
+    2 001 OP_LOADI	R2	20		; R2:b
+    3 002 OP_MOVE	R5	R1		; R1:a
+    3 003 OP_MOVE	R6	R2		; R2:b
+    3 004 OP_ADD	R5	:+	1
+    3 005 OP_MOVE	R3	R5		; R3:c
+    4 006 OP_LOADSELF	R5		
+    4 007 OP_MOVE	R6	R3		; R3:c
+    4 008 OP_SEND	R5	:puts	1
+    6 009 OP_MOVE	R5	R1		; R1:a
+    6 010 OP_MOVE	R6	R2		; R2:b
+    6 011 OP_SUB	R5	:-	1
+    6 012 OP_MOVE	R4	R5		; R4:d
+    7 013 OP_LOADSELF	R5		
+    7 014 OP_MOVE	R6	R4		; R4:d
+    7 015 OP_SEND	R5	:puts	1
+    9 016 OP_MOVE	R5	R1		; R1:a
+    9 017 OP_LOADI	R6	2	
+    9 018 OP_MUL	R5	:*	1
+    9 019 OP_MOVE	R1	R5		; R1:a
+   10 020 OP_MOVE	R5	R2		; R2:b
+   10 021 OP_LOADI	R6	2	
+   10 022 OP_DIV	R5	:/	1
+   10 023 OP_MOVE	R2	R5		; R2:b
+   11 024 OP_MOVE	R5	R1		; R1:a
+   11 025 OP_MOVE	R6	R2		; R2:b
+   11 026 OP_ADD	R5	:+	1
+   11 027 OP_MOVE	R3	R5		; R3:c
+   12 028 OP_LOADSELF	R5		
+   12 029 OP_MOVE	R6	R3		; R3:c
+   12 030 OP_SEND	R5	:puts	1
+   12 031 OP_STOP
 
