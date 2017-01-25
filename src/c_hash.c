@@ -16,7 +16,7 @@ static void c_hash_size(mrb_vm *vm, mrb_value *v)
 // Hash = []
 static void c_hash_get(mrb_vm *vm, mrb_value *v)
 {
-  mrb_value *hash = v->value.obj;
+  mrb_value *hash = v->value.obj->value.obj;
   int i;
   int n = hash->value.i;       // hash size
   mrb_value key = GET_ARG(0);  // search key
