@@ -9,7 +9,7 @@ static void c_hash_size(mrb_vm *vm, mrb_value *v)
 {
   mrb_value *hash = v->value.obj;
 
-  SET_INT_RETURN(hash->value.i);
+  SET_INT_RETURN(hash->value.obj->value.i);
 }
 
 
