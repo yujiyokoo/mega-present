@@ -177,7 +177,7 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadnil( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  regs[GETARG_A(code)].tt = MRB_TT_FALSE;
+  regs[GETARG_A(code)].tt = MRB_TT_NIL;
   return 0;
 }
 
@@ -1000,28 +1000,35 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int arg_a = GETARG_A(code);
   int arg_b = GETARG_B(code);
   int arg_c = GETARG_C(code);
-  mrb_value *ptr;
 
-  mrb_value v;
+  mrb_value v; // return value
   v.tt = MRB_TT_HASH;
-  v.value.obj = 0;
 
-  if( arg_c >= 0 ){
-    mrb_value *p;
-    ptr = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c*2+1));
-    v.value.obj = ptr;
-    ptr->tt = MRB_TT_FIXNUM;
-    ptr->value.i = arg_c;
+  // make handle for hash pair
+  mrb_value *handle = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value));
+  v.value.obj = handle;
+  handle->tt = MRB_TT_HANDLE;
 
-    p = ptr + 1;
-    arg_c *= 2;
-    while( arg_c > 0 ){
-      p->tt = regs[arg_b].tt;
-      p->value = regs[arg_b].value;
-      p++;
-      arg_c--;
-      arg_b++;
-    }
+  // make hash
+  mrb_value *hash = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c*2+1));
+  handle->value.obj = hash;
+  
+  hash[0].tt = MRB_TT_FIXNUM;
+  hash[0].value.i = arg_c;
+
+  mrb_value *p = hash+1;
+  while( arg_c > 0 ){
+    // copy key
+    p->tt = regs[arg_b++].tt;
+    p->value = regs[arg_b++].value;
+    p++;
+    
+    // copy value
+    p->tt = regs[arg_b++].tt;
+    p->value = regs[arg_b++].value;
+    p++;
+    
+    arg_c--;
   }
 
   regs[arg_a] = v;
