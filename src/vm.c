@@ -1016,17 +1016,14 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
   hash[0].tt = MRB_TT_FIXNUM;
   hash[0].value.i = arg_c;
 
-  mrb_value *p = hash+1;
+  mrb_value *src = &regs[arg_b];
+  mrb_value *dst = &hash[1];
   while( arg_c > 0 ){
     // copy key
-    p->tt = regs[arg_b++].tt;
-    p->value = regs[arg_b++].value;
-    p++;
+    *dst++ = *src++;
     
     // copy value
-    p->tt = regs[arg_b++].tt;
-    p->value = regs[arg_b++].value;
-    p++;
+    *dst++ = *src++;
     
     arg_c--;
   }

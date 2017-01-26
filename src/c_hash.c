@@ -21,11 +21,15 @@ static void c_hash_get(mrb_vm *vm, mrb_value *v)
   int n = hash->value.i;       // hash size
   mrb_value key = GET_ARG(0);  // search key
 
+  // ptr: 1st entry(key) of hash
+  mrb_value *ptr = &hash[1];
+  
   for( i=0 ; i<n ; i++ ){
-    if( mrbc_eq(&hash[i*2+1], &key) ){
-      SET_RETURN(hash[i*2+2]);
+    if( mrbc_eq(ptr, &key) ){
+      SET_RETURN( *(ptr+1) );
       return;
     }
+    ptr += 2;
   }
 
   SET_NIL_RETURN();
@@ -34,15 +38,16 @@ static void c_hash_get(mrb_vm *vm, mrb_value *v)
 // Hash = []=
 static void c_hash_set(mrb_vm *vm, mrb_value *v)
 {
-  mrb_value *hash = v->value.obj;
+  mrb_value *hash = v->value.obj->value.obj;
   int i;
   int n = hash[0].value.i;       // hash size
   mrb_value key = GET_ARG(0);  // search key
-  mrb_value val = GET_ARG(1);  // store value
+  mrb_value val = GET_ARG(1);  // new value
 
+  mrb_value *ptr = &hash[1];
   for( i=0 ; i<n ; i++ ){
-    if( mrbc_eq(&hash[i*2+1], &key) ){
-      hash[i*2+2] = val;
+    if( mrbc_eq(ptr, &key) ){
+      *(ptr+1) = val;  // Change value
       return;
     }
   }
@@ -50,17 +55,22 @@ static void c_hash_set(mrb_vm *vm, mrb_value *v)
   // key was not found
   // add hash entry (key and val)
   int new_size = (n+1)*2 + 1;
+
+  // use alloc instead of realloc, realloc has some bugs?
   mrb_value *new_hash = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*new_size);
+
+  mrb_value *src = &hash[1];
+  mrb_value *dst = &new_hash[1];
   for( i=0 ; i<n ; i++ ){
-    new_hash[i*2+1] = hash[i];
-    new_hash[i*2+2] = hash[i];
+    *dst++ = *src++;  // copy key
+    *dst++ = *src++;  // copy value
   }
   new_hash[0].tt = MRB_TT_FIXNUM;
   new_hash[0].value.i = n+1;
-  new_hash[n*2+1] = key;
-  new_hash[n*2+2] = val;
-  //  mrbc_free(vm, v->value.obj);
-  v->value.obj = new_hash;
+  *dst++ = key;
+  *dst   = val;
+  mrbc_free(vm, v->value.obj->value.obj);
+  v->value.obj->value.obj = new_hash;
 }
 
 
