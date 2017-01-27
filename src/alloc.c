@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "console.h"
 #include "alloc.h"
 
 //  
@@ -312,6 +313,12 @@ uint8_t *mrbc_alloc(mrb_vm *vm, int size)
   uint8_t *ptr = mrbc_raw_alloc(alloc_size);
 
   struct MEM_WITH_VM *alloc_block = (struct MEM_WITH_VM *)ptr;
+
+  if( alloc_block == NULL ){
+    console_print("alloc: cannot allocate memory");
+    return NULL;
+  }
+
   if( vm != NULL ){
     alloc_block->vm_id = vm->vm_id;
   } else {
@@ -327,6 +334,12 @@ uint8_t *mrbc_realloc(mrb_vm *vm, void *ptr, int size)
   uint8_t *new_ptr = mrbc_raw_realloc(ptr, alloc_size);
 
   struct MEM_WITH_VM *alloc_block = (struct MEM_WITH_VM *)new_ptr;
+
+  if( alloc_block == NULL ){
+    console_print("realloc: cannot allocate memory");
+    return NULL;
+  }
+
   if( vm != NULL ){
     alloc_block->vm_id = vm->vm_id;
   } else {
