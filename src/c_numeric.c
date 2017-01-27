@@ -98,6 +98,7 @@ static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v)
     i--;
   }
   char *str = (char *)mrbc_alloc(vm, i+2);
+  if( str == NULL ) return;  // ENOMEM
   while( i>=0 ){
     str[j++] = buf[i--];
   }

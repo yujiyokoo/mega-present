@@ -11,6 +11,8 @@ mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclu
 {
   mrb_value value;
   mrb_value *ptr = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value)*3);
+  if( ptr == NULL ) return value;  // ENOMEM
+
   if( exclude ){
     ptr[0].tt = MRB_TT_TRUE;
   } else {

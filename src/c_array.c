@@ -78,6 +78,8 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
   int len2 = array2->value.i;
   mrb_value *new_array = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(len1+len2+1));
 
+  if( new_array == NULL ) return;  // ENOMEM
+
   new_array->tt = MRB_TT_FIXNUM;
   new_array->value.i = len1+len2;
   mrb_value *p = new_array + 1;
