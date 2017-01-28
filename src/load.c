@@ -146,8 +146,8 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
     irep->rlen = bin_to_uint16(p);     p += 2;
     irep->ilen = bin_to_uint32(p);     p += 4;
 
-    // padding (align=4 ?)
-    p = (uint8_t *)( ( (unsigned long)p + 3 ) & ~3L );
+    // padding
+    p += (-(p - *pos + 2) & 0x03);  // +2 = (RITE(22) + IREP(12)) & 0x03
 
     // ISEQ (code) BLOCK
     irep->code = (uint8_t *)p;
