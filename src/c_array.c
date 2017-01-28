@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #include "c_array.h"
 
 #include "alloc.h"

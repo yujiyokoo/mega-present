@@ -14,6 +14,7 @@
 */
 
 #include <stdint.h>
+#include <stddef.h>
 #include "vm.h"
 #include "alloc.h"
 #include "static.h"

@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #include "c_range.h"
 
 #include "alloc.h"
@@ -10,6 +12,8 @@
 mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclude)
 {
   mrb_value value;
+  value.tt = MRB_TT_RANGE;
+
   mrb_value *ptr = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value)*3);
   if( ptr == NULL ) return value;  // ENOMEM
 
@@ -20,7 +24,6 @@ mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclu
   }
   ptr[1] = *v_st;
   ptr[2] = *v_ed;
-  value.tt = MRB_TT_RANGE;
   value.value.range = ptr;
 
   return value;

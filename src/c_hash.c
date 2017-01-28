@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #include "c_hash.h"
 
 #include "alloc.h"

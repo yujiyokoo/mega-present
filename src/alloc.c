@@ -13,9 +13,8 @@
   </pre>
 */
 
-#include <stdio.h>
+#include <stddef.h>
 #include <string.h>
-#include "console.h"
 #include "alloc.h"
 #include "console.h"
 
@@ -179,7 +178,7 @@ uint8_t *mrbc_raw_alloc(uint32_t size)
   }
   if( index >= ALLOC_1ST_LAYER*ALLOC_2ND_LAYER ){
     // out of memory
-    console_printf("Fatal error: Out of memory.\n");
+    console_print("Fatal error: Out of memory.\n");
     return NULL;
   }
 
@@ -277,6 +276,7 @@ uint8_t *mrbc_raw_realloc(uint8_t *ptr, uint32_t size)
 
 // for debug
 #ifdef MRBC_DEBUG
+#include <stdio.h>
 void mrbc_alloc_debug(void)
 {
   struct FREE_BLOCK *ptr = (struct FREE_BLOCK *)memory_pool;
@@ -313,21 +313,11 @@ struct MEM_WITH_VM {
 uint8_t *mrbc_alloc(mrb_vm *vm, int size)
 {
   int alloc_size = size + sizeof(struct MEM_WITH_VM);
-  uint8_t *ptr = mrbc_raw_alloc(alloc_size);
-  if( ptr == NULL ) return NULL;  // ENOMEM
+  struct MEM_WITH_VM *alloc_block =
+      (struct MEM_WITH_VM *)mrbc_raw_alloc(alloc_size);
+  if( alloc_block == NULL ) return NULL;  // ENOMEM
 
-  struct MEM_WITH_VM *alloc_block = (struct MEM_WITH_VM *)ptr;
-
-  if( alloc_block == NULL ){
-    console_print("alloc: cannot allocate memory");
-    return NULL;
-  }
-
-  if( vm != NULL ){
-    alloc_block->vm_id = vm->vm_id;
-  } else {
-    alloc_block->vm_id = 0;
-  }
+  alloc_block->vm_id = (vm != NULL) ? vm->vm_id : 0;
   return alloc_block->data;
 }
 
@@ -335,22 +325,11 @@ uint8_t *mrbc_alloc(mrb_vm *vm, int size)
 uint8_t *mrbc_realloc(mrb_vm *vm, void *ptr, int size)
 {
   int alloc_size = size + sizeof(struct MEM_WITH_VM);
-  uint8_t *new_ptr = mrbc_raw_realloc(ptr, alloc_size);
+  struct MEM_WITH_VM *alloc_block =
+      (struct MEM_WITH_VM *)mrbc_raw_realloc(ptr, alloc_size);
+  if( alloc_block == NULL ) return NULL;  // ENOMEM
 
-  if( new_ptr == NULL ) return NULL;  // ENOMEM
-
-  struct MEM_WITH_VM *alloc_block = (struct MEM_WITH_VM *)new_ptr;
-
-  if( alloc_block == NULL ){
-    console_print("realloc: cannot allocate memory");
-    return NULL;
-  }
-
-  if( vm != NULL ){
-    alloc_block->vm_id = vm->vm_id;
-  } else {
-    alloc_block->vm_id = 0;
-  }
+  alloc_block->vm_id = (vm != NULL) ? vm->vm_id : 0;
   return alloc_block->data;
 }
 
