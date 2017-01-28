@@ -9,7 +9,7 @@
 mrb_object *mrbc_obj_alloc(mrb_vm *vm, mrb_vtype tt)
 {
   mrb_object *ptr = (mrb_object *)mrbc_alloc(vm, sizeof(mrb_object));
-  if( ptr  ){
+  if( ptr ){
     ptr->tt = tt;
     ptr->next = 0;
   }
@@ -32,8 +32,10 @@ mrb_class *mrbc_class_alloc(mrb_vm *vm, const char *name, mrb_class *super)
 mrb_proc *mrbc_rproc_alloc(mrb_vm *vm, const char *name)
 {
   mrb_proc *ptr = (mrb_proc *)mrbc_alloc(vm, sizeof(mrb_proc));
-  ptr->sym_id = add_sym(name);
-  ptr->next = 0;
+  if( ptr ) {
+    ptr->sym_id = add_sym(name);
+    ptr->next = 0;
+  }
   return ptr;
 }
 

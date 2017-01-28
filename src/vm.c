@@ -934,6 +934,8 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
     // ptr[0] : array info
     // ptr[1..] : array elements
     ptr = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c + 1));
+    if( ptr == NULL ) return 0;  // ENOMEM
+
     v.value.obj = ptr;
     ptr->tt = MRB_TT_FIXNUM;
     ptr->value.i = arg_c;
@@ -1006,13 +1008,16 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // make handle for hash pair
   mrb_value *handle = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value));
+  if( handle == NULL ) return 0;  // ENOMEM
+
   v.value.obj = handle;
   handle->tt = MRB_TT_HANDLE;
 
   // make hash
   mrb_value *hash = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c*2+1));
+  if( hash == NULL ) return 0;  // ENOMEM
   handle->value.obj = hash;
-  
+
   hash[0].tt = MRB_TT_FIXNUM;
   hash[0].value.i = arg_c;
 
@@ -1021,10 +1026,10 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
   while( arg_c > 0 ){
     // copy key
     *dst++ = *src++;
-    
+
     // copy value
     *dst++ = *src++;
-    
+
     arg_c--;
   }
 

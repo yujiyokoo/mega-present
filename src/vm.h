@@ -99,7 +99,7 @@ int vm_run(struct VM *vm);
 /*!@brief
   Get 32bit value from memory big endian.
 
-  @param  p	Pointer of memory.
+  @param  s	Pointer of memory.
   @return	32bit unsigned value.
 */
 inline static uint32_t bin_to_uint32( const void *s )
@@ -119,7 +119,7 @@ inline static uint32_t bin_to_uint32( const void *s )
 /*!@brief
   Get 16bit value from memory big endian.
 
-  @param  p	Pointer of memory.
+  @param  s	Pointer of memory.
   @return	16bit unsigned value.
 */
 inline static uint16_t bin_to_uint16( const void *s )

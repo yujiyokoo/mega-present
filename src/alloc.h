@@ -32,7 +32,7 @@ void mrbc_alloc_debug(void);
 
 // for mruby/c
 uint8_t *mrbc_alloc(mrb_vm *vm, int size);
-  uint8_t *mrbc_realloc(mrb_vm *vm, void *ptr, int size);
+uint8_t *mrbc_realloc(mrb_vm *vm, void *ptr, int size);
 void mrbc_free(mrb_vm *vm, void *ptr);
 
 

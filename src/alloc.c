@@ -16,8 +16,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "alloc.h"
+#include "console.h"
 
-//  
+//
 #define ALLOC_TOTAL_MEMORY_SIZE 0x2800
 
 // address space 16bit, 64KB
@@ -25,12 +26,12 @@
 
 // Layer 1st(f) and 2nd(s) model
 // last 4bit is ignored
-// f : size 
-// 0 : 0000-007f 
+// f : size
+// 0 : 0000-007f
 // 1 : 0080-00ff
 // 2 : 0100-01ff
 // 3 : 0200-03ff
-// 4 : 0400-07ff 
+// 4 : 0400-07ff
 // 5 : 0800-0fff
 // 6 : 1000-1fff
 // 7 : 2000-3fff
@@ -55,7 +56,7 @@ struct USED_BLOCK {
   unsigned int f: 1;  /* 0: not free,  1: free */
   unsigned int size: 14; /* block size, header included */
   struct USED_BLOCK *prev;  /* link to previous block */
-  uint8_t data[0];
+  uint8_t data[];
 };
 
 struct FREE_BLOCK {
@@ -93,7 +94,7 @@ static int calc_index(uint32_t alloc_size)
 }
 
 
-// 
+//
 static void add_free_block(struct FREE_BLOCK *block)
 {
   block->f = 1;
@@ -128,7 +129,7 @@ void mrbc_init_alloc(void)
 static struct FREE_BLOCK *split_block(struct FREE_BLOCK *alloc, int size)
 {
   if( alloc->size < size + 24 ) return NULL;
-  
+
   // split block, free
   uint8_t *p = (uint8_t *)alloc;
   struct FREE_BLOCK *split = (struct FREE_BLOCK *)(p + size);
@@ -170,13 +171,14 @@ static void remove_index(struct FREE_BLOCK *remove)
 uint8_t *mrbc_raw_alloc(uint32_t size)
 {
   uint32_t alloc_size = size + sizeof(struct USED_BLOCK);
- 
+
   int index = calc_index(alloc_size);
   while( index < ALLOC_1ST_LAYER*ALLOC_2ND_LAYER && free_blocks[index] == NULL ){
     index++;
   }
   if( index >= ALLOC_1ST_LAYER*ALLOC_2ND_LAYER ){
     // out of memory
+    console_printf("Fatal error: Out of memory.\n");
     return NULL;
   }
 
@@ -228,7 +230,7 @@ void mrbc_raw_free(void *ptr)
 
   // check next block, merge?
   p = (uint8_t *)free_ptr;
-  struct FREE_BLOCK *next_ptr = (struct FREE_BLOCK *)(p + free_ptr->size); 
+  struct FREE_BLOCK *next_ptr = (struct FREE_BLOCK *)(p + free_ptr->size);
   if( free_ptr->t == 0 && next_ptr->f == 1 ){
     remove_index(next_ptr);
     merge(free_ptr, next_ptr);
@@ -251,6 +253,7 @@ void mrbc_raw_free(void *ptr)
 uint8_t *mrbc_raw_realloc(uint8_t *ptr, uint32_t size)
 {
   uint8_t *new_ptr = mrbc_raw_alloc(size);
+  if( new_ptr == NULL ) return NULL;  // ENOMEM
 
   // get block info
   uint8_t *src_ptr = ptr;
@@ -271,7 +274,7 @@ uint8_t *mrbc_raw_realloc(uint8_t *ptr, uint32_t size)
   return new_ptr;
 }
 
-// for debug 
+// for debug
 #ifdef MRBC_DEBUG
 void mrbc_alloc_debug(void)
 {
@@ -310,6 +313,7 @@ uint8_t *mrbc_alloc(mrb_vm *vm, int size)
 {
   int alloc_size = size + sizeof(struct MEM_WITH_VM);
   uint8_t *ptr = mrbc_raw_alloc(alloc_size);
+  if( ptr == NULL ) return NULL;  // ENOMEM
 
   struct MEM_WITH_VM *alloc_block = (struct MEM_WITH_VM *)ptr;
   if( vm != NULL ){
@@ -326,6 +330,8 @@ uint8_t *mrbc_realloc(mrb_vm *vm, void *ptr, int size)
   int alloc_size = size + sizeof(struct MEM_WITH_VM);
   uint8_t *new_ptr = mrbc_raw_realloc(ptr, alloc_size);
 
+  if( new_ptr == NULL ) return NULL;  // ENOMEM
+
   struct MEM_WITH_VM *alloc_block = (struct MEM_WITH_VM *)new_ptr;
   if( vm != NULL ){
     alloc_block->vm_id = vm->vm_id;
@@ -338,8 +344,9 @@ uint8_t *mrbc_realloc(mrb_vm *vm, void *ptr, int size)
 
 void mrbc_free(mrb_vm *vm, void *ptr)
 {
+  if( ptr == NULL ) return;
+
   uint8_t *p = (uint8_t *)ptr;
-  struct MEM_WITH_VM *free_block = (struct MEM_WITH_VM *)(p-sizeof(struct MEM_WITH_VM));
+  struct MEM_WITH_VM *free_block = (struct MEM_WITH_VM *)(p - sizeof(struct MEM_WITH_VM));
   mrbc_raw_free(free_block);
 }
-

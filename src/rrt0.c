@@ -353,7 +353,7 @@ MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
   // allocate Task Control Block
   if( tcb == NULL ) {
     tcb = (MrbcTcb*)mrbc_raw_alloc( sizeof(MrbcTcb) );
-    if( tcb == NULL ) return NULL;	// error return.
+    if( tcb == NULL ) return NULL;	// ENOMEM
 
     static const MrbcTcb init_val = MRBC_TCB_INITIALIZER;
     *tcb = init_val;

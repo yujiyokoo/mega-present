@@ -23,7 +23,7 @@ static void c_hash_get(mrb_vm *vm, mrb_value *v)
 
   // ptr: 1st entry(key) of hash
   mrb_value *ptr = &hash[1];
-  
+
   for( i=0 ; i<n ; i++ ){
     if( mrbc_eq(ptr, &key) ){
       SET_RETURN( *(ptr+1) );
@@ -58,6 +58,7 @@ static void c_hash_set(mrb_vm *vm, mrb_value *v)
 
   // use alloc instead of realloc, realloc has some bugs?
   mrb_value *new_hash = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*new_size);
+  if( new_hash == NULL ) return;  // ENOMEM
 
   mrb_value *src = &hash[1];
   mrb_value *dst = &new_hash[1];
@@ -78,7 +79,7 @@ void mrbc_init_class_hash(mrb_vm *vm)
 {
   // Hash
   mrbc_class_hash = mrbc_class_alloc(vm, "Hash", mrbc_class_object);
-  
+
   mrbc_define_method(vm, mrbc_class_hash, "size", c_hash_size);
   mrbc_define_method(vm, mrbc_class_hash, "[]", c_hash_get);
   mrbc_define_method(vm, mrbc_class_hash, "[]=", c_hash_set);

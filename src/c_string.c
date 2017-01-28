@@ -13,6 +13,8 @@ char* mrbc_string_dup(mrb_vm *vm, const char *str)
 {
   int len = strlen((char *)str);
   char *ptr = (char *)mrbc_alloc(vm, len+1);
+  if( ptr == NULL ) return NULL;  // ENOMEM
+
   strcpy(ptr, str);
   return ptr;
 }
@@ -24,6 +26,8 @@ char *mrbc_string_cat(mrb_vm *vm, char *s1, const char *s2)
   int len1 = strlen(s1);
   int len2 = strlen(s2);
   char *ptr = (char *)mrbc_alloc(vm, len1+len2+1);
+  if( ptr == NULL ) return NULL;  // ENOMEM
+
   strcpy(ptr, s1);
   strcpy(ptr+len1, s2);
   return ptr;
@@ -34,6 +38,8 @@ char *mrbc_string_cat(mrb_vm *vm, char *s1, const char *s2)
 static char *mrbc_string_substr(mrb_vm *vm, char *s, int start, int len)
 {
   char *ptr = (char *)mrbc_alloc(vm, len+1);
+  if( ptr == NULL ) return NULL;  // ENOMEM
+
   int i;
   for( i=0 ; i<len ; i++ ){
     ptr[i] = s[start+i];

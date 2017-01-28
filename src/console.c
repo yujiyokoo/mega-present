@@ -29,6 +29,8 @@
 */
 static void format_output_str(const char *value, int align, int w, char pad)
 {
+  if( !value ) return;
+
   int len = strlen(value);
   int n_pad = w - len;
 
