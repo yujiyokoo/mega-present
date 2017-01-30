@@ -50,10 +50,16 @@
 // memory
 static uint8_t memory_pool[ALLOC_TOTAL_MEMORY_SIZE];
 
+// define flags
+#define FLAG_TAIL_BLOCK 1
+#define FLAG_NOT_TAIL_BLOCK 0
+#define FLAG_FREE_BLOCK 1
+#define FLAG_USED_BLOCK 0
+
 // memory block header
 struct USED_BLOCK {
-  unsigned int t: 1;  /* 0: not tail,  1: tail */
-  unsigned int f: 1;  /* 0: not free,  1: free */
+  unsigned int t: 1;  /* FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK */
+  unsigned int f: 1;  /* FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE */
   unsigned int size: 14; /* block size, header included */
   struct USED_BLOCK *prev;  /* link to previous block */
   uint8_t data[];
@@ -97,7 +103,7 @@ static int calc_index(uint32_t alloc_size)
 //
 static void add_free_block(struct FREE_BLOCK *block)
 {
-  block->f = 1;
+  block->f = FLAG_FREE_BLOCK;
   int index = calc_index(block->size);
 
   block->prev_free = NULL;
@@ -120,7 +126,7 @@ void mrbc_init_alloc(void)
 
   // memory pool
   struct FREE_BLOCK *block = (struct FREE_BLOCK *)memory_pool;
-  block->t = 1;
+  block->t = FLAG_TAIL_BLOCK;
   block->size = ALLOC_TOTAL_MEMORY_SIZE;
   add_free_block(block);
 }
@@ -136,12 +142,12 @@ static struct FREE_BLOCK *split_block(struct FREE_BLOCK *alloc, int size)
   struct FREE_BLOCK *next = (struct FREE_BLOCK *)(p + alloc->size);
   split->size = alloc->size - size;
   split->prev = alloc;
-  split->f = 1;
+  split->f = FLAG_FREE_BLOCK;
   split->t = alloc->t;
   alloc->size = size;
-  alloc->f = 0;
-  alloc->t = 0;
-  if( split->t == 0 ){
+  alloc->f = FLAG_USED_BLOCK;
+  alloc->t = FLAG_NOT_TAIL_BLOCK;
+  if( split->t == FLAG_NOT_TAIL_BLOCK ){
     next->prev = split;
   }
 
@@ -184,7 +190,7 @@ uint8_t *mrbc_raw_alloc(uint32_t size)
 
   // alloc a free block
   struct FREE_BLOCK *alloc = free_blocks[index];
-  alloc->f = 0;
+  alloc->f = FLAG_USED_BLOCK;
   remove_index(alloc);
 
   // split a block
@@ -213,7 +219,7 @@ static void merge(struct FREE_BLOCK *ptr1, struct FREE_BLOCK *ptr2)
   ptr1->size += ptr2->size;
 
   // update block info
-  if( ptr1->t == 0 ){
+  if( ptr1->t == FLAG_NOT_TAIL_BLOCK ){
     uint8_t *p = (uint8_t *)ptr1;
     struct FREE_BLOCK *next = (struct FREE_BLOCK *)(p + ptr1->size);
     next->prev = ptr1;
@@ -226,19 +232,19 @@ void mrbc_raw_free(void *ptr)
   // get free block
   uint8_t *p = ptr;
   struct FREE_BLOCK *free_ptr = (struct FREE_BLOCK *)(p - sizeof(struct USED_BLOCK));
-  free_ptr->f = 1;
+  free_ptr->f = FLAG_FREE_BLOCK;
 
   // check next block, merge?
   p = (uint8_t *)free_ptr;
   struct FREE_BLOCK *next_ptr = (struct FREE_BLOCK *)(p + free_ptr->size);
-  if( free_ptr->t == 0 && next_ptr->f == 1 ){
+  if( free_ptr->t == FLAG_NOT_TAIL_BLOCK && next_ptr->f == FLAG_FREE_BLOCK ){
     remove_index(next_ptr);
     merge(free_ptr, next_ptr);
   }
 
   // check prev block, merge?
   struct FREE_BLOCK *prev_ptr = free_ptr->prev;
-  if( prev_ptr != NULL && prev_ptr->f == 1 ){
+  if( prev_ptr != NULL && prev_ptr->f == FLAG_FREE_BLOCK ){
     remove_index(prev_ptr);
     merge(prev_ptr, free_ptr);
     free_ptr = prev_ptr;
@@ -284,7 +290,7 @@ void mrbc_alloc_debug(void)
   do {
     uint8_t *p = (uint8_t *)ptr;
     printf("%p: %d %x\n", p, ptr->f, ptr->size);
-    if( ptr->t == 1 ) break;
+    if( ptr->t == FLAG_TAIL_BLOCK ) break;
     p += ptr->size;
     ptr = (struct FREE_BLOCK *)p;
   } while(1);

@@ -3,7 +3,7 @@
 #
 
 i = 1
-while true do
+while i<100 do
   a = [1,2,3,4,5]
   puts i
   i += 1
