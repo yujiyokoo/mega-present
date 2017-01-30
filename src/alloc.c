@@ -348,3 +348,25 @@ void mrbc_free(mrb_vm *vm, void *ptr)
   struct MEM_WITH_VM *free_block = (struct MEM_WITH_VM *)(p - sizeof(struct MEM_WITH_VM));
   mrbc_raw_free(free_block);
 }
+
+
+void mrbc_free_all(mrb_vm *vm)
+{
+  int vm_id = vm->vm_id;
+
+  struct USED_BLOCK *ptr = (struct USED_BLOCK *)memory_pool;
+  while( ptr->t != FLAG_TAIL_BLOCK ){
+    struct MEM_WITH_VM *vm_ptr = (struct MEM_WITH_VM *)(ptr->data);
+    if( ptr->f == FLAG_FREE_BLOCK || vm_ptr->vm_id != vm_id ){
+      uint8_t *p = (uint8_t *)ptr;
+      ptr = (struct USED_BLOCK *)(p + ptr->size);
+      continue;
+    }
+    if( vm_ptr->vm_id != vm_id ) continue;
+    // free a block
+    struct USED_BLOCK *next_ptr = ptr->prev;
+    if( next_ptr == NULL ) next_ptr = ptr;
+    mrbc_raw_free(ptr->data);
+    ptr = next_ptr;
+  }  
+}

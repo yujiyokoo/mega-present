@@ -1239,7 +1239,8 @@ struct VM *vm_open(void)
 void vm_close(struct VM *vm)
 {
   vm->priority = -1;
-  // TODO: release memory block
+  mrbc_free_all(vm);
+  
 }
 
 
