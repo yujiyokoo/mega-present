@@ -103,7 +103,6 @@ void mrbc_init_class_string(mrb_vm *vm)
 
   mrbc_define_method(vm, mrbc_class_string, "size", c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "length", c_string_size);
-  mrbc_define_method(vm, mrbc_class_string, "size", c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "!=", c_string_neq);
   mrbc_define_method(vm, mrbc_class_string, "to_i", c_string_to_fixnum);
 }
