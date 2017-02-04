@@ -29,3 +29,7 @@ mruby/c is an another implementation of mruby.
 ## License
 
 mruby/c is released under the Revised BSD License(aka 3-clause license).
+
+## Related work
+
+- memory allocation alloc(http://github.com/kaz0505/alloc)
