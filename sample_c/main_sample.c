@@ -8,11 +8,14 @@
 
 #include "sample01.c"
 
+#define MEMORY_SIZE (1024*10)
+static uint8_t memory_pool[MEMORY_SIZE];
+
 int main(void)
 {
   struct VM *vm;
 
-  mrbc_init_alloc();
+  mrbc_init_alloc(memory_pool, MEMORY_SIZE);
   init_static();
 
   vm = vm_open();

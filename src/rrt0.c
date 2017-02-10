@@ -41,7 +41,6 @@ static MrbcTcb *q_waiting_;
 static MrbcTcb *q_suspended_;
 static volatile uint32_t tick_;
 
-
 /***** Global variables *****************************************************/
 /***** Signal catching functions ********************************************/
 /***** Local functions ******************************************************/
@@ -321,9 +320,9 @@ void mrbc_tick(void)
 /*! initialize
 
 */
-void mrbc_init(void)
+void mrbc_init(uint8_t *ptr, unsigned int size )
 {
-  mrbc_init_alloc();
+  mrbc_init_alloc(ptr, size);
   init_static();
   hal_init();
 

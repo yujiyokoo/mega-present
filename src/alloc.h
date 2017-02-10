@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-void mrbc_init_alloc(void);
+void mrbc_init_alloc(uint8_t *ptr, unsigned int size );
 uint8_t *mrbc_raw_alloc(uint32_t size);
 uint8_t *mrbc_raw_realloc(uint8_t *ptr, uint32_t size);
 void mrbc_raw_free(void *ptr);

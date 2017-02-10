@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include "mrubyc.h"
 
+#define MEMORY_SIZE (1024*10)
+static uint8_t memory_pool[MEMORY_SIZE];
+
 int load_mrb_file(struct VM *vm, const char *filename)
 {
   FILE *fp = fopen(filename, "rb");
@@ -46,7 +49,7 @@ void mrubyc(char *fn)
 {
   struct VM *vm;
 
-  mrbc_init_alloc();
+  mrbc_init_alloc(memory_pool, MEMORY_SIZE);
   init_static();
 
   vm = vm_open();

@@ -63,7 +63,7 @@ typedef volatile struct MrbcTcb {
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
 void mrbc_tick(void);
-void mrbc_init(void);
+void mrbc_init(uint8_t *ptr, unsigned int size );
 MrbcTcb *mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb);
 int mrbc_run(void);
 void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms);

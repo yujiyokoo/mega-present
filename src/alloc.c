@@ -18,9 +18,6 @@
 #include "alloc.h"
 #include "console.h"
 
-//
-#define ALLOC_TOTAL_MEMORY_SIZE 0x2800
-
 // address space 16bit, 64KB
 #define ALLOC_MAX_BIT 16
 
@@ -48,7 +45,8 @@
 #define ALLOC_2ND_LAYER_MASK 0x0070
 
 // memory
-static uint8_t memory_pool[ALLOC_TOTAL_MEMORY_SIZE];
+static unsigned int memory_pool_size;
+static uint8_t *memory_pool;
 
 // define flags
 #define FLAG_TAIL_BLOCK 1
@@ -116,8 +114,11 @@ static void add_free_block(struct FREE_BLOCK *block)
 
 
 // initialize free block
-void mrbc_init_alloc(void)
+void mrbc_init_alloc(uint8_t *ptr, unsigned int size )
 {
+  memory_pool = ptr;
+  memory_pool_size = size;
+
   // clear links to free block
   int i;
   for( i=0 ; i<ALLOC_1ST_LAYER*ALLOC_2ND_LAYER ; i++ ){
@@ -127,7 +128,8 @@ void mrbc_init_alloc(void)
   // memory pool
   struct FREE_BLOCK *block = (struct FREE_BLOCK *)memory_pool;
   block->t = FLAG_TAIL_BLOCK;
-  block->size = ALLOC_TOTAL_MEMORY_SIZE;
+  block->size = memory_pool_size;
+
   add_free_block(block);
 }
 

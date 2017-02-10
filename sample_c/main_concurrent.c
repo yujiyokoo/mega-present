@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include "mrubyc.h"
 
+#define MEMORY_SIZE (1024*10)
+static uint8_t memory_pool[MEMORY_SIZE];
 
 uint8_t * load_to_memory( const char *filename )
 {
@@ -38,7 +40,7 @@ uint8_t * load_to_memory( const char *filename )
 
 int main(int argc, char *argv[])
 {
-  mrbc_init();
+  mrbc_init(memory_pool, MEMORY_SIZE);
 
   int vm_cnt = argc-1;
   if( vm_cnt < 1 || vm_cnt > 10 ){
