@@ -104,14 +104,8 @@ int vm_run(struct VM *vm);
 */
 inline static uint32_t bin_to_uint32( const void *s )
 {
-  uint8_t *s1 = (uint8_t *)s;
-  uint32_t ret;
-
-  ret = *s1++;
-  ret = (ret << 8) + *s1++;
-  ret = (ret << 8) + *s1++;
-  ret = (ret << 8) + *s1;
-  return ret;
+  uint32_t x = *((uint32_t *)s);
+  return (x << 24) | ((x & 0xff00) << 8) | ((x >> 8) & 0xff00) | (x >> 24);
 }
 
 
@@ -124,12 +118,8 @@ inline static uint32_t bin_to_uint32( const void *s )
 */
 inline static uint16_t bin_to_uint16( const void *s )
 {
-  uint8_t *s1 = (uint8_t *)s;
-  uint16_t ret;
-
-  ret = *s1++;
-  ret = (ret << 8) + *s1;
-  return ret;
+  uint16_t x = *((uint16_t *)s);
+  return (x << 8) | (x >> 8);
 }
 
 
