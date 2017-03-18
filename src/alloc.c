@@ -15,11 +15,11 @@
 
 #include <stddef.h>
 #include <string.h>
+#include <assert.h>
+
 #include "alloc.h"
 #include "console.h"
 
-// address space 16bit, 64KB
-#define ALLOC_MAX_BIT 16
 
 // Layer 1st(f) and 2nd(s) model
 // last 4bit is ignored
@@ -35,340 +35,497 @@
 // 8 : 4000-7fff
 // 9 : 8000-ffff
 
-#define ALLOC_1ST_LAYER 8
-#define ALLOC_1ST_LAYER_BIT ALLOC_1ST_LAYER
-#define ALLOC_1ST_LAYER_MASK 0xff80
+#ifndef MRBC_ALLOC_FLI_BIT_WIDTH	// 0000 0000 0000 0000
+# define MRBC_ALLOC_FLI_BIT_WIDTH 9	// ~~~~~~~~~~~
+#endif
+#ifndef MRBC_ALLOC_SLI_BIT_WIDTH	// 0000 0000 0000 0000
+# define MRBC_ALLOC_SLI_BIT_WIDTH 3	//            ~~~
+#endif
+#ifndef MRBC_ALLOC_IGNORE_LSBS		// 0000 0000 0000 0000
+# define MRBC_ALLOC_IGNORE_LSBS	  4	//                ~~~~
+#endif
+#ifndef MRBC_ALLOC_MEMSIZE_T
+# define MRBC_ALLOC_MEMSIZE_T     uint16_t
+#endif
 
-// 2nd layer size
-#define ALLOC_2ND_LAYER 8
-#define ALLOC_2ND_LAYER_BIT 3
-#define ALLOC_2ND_LAYER_MASK 0x0070
+#define FLI(x) (((x) >> MRBC_ALLOC_SLI_BIT_WIDTH) & ((1 << MRBC_ALLOC_FLI_BIT_WIDTH) - 1))
+#define SLI(x) ((x) & ((1 << MRBC_ALLOC_SLI_BIT_WIDTH) - 1))
 
-// memory
-static unsigned int memory_pool_size;
-static uint8_t *memory_pool;
 
 // define flags
-#define FLAG_TAIL_BLOCK 1
+#define FLAG_TAIL_BLOCK     1
 #define FLAG_NOT_TAIL_BLOCK 0
-#define FLAG_FREE_BLOCK 1
-#define FLAG_USED_BLOCK 0
+#define FLAG_FREE_BLOCK     1
+#define FLAG_USED_BLOCK     0
 
 // memory block header
-struct USED_BLOCK {
-  unsigned int t: 1;  /* FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK */
-  unsigned int f: 1;  /* FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE */
-  unsigned int size: 14; /* block size, header included */
-  struct USED_BLOCK *prev;  /* link to previous block */
-  uint8_t data[];
-};
+typedef struct USED_BLOCK {
+  unsigned int         t : 1;       //!< FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK
+  unsigned int         f : 1;       //!< FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE
+  uint8_t              vm_id;       //!< mruby/c VM ID
+  MRBC_ALLOC_MEMSIZE_T size;        //!< block size, header included
+  MRBC_ALLOC_MEMSIZE_T prev_offset; //!< offset of previous physical block
+} USED_BLOCK;
 
-struct FREE_BLOCK {
-  unsigned int t: 1;  /* 0: not tail,  1: tail */
-  unsigned int f: 1;  /* 0: not free,  1: free */
-  unsigned int size: 14; /* block size, header included */
-  struct FREE_BLOCK *prev;  /* link to previous block */
+typedef struct FREE_BLOCK {
+  unsigned int         t : 1;       //!< FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK
+  unsigned int         f : 1;       //!< FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE
+  uint8_t              vm_id;       //!< dummy
+  MRBC_ALLOC_MEMSIZE_T size;        //!< block size, header included
+  MRBC_ALLOC_MEMSIZE_T prev_offset; //!< offset of previous physical block
+
   struct FREE_BLOCK *next_free;
   struct FREE_BLOCK *prev_free;
-};
+} FREE_BLOCK;
+
+#define PHYS_NEXT(p) ((uint8_t *)(p) + (p)->size)
+#define PHYS_PREV(p) ((uint8_t *)(p) - (p)->prev_offset)
+#define SET_PHYS_PREV(p1,p2) (p2)->prev_offset = (uint8_t *)(p2)-(uint8_t *)(p1)
+
+
+// memory pool
+static unsigned int memory_pool_size;
+static uint8_t     *memory_pool;
+
+// free memory block index
+#define SIZE_FREE_BLOCKS \
+  ((MRBC_ALLOC_FLI_BIT_WIDTH + 1) * (1 << MRBC_ALLOC_SLI_BIT_WIDTH))
+static FREE_BLOCK *free_blocks[SIZE_FREE_BLOCKS + 1];
 
 // free memory bitmap
-static struct FREE_BLOCK *free_blocks[ALLOC_1ST_LAYER * ALLOC_2ND_LAYER];
+#define MSB_BIT1 0x8000
+static uint16_t free_fli_bitmap;
+static uint16_t free_sli_bitmap[MRBC_ALLOC_FLI_BIT_WIDTH + 2]; // + sentinel
 
 
-// calc f and s, and returns index of free_blocks
-static int calc_index(uint32_t alloc_size)
+//================================================================
+/*! Number of leading zeros.
+
+  @param	x	target (16bit unsined)
+  @retval	int	nlz value
+*/
+static inline int nlz16(uint16_t x)
 {
-  if( alloc_size < 16 ) alloc_size = 16;
+  if( x == 0 ) return 16;
 
-  // 1st layer
-  int f = 0;
-  uint32_t f_bit = ALLOC_1ST_LAYER_MASK;
-  uint32_t s_bit = ALLOC_2ND_LAYER_MASK;
-  while( (alloc_size & f_bit) != 0 ){
-    f++;
-    f_bit <<= 1;
-    s_bit <<= 1;
-  }
-
-  // 2nd layer
-  int s = (alloc_size & s_bit) >> (f + 4);
-
-  return f * ALLOC_2ND_LAYER + s;
+  int n = 1;
+  if((x >>  8) == 0 ) { n += 8; x <<= 8; }
+  if((x >> 12) == 0 ) { n += 4; x <<= 4; }
+  if((x >> 14) == 0 ) { n += 2; x <<= 2; }
+  return n - (x >> 15);
 }
 
 
-//
-static void add_free_block(struct FREE_BLOCK *block)
-{
-  block->f = FLAG_FREE_BLOCK;
-  int index = calc_index(block->size);
+//================================================================
+/*! calc f and s, and returns fli,sli of free_blocks
 
-  block->prev_free = NULL;
-  block->next_free = free_blocks[index];
-  if( free_blocks[index] != NULL ){
-    free_blocks[index]->prev_free = block;
+  @param	alloc_size	alloc size
+  @retval	int		index of free_blocks
+*/
+static int calc_index(unsigned int alloc_size)
+{
+  // check overflow
+  if( (alloc_size >> (MRBC_ALLOC_FLI_BIT_WIDTH
+                      + MRBC_ALLOC_SLI_BIT_WIDTH
+                      + MRBC_ALLOC_IGNORE_LSBS)) != 0) {
+    return SIZE_FREE_BLOCKS;
   }
-  free_blocks[index] = block;
+
+  // calculate First Level Index.
+  int fli = 16 -
+    nlz16( alloc_size >> (MRBC_ALLOC_SLI_BIT_WIDTH + MRBC_ALLOC_IGNORE_LSBS) );
+
+  // caliculate Second Level Index.
+  int shift = (fli == 0) ? (fli + MRBC_ALLOC_IGNORE_LSBS) :
+			   (fli + MRBC_ALLOC_IGNORE_LSBS - 1);
+
+  int sli   = (alloc_size >> shift) & ((1 << MRBC_ALLOC_SLI_BIT_WIDTH) - 1);
+  int index = (fli << MRBC_ALLOC_SLI_BIT_WIDTH) + sli;
+
+  assert(fli >= 0);
+  assert(fli <= MRBC_ALLOC_FLI_BIT_WIDTH);
+  assert(sli >= 0);
+  assert(sli <= (1 << MRBC_ALLOC_SLI_BIT_WIDTH) - 1);
+
+  return index;
 }
 
 
-// initialize free block
-void mrbc_init_alloc(uint8_t *ptr, unsigned int size )
+//================================================================
+/*! Mark that block free and register it in the free index table.
+
+  @param	target	Pointer to target block.
+*/
+static void add_free_block(FREE_BLOCK *target)
 {
-  memory_pool = ptr;
-  memory_pool_size = size;
+  target->f = FLAG_FREE_BLOCK;
 
-  // clear links to free block
-  int i;
-  for( i=0 ; i<ALLOC_1ST_LAYER*ALLOC_2ND_LAYER ; i++ ){
-    free_blocks[i] = NULL;
+  int index = calc_index(target->size) - 1;
+  int fli   = FLI(index);
+  int sli   = SLI(index);
+
+  free_fli_bitmap      |= (MSB_BIT1 >> fli);
+  free_sli_bitmap[fli] |= (MSB_BIT1 >> sli);
+
+  target->prev_free = NULL;
+  target->next_free = free_blocks[index];
+  if( target->next_free != NULL ) {
+    target->next_free->prev_free = target;
   }
-
-  // memory pool
-  struct FREE_BLOCK *block = (struct FREE_BLOCK *)memory_pool;
-  block->t = FLAG_TAIL_BLOCK;
-  block->size = memory_pool_size;
-
-  add_free_block(block);
+  free_blocks[index] = target;
 }
 
-// split block *alloc by size
-static struct FREE_BLOCK *split_block(struct FREE_BLOCK *alloc, int size)
+
+//================================================================
+/*! just remove the free_block *target from index
+
+  @param	target	pointer to target block.
+*/
+static void remove_index(FREE_BLOCK *target)
 {
-  if( alloc->size < size + 24 ) return NULL;
+  // top of linked list?
+  if( target->prev_free == NULL ) {
+    int index = calc_index(target->size) - 1;
+    free_blocks[index] = target->next_free;
+
+    if( free_blocks[index] == NULL ) {
+      int fli = FLI(index);
+      int sli = SLI(index);
+      free_sli_bitmap[fli] &= ~(MSB_BIT1 >> sli);
+      if( free_sli_bitmap[fli] == 0 ) free_fli_bitmap &= ~(MSB_BIT1 >> fli);
+    }
+  }
+  else {
+    target->prev_free->next_free = target->next_free;
+  }
+
+  if( target->next_free != NULL ) {
+    target->next_free->prev_free = target->prev_free;
+  }
+}
+
+
+//================================================================
+/*! Split block by size
+
+  @param	target	pointer to target block
+  @param	size	size
+  @retval	NULL	no split.
+  @retval	FREE_BLOCK *	pointer to splitted free block.
+*/
+static inline FREE_BLOCK* split_block(FREE_BLOCK *target, unsigned int size)
+{
+  if( target->size < (size + sizeof(FREE_BLOCK)
+                      + (1 << MRBC_ALLOC_IGNORE_LSBS)) ) return NULL;
 
   // split block, free
-  uint8_t *p = (uint8_t *)alloc;
-  struct FREE_BLOCK *split = (struct FREE_BLOCK *)(p + size);
-  struct FREE_BLOCK *next = (struct FREE_BLOCK *)(p + alloc->size);
-  split->size = alloc->size - size;
-  split->prev = alloc;
-  split->f = FLAG_FREE_BLOCK;
-  split->t = alloc->t;
-  alloc->size = size;
-  alloc->f = FLAG_USED_BLOCK;
-  alloc->t = FLAG_NOT_TAIL_BLOCK;
-  if( split->t == FLAG_NOT_TAIL_BLOCK ){
-    next->prev = split;
+  FREE_BLOCK *split = (FREE_BLOCK *)((uint8_t *)target + size);
+  FREE_BLOCK *next  = (FREE_BLOCK *)PHYS_NEXT(target);
+
+  split->size  = target->size - size;
+  SET_PHYS_PREV(target, split);
+  split->t     = target->t;
+  target->size = size;
+  target->t    = FLAG_NOT_TAIL_BLOCK;
+  if( split->t == FLAG_NOT_TAIL_BLOCK ) {
+    SET_PHYS_PREV(split, next);
   }
 
   return split;
 }
 
 
-// just remove the free_block *remove from index
-static void remove_index(struct FREE_BLOCK *remove)
+//================================================================
+/*! merge ptr1 and ptr2 block.
+    ptr2 will disappear
+
+  @param	ptr1	pointer to free block 1
+  @param	ptr2	pointer to free block 2
+*/
+static void merge_block(FREE_BLOCK *ptr1, FREE_BLOCK *ptr2)
 {
-  // remove is top of linked list?
-  if( remove->prev_free == NULL ){
-    int index = calc_index(remove->size);
-    free_blocks[index] = remove->next_free;
-    if( free_blocks[index] != NULL ){
-      free_blocks[index]->prev = NULL;
-    }
-  } else {
-    remove->prev_free->next_free = remove->next_free;
-    if( remove->next_free != NULL ){
-      remove->next_free->prev_free = remove->prev_free;
-    }
-  }
-}
+  assert(ptr1 < ptr2);
 
-// memory allocation
-uint8_t *mrbc_raw_alloc(uint32_t size)
-{
-  uint32_t alloc_size = size + sizeof(struct USED_BLOCK);
-
-  int index = calc_index(alloc_size);
-  while( index < ALLOC_1ST_LAYER*ALLOC_2ND_LAYER && free_blocks[index] == NULL ){
-    index++;
-  }
-  if( index >= ALLOC_1ST_LAYER*ALLOC_2ND_LAYER ){
-    // out of memory
-    console_print("Fatal error: Out of memory.\n");
-    return NULL;
-  }
-
-  // alloc a free block
-  struct FREE_BLOCK *alloc = free_blocks[index];
-  alloc->f = FLAG_USED_BLOCK;
-  remove_index(alloc);
-
-  // split a block
-  struct FREE_BLOCK *release = split_block(alloc, alloc_size);
-  if( release != NULL ){
-    // split alloc -> alloc + release
-    int index = calc_index(release->size);
-    release->next_free = free_blocks[index];
-    release->prev_free = NULL;
-    free_blocks[index] = release;
-    if( release->next_free != NULL ){
-      release->next_free->prev_free = release;
-    }
-  }
-
-  return ((struct USED_BLOCK *)alloc)->data;
-}
-
-
-// merge ptr1 and ptr2
-// ptr2 will disappear
-static void merge(struct FREE_BLOCK *ptr1, struct FREE_BLOCK *ptr2)
-{
   // merge ptr1 and ptr2
-  ptr1->t = ptr2->t;
+  ptr1->t     = ptr2->t;
   ptr1->size += ptr2->size;
 
   // update block info
-  if( ptr1->t == FLAG_NOT_TAIL_BLOCK ){
-    uint8_t *p = (uint8_t *)ptr1;
-    struct FREE_BLOCK *next = (struct FREE_BLOCK *)(p + ptr1->size);
-    next->prev = ptr1;
+  if( ptr1->t == FLAG_NOT_TAIL_BLOCK ) {
+    FREE_BLOCK *next = (FREE_BLOCK *)PHYS_NEXT(ptr1);
+    SET_PHYS_PREV(ptr1, next);
   }
 }
 
-// memory release
+
+//================================================================
+/*! initialize
+
+  @param	ptr	pointer to free memory block.
+  @param	size	size. (max 64KB. see MRBC_ALLOC_MEMSIZE_T)
+*/
+void mrbc_init_alloc(uint8_t *ptr, unsigned int size)
+{
+  memory_pool      = ptr;
+  memory_pool_size = size;
+
+  // initialize memory pool
+  FREE_BLOCK *block = (FREE_BLOCK *)memory_pool;
+  block->t           = FLAG_TAIL_BLOCK;
+  block->f           = FLAG_FREE_BLOCK;
+  block->size        = memory_pool_size;
+  block->prev_offset = 0;
+
+  add_free_block(block);
+}
+
+
+//================================================================
+/*! allocate memory
+
+  @param	size	request size.
+  @return	uint8_t * pointer to allocated memory.
+  @retval	NULL	error.
+*/
+uint8_t* mrbc_raw_alloc(unsigned int size)
+{
+  // TODO: maximum alloc size
+  //  (1 << (FLI_BIT_WIDTH + SLI_BIT_WIDTH + IGNORE_LSBS)) - alpha
+
+  unsigned int alloc_size = size + sizeof(FREE_BLOCK);
+
+  // align 4 byte
+  alloc_size += ((4 - alloc_size) & 3);
+
+  // check minimum alloc size. if need.
+#if 0
+  if( alloc_size < (1 << MRBC_ALLOC_IGNORE_LSBS) ) {
+    alloc_size = (1 << MRBC_ALLOC_IGNORE_LSBS);
+  }
+#else
+  assert( alloc_size >= (1 << MRBC_ALLOC_IGNORE_LSBS) );
+#endif
+
+  // find free memory block.
+  int index = calc_index(alloc_size);
+  int fli   = FLI(index);
+  int sli   = SLI(index);
+
+  FREE_BLOCK *target = free_blocks[index];
+
+  if( target == NULL ) {
+    // uses free_fli/sli_bitmap table.
+    uint16_t masked = free_sli_bitmap[fli] & ((MSB_BIT1 >> sli) - 1);
+    if( masked != 0 ) {
+      sli = nlz16(masked);
+    }
+    else {
+      masked = free_fli_bitmap & ((MSB_BIT1 >> fli) - 1);
+      if( masked != 0 ) {
+	fli = nlz16(masked);
+	sli = nlz16(free_sli_bitmap[fli]);
+      }
+      else {
+	// out of memory
+	console_print("Fatal error: Out of memory.\n");
+	return NULL;  // ENOMEM
+      }
+    }
+    assert(fli >= 0);
+    assert(fli <= MRBC_ALLOC_FLI_BIT_WIDTH);
+    assert(sli >= 0);
+    assert(sli <= (1 << MRBC_ALLOC_SLI_BIT_WIDTH) - 1);
+
+    index = (fli << MRBC_ALLOC_SLI_BIT_WIDTH) + sli;
+    target = free_blocks[index];
+    assert( target != NULL );
+  }
+  assert(target->size >= alloc_size);
+
+  // remove free_blocks index
+  target->f          = FLAG_USED_BLOCK;
+  free_blocks[index] = target->next_free;
+
+  if( target->next_free == NULL ) {
+    free_sli_bitmap[fli] &= ~(MSB_BIT1 >> sli);
+    if( free_sli_bitmap[fli] == 0 ) free_fli_bitmap &= ~(MSB_BIT1 >> fli);
+  }
+  else {
+    target->next_free->prev_free = NULL;
+  }
+
+  // split a block
+  FREE_BLOCK *release = split_block(target, alloc_size);
+  if( release != NULL ) {
+    add_free_block(release);
+  }
+
+  return (uint8_t *)target + sizeof(USED_BLOCK);
+}
+
+
+//================================================================
+/*! release memory
+
+  @param	ptr	pointer to target.
+*/
 void mrbc_raw_free(void *ptr)
 {
-  // get free block
-  uint8_t *p = ptr;
-  struct FREE_BLOCK *free_ptr = (struct FREE_BLOCK *)(p - sizeof(struct USED_BLOCK));
-  free_ptr->f = FLAG_FREE_BLOCK;
+  // get target block
+  FREE_BLOCK *target = (FREE_BLOCK *)((uint8_t *)ptr - sizeof(USED_BLOCK));
 
   // check next block, merge?
-  p = (uint8_t *)free_ptr;
-  struct FREE_BLOCK *next_ptr = (struct FREE_BLOCK *)(p + free_ptr->size);
-  if( free_ptr->t == FLAG_NOT_TAIL_BLOCK && next_ptr->f == FLAG_FREE_BLOCK ){
-    remove_index(next_ptr);
-    merge(free_ptr, next_ptr);
+  FREE_BLOCK *next = (FREE_BLOCK *)PHYS_NEXT(target);
+
+  if((target->t == FLAG_NOT_TAIL_BLOCK) && (next->f == FLAG_FREE_BLOCK)) {
+    remove_index(next);
+    merge_block(target, next);
   }
 
-  // check prev block, merge?
-  struct FREE_BLOCK *prev_ptr = free_ptr->prev;
-  if( prev_ptr != NULL && prev_ptr->f == FLAG_FREE_BLOCK ){
-    remove_index(prev_ptr);
-    merge(prev_ptr, free_ptr);
-    free_ptr = prev_ptr;
+  // check previous block, merge?
+  FREE_BLOCK *prev = (FREE_BLOCK *)PHYS_PREV(target);
+
+  if((prev != NULL) && (prev->f == FLAG_FREE_BLOCK)) {
+    remove_index(prev);
+    merge_block(prev, target);
+    target = prev;
   }
 
-  // free, add to index
-  add_free_block(free_ptr);
+  // target, add to index
+  add_free_block(target);
 }
 
 
-// simple realloc
-uint8_t *mrbc_raw_realloc(uint8_t *ptr, uint32_t size)
+//================================================================
+/*! re-allocate memory
+
+  @param	ptr	pointer to target.
+  @param	size	request size
+  @return	uint8_t * pointer to allocated memory.
+  @retval	NULL	error.
+*/
+uint8_t* mrbc_raw_realloc(void *ptr, unsigned int size)
 {
+  USED_BLOCK  *target     = (USED_BLOCK *)((uint8_t *)ptr - sizeof(USED_BLOCK));
+  unsigned int alloc_size = size + sizeof(FREE_BLOCK);
+
+  // align 4 byte
+  alloc_size += ((4 - alloc_size) & 3);
+
+  // expand? part1.
+  // next phys block is free and enough size?
+  if( alloc_size > target->size ) {
+    FREE_BLOCK *next = (FREE_BLOCK *)PHYS_NEXT(target);
+    if((target->t == FLAG_NOT_TAIL_BLOCK) &&
+       (next->f == FLAG_FREE_BLOCK) &&
+       ((target->size + next->size) >= alloc_size)) {
+      remove_index(next);
+      merge_block((FREE_BLOCK *)target, next);
+
+      // and fall through.
+    }
+  }
+
+  // same size?
+  if( alloc_size == target->size ) {
+    return (uint8_t *)ptr;
+  }
+
+  // shrink?
+  if( alloc_size < target->size ) {
+    FREE_BLOCK *release = split_block((FREE_BLOCK *)target, alloc_size);
+    if( release != NULL ) {
+      // check next block, merge?
+      FREE_BLOCK *next = (FREE_BLOCK *)PHYS_NEXT(release);
+      if((release->t == FLAG_NOT_TAIL_BLOCK) && (next->f == FLAG_FREE_BLOCK)) {
+        remove_index(next);
+        merge_block(release, next);
+      }
+      add_free_block(release);
+    }
+
+    return (uint8_t *)ptr;
+  }
+
+  // expand part2.
+  // new alloc and copy
   uint8_t *new_ptr = mrbc_raw_alloc(size);
   if( new_ptr == NULL ) return NULL;  // ENOMEM
 
-  // get block info
-  uint8_t *src_ptr = ptr;
-  struct USED_BLOCK *src_block = (struct USED_BLOCK *)(src_ptr - sizeof(struct USED_BLOCK));
-
-  // copy size
-  int copy_size;
-  if( size > src_block->size-sizeof(struct USED_BLOCK) ){
-    copy_size = src_block->size - sizeof(struct USED_BLOCK);
-  } else {
-    copy_size = size;
-  }
-
-  // copy and free
-  memcpy(new_ptr, src_ptr, copy_size);
+  memcpy(new_ptr, ptr, target->size);
   mrbc_raw_free(ptr);
 
   return new_ptr;
 }
 
-// for debug
-#ifdef MRBC_DEBUG
-#include <stdio.h>
-void mrbc_alloc_debug(void)
-{
-  struct FREE_BLOCK *ptr = (struct FREE_BLOCK *)memory_pool;
-  printf("-----\naddress f size\n");
-  do {
-    uint8_t *p = (uint8_t *)ptr;
-    printf("%p: %d %x\n", p, ptr->f, ptr->size);
-    if( ptr->t == FLAG_TAIL_BLOCK ) break;
-    p += ptr->size;
-    ptr = (struct FREE_BLOCK *)p;
-  } while(1);
 
-  printf("-----\n");
-  int i;
-  for( i=0 ; i<ALLOC_1ST_LAYER * ALLOC_2ND_LAYER ; i++ ){
-    if( free_blocks[i] == NULL ) continue;
-    printf("free[%d]\n", i);
-    struct FREE_BLOCK *ptr = free_blocks[i];
-    while( ptr != NULL ){
-      printf("  %p: size=%d\n", ptr, ptr->size);
-      ptr = ptr->next_free;
-    }
-  }
-}
-#endif
 
 //// for mruby/c
 
-struct MEM_WITH_VM {
-  uint8_t vm_id;
-  uint8_t data[];
-};
+//================================================================
+/*! allocate memory
 
-uint8_t *mrbc_alloc(mrb_vm *vm, int size)
+  @param	vm	pointer to VM.
+  @param	size	request size.
+  @return	uint8_t * pointer to allocated memory.
+  @retval	NULL	error.
+*/
+uint8_t* mrbc_alloc(const mrb_vm *vm, unsigned int size)
 {
-  int alloc_size = size + sizeof(struct MEM_WITH_VM);
-  struct MEM_WITH_VM *alloc_block =
-      (struct MEM_WITH_VM *)mrbc_raw_alloc(alloc_size);
-  if( alloc_block == NULL ) return NULL;  // ENOMEM
+  uint8_t *ptr = mrbc_raw_alloc(size);
+  if( ptr == NULL ) return NULL;	// ENOMEM
 
-  alloc_block->vm_id = (vm != NULL) ? vm->vm_id : 0;
-  return alloc_block->data;
+  ((USED_BLOCK *)(ptr - sizeof(USED_BLOCK)))->vm_id = (vm ? vm->vm_id : 0);
+
+  return ptr;
 }
 
 
-uint8_t *mrbc_realloc(mrb_vm *vm, void *ptr, int size)
-{
-  int alloc_size = size + sizeof(struct MEM_WITH_VM);
-  struct MEM_WITH_VM *alloc_block =
-      (struct MEM_WITH_VM *)mrbc_raw_realloc(ptr, alloc_size);
-  if( alloc_block == NULL ) return NULL;  // ENOMEM
+//================================================================
+/*! re-allocate memory
 
-  alloc_block->vm_id = (vm != NULL) ? vm->vm_id : 0;
-  return alloc_block->data;
+  @param	vm	pointer to VM.
+  @param	ptr	pointer to target.
+  @param	size	request size.
+  @return	uint8_t * pointer to allocated memory.
+  @retval	NULL	error.
+*/
+uint8_t* mrbc_realloc(const mrb_vm *vm, void *ptr, unsigned int size)
+{
+  return mrbc_raw_realloc(ptr, size);
 }
 
 
-void mrbc_free(mrb_vm *vm, void *ptr)
-{
-  if( ptr == NULL ) return;
+//================================================================
+/*! release memory
 
-  uint8_t *p = (uint8_t *)ptr;
-  struct MEM_WITH_VM *free_block = (struct MEM_WITH_VM *)(p - sizeof(struct MEM_WITH_VM));
-  mrbc_raw_free(free_block);
+  @param	vm	pointer to VM.
+  @param	ptr	pointer to target.
+*/
+void mrbc_free(const mrb_vm *vm, void *ptr)
+{
+  mrbc_raw_free(ptr);
 }
 
 
-void mrbc_free_all(mrb_vm *vm)
-{
-  int vm_id = vm->vm_id;
+//================================================================
+/*! release memory, vm used.
 
-  struct USED_BLOCK *ptr = (struct USED_BLOCK *)memory_pool;
-  while( ptr->t != FLAG_TAIL_BLOCK ){
-    struct MEM_WITH_VM *vm_ptr = (struct MEM_WITH_VM *)(ptr->data);
-    if( ptr->f == FLAG_FREE_BLOCK || vm_ptr->vm_id != vm_id ){
-      uint8_t *p = (uint8_t *)ptr;
-      ptr = (struct USED_BLOCK *)(p + ptr->size);
-      continue;
+  @param	vm	pointer to VM.
+*/
+void mrbc_free_all(const mrb_vm *vm)
+{
+  USED_BLOCK *ptr = (USED_BLOCK *)memory_pool;
+  int flag_loop = 1;
+
+  while( flag_loop ) {
+    USED_BLOCK *next_ptr = (USED_BLOCK *)PHYS_NEXT(ptr);
+
+    if( ptr->t == FLAG_TAIL_BLOCK ) flag_loop = 0;
+    if( ptr->f == FLAG_USED_BLOCK && ptr->vm_id == vm->vm_id ) {
+      mrbc_raw_free((uint8_t *)ptr + sizeof(USED_BLOCK));
     }
-    if( vm_ptr->vm_id != vm_id ) continue;
-    // free a block
-    struct USED_BLOCK *next_ptr = ptr->prev;
-    if( next_ptr == NULL ) next_ptr = ptr;
-    mrbc_raw_free(ptr->data);
+
     ptr = next_ptr;
-  }  
+  }
 }
