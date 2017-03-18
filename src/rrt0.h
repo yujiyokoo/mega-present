@@ -45,13 +45,13 @@ enum MrbcTaskState {
   Task control block
 */
 struct VM;
-typedef volatile struct MrbcTcb {
-  volatile struct MrbcTcb *next;
-  struct VM               *vm;
-  uint8_t                  priority;
-  uint8_t                  priority_preemption;
-  uint8_t                  timeslice;
-  uint8_t                  state; //!< enum MrbcTaskState
+typedef struct MrbcTcb {
+  struct MrbcTcb *next;
+  struct VM      *vm;
+  uint8_t         priority;
+  uint8_t         priority_preemption;
+  uint8_t         timeslice;
+  uint8_t         state; //!< enum MrbcTaskState
   union {
     uint32_t wakeup_tick;
   };
@@ -79,4 +79,4 @@ void mrbc_resume_task(MrbcTcb *tcb);
 #ifdef __cplusplus
 }
 #endif
-#endif // ifndef MRBC_RRT0_H_
+#endif // ifndef MRBC_SRC_RRT0_H_
