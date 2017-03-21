@@ -173,6 +173,12 @@ static void add_free_block(FREE_BLOCK *target)
     target->next_free->prev_free = target;
   }
   free_blocks[index] = target;
+
+#ifdef MRBC_DEBUG
+  memset( (uint8_t *)target + sizeof(FREE_BLOCK), 0xff,
+          target->size - sizeof(FREE_BLOCK) );
+#endif
+
 }
 
 
@@ -266,6 +272,9 @@ static void merge_block(FREE_BLOCK *ptr1, FREE_BLOCK *ptr2)
 */
 void mrbc_init_alloc(uint8_t *ptr, unsigned int size)
 {
+  assert( size != 0 );
+  assert( size <= (MRBC_ALLOC_MEMSIZE_T)(~0) );
+
   memory_pool      = ptr;
   memory_pool_size = size;
 
@@ -359,6 +368,11 @@ uint8_t* mrbc_raw_alloc(unsigned int size)
   if( release != NULL ) {
     add_free_block(release);
   }
+
+#ifdef MRBC_DEBUG
+  memset( (uint8_t *)target + sizeof(USED_BLOCK), 0x00,
+          target->size - sizeof(USED_BLOCK) );
+#endif
 
   return (uint8_t *)target + sizeof(USED_BLOCK);
 }
