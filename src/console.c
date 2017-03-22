@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "hal/hal.h"
+#include "vm_config.h"
 #include "console.h"
 
 
@@ -108,6 +109,23 @@ static void format_output_uint(uint32_t value, int align, int w, int base, char 
 
 
 //================================================================
+/*! output double value with format
+
+  @param  value		output value
+  @param  align		left(-1) or right(1)
+  @param  w		width
+  @param  pad		padding character
+*/
+#if MRBC_USE_FLOAT
+static void format_output_float(double value, int align, int w, char pad)
+{
+  char buf[21];
+  sprintf(buf, "%f", value);
+  console_print(buf);
+}
+#endif
+
+//================================================================
 /*! output a character
 
   @param  c	character
@@ -195,6 +213,13 @@ L_exit:
     case 'x':
       format_output_uint(va_arg(params, unsigned int), align, w, 16, pad);
       break;
+
+#if MRBC_USE_FLOAT
+    case 'F':
+    case 'f':
+      format_output_float(va_arg(params, double), align, w, pad);
+      break;
+#endif
 
     case 'c':
       console_putchar(va_arg(params, int));	// ignore "%03c" and others.
