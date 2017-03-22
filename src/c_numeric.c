@@ -130,11 +130,20 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
 // Float
 #if MRBC_USE_FLOAT
 
+// Operator unary -
+static void c_float_negative(mrb_vm *vm, mrb_value *v)
+{
+  double num = GET_FLOAT_ARG(-1);
+  SET_FLOAT_RETURN( -num );
+}
+
+
+
 void mrbc_init_class_float(mrb_vm *vm)
 {
   // Float
   mrbc_class_float = mrbc_class_alloc(vm, "Float", mrbc_class_object);
-
+  mrbc_define_method(vm, mrbc_class_float, "-@", c_float_negative);
 }
 
 #endif
