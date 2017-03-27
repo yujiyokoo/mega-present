@@ -373,6 +373,7 @@ uint8_t* mrbc_raw_alloc(unsigned int size)
   memset( (uint8_t *)target + sizeof(USED_BLOCK), 0x00,
           target->size - sizeof(USED_BLOCK) );
 #endif
+  target->vm_id = 0;
 
   return (uint8_t *)target + sizeof(USED_BLOCK);
 }
