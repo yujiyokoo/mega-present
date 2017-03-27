@@ -25,8 +25,8 @@ extern "C" {
 
 // mrb types
 //typedef float mrb_float;
-typedef int32_t mrb_int;
-typedef int32_t mrb_sym;
+//typedef int32_t mrb_int;
+typedef int16_t mrb_sym;
 
 /* aspec access ? */
 #define MRB_ASPEC_REQ(a)          (((a) >> 18) & 0x1f)
@@ -112,7 +112,7 @@ typedef void (*mrb_func_t)(struct VM *vm, mrb_value *v);
 typedef struct RProc {
   struct RProc *next;
   unsigned int c_func:1;   // 0:IREP, 1:C Func
-  int16_t sym_id;
+  mrb_sym sym_id;
   union {
     struct IREP *irep;
     mrb_func_t func;
