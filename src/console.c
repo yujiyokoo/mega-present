@@ -17,6 +17,9 @@
 #include "hal/hal.h"
 #include "vm_config.h"
 #include "console.h"
+#if MRBC_USE_FLOAT
+#include <stdio.h>
+#endif
 
 
 //================================================================
