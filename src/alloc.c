@@ -80,7 +80,12 @@ typedef struct FREE_BLOCK {
 
 #define PHYS_NEXT(p) ((uint8_t *)(p) + (p)->size)
 #define PHYS_PREV(p) ((uint8_t *)(p) - (p)->prev_offset)
-#define SET_PHYS_PREV(p1,p2) (p2)->prev_offset = (uint8_t *)(p2)-(uint8_t *)(p1)
+#define SET_PHYS_PREV(p1,p2) \
+  ((p2)->prev_offset = (uint8_t *)(p2)-(uint8_t *)(p1))
+#define SET_VM_ID(p,id) \
+  (((USED_BLOCK *)((uint8_t *)(p) - sizeof(USED_BLOCK)))->vm_id = (id))
+#define GET_VM_ID(p) \
+  (((USED_BLOCK *)((uint8_t *)(p) - sizeof(USED_BLOCK)))->vm_id)
 
 
 // memory pool
@@ -101,8 +106,8 @@ static uint16_t free_sli_bitmap[MRBC_ALLOC_FLI_BIT_WIDTH + 2]; // + sentinel
 //================================================================
 /*! Number of leading zeros.
 
-  @param	x	target (16bit unsined)
-  @retval	int	nlz value
+  @param  x	target (16bit unsined)
+  @retval int	nlz value
 */
 static inline int nlz16(uint16_t x)
 {
@@ -119,8 +124,8 @@ static inline int nlz16(uint16_t x)
 //================================================================
 /*! calc f and s, and returns fli,sli of free_blocks
 
-  @param	alloc_size	alloc size
-  @retval	int		index of free_blocks
+  @param  alloc_size	alloc size
+  @retval int		index of free_blocks
 */
 static int calc_index(unsigned int alloc_size)
 {
@@ -154,7 +159,7 @@ static int calc_index(unsigned int alloc_size)
 //================================================================
 /*! Mark that block free and register it in the free index table.
 
-  @param	target	Pointer to target block.
+  @param  target	Pointer to target block.
 */
 static void add_free_block(FREE_BLOCK *target)
 {
@@ -175,6 +180,7 @@ static void add_free_block(FREE_BLOCK *target)
   free_blocks[index] = target;
 
 #ifdef MRBC_DEBUG
+  target->vm_id = UINT8_MAX;
   memset( (uint8_t *)target + sizeof(FREE_BLOCK), 0xff,
           target->size - sizeof(FREE_BLOCK) );
 #endif
@@ -185,7 +191,7 @@ static void add_free_block(FREE_BLOCK *target)
 //================================================================
 /*! just remove the free_block *target from index
 
-  @param	target	pointer to target block.
+  @param  target	pointer to target block.
 */
 static void remove_index(FREE_BLOCK *target)
 {
@@ -214,10 +220,10 @@ static void remove_index(FREE_BLOCK *target)
 //================================================================
 /*! Split block by size
 
-  @param	target	pointer to target block
-  @param	size	size
-  @retval	NULL	no split.
-  @retval	FREE_BLOCK *	pointer to splitted free block.
+  @param  target	pointer to target block
+  @param  size	size
+  @retval NULL	no split.
+  @retval FREE_BLOCK *	pointer to splitted free block.
 */
 static inline FREE_BLOCK* split_block(FREE_BLOCK *target, unsigned int size)
 {
@@ -245,8 +251,8 @@ static inline FREE_BLOCK* split_block(FREE_BLOCK *target, unsigned int size)
 /*! merge ptr1 and ptr2 block.
     ptr2 will disappear
 
-  @param	ptr1	pointer to free block 1
-  @param	ptr2	pointer to free block 2
+  @param  ptr1	pointer to free block 1
+  @param  ptr2	pointer to free block 2
 */
 static void merge_block(FREE_BLOCK *ptr1, FREE_BLOCK *ptr2)
 {
@@ -267,10 +273,10 @@ static void merge_block(FREE_BLOCK *ptr1, FREE_BLOCK *ptr2)
 //================================================================
 /*! initialize
 
-  @param	ptr	pointer to free memory block.
-  @param	size	size. (max 64KB. see MRBC_ALLOC_MEMSIZE_T)
+  @param  ptr	pointer to free memory block.
+  @param  size	size. (max 64KB. see MRBC_ALLOC_MEMSIZE_T)
 */
-void mrbc_init_alloc(uint8_t *ptr, unsigned int size)
+void mrbc_init_alloc(void *ptr, unsigned int size)
 {
   assert( size != 0 );
   assert( size <= (MRBC_ALLOC_MEMSIZE_T)(~0) );
@@ -292,9 +298,9 @@ void mrbc_init_alloc(uint8_t *ptr, unsigned int size)
 //================================================================
 /*! allocate memory
 
-  @param	size	request size.
-  @return	uint8_t * pointer to allocated memory.
-  @retval	NULL	error.
+  @param  size	request size.
+  @return uint8_t * pointer to allocated memory.
+  @retval NULL	error.
 */
 uint8_t* mrbc_raw_alloc(unsigned int size)
 {
@@ -370,7 +376,7 @@ uint8_t* mrbc_raw_alloc(unsigned int size)
   }
 
 #ifdef MRBC_DEBUG
-  memset( (uint8_t *)target + sizeof(USED_BLOCK), 0x00,
+  memset( (uint8_t *)target + sizeof(USED_BLOCK), 0xaa,
           target->size - sizeof(USED_BLOCK) );
 #endif
   target->vm_id = 0;
@@ -382,7 +388,7 @@ uint8_t* mrbc_raw_alloc(unsigned int size)
 //================================================================
 /*! release memory
 
-  @param	ptr	pointer to target.
+  @param  ptr	Return value of mrbc_raw_alloc()
 */
 void mrbc_raw_free(void *ptr)
 {
@@ -414,10 +420,10 @@ void mrbc_raw_free(void *ptr)
 //================================================================
 /*! re-allocate memory
 
-  @param	ptr	pointer to target.
-  @param	size	request size
-  @return	uint8_t * pointer to allocated memory.
-  @retval	NULL	error.
+  @param  ptr	Return value of mrbc_raw_alloc()
+  @param  size	request size
+  @return uint8_t * pointer to allocated memory.
+  @retval NULL	error.
 */
 uint8_t* mrbc_raw_realloc(void *ptr, unsigned int size)
 {
@@ -468,6 +474,7 @@ uint8_t* mrbc_raw_realloc(void *ptr, unsigned int size)
   if( new_ptr == NULL ) return NULL;  // ENOMEM
 
   memcpy(new_ptr, ptr, target->size);
+  SET_VM_ID(new_ptr, target->vm_id);
   mrbc_raw_free(ptr);
 
   return new_ptr;
@@ -480,17 +487,16 @@ uint8_t* mrbc_raw_realloc(void *ptr, unsigned int size)
 //================================================================
 /*! allocate memory
 
-  @param	vm	pointer to VM.
-  @param	size	request size.
-  @return	uint8_t * pointer to allocated memory.
-  @retval	NULL	error.
+  @param  vm	pointer to VM.
+  @param  size	request size.
+  @return uint8_t * pointer to allocated memory.
+  @retval NULL	error.
 */
 uint8_t* mrbc_alloc(const mrb_vm *vm, unsigned int size)
 {
   uint8_t *ptr = mrbc_raw_alloc(size);
   if( ptr == NULL ) return NULL;	// ENOMEM
-
-  ((USED_BLOCK *)(ptr - sizeof(USED_BLOCK)))->vm_id = (vm ? vm->vm_id : 0);
+  if( vm ) SET_VM_ID(ptr, vm->vm_id);
 
   return ptr;
 }
@@ -499,11 +505,11 @@ uint8_t* mrbc_alloc(const mrb_vm *vm, unsigned int size)
 //================================================================
 /*! re-allocate memory
 
-  @param	vm	pointer to VM.
-  @param	ptr	pointer to target.
-  @param	size	request size.
-  @return	uint8_t * pointer to allocated memory.
-  @retval	NULL	error.
+  @param  vm	pointer to VM.
+  @param  ptr	Return value of mrbc_alloc()
+  @param  size	request size.
+  @return uint8_t * pointer to allocated memory.
+  @retval NULL	error.
 */
 uint8_t* mrbc_realloc(const mrb_vm *vm, void *ptr, unsigned int size)
 {
@@ -514,8 +520,8 @@ uint8_t* mrbc_realloc(const mrb_vm *vm, void *ptr, unsigned int size)
 //================================================================
 /*! release memory
 
-  @param	vm	pointer to VM.
-  @param	ptr	pointer to target.
+  @param  vm	pointer to VM.
+  @param  ptr	Return value of mrbc_alloc()
 */
 void mrbc_free(const mrb_vm *vm, void *ptr)
 {
@@ -526,21 +532,49 @@ void mrbc_free(const mrb_vm *vm, void *ptr)
 //================================================================
 /*! release memory, vm used.
 
-  @param	vm	pointer to VM.
+  @param  vm	pointer to VM.
 */
 void mrbc_free_all(const mrb_vm *vm)
 {
   USED_BLOCK *ptr = (USED_BLOCK *)memory_pool;
+  USED_BLOCK *free_target = NULL;
   int flag_loop = 1;
 
   while( flag_loop ) {
-    USED_BLOCK *next_ptr = (USED_BLOCK *)PHYS_NEXT(ptr);
-
     if( ptr->t == FLAG_TAIL_BLOCK ) flag_loop = 0;
     if( ptr->f == FLAG_USED_BLOCK && ptr->vm_id == vm->vm_id ) {
-      mrbc_raw_free((uint8_t *)ptr + sizeof(USED_BLOCK));
+      if( free_target ) {
+        mrbc_raw_free((uint8_t *)free_target + sizeof(USED_BLOCK));
+      }
+      free_target = ptr;
     }
-
-    ptr = next_ptr;
+    ptr = (USED_BLOCK *)PHYS_NEXT(ptr);
   }
+  if( free_target ) {
+    mrbc_raw_free((uint8_t *)free_target + sizeof(USED_BLOCK));
+  }
+}
+
+
+//================================================================
+/*! set vm id
+
+  @param  ptr	Return value of mrbc_alloc()
+  @param  vm_id	vm id
+*/
+void mrbc_set_vm_id(void *ptr, int vm_id)
+{
+  SET_VM_ID(ptr, vm_id);
+}
+
+
+//================================================================
+/*! get vm id
+
+  @param  ptr	Return value of mrbc_alloc()
+  @return int	vm id
+*/
+int mrbc_get_vm_id(void *ptr)
+{
+  return GET_VM_ID(ptr);
 }
