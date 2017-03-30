@@ -27,15 +27,15 @@ extern "C" {
 
 //================================================================
 /*!@brief
-
+  IREP Internal REPresentation
 */
 typedef struct IREP {
-  int16_t unused;       //! unused flag
-  struct IREP *next;         //! irep linked list
+  int16_t unused;    //! unused flag
+  struct IREP *next; //! irep linked list
 
-  uint8_t *code;
+  uint8_t    *code;
   mrb_object *ptr_to_pool;
-  uint8_t *ptr_to_sym;
+  uint8_t    *ptr_to_sym;
 
   int16_t nlocals;
   int16_t nregs;
@@ -43,48 +43,46 @@ typedef struct IREP {
   int32_t ilen;
 
   int16_t iseq;
-
 } mrb_irep;
 
 
 //================================================================
 /*!@brief
-
+  Call information
 */
 typedef struct CALLINFO {
   mrb_irep *pc_irep;
-  uint32_t pc;
-  uint32_t reg_top;
-  uint8_t n_args;   // num of args
+  uint16_t  pc;
+  uint16_t  reg_top;
+  uint8_t   n_args;     // num of args
 } mrb_callinfo;
 
 
 //================================================================
 /*!@brief
-
+  Virtual Machine
 */
 typedef struct VM {
-  mrb_irep *irep;    // irep linked list
+  mrb_irep *irep;       // irep linked list
 
-  uint8_t vm_id;     // vm_id : 1..n
-  const uint8_t *mrb;      // bytecode
+  uint8_t        vm_id; // vm_id : 1..n
+  const uint8_t *mrb;   // bytecode
 
-  mrb_irep *pc_irep;  // PC
-  int16_t pc;       // PC
+  mrb_irep *pc_irep;    // PC
+  uint16_t  pc;         // PC
 
-  int reg_top;
-  mrb_value regs[MAX_REGS_SIZE];
-  int callinfo_top;
+  uint16_t     reg_top;
+  mrb_value    regs[MAX_REGS_SIZE];
+  uint16_t     callinfo_top;
   mrb_callinfo callinfo[MAX_CALLINFO_SIZE];
 
-  mrb_class *target_class;
-  mrb_object *top_self;  // ?
+  mrb_class  *target_class;
+  mrb_object *top_self; // ?
 
   int32_t error_code;
 
   volatile int8_t flag_preemption;
 } mrb_vm;
-
 
 
 mrb_irep *new_irep(mrb_vm *vm);
