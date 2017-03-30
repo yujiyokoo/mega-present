@@ -16,14 +16,7 @@
 #include "symbol.h"
 
 /* Static Variables */
-/* VM contains regs, stack, PC, and so on */
-mrb_vm mrbc_vm[MAX_VM_COUNT];
-
-//static mrb_object mrbc_object[MAX_OBJECT_COUNT];
-//mrb_object *mrbc_pool_object;
-
 mrb_constobject mrbc_const[MAX_CONST_COUNT];
-
 mrb_globalobject mrbc_global[MAX_GLOBAL_OBJECT_SIZE];
 
 /* Class Tree */
@@ -48,11 +41,6 @@ mrb_class *mrbc_class_hash;
 void init_static(void)
 {
   int i;
-
-  for( i=0 ; i<MAX_VM_COUNT ; i++ ){
-    mrbc_vm[i].vm_id = i+1;
-    mrbc_vm[i].priority = -1;
-  }
 
   /* global objects */
   for( i=0 ; i<MAX_GLOBAL_OBJECT_SIZE ; i++ ){

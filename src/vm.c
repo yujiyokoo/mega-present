@@ -15,6 +15,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
+#include <assert.h>
 #include "vm.h"
 #include "alloc.h"
 #include "static.h"
@@ -26,6 +28,29 @@
 
 #include "c_string.h"
 #include "c_range.h"
+
+static uint32_t free_vm_bitmap[MAX_VM_COUNT / 32 + 1];
+#define FREE_BITMAP_WIDTH 32
+#define Num(n) (sizeof(n)/sizeof((n)[0]))
+
+
+//================================================================
+/*! Number of leading zeros.
+
+  @param	x	target (16bit unsined)
+  @retval	int	nlz value
+*/
+static inline int nlz32(uint32_t x)
+{
+  if( x == 0 ) return 32;
+
+  int n = 1;
+  if((x >> 16) == 0 ) { n += 16; x <<= 16; }
+  if((x >> 24) == 0 ) { n +=  8; x <<=  8; }
+  if((x >> 28) == 0 ) { n +=  4; x <<=  4; }
+  if((x >> 30) == 0 ) { n +=  2; x <<=  2; }
+  return n - (x >> 31);
+}
 
 
 //================================================================
@@ -1211,22 +1236,31 @@ mrb_irep *new_irep(mrb_vm *vm)
 */
 struct VM *vm_open(void)
 {
+  // allocate memory.
+  mrb_vm *vm = (mrb_vm *)mrbc_raw_alloc( sizeof(mrb_vm) );
+  if( vm == NULL ) return NULL;
+
+  // allocate vm id.
   int i;
-  mrb_vm *p = 0;
-  for( i=0 ; i<MAX_VM_COUNT ; i++ ){
-    if( mrbc_vm[i].priority < 0 ){
-      p = mrbc_vm + i;
+  for( i = 0; i < Num(free_vm_bitmap); i++ ) {
+    int n = nlz32( ~free_vm_bitmap[i] );
+    if( n < FREE_BITMAP_WIDTH ) {
+      free_vm_bitmap[i] |= (1 << (FREE_BITMAP_WIDTH - n - 1));
+      vm->vm_id = i * FREE_BITMAP_WIDTH + n + 1;
+      mrbc_set_vm_id(vm, vm->vm_id);
       break;
     }
   }
-
-  if( p != 0 ){
-    p->priority = 1;
-    p->pc = 0;
-    p->callinfo_top = 0;
+  if( i >= Num(free_vm_bitmap) ) {
+    mrbc_raw_free(vm);
+    return NULL;
   }
 
-  return p;
+  // initialize attributes.
+  vm->irep = 0;
+  vm->mrb = 0;
+
+  return vm;
 }
 
 
@@ -1238,9 +1272,13 @@ struct VM *vm_open(void)
 */
 void vm_close(struct VM *vm)
 {
-  vm->priority = -1;
+  // free vm id.
+  int i = (vm->vm_id-1) / FREE_BITMAP_WIDTH;
+  int n = (vm->vm_id-1) % FREE_BITMAP_WIDTH;
+  assert( i < Num(free_vm_bitmap) );
+  free_vm_bitmap[i] &= ~(1 << (FREE_BITMAP_WIDTH - n - 1));
+
   mrbc_free_all(vm);
-  
 }
 
 
@@ -1256,6 +1294,7 @@ void vm_boot(struct VM *vm)
   vm->pc_irep = vm->irep;
   vm->pc = 0;
   vm->reg_top = 0;
+  vm->callinfo_top = 0;
   // set self to reg[0]
   vm->top_self = mrbc_obj_alloc(vm, MRB_TT_OBJECT);
   vm->top_self->value.cls = mrbc_class_object;
@@ -1263,6 +1302,7 @@ void vm_boot(struct VM *vm)
   vm->regs[0].value.obj = vm->top_self;
   // target_class
   vm->target_class = vm->top_self->value.cls;
+
   vm->error_code = 0;
   vm->flag_preemption = 0;
 }
