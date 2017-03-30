@@ -539,10 +539,11 @@ void mrbc_free_all(const mrb_vm *vm)
   USED_BLOCK *ptr = (USED_BLOCK *)memory_pool;
   USED_BLOCK *free_target = NULL;
   int flag_loop = 1;
+  int vm_id = vm->vm_id;
 
   while( flag_loop ) {
     if( ptr->t == FLAG_TAIL_BLOCK ) flag_loop = 0;
-    if( ptr->f == FLAG_USED_BLOCK && ptr->vm_id == vm->vm_id ) {
+    if( ptr->f == FLAG_USED_BLOCK && ptr->vm_id == vm_id ) {
       if( free_target ) {
         mrbc_raw_free((uint8_t *)free_target + sizeof(USED_BLOCK));
       }
