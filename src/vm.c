@@ -429,26 +429,31 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   if( m == 0 ) {
     console_printf("no method(%s)!\n", sym);
-  } else {
-    if( m->c_func == 0 ) {
-      // Ruby method
-      // callinfo
-      mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-      callinfo->reg_top = vm->reg_top;
-      callinfo->pc_irep = vm->pc_irep;
-      callinfo->pc = vm->pc;
-      callinfo->n_args = GETARG_C(code);
-      vm->callinfo_top++;
-      // target irep
-      vm->pc = 0;
-      vm->pc_irep = m->func.irep;
-      // new regs
-      vm->reg_top += GETARG_A(code);
-    } else {
-      // C func
-      m->func.func(vm, regs+GETARG_A(code));
-    }
+    return 0;
   }
+
+  // is C func?
+  if( m->c_func ) {
+    m->func.func(vm, regs + GETARG_A(code));
+    return 0;
+  }
+
+  // is Ruby method.
+  // callinfo
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  callinfo->reg_top = vm->reg_top;
+  callinfo->pc_irep = vm->pc_irep;
+  callinfo->pc = vm->pc;
+  callinfo->n_args = GETARG_C(code);
+  vm->callinfo_top++;
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = m->func.irep;
+
+  // new regs
+  vm->reg_top += GETARG_A(code);
+
   return 0;
 }
 
@@ -1083,10 +1088,13 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_proc *proc = mrbc_rproc_alloc(vm, "(lambda)");
   mrb_irep *current = vm->irep;
   mrb_irep *p = current->next; //starting from next for current sequence;
+  assert( p != NULL );
+
   // code length is p->ilen * sizeof(uint32_t);
   int i;
-  for (i=0; i < b; i++) {
+  for( i = 0; i < b; i++ ) {
     p = p->next;
+    assert( p != NULL );
   }
   proc->c_func = 0;
   proc->func.irep = p;
