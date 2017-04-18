@@ -1221,56 +1221,53 @@ mrb_irep *new_irep(mrb_vm *vm)
 }
 
 
+
+
 //================================================================
 /*!@brief
-  VM initializer.
+  Open the VM.
 
-  Get a VM from static heap.
-
-  @return  Pointer of struct VM in static area.
-
-  @code
-  init_static();
-  struct VM *vm = vm_open();
-  @endcode
+  @return	Pointer to mrb_vm.
+  @retval NULL	error.
 */
-struct VM *vm_open(void)
+mrb_vm *mrbc_vm_open(void)
 {
   // allocate memory.
   mrb_vm *vm = (mrb_vm *)mrbc_raw_alloc( sizeof(mrb_vm) );
   if( vm == NULL ) return NULL;
 
   // allocate vm id.
+  int vm_id = 0;
   int i;
   for( i = 0; i < Num(free_vm_bitmap); i++ ) {
     int n = nlz32( ~free_vm_bitmap[i] );
     if( n < FREE_BITMAP_WIDTH ) {
       free_vm_bitmap[i] |= (1 << (FREE_BITMAP_WIDTH - n - 1));
-      vm->vm_id = i * FREE_BITMAP_WIDTH + n + 1;
-      mrbc_set_vm_id(vm, vm->vm_id);
+      vm_id = i * FREE_BITMAP_WIDTH + n + 1;
       break;
     }
   }
-  if( i >= Num(free_vm_bitmap) ) {
+  if( vm_id == 0 ) {
     mrbc_raw_free(vm);
     return NULL;
   }
 
   // initialize attributes.
-  vm->irep = 0;
-  vm->mrb = 0;
+  memset(vm, 0, sizeof(mrb_vm));	// caution: suppose NULL is zero.
+  vm->vm_id = vm_id;
 
   return vm;
 }
 
 
+
 //================================================================
 /*!@brief
-  VM finalizer.
+  Close the VM.
 
-  @param  vm  Pointer of VM
+  @param  vm  Pointer to VM
 */
-void vm_close(struct VM *vm)
+void mrbc_vm_close(mrb_vm *vm)
 {
   // free vm id.
   int i = (vm->vm_id-1) / FREE_BITMAP_WIDTH;
@@ -1278,28 +1275,44 @@ void vm_close(struct VM *vm)
   assert( i < Num(free_vm_bitmap) );
   free_vm_bitmap[i] &= ~(1 << (FREE_BITMAP_WIDTH - n - 1));
 
-  mrbc_free_all(vm);
+  // free irep and ptr_to_pool objects
+  mrb_irep *irep = vm->irep;
+  while( irep != NULL ) {
+    mrb_object *obj = irep->ptr_to_pool;
+    while( obj != NULL ) {
+      mrb_object *obj_next = obj->next;
+      mrbc_raw_free(obj);
+      obj = obj_next;
+    }
+    mrb_irep *irep_next = irep->next;
+    mrbc_raw_free(irep);
+    irep = irep_next;
+  }
+
+  mrbc_raw_free(vm);
 }
+
 
 
 //================================================================
 /*!@brief
-  Boot the VM.
+  VM initializer.
 
-  @param  vm  Pointer of VM
+  @param  vm  Pointer to VM
 */
-// init vm
-void vm_boot(struct VM *vm)
+void mrbc_vm_begin(mrb_vm *vm)
 {
   vm->pc_irep = vm->irep;
   vm->pc = 0;
   vm->reg_top = 0;
   vm->callinfo_top = 0;
+
   // set self to reg[0]
   vm->top_self = mrbc_obj_alloc(vm, MRB_TT_OBJECT);
   vm->top_self->value.cls = mrbc_class_object;
   vm->regs[0].tt = MRB_TT_OBJECT;
   vm->regs[0].value.obj = vm->top_self;
+
   // target_class
   vm->target_class = vm->top_self->value.cls;
 
@@ -1310,12 +1323,24 @@ void vm_boot(struct VM *vm)
 
 //================================================================
 /*!@brief
+  VM finalizer.
+
+  @param  vm  Pointer to VM
+*/
+void mrbc_vm_end(mrb_vm *vm)
+{
+  mrbc_free_all(vm);
+}
+
+
+//================================================================
+/*!@brief
   Fetch a bytecode and execute
 
   @param  vm    A pointer of VM.
   @retval 0  No error.
 */
-int vm_run( mrb_vm *vm )
+int mrbc_vm_run( mrb_vm *vm )
 {
   int ret = 0;
 
@@ -1377,6 +1402,119 @@ int vm_run( mrb_vm *vm )
 
   return ret;
 }
+
+
+
+
+
+
+
+
+
+//================================================================
+/*!@brief
+  VM initializer.
+
+  Get a VM from static heap.
+
+  @warning OBSOLETE
+  @return  Pointer of struct VM in static area.
+
+  @code
+  init_static();
+  struct VM *vm = vm_open();
+  @endcode
+*/
+struct VM *vm_open(void)
+{
+  // allocate memory.
+  mrb_vm *vm = (mrb_vm *)mrbc_raw_alloc( sizeof(mrb_vm) );
+  if( vm == NULL ) return NULL;
+
+  // allocate vm id.
+  int i;
+  for( i = 0; i < Num(free_vm_bitmap); i++ ) {
+    int n = nlz32( ~free_vm_bitmap[i] );
+    if( n < FREE_BITMAP_WIDTH ) {
+      free_vm_bitmap[i] |= (1 << (FREE_BITMAP_WIDTH - n - 1));
+      vm->vm_id = i * FREE_BITMAP_WIDTH + n + 1;
+      mrbc_set_vm_id(vm, vm->vm_id);
+      break;
+    }
+  }
+  if( i >= Num(free_vm_bitmap) ) {
+    mrbc_raw_free(vm);
+    return NULL;
+  }
+
+  // initialize attributes.
+  vm->irep = 0;
+  vm->mrb = 0;
+
+  return vm;
+}
+
+
+//================================================================
+/*!@brief
+  VM finalizer.
+
+  @warning OBSOLETE
+  @param  vm  Pointer of VM
+*/
+void vm_close(struct VM *vm)
+{
+  // free vm id.
+  int i = (vm->vm_id-1) / FREE_BITMAP_WIDTH;
+  int n = (vm->vm_id-1) % FREE_BITMAP_WIDTH;
+  assert( i < Num(free_vm_bitmap) );
+  free_vm_bitmap[i] &= ~(1 << (FREE_BITMAP_WIDTH - n - 1));
+
+  mrbc_free_all(vm);
+}
+
+
+//================================================================
+/*!@brief
+  Boot the VM.
+
+  @warning OBSOLETE
+  @param  vm  Pointer of VM
+*/
+// init vm
+void vm_boot(struct VM *vm)
+{
+  vm->pc_irep = vm->irep;
+  vm->pc = 0;
+  vm->reg_top = 0;
+  vm->callinfo_top = 0;
+  // set self to reg[0]
+  vm->top_self = mrbc_obj_alloc(vm, MRB_TT_OBJECT);
+  vm->top_self->value.cls = mrbc_class_object;
+  vm->regs[0].tt = MRB_TT_OBJECT;
+  vm->regs[0].value.obj = vm->top_self;
+  // target_class
+  vm->target_class = vm->top_self->value.cls;
+
+  vm->error_code = 0;
+  vm->flag_preemption = 0;
+}
+
+
+//================================================================
+/*!@brief
+  Fetch a bytecode and execute
+
+  @warning OBSOLETE
+  @param  vm    A pointer of VM.
+  @retval 0  No error.
+*/
+int vm_run( mrb_vm *vm )
+{
+  return mrbc_vm_run( vm );
+}
+
+
 
 
 #ifdef MRBC_DEBUG

@@ -92,6 +92,14 @@ void vm_boot(struct VM *vm);
 int vm_run(struct VM *vm);
 
 
+// add this.
+mrb_vm *mrbc_vm_open(void);
+void mrbc_vm_close(mrb_vm *vm);
+void mrbc_vm_begin(mrb_vm *vm);
+void mrbc_vm_end(mrb_vm *vm);
+int mrbc_vm_run(mrb_vm *vm);
+
+
 //================================================================
 /*!@brief
   Get 32bit value from memory big endian.

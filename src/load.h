@@ -23,6 +23,7 @@ extern "C" {
 
 int loca_mrb_array(struct VM *vm, const uint8_t *ptr);
 int load_mrb(struct VM *vm);
+int mrbc_load_mrb(mrb_vm *vm, const uint8_t *ptr);
 
 
 #ifdef __cplusplus
