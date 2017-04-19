@@ -121,7 +121,7 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
     p += 4;
 
     // new irep
-    mrb_irep *irep = new_irep(vm);
+    mrb_irep *irep = new_irep(0);
     if( irep == 0 ) {
       vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
       return -1;
@@ -158,9 +158,9 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
     int plen = bin_to_uint32(p);    p += 4;
     int i;
     for( i=0 ; i<plen ; i++ ){
-      int tt = (int)*p++;
+      int tt = *p++;
       int obj_size = bin_to_uint16(p);   p += 2;
-      mrb_object *ptr = mrbc_obj_alloc(vm, MRB_TT_FALSE);
+      mrb_object *ptr = mrbc_obj_alloc(0, MRB_TT_FALSE);
       if( ptr == 0 ){
         vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
 	return -1;
@@ -237,45 +237,31 @@ static int load_lvar(struct VM *vm, const uint8_t **pos)
 
 //================================================================
 /*!@brief
-  Setup mrb program
+  Load the VM bytecode.
 
-  @param  vm    A pointer of VM.
-  @return int	zero if no error.
+  @param  vm    Pointer to VM.
+  @param  ptr	Pointer to bytecode.
+
 */
-int load_mrb(struct VM *vm)
+int mrbc_load_mrb(mrb_vm *vm, const uint8_t *ptr)
 {
   int ret = -1;
-  const uint8_t *pos = vm->mrb;
+  vm->mrb = ptr;
 
-  if( memcmp(pos, "RITE", 4) == 0 ) {
-    ret = load_header(vm, &pos);
+  if( memcmp(ptr, "RITE", 4) == 0 ) {
+    ret = load_header(vm, &ptr);
   }
   while( ret == 0 ) {
-    if( memcmp(pos, "IREP", 4) == 0 ) {
-      ret = load_irep(vm, &pos);
+    if( memcmp(ptr, "IREP", 4) == 0 ) {
+      ret = load_irep(vm, &ptr);
     }
-    else if( memcmp(pos, "LVAR", 4) == 0 ) {
-      ret = load_lvar(vm, &pos);
+    else if( memcmp(ptr, "LVAR", 4) == 0 ) {
+      ret = load_lvar(vm, &ptr);
     }
-    else if( memcmp(pos, "END\0", 4) == 0 ) {
+    else if( memcmp(ptr, "END\0", 4) == 0 ) {
       break;
     }
   }
 
   return ret;
-}
-
-
-//================================================================
-/*!@brief
-
-
-  @param  vm    A pointer of VM.
-  @param  ptr	A pointer of RITE (.mrb) code.
-
-*/
-int loca_mrb_array(struct VM *vm, const uint8_t *ptr)
-{
-  vm->mrb = ptr;
-  return load_mrb(vm);
 }

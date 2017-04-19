@@ -86,10 +86,11 @@ typedef struct VM {
 
 
 mrb_irep *new_irep(mrb_vm *vm);
-struct VM *vm_open(void);
-void vm_close(struct VM *vm);
-void vm_boot(struct VM *vm);
-int vm_run(struct VM *vm);
+mrb_vm *mrbc_vm_open(void);
+void mrbc_vm_close(mrb_vm *vm);
+void mrbc_vm_begin(mrb_vm *vm);
+void mrbc_vm_end(mrb_vm *vm);
+int mrbc_vm_run(mrb_vm *vm);
 
 
 //================================================================

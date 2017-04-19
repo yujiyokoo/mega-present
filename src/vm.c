@@ -429,26 +429,31 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   if( m == 0 ) {
     console_printf("no method(%s)!\n", sym);
-  } else {
-    if( m->c_func == 0 ) {
-      // Ruby method
-      // callinfo
-      mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-      callinfo->reg_top = vm->reg_top;
-      callinfo->pc_irep = vm->pc_irep;
-      callinfo->pc = vm->pc;
-      callinfo->n_args = GETARG_C(code);
-      vm->callinfo_top++;
-      // target irep
-      vm->pc = 0;
-      vm->pc_irep = m->func.irep;
-      // new regs
-      vm->reg_top += GETARG_A(code);
-    } else {
-      // C func
-      m->func.func(vm, regs+GETARG_A(code));
-    }
+    return 0;
   }
+
+  // is C func?
+  if( m->c_func ) {
+    m->func.func(vm, regs + GETARG_A(code));
+    return 0;
+  }
+
+  // is Ruby method.
+  // callinfo
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  callinfo->reg_top = vm->reg_top;
+  callinfo->pc_irep = vm->pc_irep;
+  callinfo->pc = vm->pc;
+  callinfo->n_args = GETARG_C(code);
+  vm->callinfo_top++;
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = m->func.irep;
+
+  // new regs
+  vm->reg_top += GETARG_A(code);
+
   return 0;
 }
 
@@ -1083,10 +1088,13 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_proc *proc = mrbc_rproc_alloc(vm, "(lambda)");
   mrb_irep *current = vm->irep;
   mrb_irep *p = current->next; //starting from next for current sequence;
+  assert( p != NULL );
+
   // code length is p->ilen * sizeof(uint32_t);
   int i;
-  for (i=0; i < b; i++) {
+  for( i = 0; i < b; i++ ) {
     p = p->next;
+    assert( p != NULL );
   }
   proc->c_func = 0;
   proc->func.irep = p;
@@ -1221,56 +1229,53 @@ mrb_irep *new_irep(mrb_vm *vm)
 }
 
 
+
+
 //================================================================
 /*!@brief
-  VM initializer.
+  Open the VM.
 
-  Get a VM from static heap.
-
-  @return  Pointer of struct VM in static area.
-
-  @code
-  init_static();
-  struct VM *vm = vm_open();
-  @endcode
+  @return	Pointer to mrb_vm.
+  @retval NULL	error.
 */
-struct VM *vm_open(void)
+mrb_vm *mrbc_vm_open(void)
 {
   // allocate memory.
   mrb_vm *vm = (mrb_vm *)mrbc_raw_alloc( sizeof(mrb_vm) );
   if( vm == NULL ) return NULL;
 
   // allocate vm id.
+  int vm_id = 0;
   int i;
   for( i = 0; i < Num(free_vm_bitmap); i++ ) {
     int n = nlz32( ~free_vm_bitmap[i] );
     if( n < FREE_BITMAP_WIDTH ) {
       free_vm_bitmap[i] |= (1 << (FREE_BITMAP_WIDTH - n - 1));
-      vm->vm_id = i * FREE_BITMAP_WIDTH + n + 1;
-      mrbc_set_vm_id(vm, vm->vm_id);
+      vm_id = i * FREE_BITMAP_WIDTH + n + 1;
       break;
     }
   }
-  if( i >= Num(free_vm_bitmap) ) {
+  if( vm_id == 0 ) {
     mrbc_raw_free(vm);
     return NULL;
   }
 
   // initialize attributes.
-  vm->irep = 0;
-  vm->mrb = 0;
+  memset(vm, 0, sizeof(mrb_vm));	// caution: suppose NULL is zero.
+  vm->vm_id = vm_id;
 
   return vm;
 }
 
 
+
 //================================================================
 /*!@brief
-  VM finalizer.
+  Close the VM.
 
-  @param  vm  Pointer of VM
+  @param  vm  Pointer to VM
 */
-void vm_close(struct VM *vm)
+void mrbc_vm_close(mrb_vm *vm)
 {
   // free vm id.
   int i = (vm->vm_id-1) / FREE_BITMAP_WIDTH;
@@ -1278,33 +1283,64 @@ void vm_close(struct VM *vm)
   assert( i < Num(free_vm_bitmap) );
   free_vm_bitmap[i] &= ~(1 << (FREE_BITMAP_WIDTH - n - 1));
 
-  mrbc_free_all(vm);
+  // free irep and ptr_to_pool objects
+  mrb_irep *irep = vm->irep;
+  while( irep != NULL ) {
+    mrb_object *obj = irep->ptr_to_pool;
+    while( obj != NULL ) {
+      mrb_object *obj_next = obj->next;
+      mrbc_raw_free(obj);
+      obj = obj_next;
+    }
+    mrb_irep *irep_next = irep->next;
+    mrbc_raw_free(irep);
+    irep = irep_next;
+  }
+
+  mrbc_raw_free(vm);
 }
+
 
 
 //================================================================
 /*!@brief
-  Boot the VM.
+  VM initializer.
 
-  @param  vm  Pointer of VM
+  @param  vm  Pointer to VM
 */
-// init vm
-void vm_boot(struct VM *vm)
+void mrbc_vm_begin(mrb_vm *vm)
 {
   vm->pc_irep = vm->irep;
   vm->pc = 0;
   vm->reg_top = 0;
   vm->callinfo_top = 0;
+
+  mrb_class *cls = mrbc_class_alloc(vm, "UserTop", mrbc_class_object);
+  mrb_object *obj = mrbc_obj_alloc(vm, MRB_TT_USERTOP);
+  obj->value.cls = cls;
+
   // set self to reg[0]
-  vm->top_self = mrbc_obj_alloc(vm, MRB_TT_OBJECT);
-  vm->top_self->value.cls = mrbc_class_object;
-  vm->regs[0].tt = MRB_TT_OBJECT;
-  vm->regs[0].value.obj = vm->top_self;
+  vm->top_self = obj;
+  vm->regs[0].tt = MRB_TT_USERTOP;
+  vm->regs[0].value.obj = obj;
+
   // target_class
-  vm->target_class = vm->top_self->value.cls;
+  vm->target_class = cls;
 
   vm->error_code = 0;
   vm->flag_preemption = 0;
+}
+
+
+//================================================================
+/*!@brief
+  VM finalizer.
+
+  @param  vm  Pointer to VM
+*/
+void mrbc_vm_end(mrb_vm *vm)
+{
+  mrbc_free_all(vm);
 }
 
 
@@ -1315,7 +1351,7 @@ void vm_boot(struct VM *vm)
   @param  vm    A pointer of VM.
   @retval 0  No error.
 */
-int vm_run( mrb_vm *vm )
+int mrbc_vm_run( mrb_vm *vm )
 {
   int ret = 0;
 
@@ -1377,25 +1413,3 @@ int vm_run( mrb_vm *vm )
 
   return ret;
 }
-
-
-#ifdef MRBC_DEBUG
-
-//================================================================
-/*!@brief
-
-  @param  vm  Pointer of VM.
-  @param  irep
-  @return
-*/
-void debug_irep(mrb_vm *vm, mrb_irep *irep)
-{
-  if( irep->unused == 1 ) {
-    console_printf("  not used.\n");
-    return;
-  }
-  console_printf("  code:0x%x\n", (int)((char *)irep->code - (char *)vm->mrb));
-  console_printf("  regs:%d\n", irep->nregs);
-  console_printf("  locals:%d\n", irep->nlocals);
-}
-#endif
