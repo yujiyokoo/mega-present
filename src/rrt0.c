@@ -23,6 +23,7 @@
 #include "load.h"
 #include "class.h"
 #include "vm.h"
+#include "console.h"
 #include "rrt0.h"
 #include "hal/hal.h"
 
@@ -366,7 +367,11 @@ MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
     if( !tcb->vm ) return 0;    // error. can't open VM.
 				// NOTE: memory leak MrbcTcb. but ignore.
 
-    mrbc_load_mrb(tcb->vm, vm_code);
+    if( mrbc_load_mrb(tcb->vm, vm_code) != 0 ) {
+      console_printf("Error: Illegal bytecode.\n");
+      mrbc_vm_close(tcb->vm);
+      return 0;
+    }
     mrbc_vm_begin(tcb->vm);
   }
 
@@ -526,7 +531,6 @@ void mrbc_resume_task(MrbcTcb *tcb)
 
 
 #ifdef MRBC_DEBUG
-#include "console.h"
 
 //================================================================
 /*! DEBUG print queue

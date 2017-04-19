@@ -49,13 +49,17 @@ int main(int argc, char *argv[])
   }
 
   int i;
+  int flag_error = 0;
   for( i=0 ; i<vm_cnt ; i++ ){
     uint8_t *p = load_mrb_file( argv[i+1] );
     if( p == NULL ) return 1;
 
-    mrbc_create_task( p, 0 );
+    if( mrbc_create_task( p, 0 ) == NULL ) flag_error = 1;
   }
-  mrbc_run();
+
+  if( !flag_error ) {
+    mrbc_run();
+  }
 
   return 0;
 }
