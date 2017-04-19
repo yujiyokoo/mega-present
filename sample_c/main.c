@@ -15,7 +15,7 @@ uint8_t * load_mrb_file(const char *filename)
 
   if( fp == NULL ) {
     fprintf(stderr, "File not found\n");
-    return 0;
+    return NULL;
   }
 
   // get filesize
@@ -27,9 +27,9 @@ uint8_t * load_mrb_file(const char *filename)
   uint8_t *p = malloc(size);
   if( p == NULL ) {
     fprintf(stderr, "Memory allocate error.\n");
-    return 0;
+    return NULL;
   }
-  fread(p, sizeof(char), size, fp);
+  fread(p, sizeof(uint8_t), size, fp);
   fclose(fp);
 
   return p;

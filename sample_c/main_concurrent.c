@@ -10,7 +10,7 @@
 #define MEMORY_SIZE (1024*30)
 static uint8_t memory_pool[MEMORY_SIZE];
 
-uint8_t * load_to_memory( const char *filename )
+uint8_t * load_mrb_file(const char *filename)
 {
   FILE *fp = fopen(filename, "rb");
 
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
   int i;
   for( i=0 ; i<vm_cnt ; i++ ){
-    uint8_t *p = load_to_memory( argv[i+1] );
+    uint8_t *p = load_mrb_file( argv[i+1] );
     if( p == NULL ) return 1;
 
     mrbc_create_task( p, 0 );
