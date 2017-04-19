@@ -1315,14 +1315,17 @@ void mrbc_vm_begin(mrb_vm *vm)
   vm->reg_top = 0;
   vm->callinfo_top = 0;
 
+  mrb_class *cls = mrbc_class_alloc(vm, "UserTop", mrbc_class_object);
+  mrb_object *obj = mrbc_obj_alloc(vm, MRB_TT_USERTOP);
+  obj->value.cls = cls;
+
   // set self to reg[0]
-  vm->top_self = mrbc_obj_alloc(vm, MRB_TT_OBJECT);
-  vm->top_self->value.cls = mrbc_class_object;
-  vm->regs[0].tt = MRB_TT_OBJECT;
-  vm->regs[0].value.obj = vm->top_self;
+  vm->top_self = obj;
+  vm->regs[0].tt = MRB_TT_USERTOP;
+  vm->regs[0].value.obj = obj;
 
   // target_class
-  vm->target_class = vm->top_self->value.cls;
+  vm->target_class = cls;
 
   vm->error_code = 0;
   vm->flag_preemption = 0;
@@ -1496,13 +1499,14 @@ void vm_boot(struct VM *vm)
   vm->pc = 0;
   vm->reg_top = 0;
   vm->callinfo_top = 0;
+
   // set self to reg[0]
   vm->top_self = mrbc_obj_alloc(vm, MRB_TT_OBJECT);
   vm->top_self->value.cls = mrbc_class_object;
   vm->regs[0].tt = MRB_TT_OBJECT;
   vm->regs[0].value.obj = vm->top_self;
   // target_class
-  vm->target_class = vm->top_self->value.cls;
+  vm->target_class = vm->top_self->value.cls; // = mrbc_class_object;
 
   vm->error_code = 0;
   vm->flag_preemption = 0;
