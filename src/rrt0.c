@@ -362,12 +362,12 @@ MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
 
   // assign VM on TCB
   if( tcb->state != TASKSTATE_DOMANT ) {
-    tcb->vm = vm_open();
+    tcb->vm = mrbc_vm_open();
     if( !tcb->vm ) return 0;    // error. can't open VM.
 				// NOTE: memory leak MrbcTcb. but ignore.
 
-    loca_mrb_array(tcb->vm, vm_code);
-    vm_boot(tcb->vm);
+    mrbc_load_mrb(tcb->vm, vm_code);
+    mrbc_vm_begin(tcb->vm);
   }
 
   hal_disable_irq();
@@ -398,12 +398,12 @@ int mrbc_run(void)
 
 #ifndef MRBC_NO_TIMER
     tcb->vm->flag_preemption = 0;
-    res = vm_run(tcb->vm);
+    res = mrbc_vm_run(tcb->vm);
 
 #else
     while( tcb->timeslice > 0 ) {
       tcb->vm->flag_preemption = 1;
-      res = vm_run(tcb->vm);
+      res = mrbc_vm_run(tcb->vm);
       tcb->timeslice--;
       if( res < 0 ) break;
       if( tcb->state != TASKSTATE_RUNNING ) break;
@@ -418,7 +418,8 @@ int mrbc_run(void)
       tcb->state = TASKSTATE_DOMANT;
       q_insert_task(tcb);
       hal_enable_irq();
-      vm_close(tcb->vm);
+      mrbc_vm_end(tcb->vm);
+      mrbc_vm_close(tcb->vm);
       tcb->vm = 0;
 
       if( q_ready_ == NULL && q_waiting_ == NULL &&
