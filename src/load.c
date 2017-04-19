@@ -237,54 +237,6 @@ static int load_lvar(struct VM *vm, const uint8_t **pos)
 
 //================================================================
 /*!@brief
-  Setup mrb program
-
-  @warning OBSOLETE
-  @param  vm    A pointer of VM.
-  @return int	zero if no error.
-*/
-int load_mrb(struct VM *vm)
-{
-  int ret = -1;
-  const uint8_t *pos = vm->mrb;
-
-  if( memcmp(pos, "RITE", 4) == 0 ) {
-    ret = load_header(vm, &pos);
-  }
-  while( ret == 0 ) {
-    if( memcmp(pos, "IREP", 4) == 0 ) {
-      ret = load_irep(vm, &pos);
-    }
-    else if( memcmp(pos, "LVAR", 4) == 0 ) {
-      ret = load_lvar(vm, &pos);
-    }
-    else if( memcmp(pos, "END\0", 4) == 0 ) {
-      break;
-    }
-  }
-
-  return ret;
-}
-
-
-//================================================================
-/*!@brief
-
-
-  @warning OBSOLETE
-  @param  vm    A pointer of VM.
-  @param  ptr	A pointer of RITE (.mrb) code.
-
-*/
-int loca_mrb_array(struct VM *vm, const uint8_t *ptr)
-{
-  vm->mrb = ptr;
-  return load_mrb(vm);
-}
-
-
-//================================================================
-/*!@brief
   Load the VM bytecode.
 
   @param  vm    Pointer to VM.
