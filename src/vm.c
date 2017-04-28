@@ -723,44 +723,12 @@ inline static int op_div( mrb_vm *vm, uint32_t code, mrb_value *regs )
 inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int rr = GETARG_A(code);
-  int result;
 
-  //
   if( mrbc_eq(&regs[rr], &regs[rr+1]) ){
     regs[rr].tt = MRB_TT_TRUE;
   } else {
     regs[rr].tt = MRB_TT_FALSE;
   }
-  return 1;
-
-  // support Fixnum + Fixnum
-  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    result = (regs[rr].value.i == regs[rr+1].value.i);
-#if MRBC_USE_FLOAT
-  if( regs[rr].tt == MRB_TT_FLOAT ) {
-    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      result = (regs[rr].value.d == regs[rr+1].value.i );
-    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      result = (regs[rr].value.d == regs[rr+1].value.d );
-    } else {
-      result = 0;
-    }
-  }
-#endif
-  } else if( regs[rr].tt == MRB_TT_TRUE ){
-    result = regs[rr+1].tt == MRB_TT_TRUE;
-  } else if( regs[rr].tt == MRB_TT_FALSE ){
-    result = regs[rr+1].tt == MRB_TT_FALSE;
-  } else {
-    op_send(vm,code,regs);
-    result = regs[rr].tt == MRB_TT_TRUE;
-  }
-  if( result ) {
-    regs[rr].tt = MRB_TT_TRUE;
-  } else {
-    regs[rr].tt = MRB_TT_FALSE;
-  }
-
   return 0;
 }
 
