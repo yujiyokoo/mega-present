@@ -168,7 +168,7 @@ void c_puts(mrb_vm *vm, mrb_value *v)
 // Object !=
 void c_object_neq(mrb_vm *vm, mrb_value *v)
 {
-  if( mrbc_eq(v, &GET_ARG(0)) ){
+  if( mrbc_eq(v, &GET_ARG(1)) ){
     SET_FALSE_RETURN();
   } else {
     SET_TRUE_RETURN();

@@ -21,7 +21,7 @@ static void c_hash_get(mrb_vm *vm, mrb_value *v)
   mrb_value *hash = v->value.obj->value.obj;
   int i;
   int n = hash->value.i;       // hash size
-  mrb_value key = GET_ARG(0);  // search key
+  mrb_value key = GET_ARG(1);  // search key
 
   // ptr: 1st entry(key) of hash
   mrb_value *ptr = &hash[1];
@@ -43,8 +43,8 @@ static void c_hash_set(mrb_vm *vm, mrb_value *v)
   mrb_value *hash = v->value.obj->value.obj;
   int i;
   int n = hash[0].value.i;       // hash size
-  mrb_value key = GET_ARG(0);  // search key
-  mrb_value val = GET_ARG(1);  // new value
+  mrb_value key = GET_ARG(1);  // search key
+  mrb_value val = GET_ARG(2);  // new value
 
   mrb_value *ptr = &hash[1];
   for( i=0 ; i<n ; i++ ){

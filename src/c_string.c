@@ -74,7 +74,7 @@ static void c_string_neq(mrb_vm *vm, mrb_value *v)
 //  string[Fixnum]
 static void c_string_idx_get(mrb_vm *vm, mrb_value *v)
 {
-  int index = GET_INT_ARG(0);
+  int index = GET_INT_ARG(1);
   char *str = mrbc_string_substr(vm, v->value.str, index, 1);
   v->value.str = str;
 }

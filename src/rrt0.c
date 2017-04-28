@@ -169,11 +169,11 @@ static void c_sleep(mrb_vm *vm, mrb_value *v)
 
   switch( v[1].tt ) {
   case MRB_TT_FIXNUM:
-    mrbc_sleep_ms(tcb, GET_INT_ARG(0) * 1000);
+    mrbc_sleep_ms(tcb, GET_INT_ARG(1) * 1000);
     break;
 
   case MRB_TT_FLOAT:
-    mrbc_sleep_ms(tcb, (uint32_t)(GET_FLOAT_ARG(0) * 1000));
+    mrbc_sleep_ms(tcb, (uint32_t)(GET_FLOAT_ARG(1) * 1000));
     break;
 
   default:
@@ -194,7 +194,7 @@ static void c_sleep_ms(mrb_vm *vm, mrb_value *v)
 
   if( tcb == NULL ) return;
 
-  mrbc_sleep_ms(tcb, GET_INT_ARG(0));
+  mrbc_sleep_ms(tcb, GET_INT_ARG(1));
 }
 
 
@@ -222,7 +222,7 @@ static void c_change_priority(mrb_vm *vm, mrb_value *v)
 
   if( tcb == NULL ) return;
 
-  mrbc_change_priority(tcb, GET_INT_ARG(0));
+  mrbc_change_priority(tcb, GET_INT_ARG(1));
 }
 
 

@@ -143,12 +143,12 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2);
 #define SET_TRUE_RETURN()         v[0].tt=MRB_TT_TRUE
 #define SET_RETURN(n)             v[0]=n
 
-#define GET_TT_ARG(n)             v[(n)+1].tt
-#define GET_INT_ARG(n)            v[(n)+1].value.i
-#define GET_ARY_ARG(n)            v[(n)+1]
-#define GET_ARG(n)                v[(n)+1]
-#define GET_FLOAT_ARG(n)          v[(n)+1].value.d
-#define GET_STRING_ARG(n)          v[(n)+1].value.str
+#define GET_TT_ARG(n)             v[n].tt
+#define GET_INT_ARG(n)            v[n].value.i
+#define GET_ARY_ARG(n)            v[n]
+#define GET_ARG(n)                v[n]
+#define GET_FLOAT_ARG(n)          v[n].value.d
+#define GET_STRING_ARG(n)          v[n].value.str
 
 #ifdef __cplusplus
 }

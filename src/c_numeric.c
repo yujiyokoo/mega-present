@@ -16,14 +16,14 @@ static void c_fixnum_eq(mrb_vm *vm, mrb_value *v)
 // Operator %
 static void c_fixnum_mod(mrb_vm *vm, mrb_value *v)
 {
-  int num = GET_INT_ARG(0);
+  int num = GET_INT_ARG(1);
   SET_INT_RETURN( v->value.i % num );
 }
 
 // Operator <=>
 static void c_fixnum_comp(mrb_vm *vm, mrb_value *v)
 {
-  int num = GET_INT_ARG(0);
+  int num = GET_INT_ARG(1);
   if(v->value.i > num){
   SET_INT_RETURN(1);
   }else if(v->value.i == num){
@@ -43,7 +43,7 @@ static void c_fixnum_deny(mrb_vm *vm, mrb_value *v)
 // Operator &; bit operation AND
 static void c_fixnum_and(mrb_vm *vm, mrb_value *v)
 {
-  int num = GET_INT_ARG(0);
+  int num = GET_INT_ARG(1);
   SET_INT_RETURN(v->value.i & num);
 }
 
@@ -65,14 +65,14 @@ static int32_t shift(int32_t x, int32_t y)
 // Operator <<; bit operation LEFT_SHIFT
 static void c_fixnum_lshift(mrb_vm *vm, mrb_value *v)
 {
-  int num = GET_INT_ARG(0);
+  int num = GET_INT_ARG(1);
   SET_INT_RETURN( shift(v->value.i, num) );
 }
 
 // Operator >>; bit operation RIGHT_SHIFT
 static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v)
 {
-  int num = GET_INT_ARG(0);
+  int num = GET_INT_ARG(1);
   SET_INT_RETURN( shift(v->value.i, -num) );
 }
 
@@ -134,7 +134,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
 static void c_float_negative(mrb_vm *vm, mrb_value *v)
 {
   // ARG(-1) means self
-  double num = GET_FLOAT_ARG(-1);
+  double num = GET_FLOAT_ARG(0);
   SET_FLOAT_RETURN( -num );
 }
 

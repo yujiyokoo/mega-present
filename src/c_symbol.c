@@ -20,7 +20,7 @@ static void c_symbol_to_sym(mrb_vm *vm, mrb_value *v)
 
 static void c_symbol_equal(mrb_vm *vm, mrb_value *v)
 {
-  if( mrbc_eq(v, &GET_ARG(0)) ){
+  if( mrbc_eq(v, &GET_ARG(1)) ){
     SET_TRUE_RETURN();
   } else {
     SET_FALSE_RETURN();
