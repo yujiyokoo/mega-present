@@ -9,38 +9,59 @@ mruby 1.2.0 (2015-11-17)
 00002       rhs:
 00002         NODE_INT 100 base 10
 00003     NODE_WHILE:
-00006       cond:
-00003         NODE_CALL:
+00009       cond:
+00003         NODE_CALL(.):
 00003           NODE_LVAR i
-00003           method='<' (228)
+00003           method='<' (227)
 00003           args:
 00003             NODE_INT 200 base 10
-00006       body:
+00009       body:
 00004         NODE_BEGIN:
-00004           NODE_CALL:
+00004           NODE_FCALL:
 00004             NODE_SELF
-00004             method='puts' (229)
+00004             method='puts' (228)
 00004             args:
 00004               NODE_LVAR i
-00005           NODE_OP_ASGN:
-00005             lhs:
-00005               NODE_LVAR i
-00005             op='+' (122)
-00005             NODE_INT 1 base 10
-irep 0x1094a50 nregs=5 nlocals=2 pools=0 syms=3 reps=0
+00005           NODE_IF:
+00007             cond:
+00005               NODE_CALL(.):
+00005                 NODE_LVAR i
+00005                 method='==' (10)
+00005                 args:
+00005                   NODE_INT 150 base 10
+00007             then:
+00006               NODE_BEGIN:
+00006                 NODE_FCALL:
+00006                   NODE_SELF
+00006                   method='puts' (228)
+00006                   args:
+00006                     NODE_STR "99999" len 5
+00008           NODE_OP_ASGN:
+00008             lhs:
+00008               NODE_LVAR i
+00008             op='+' (121)
+00008             NODE_INT 1 base 10
+irep 0x12dc850 nregs=5 nlocals=2 pools=1 syms=4 reps=0
 file: basic_sample02.rb
     2 000 OP_LOADI	R1	100		; R1:i
-    3 001 OP_JMP	008
+    3 001 OP_JMP	015
     4 002 OP_LOADSELF	R2		
     4 003 OP_MOVE	R3	R1		; R1:i
     4 004 OP_SEND	R2	:puts	1
     5 005 OP_MOVE	R2	R1		; R1:i
-    5 006 OP_ADDI	R2	:+	1
-    5 007 OP_MOVE	R1	R2		; R1:i
-    3 008 OP_MOVE	R2	R1		; R1:i
-    3 009 OP_LOADI	R3	200	
-    3 010 OP_LT	R2	:<	1
-    3 011 OP_JMPIF	R2	002
-    3 012 OP_LOADNIL	R2		
-    3 013 OP_STOP
+    5 006 OP_LOADI	R3	150	
+    5 007 OP_EQ		R2	:==	1
+    5 008 OP_JMPNOT	R2	012
+    6 009 OP_LOADSELF	R2		
+    6 010 OP_STRING	R3	L(0)	; "99999"
+    6 011 OP_SEND	R2	:puts	1
+    8 012 OP_MOVE	R2	R1		; R1:i
+    8 013 OP_ADDI	R2	:+	1
+    8 014 OP_MOVE	R1	R2		; R1:i
+    3 015 OP_MOVE	R2	R1		; R1:i
+    3 016 OP_LOADI	R3	200	
+    3 017 OP_LT	R2	:<	1
+    3 018 OP_JMPIF	R2	002
+    3 019 OP_LOADNIL	R2		
+    3 020 OP_STOP
 
