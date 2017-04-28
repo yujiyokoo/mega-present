@@ -9,13 +9,13 @@
 #define MEMORY_SIZE (1024*10)
 static uint8_t memory_pool[MEMORY_SIZE];
 
-int load_mrb_file(struct VM *vm, const char *filename)
+uint8_t * load_mrb_file(const char *filename)
 {
   FILE *fp = fopen(filename, "rb");
 
   if( fp == NULL ) {
     fprintf(stderr, "File not found\n");
-    return -1;
+    return NULL;
   }
 
   // get filesize
@@ -27,41 +27,37 @@ int load_mrb_file(struct VM *vm, const char *filename)
   uint8_t *p = malloc(size);
   if( p == NULL ) {
     fprintf(stderr, "Memory allocate error.\n");
-    return -1;
+    return NULL;
   }
-  fread(p, sizeof(char), size, fp);
+  fread(p, sizeof(uint8_t), size, fp);
   fclose(fp);
-  vm->mrb = p;
 
-  // load mruby VM code
-  int ret = load_mrb(vm);
-  if( ret != 0 ) {
-    fprintf(stderr, "MRB Load Error (%04x_%04x)\n",
-            vm->error_code >> 16, vm->error_code & 0xffff );
-    return -1;
-  }
-
-  return 0;
+  return p;
 }
 
 
-void mrubyc(char *fn)
+void mrubyc(uint8_t *mrbbuf)
 {
   struct VM *vm;
 
   mrbc_init_alloc(memory_pool, MEMORY_SIZE);
   init_static();
 
-  vm = vm_open();
+  vm = mrbc_vm_open();
   if( vm == 0 ) {
-    fprintf(stderr, "VM open Error\n");
+    fprintf(stderr, "Error: Can't open VM.\n");
     return;
   }
-  if( load_mrb_file(vm, fn) != 0 ) return;
 
-  vm_boot(vm);
-  vm_run(vm);
-  vm_close(vm);
+  if( mrbc_load_mrb(vm, mrbbuf) != 0 ) {
+    fprintf(stderr, "Error: Illegal bytecode.\n");
+    return;
+  }
+
+  mrbc_vm_begin(vm);
+  mrbc_vm_run(vm);
+  mrbc_vm_end(vm);
+  mrbc_vm_close(vm);
 }
 
 
@@ -72,7 +68,10 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  mrubyc(argv[1]);
+  uint8_t *mrbbuf = load_mrb_file( argv[1] );
+  if( mrbbuf == 0 ) return 1;
+
+  mrubyc( mrbbuf );
 
   return 0;
 }

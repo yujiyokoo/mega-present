@@ -65,6 +65,9 @@ mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
       cls = mrbc_class_string;
       break;
 #endif
+    case MRB_TT_USERTOP:
+      cls = vm->target_class;
+    break;
     default:
       break;
   }

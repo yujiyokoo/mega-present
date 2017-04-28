@@ -18,21 +18,21 @@ int main(void)
   mrbc_init_alloc(memory_pool, MEMORY_SIZE);
   init_static();
 
-  vm = vm_open();
+  vm = mrbc_vm_open();
   if( vm == NULL ){
     printf("VM open Error\n");
-    return -1;
+    return 1;
   }
 
-  int ret = loca_mrb_array(vm, ary);
-  if( ret != 0 ){
-    printf("MRB Load Error (%04x_%04x)\n", ret>>16, ret&0xffff);
-    return -1;
+  if( mrbc_load_mrb(vm, ary) != 0 ) {
+    fprintf(stderr, "Error: Illegal bytecode.\n");
+    return 1;
   }
 
-  vm_boot( vm );
-  vm_run( vm );
-  vm_close( vm );
+  mrbc_vm_begin(vm);
+  mrbc_vm_run(vm);
+  mrbc_vm_end(vm);
+  mrbc_vm_close(vm);
 
   return 0;
 }

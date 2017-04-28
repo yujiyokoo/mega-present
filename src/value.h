@@ -63,6 +63,8 @@ typedef enum {
   MRB_TT_RANGE,
   MRB_TT_HASH,
 
+  MRB_TT_USERTOP,
+
 } mrb_vtype;
 
 
