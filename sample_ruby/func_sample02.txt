@@ -1,4 +1,4 @@
-mruby 1.1.1 (2014-11-19) 
+mruby 1.3.0 (2015-11-17) 
 00002 NODE_SCOPE:
 00002   NODE_BEGIN:
 00002     NODE_DEF:
@@ -8,46 +8,46 @@ mruby 1.1.1 (2014-11-19)
 00002       mandatory args:
 00002         NODE_ARG n
 00003       NODE_BEGIN:
-00003         NODE_CALL:
+00003         NODE_FCALL:
 00003           NODE_SELF
-00003           method='puts' (227)
+00003           method='puts' (229)
 00003           args:
 00003             NODE_LVAR n
 00004         NODE_IF:
 00006           cond:
-00004             NODE_CALL:
+00004             NODE_CALL(.):
 00004               NODE_LVAR n
-00004               method='>' (228)
+00004               method='>' (230)
 00004               args:
 00004                 NODE_INT 1 base 10
 00006           then:
 00005             NODE_BEGIN:
-00005               NODE_CALL:
+00005               NODE_FCALL:
 00005                 NODE_SELF
-00005                 method='func' (225)
+00005                 method='func' (227)
 00005                 args:
-00005                   NODE_CALL:
+00005                   NODE_CALL(.):
 00005                     NODE_LVAR n
-00005                     method='-' (188)
+00005                     method='-' (193)
 00005                     args:
 00005                       NODE_INT 1 base 10
-00010     NODE_CALL:
+00010     NODE_FCALL:
 00010       NODE_SELF
-00010       method='func' (225)
+00010       method='func' (227)
 00010       args:
 00010         NODE_INT 5 base 10
-irep 0x7fb4b840d5c0 nregs=4 nlocals=1 pools=0 syms=1 reps=1
-file: sample04.rb
+irep 0x1c1fdc0 nregs=4 nlocals=1 pools=0 syms=1 reps=1
+file: func_sample02.rb
     2 000 OP_TCLASS	R1		
-    2 001 OP_LAMBDA	R2	I(+1)	1
+    2 001 OP_LAMBDA	R2	I(+1)	method
     2 002 OP_METHOD	R1	:func
    10 003 OP_LOADSELF	R1		
    10 004 OP_LOADI	R2	5	
    10 005 OP_SEND	R1	:func	1
    10 006 OP_STOP
 
-irep 0x7fb4b840d890 nregs=7 nlocals=3 pools=0 syms=4 reps=0
-file: sample04.rb
+irep 0x1c25fc0 nregs=7 nlocals=3 pools=0 syms=4 reps=0
+file: func_sample02.rb
     2 000 OP_ENTER	1:0:0:0:0:0:0
     3 001 OP_LOADSELF	R3		
     3 002 OP_MOVE	R4	R1		; R1:n
@@ -62,5 +62,5 @@ file: sample04.rb
     5 011 OP_SEND	R3	:func	1
     5 012 OP_JMP	014
     5 013 OP_LOADNIL	R3		
-    5 014 OP_RETURN	R3	return	
+    5 014 OP_RETURN	R3	normal	
 

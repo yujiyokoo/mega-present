@@ -1,4 +1,4 @@
-mruby 1.2.0 (2015-11-17) 
+mruby 1.3.0 (2015-11-17) 
 00002 NODE_SCOPE:
 00002   local variables:
 00002     i
@@ -12,14 +12,14 @@ mruby 1.2.0 (2015-11-17)
 00009       cond:
 00003         NODE_CALL(.):
 00003           NODE_LVAR i
-00003           method='<' (227)
+00003           method='<' (228)
 00003           args:
 00003             NODE_INT 200 base 10
 00009       body:
 00004         NODE_BEGIN:
 00004           NODE_FCALL:
 00004             NODE_SELF
-00004             method='puts' (228)
+00004             method='puts' (229)
 00004             args:
 00004               NODE_LVAR i
 00005           NODE_IF:
@@ -33,15 +33,15 @@ mruby 1.2.0 (2015-11-17)
 00006               NODE_BEGIN:
 00006                 NODE_FCALL:
 00006                   NODE_SELF
-00006                   method='puts' (228)
+00006                   method='puts' (229)
 00006                   args:
 00006                     NODE_STR "99999" len 5
 00008           NODE_OP_ASGN:
 00008             lhs:
 00008               NODE_LVAR i
-00008             op='+' (121)
+00008             op='+' (106)
 00008             NODE_INT 1 base 10
-irep 0x12dc850 nregs=5 nlocals=2 pools=1 syms=4 reps=0
+irep 0x7ebdc0 nregs=5 nlocals=2 pools=1 syms=4 reps=0
 file: basic_sample02.rb
     2 000 OP_LOADI	R1	100		; R1:i
     3 001 OP_JMP	015
