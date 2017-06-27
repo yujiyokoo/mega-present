@@ -20,11 +20,10 @@ mrb_class *mrbc_class_alloc(mrb_vm *vm, const char *name, mrb_class *super)
 {
   mrb_class *ptr = (mrb_class *)mrbc_alloc(vm, sizeof(mrb_class));
   if( ptr ){
-    ptr->tt = MRB_TT_CLASS;
     ptr->super = super;
     ptr->name = add_sym(name);
     ptr->procs = 0;
-    ptr->next = 0;
+    //    ptr->next = 0;
   }
   return ptr;
 }
