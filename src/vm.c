@@ -157,7 +157,7 @@ inline static int op_loadl( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  regs[GETARG_A(code)].value.i = GETARG_sBx(code);
+  regs[GETARG_A(code)].i = GETARG_sBx(code);
   regs[GETARG_A(code)].tt = MRB_TT_FIXNUM;
 
   return 0;
@@ -183,7 +183,7 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   mrb_sym sym_id = add_sym(sym);
 
-  regs[ra].value.i = sym_id;
+  regs[ra].i = sym_id;
   regs[ra].tt = MRB_TT_SYMBOL;
 
   return 0;
@@ -525,20 +525,20 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    regs[rr].value.i += regs[rr+1].value.i;
+    regs[rr].i += regs[rr+1].i;
 #if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      regs[rr].value.d += regs[rr+1].value.i;
+      regs[rr].d += regs[rr+1].i;
     } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      regs[rr].value.d += regs[rr+1].value.d;
+      regs[rr].d += regs[rr+1].d;
     } else {
       op_send(vm, code, regs);
     }
 #endif
 #if MRBC_USE_STRING
   } else if( regs[rr].tt == MRB_TT_STRING && regs[rr+1].tt == MRB_TT_STRING ){
-    regs[rr].value.str = mrbc_string_cat(vm, regs[rr].value.str, regs[rr+1].value.str);
+    regs[rr].str = mrbc_string_cat(vm, regs[rr].str, regs[rr+1].str);
 
 #endif
   } else {
@@ -566,7 +566,7 @@ inline static int op_addi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // support Fixnum + (value)
   if( regs[rr].tt == MRB_TT_FIXNUM ) {
-    regs[rr].value.i += GETARG_C(code);
+    regs[rr].i += GETARG_C(code);
   } else {
     not_supported();
   }
@@ -592,13 +592,13 @@ inline static int op_sub( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // support Fixnum - Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    regs[rr].value.i -= regs[rr+1].value.i;
+    regs[rr].i -= regs[rr+1].i;
 #if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      regs[rr].value.d -= regs[rr+1].value.i;
+      regs[rr].d -= regs[rr+1].i;
     } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      regs[rr].value.d -= regs[rr+1].value.d;
+      regs[rr].d -= regs[rr+1].d;
     } else {
       not_supported();
     }
@@ -628,7 +628,7 @@ inline static int op_subi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // support Fixnum + (value)
   if( regs[rr].tt == MRB_TT_FIXNUM ) {
-    regs[rr].value.i -= GETARG_C(code);
+    regs[rr].i -= GETARG_C(code);
   } else {
     not_supported();
   }
@@ -654,13 +654,13 @@ inline static int op_mul( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // support Fixnum * Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    regs[rr].value.i *= regs[rr+1].value.i;
+    regs[rr].i *= regs[rr+1].i;
 #if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      regs[rr].value.d *= regs[rr+1].value.i;
+      regs[rr].d *= regs[rr+1].i;
     } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      regs[rr].value.d *= regs[rr+1].value.d;
+      regs[rr].d *= regs[rr+1].d;
     } else {
       not_supported();
     }
@@ -690,13 +690,13 @@ inline static int op_div( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // support Fixnum * Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    regs[rr].value.i /= regs[rr+1].value.i;
+    regs[rr].i /= regs[rr+1].i;
 #if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      regs[rr].value.d /= regs[rr+1].value.i;
+      regs[rr].d /= regs[rr+1].i;
     } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      regs[rr].value.d /= regs[rr+1].value.d;
+      regs[rr].d /= regs[rr+1].d;
     } else {
       not_supported();
     }
@@ -751,13 +751,13 @@ inline static int op_lt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    result = regs[rr].value.i < regs[rr+1].value.i;
+    result = regs[rr].i < regs[rr+1].i;
 #if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      result = regs[rr].value.d < regs[rr+1].value.i;
+      result = regs[rr].d < regs[rr+1].i;
     } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      result = regs[rr].value.d < regs[rr+1].value.d;
+      result = regs[rr].d < regs[rr+1].d;
     } else {
       result = 0;
     }
@@ -795,13 +795,13 @@ inline static int op_le( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    result = regs[rr].value.i <= regs[rr+1].value.i;
+    result = regs[rr].i <= regs[rr+1].i;
 #if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      result = regs[rr].value.d <= regs[rr+1].value.i;
+      result = regs[rr].d <= regs[rr+1].i;
     } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      result = regs[rr].value.d <= regs[rr+1].value.d;
+      result = regs[rr].d <= regs[rr+1].d;
     } else {
       result = 0;
     }
@@ -838,13 +838,13 @@ inline static int op_gt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    result = regs[rr].value.i > regs[rr+1].value.i;
+    result = regs[rr].i > regs[rr+1].i;
 #if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      result = regs[rr].value.d > regs[rr+1].value.i;
+      result = regs[rr].d > regs[rr+1].i;
     } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      result = regs[rr].value.d > regs[rr+1].value.d;
+      result = regs[rr].d > regs[rr+1].d;
     } else {
       result = 0;
     }
@@ -881,13 +881,13 @@ inline static int op_ge( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // support Fixnum + Fixnum
   if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    result = regs[rr].value.i >= regs[rr+1].value.i;
+    result = regs[rr].i >= regs[rr+1].i;
 #if MRBC_USE_FLOAT
   } else if( regs[rr].tt == MRB_TT_FLOAT ){
     if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      result = regs[rr].value.d >= regs[rr+1].value.i;
+      result = regs[rr].d >= regs[rr+1].i;
     } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      result = regs[rr].value.d >= regs[rr+1].value.d;
+      result = regs[rr].d >= regs[rr+1].d;
     } else {
       result = 0;
     }
@@ -926,7 +926,7 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   mrb_value v;
   v.tt = MRB_TT_ARRAY;
-  v.value.obj = 0;
+  v.obj = 0;
 
   if( arg_c >= 0 ){
     mrb_object *p;
@@ -935,17 +935,14 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
     ptr = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c + 1));
     if( ptr == NULL ) return 0;  // ENOMEM
 
-    v.value.obj = ptr;
+    v.obj = ptr;
     ptr->tt = MRB_TT_FIXNUM;
-    ptr->value.i = arg_c;
+    ptr->i = arg_c;
 
     p = ptr + 1;
     while( arg_c > 0 ){
-      p->tt = regs[arg_b].tt;
-      p->value = regs[arg_b].value;
-      p++;
+      *p++ = regs[arg_b++];
       arg_c--;
-      arg_b++;
     }
   }
 
@@ -977,7 +974,7 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
     ptr = ptr->next;
     arg_b--;
   }
-  v.value.str = mrbc_string_dup(vm, ptr->value.str);
+  v.str = mrbc_string_dup(vm, ptr->str);
 
   int arg_a = GETARG_A(code);
   regs[arg_a] = v;
@@ -1009,16 +1006,16 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_value *handle = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value));
   if( handle == NULL ) return 0;  // ENOMEM
 
-  v.value.obj = handle;
+  v.obj = handle;
   handle->tt = MRB_TT_HANDLE;
 
   // make hash
   mrb_value *hash = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c*2+1));
   if( hash == NULL ) return 0;  // ENOMEM
-  handle->value.obj = hash;
+  handle->obj = hash;
 
   hash[0].tt = MRB_TT_FIXNUM;
-  hash[0].value.i = arg_c;
+  hash[0].i = arg_c;
 
   mrb_value *src = &regs[arg_b];
   mrb_value *dst = &hash[1];
@@ -1068,7 +1065,7 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
   proc->func.irep = p;
   int a = GETARG_A(code);
   regs[a].tt = MRB_TT_PROC;
-  regs[a].value.proc = proc;
+  regs[a].proc = proc;
   return 0;
 }
 
@@ -1129,10 +1126,10 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
 inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int a = GETARG_A(code);
-  mrb_proc *rproc = regs[a+1].value.proc;
+  mrb_proc *rproc = regs[a+1].proc;
 
   if( regs[a].tt == MRB_TT_CLASS ) {
-    mrb_class *cls = regs[a].value.cls;
+    mrb_class *cls = regs[a].cls;
     int b = GETARG_B(code);
     // sym_id : method name
     mrb_irep *cur_irep = vm->pc_irep;
@@ -1159,7 +1156,7 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
 inline static int op_tclass( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   regs[GETARG_A(code)].tt = MRB_TT_CLASS;
-  regs[GETARG_A(code)].value.cls = vm->target_class;
+  regs[GETARG_A(code)].cls = vm->target_class;
 
   return 0;
 }
@@ -1285,12 +1282,12 @@ void mrbc_vm_begin(mrb_vm *vm)
 
   mrb_class *cls = mrbc_class_alloc(vm, "UserTop", mrbc_class_object);
   mrb_object *obj = mrbc_obj_alloc(vm, MRB_TT_USERTOP);
-  obj->value.cls = cls;
+  obj->cls = cls;
 
   // set self to reg[0]
   vm->top_self = obj;
   vm->regs[0].tt = MRB_TT_USERTOP;
-  vm->regs[0].value.obj = obj;
+  vm->regs[0].obj = obj;
 
   // target_class
   vm->target_class = cls;

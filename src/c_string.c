@@ -53,7 +53,7 @@ static char *mrbc_string_substr(mrb_vm *vm, char *s, int start, int len)
 // string size
 static void c_string_size(mrb_vm *vm, mrb_value *v)
 {
-  int cnt = strlen(v->value.str);
+  int cnt = strlen(v->str);
   SET_INT_RETURN( cnt );
 }
 
@@ -75,8 +75,8 @@ static void c_string_neq(mrb_vm *vm, mrb_value *v)
 static void c_string_idx_get(mrb_vm *vm, mrb_value *v)
 {
   int index = GET_INT_ARG(1);
-  char *str = mrbc_string_substr(vm, v->value.str, index, 1);
-  v->value.str = str;
+  char *str = mrbc_string_substr(vm, v->str, index, 1);
+  v->str = str;
 }
 
 
@@ -84,7 +84,7 @@ static void c_string_idx_get(mrb_vm *vm, mrb_value *v)
 // string to_i
 static void c_string_to_fixnum(mrb_vm *vm, mrb_value *v)
 {
-  char *str = v->value.str;
+  char *str = v->str;
   int value = 0;
   while( *str && *str >= '0' && *str <= '9' ){
     value *= 10;

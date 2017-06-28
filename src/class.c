@@ -132,7 +132,7 @@ void c_puts(mrb_vm *vm, mrb_value *v)
   mrb_value *arg0 = v+1;
   switch( arg0->tt ){
   case MRB_TT_FIXNUM:
-    console_printf("%d", arg0->value.i);
+    console_printf("%d", arg0->i);
     break;
   case MRB_TT_NIL:
     console_printf("");
@@ -145,20 +145,20 @@ void c_puts(mrb_vm *vm, mrb_value *v)
     break;
 #if MRBC_USE_FLOAT
   case MRB_TT_FLOAT:
-    console_printf("%f", arg0->value.d);
+    console_printf("%f", arg0->d);
     break;
 #endif
 #if MRBC_USE_STRING
   case MRB_TT_STRING:
-    console_printf("%s", arg0->value.str);
+    console_printf("%s", arg0->str);
     break;
 #endif
   case MRB_TT_RANGE:{
-    mrb_value *ptr = arg0->value.range;
+    mrb_value *ptr = arg0->range;
     if( ptr[0].tt == MRB_TT_TRUE ){
-      console_printf("%d...%d", ptr[1].value.i, ptr[2].value.i);
+      console_printf("%d...%d", ptr[1].i, ptr[2].i);
     } else {
-      console_printf("%d..%d", ptr[1].value.i, ptr[2].value.i);
+      console_printf("%d..%d", ptr[1].i, ptr[2].i);
     }
   } break;
   default:

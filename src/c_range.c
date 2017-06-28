@@ -24,7 +24,7 @@ mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclu
   }
   ptr[1] = *v_st;
   ptr[2] = *v_ed;
-  value.value.range = ptr;
+  value.range = ptr;
 
   return value;
 }

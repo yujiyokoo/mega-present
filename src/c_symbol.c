@@ -9,8 +9,8 @@ static void c_symbol_to_s(mrb_vm *vm, mrb_value *v)
 {
   v->tt = MRB_TT_STRING;
 
-  const char *sym = symid_to_str(v->value.i);
-  v->value.str = mrbc_string_dup(vm, sym);
+  const char *sym = symid_to_str(v->i);
+  v->str = mrbc_string_dup(vm, sym);
 }
 
 static void c_symbol_to_sym(mrb_vm *vm, mrb_value *v)

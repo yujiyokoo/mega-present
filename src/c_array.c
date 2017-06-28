@@ -11,8 +11,8 @@
 // get size of array
 static int array_size(mrb_value *v)
 {
-  mrb_value *array = v->value.obj;
-  return array->value.i;
+  mrb_value *array = v->obj;
+  return array->i;
 }
 
 
@@ -47,9 +47,9 @@ static void c_array_size(mrb_vm *vm, mrb_value *v)
 static void c_array_get(mrb_vm *vm, mrb_value *v)
 {
   int pos = GET_INT_ARG(1);
-  mrb_value *array = v->value.obj;
+  mrb_value *array = v->obj;
 
-  if( pos >= 0 && pos < array->value.i ){
+  if( pos >= 0 && pos < array->i ){
     *v = array[pos+1];
   } else {
     SET_NIL_RETURN();
@@ -60,9 +60,9 @@ static void c_array_get(mrb_vm *vm, mrb_value *v)
 static void c_array_set(mrb_vm *vm, mrb_value *v)
 {
   int pos = GET_INT_ARG(1);
-  mrb_value *array = v->value.obj;
+  mrb_value *array = v->obj;
 
-  if( pos >= 0 && pos < array->value.i ){
+  if( pos >= 0 && pos < array->i ){
     array[pos+1] = GET_ARG(2);
   } else {
     SET_NIL_RETURN();
@@ -74,16 +74,16 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
 {
   // because realloc is not ready in alloc.c,
   // use free and alloc
-  mrb_value *array1 = v->value.array;
-  mrb_value *array2 = GET_ARY_ARG(1).value.array;
-  int len1 = array1->value.i;
-  int len2 = array2->value.i;
+  mrb_value *array1 = v->array;
+  mrb_value *array2 = GET_ARY_ARG(1).array;
+  int len1 = array1->i;
+  int len2 = array2->i;
   mrb_value *new_array = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(len1+len2+1));
 
   if( new_array == NULL ) return;  // ENOMEM
 
   new_array->tt = MRB_TT_FIXNUM;
-  new_array->value.i = len1+len2;
+  new_array->i = len1+len2;
   mrb_value *p = new_array + 1;
   int i;
   for( i=0 ; i<len1 ; i++ ){
@@ -95,14 +95,14 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
   mrbc_free(vm, array1);
   mrbc_free(vm, array2);
   // return
-  v->value.array = new_array;
+  v->array = new_array;
 }
 
 
 static void c_array_index(mrb_vm *vm, mrb_value *v)
 {
-  int len = v->value.array->value.i;
-  mrb_value *array = v->value.array + 1;
+  int len = v->array->i;
+  mrb_value *array = v->array + 1;
   mrb_value value = GET_ARG(1);
 
   int i;
@@ -120,7 +120,7 @@ static void c_array_index(mrb_vm *vm, mrb_value *v)
 static void c_array_first(mrb_vm *vm, mrb_value *v)
 {
   if( GET_TT_ARG(1) == MRB_TT_FIXNUM ){
-    mrb_value *array = v->value.array + 1;
+    mrb_value *array = v->array + 1;
     SET_RETURN( array[0] );
   } else {
     SET_NIL_RETURN();
@@ -130,8 +130,8 @@ static void c_array_first(mrb_vm *vm, mrb_value *v)
 static void c_array_last(mrb_vm *vm, mrb_value *v)
 {
   if( GET_TT_ARG(1) == MRB_TT_FIXNUM ){
-    int len = v->value.array->value.i;
-    mrb_value *array = v->value.array + 1;
+    int len = v->array->i;
+    mrb_value *array = v->array + 1;
     SET_RETURN( array[len-1] );
   } else {
     SET_NIL_RETURN();
@@ -140,14 +140,14 @@ static void c_array_last(mrb_vm *vm, mrb_value *v)
 
 static void c_array_pop(mrb_vm *vm, mrb_value *v)
 {
-	mrb_object *obj = v->value.obj;
+	mrb_object *obj = v->obj;
 	mrb_object *tmp = obj->next;
 	while( tmp->next ){
 		obj = obj->next;
 		tmp = obj->next;
 	}
 	obj->next = tmp->next;
-	SET_INT_RETURN(tmp->value.i);
+	SET_INT_RETURN(tmp->i);
 }
 
 

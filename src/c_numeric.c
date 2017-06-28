@@ -17,16 +17,16 @@ static void c_fixnum_eq(mrb_vm *vm, mrb_value *v)
 static void c_fixnum_mod(mrb_vm *vm, mrb_value *v)
 {
   int num = GET_INT_ARG(1);
-  SET_INT_RETURN( v->value.i % num );
+  SET_INT_RETURN( v->i % num );
 }
 
 // Operator <=>
 static void c_fixnum_comp(mrb_vm *vm, mrb_value *v)
 {
   int num = GET_INT_ARG(1);
-  if(v->value.i > num){
+  if(v->i > num){
   SET_INT_RETURN(1);
-  }else if(v->value.i == num){
+  }else if(v->i == num){
   SET_INT_RETURN(0);
   }else{
   SET_INT_RETURN(-1);
@@ -36,7 +36,7 @@ static void c_fixnum_comp(mrb_vm *vm, mrb_value *v)
 // Unary Operator ~; bit operation NOT
 static void c_fixnum_deny(mrb_vm *vm, mrb_value *v)
 {
-  SET_INT_RETURN( (v->value.i + 1) * (-1)  );
+  SET_INT_RETURN( (v->i + 1) * (-1)  );
 }
 
 
@@ -44,7 +44,7 @@ static void c_fixnum_deny(mrb_vm *vm, mrb_value *v)
 static void c_fixnum_and(mrb_vm *vm, mrb_value *v)
 {
   int num = GET_INT_ARG(1);
-  SET_INT_RETURN(v->value.i & num);
+  SET_INT_RETURN(v->i & num);
 }
 
 // x-bit left shift for x
@@ -66,20 +66,20 @@ static int32_t shift(int32_t x, int32_t y)
 static void c_fixnum_lshift(mrb_vm *vm, mrb_value *v)
 {
   int num = GET_INT_ARG(1);
-  SET_INT_RETURN( shift(v->value.i, num) );
+  SET_INT_RETURN( shift(v->i, num) );
 }
 
 // Operator >>; bit operation RIGHT_SHIFT
 static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v)
 {
   int num = GET_INT_ARG(1);
-  SET_INT_RETURN( shift(v->value.i, -num) );
+  SET_INT_RETURN( shift(v->i, -num) );
 }
 
 #if MRBC_USE_STRING
 static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v)
 {
-  int num = v->value.i;
+  int num = v->i;
   int i = 0, j = 0;
   char buf[10];
   int sign = 0;
@@ -104,7 +104,7 @@ static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v)
   }
   str[j] = 0;
   v->tt = MRB_TT_STRING;
-  v->value.str = str;
+  v->str = str;
 }
 #endif
 

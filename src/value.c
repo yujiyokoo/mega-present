@@ -63,16 +63,16 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
     return 1;
   case MRB_TT_FIXNUM:
   case MRB_TT_SYMBOL:
-    return v1->value.i == v2->value.i;
+    return v1->i == v2->i;
   case MRB_TT_FLOAT:
-    return v1->value.d == v2->value.d;
+    return v1->d == v2->d;
   case MRB_TT_STRING:
-    return !strcmp(v1->value.str, v2->value.str);
+    return !strcmp(v1->str, v2->str);
   case MRB_TT_ARRAY: {
-    mrb_value *array1 = v1->value.obj;
-    mrb_value *array2 = v2->value.obj;
-    int i, len = array1[0].value.i;
-    if( len != array2[0].value.i ) return 0;
+    mrb_value *array1 = v1->obj;
+    mrb_value *array2 = v2->obj;
+    int i, len = array1[0].i;
+    if( len != array2[0].i ) return 0;
     for( i=1 ; i<=len ; i++ ){
       if( !mrbc_eq(array1+i, array2+i) ) break;
     }
