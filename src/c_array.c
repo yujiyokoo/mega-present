@@ -72,18 +72,17 @@ static void c_array_set(mrb_vm *vm, mrb_value *v)
 // Array = operator +
 static void c_array_plus(mrb_vm *vm, mrb_value *v)
 {
-  // because realloc is not ready in alloc.c,
-  // use free and alloc
   mrb_value *array1 = v->array;
   mrb_value *array2 = GET_ARY_ARG(1).array;
   int len1 = array1->i;
   int len2 = array2->i;
+  
   mrb_value *new_array = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(len1+len2+1));
-
   if( new_array == NULL ) return;  // ENOMEM
 
   new_array->tt = MRB_TT_FIXNUM;
-  new_array->i = len1+len2;
+  new_array->i = len1 + len2;
+
   mrb_value *p = new_array + 1;
   int i;
   for( i=0 ; i<len1 ; i++ ){
@@ -92,8 +91,6 @@ static void c_array_plus(mrb_vm *vm, mrb_value *v)
   for( i=0 ; i<len2 ; i++ ){
     *p++ = array2[i+1];
   }
-  mrbc_free(vm, array1);
-  mrbc_free(vm, array2);
   // return
   v->array = new_array;
 }
