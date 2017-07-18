@@ -3,8 +3,8 @@
   mruby bytecode loader.
 
   <pre>
-  Copyright (C) 2015 Kyushu Institute of Technology.
-  Copyright (C) 2015 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2017 Kyushu Institute of Technology.
+  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -44,7 +44,7 @@ static int load_header(struct VM *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos;
 
-  if( memcmp(p + 4, "0003", 4) != 0 ) {
+  if( memcmp(p, "RITE0004", 8) != 0 ) {
     vm->error_code = LOAD_FILE_HEADER_ERROR_VERSION;
     return -1;
   }
@@ -248,9 +248,7 @@ int mrbc_load_mrb(mrb_vm *vm, const uint8_t *ptr)
   int ret = -1;
   vm->mrb = ptr;
 
-  if( memcmp(ptr, "RITE", 4) == 0 ) {
-    ret = load_header(vm, &ptr);
-  }
+  ret = load_header(vm, &ptr);
   while( ret == 0 ) {
     if( memcmp(ptr, "IREP", 4) == 0 ) {
       ret = load_irep(vm, &ptr);
