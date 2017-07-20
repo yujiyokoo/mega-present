@@ -301,7 +301,7 @@ inline static int op_setglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_Bx(code);
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrb_sym sym_id = add_sym(sym);
-  global_object_add(sym_id, &regs[ra]);
+  global_object_add(sym_id, regs[ra]);
   return 0;
 }
 

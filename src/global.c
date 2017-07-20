@@ -43,7 +43,7 @@ static int search_const(mrb_sym sym_id) {
 }
 
 /* add */
-void global_object_add(mrb_sym sym_id, mrb_object *obj)
+void global_object_add(mrb_sym sym_id, mrb_value v)
 {
   int index = search_global_object(sym_id);
   if( index == -1 ){
@@ -54,7 +54,7 @@ void global_object_add(mrb_sym sym_id, mrb_object *obj)
     }
   }
   mrbc_global[index].sym_id = sym_id;
-  mrbc_global[index].obj = *obj;
+  mrbc_global[index].obj = v;
 }
 
 void const_add(mrb_sym sym_id, mrb_object *obj)
@@ -72,16 +72,16 @@ void const_add(mrb_sym sym_id, mrb_object *obj)
 }
 
 /* get */
-mrb_object global_object_get(mrb_sym sym_id)
+mrb_value global_object_get(mrb_sym sym_id)
 {
   int index = search_global_object(sym_id);
   if( index >= 0 ){
     return mrbc_global[index].obj;
   } else {
     /* nil */
-    mrb_object obj;
-    obj.tt = MRB_TT_FALSE;
-    return obj;
+    mrb_value v;
+    v.tt = MRB_TT_FALSE;
+    return v;
   }
 }
 
