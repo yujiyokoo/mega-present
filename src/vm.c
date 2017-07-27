@@ -929,13 +929,19 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
   v.obj = 0;
 
   if( arg_c >= 0 ){
+    // Handle
+    mrb_value *handle = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value));
+    if( handle == NULL ) return 0;  // ENOMEM
+    v.obj = handle;
+    handle->tt = MRB_TT_HANDLE;
+
     mrb_object *p;
     // ptr[0] : array info
     // ptr[1..] : array elements
     ptr = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c + 1));
     if( ptr == NULL ) return 0;  // ENOMEM
 
-    v.obj = ptr;
+    handle->obj = ptr;
     ptr->tt = MRB_TT_FIXNUM;
     ptr->i = arg_c;
 

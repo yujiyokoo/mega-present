@@ -12,7 +12,7 @@
 static int array_size(mrb_value *v)
 {
   mrb_value *array = v->obj;
-  return array->i;
+  return array->obj->i;
 }
 
 
