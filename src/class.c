@@ -161,10 +161,27 @@ void c_puts(mrb_vm *vm, mrb_value *v)
       console_printf("%d..%d", ptr[1].i, ptr[2].i);
     }
   } break;
+  case MRB_TT_ARRAY:{
+    mrb_value *array = arg0->obj->obj;
+    int i, n = array[0].i;
+    console_printf("[");
+    for( i=1 ; i<=n ; i++ ){
+      c_puts(vm, &array[i-1]);
+      if( i!=n ){
+	console_printf(", ");
+      }
+    }
+    console_printf("]");
+  } break;
   default:
     console_printf("Not supported: MRB_TT_XX(%d)", arg0->tt);
     break;
   }
+}
+
+void c_puts_nl(mrb_vm *vm, mrb_value *v)
+{
+  c_puts(vm, v);
   console_printf("\n");
 }
 
@@ -183,7 +200,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
   // Class
   mrbc_class_object = mrbc_class_alloc(vm, "Object", 0);
   // Methods
-  mrbc_define_method(vm, mrbc_class_object, "puts", c_puts);
+  mrbc_define_method(vm, mrbc_class_object, "puts", c_puts_nl);
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
 }
 
