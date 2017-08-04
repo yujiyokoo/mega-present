@@ -155,7 +155,14 @@ static void c_array_push(mrb_vm *vm, mrb_value *v)
 
 static void c_array_pop(mrb_vm *vm, mrb_value *v)
 {
-  // not implemented
+  mrb_value *array = v[0].obj->obj;
+  int len = array[0].i;
+
+  v[0] = array[len];
+  mrb_value *new_array = (mrb_value *)mrbc_realloc(vm, array, sizeof(mrb_value)*(len));
+  new_array[0].i--;
+
+
 }
 
 
