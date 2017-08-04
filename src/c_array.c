@@ -142,6 +142,17 @@ static void c_array_last(mrb_vm *vm, mrb_value *v)
   }
 }
 
+static void c_array_push(mrb_vm *vm, mrb_value *v)
+{
+  mrb_value *array = v[0].obj->obj;
+  int len = array[0].i;
+
+  mrb_value *new_array = (mrb_value *)mrbc_realloc(vm, array, sizeof(mrb_value)*(len+2));
+  new_array[0].i++;
+  new_array[len+1] = v[1];
+  v[0].obj->obj = new_array;
+}
+
 static void c_array_pop(mrb_vm *vm, mrb_value *v)
 {
   // not implemented
@@ -167,5 +178,6 @@ void mrbc_init_class_array(mrb_vm *vm)
 
   mrbc_define_method(vm, mrbc_class_array, "first", c_array_first);
   mrbc_define_method(vm, mrbc_class_array, "last", c_array_last);
+  mrbc_define_method(vm, mrbc_class_array, "push", c_array_push);
   mrbc_define_method(vm, mrbc_class_array, "pop", c_array_pop);
 }
