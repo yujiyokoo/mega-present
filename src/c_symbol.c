@@ -4,6 +4,7 @@
 #include "static.h"
 #include "value.h"
 #include "symbol.h"
+#include "c_string.h"
 
 static void c_symbol_to_s(mrb_vm *vm, mrb_value *v)
 {
@@ -38,4 +39,3 @@ void mrbc_init_class_symbol(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_symbol, "to_sym", c_symbol_to_sym);
   mrbc_define_method(vm, mrbc_class_symbol, "===", c_symbol_equal);
 }
-
