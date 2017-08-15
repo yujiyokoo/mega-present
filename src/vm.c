@@ -427,6 +427,8 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_sym sym_id = str_to_symid(sym);
   mrb_proc *m = find_method(vm, recv, sym_id);
 
+  printf("SEND: %s\n", sym);
+
   if( m == 0 ) {
     console_printf("no method(%s)!\n", sym);
     return 0;
@@ -547,6 +549,28 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   return 0;
 }
+
+
+//================================================================
+/*!@brief
+  OP_BLKPUSH
+
+  R(A) := block (16=6:1:5:4)
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_blkpush( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int ra = GETARG_A(code);
+  mrb_value *stack = regs + 1;
+  regs[ ra ] = stack[0];
+  
+  return 0;
+}
+
 
 
 //================================================================
@@ -1354,6 +1378,7 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_JMPIF:      ret = op_jmpif     (vm, code, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, code, regs); break;
     case OP_SEND:       ret = op_send      (vm, code, regs); break;
+    case OP_BLKPUSH:    ret = op_blkpush   (vm, code, regs); break;
     case OP_ENTER:      ret = op_enter     (vm, code, regs); break;
     case OP_RETURN:     ret = op_return    (vm, code, regs); break;
     case OP_ADD:        ret = op_add       (vm, code, regs); break;

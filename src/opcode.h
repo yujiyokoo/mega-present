@@ -62,6 +62,7 @@ enum OPCODE {
   OP_JMPIF     = 0x18,
   OP_JMPNOT    = 0x19,
   OP_SEND      = 0x20,
+  OP_BLKPUSH   = 0x21,
 
   OP_ENTER     = 0x26,
 
