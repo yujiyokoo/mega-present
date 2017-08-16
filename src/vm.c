@@ -115,6 +115,7 @@ inline static int op_nop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_move( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  
   regs[GETARG_A(code)] = regs[GETARG_B(code)];
   return 0;
 }

@@ -94,3 +94,25 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
     return 0;
   }
 }
+
+
+//================================================================
+/*!@brief
+
+  Release object related memory (reference counter) 
+
+  @param   vm    Pointer to VM
+  @param   v     Pointer to mrb_value
+*/
+void mrbc_release(const mrb_vm *vm, mrb_value *v)
+{
+  switch( v->tt ){
+  case MRB_TT_STRING:{
+    mrbc_dec_ref_count(vm, v->str);
+  } break;
+  default:
+    // Nothing
+    break;
+  }
+}
+
