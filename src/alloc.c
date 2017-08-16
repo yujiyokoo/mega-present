@@ -633,8 +633,8 @@ void mrbc_inc_ref_count(void *ptr)
 void mrbc_dec_ref_count(const mrb_vm *vm, void *ptr)
 {
   int cnt = GET_REF_COUNT(ptr);
-  if( cnt > 1 ){
-    SET_REF_COUNT(ptr, cnt - 1);
+  if( --cnt > 0 ){
+    SET_REF_COUNT(ptr, cnt);
   } else {
     mrbc_free(vm, ptr);
   }
