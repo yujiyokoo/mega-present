@@ -136,6 +136,7 @@ mrb_proc *mrbc_rproc_alloc_to_class(struct VM *vm, const char *name, mrb_class *
 int mrbc_eq(mrb_value *v1, mrb_value *v2);
 
 // Other functions
+void mrbc_dup(const struct VM *vm, mrb_value *v);
 void mrbc_release(const struct VM *vm, mrb_value *v);
 
 // for C call

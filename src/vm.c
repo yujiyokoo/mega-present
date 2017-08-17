@@ -117,6 +117,7 @@ inline static int op_move( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   mrbc_release(vm, &regs[GETARG_A(code)]);
   regs[GETARG_A(code)] = regs[GETARG_B(code)];
+  mrbc_dup(vm, &regs[GETARG_B(code)]);
   return 0;
 }
 

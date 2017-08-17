@@ -99,6 +99,26 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
 //================================================================
 /*!@brief
 
+  Duplicate mrb_value 
+
+  @param   vm    Pointer to VM
+  @param   v     Pointer to mrb_value
+*/
+void mrbc_dup(const mrb_vm *vm, mrb_value *v)
+{
+  switch( v->tt ){
+  case MRB_TT_STRING:{
+    mrbc_inc_ref_count(v->str);
+  } break;
+  default:
+    // Nothing
+    break;
+  }
+}
+
+//================================================================
+/*!@brief
+
   Release object related memory (reference counter) 
 
   @param   vm    Pointer to VM
