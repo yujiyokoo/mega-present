@@ -1354,8 +1354,7 @@ int mrbc_vm_run( mrb_vm *vm )
     mrb_value *regs = vm->regs + vm->reg_top;
 
     // Dispatch
-    enum OPCODE opcode = GET_OPCODE(code);
-    switch( opcode ) {
+    switch( GET_OPCODE(code) ) {
     case OP_NOP:        ret = op_nop       (vm, code, regs); break;
     case OP_MOVE:       ret = op_move      (vm, code, regs); break;
     case OP_LOADL:      ret = op_loadl     (vm, code, regs); break;
