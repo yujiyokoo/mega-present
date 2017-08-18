@@ -211,6 +211,7 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadnil( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  mrbc_release(vm, &regs[GETARG_A(code)]);
   regs[GETARG_A(code)].tt = MRB_TT_NIL;
   return 0;
 }
@@ -229,6 +230,8 @@ inline static int op_loadnil( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadself( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  mrbc_release(vm, &regs[GETARG_A(code)]);
+  mrbc_dup(vm, &regs[0]);
   regs[GETARG_A(code)] = regs[0];
   return 0;
 }
@@ -247,6 +250,7 @@ inline static int op_loadself( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  mrbc_release(vm, &regs[GETARG_A(code)]);
   regs[GETARG_A(code)].tt = MRB_TT_TRUE;
   return 0;
 }
@@ -265,6 +269,7 @@ inline static int op_loadt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadf( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  mrbc_release(vm, &regs[GETARG_A(code)]);
   regs[GETARG_A(code)].tt = MRB_TT_FALSE;
   return 0;
 }
