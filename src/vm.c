@@ -115,6 +115,8 @@ inline static int op_nop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_move( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  mrbc_release(vm, &regs[GETARG_A(code)]);
+  mrbc_dup(vm, &regs[GETARG_B(code)]);
   regs[GETARG_A(code)] = regs[GETARG_B(code)];
   return 0;
 }
@@ -139,6 +141,9 @@ inline static int op_loadl( mrb_vm *vm, uint32_t code, mrb_value *regs )
     ptr = ptr->next;
     rb--;
   }
+
+  mrbc_release(vm, &regs[GETARG_A(code)]);
+  mrbc_dup(vm, ptr);
   regs[GETARG_A(code)] = *ptr;
   return 0;
 }
@@ -157,6 +162,8 @@ inline static int op_loadl( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+
+  mrbc_release(vm, &regs[GETARG_A(code)]);
   regs[GETARG_A(code)].i = GETARG_sBx(code);
   regs[GETARG_A(code)].tt = MRB_TT_FIXNUM;
 
@@ -183,6 +190,7 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   mrb_sym sym_id = add_sym(sym);
 
+  mrbc_release(vm, &regs[ra]);
   regs[ra].i = sym_id;
   regs[ra].tt = MRB_TT_SYMBOL;
 
@@ -203,6 +211,7 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadnil( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  mrbc_release(vm, &regs[GETARG_A(code)]);
   regs[GETARG_A(code)].tt = MRB_TT_NIL;
   return 0;
 }
@@ -221,6 +230,8 @@ inline static int op_loadnil( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadself( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  mrbc_release(vm, &regs[GETARG_A(code)]);
+  mrbc_dup(vm, &regs[0]);
   regs[GETARG_A(code)] = regs[0];
   return 0;
 }
@@ -239,6 +250,7 @@ inline static int op_loadself( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  mrbc_release(vm, &regs[GETARG_A(code)]);
   regs[GETARG_A(code)].tt = MRB_TT_TRUE;
   return 0;
 }
@@ -257,6 +269,7 @@ inline static int op_loadt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadf( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  mrbc_release(vm, &regs[GETARG_A(code)]);
   regs[GETARG_A(code)].tt = MRB_TT_FALSE;
   return 0;
 }
@@ -503,7 +516,13 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // restore irep,pc,regs
   vm->callinfo_top--;
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-  vm->reg_top = callinfo->reg_top;
+  // clear regs and restore vm->reg_top
+  while( vm->reg_top > callinfo->reg_top ){
+    mrbc_release(vm, &regs[vm->reg_top]);
+    regs[vm->reg_top].tt = MRB_TT_EMPTY;
+    vm->reg_top--;
+  }
+  // restore others
   vm->pc_irep = callinfo->pc_irep;
   vm->pc = callinfo->pc;
   return 0;
@@ -1359,8 +1378,7 @@ int mrbc_vm_run( mrb_vm *vm )
     mrb_value *regs = vm->regs + vm->reg_top;
 
     // Dispatch
-    enum OPCODE opcode = GET_OPCODE(code);
-    switch( opcode ) {
+    switch( GET_OPCODE(code) ) {
     case OP_NOP:        ret = op_nop       (vm, code, regs); break;
     case OP_MOVE:       ret = op_move      (vm, code, regs); break;
     case OP_LOADL:      ret = op_loadl     (vm, code, regs); break;

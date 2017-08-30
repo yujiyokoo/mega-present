@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include "vm_config.h"
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -134,6 +135,9 @@ mrb_proc *mrbc_rproc_alloc_to_class(struct VM *vm, const char *name, mrb_class *
 // EQ two objects
 int mrbc_eq(mrb_value *v1, mrb_value *v2);
 
+// Other functions
+void mrbc_dup(const struct VM *vm, mrb_value *v);
+void mrbc_release(const struct VM *vm, mrb_value *v);
 
 // for C call
 #define SET_INT_RETURN(n)         {v[0].tt=MRB_TT_FIXNUM;v[0].i=(n);}

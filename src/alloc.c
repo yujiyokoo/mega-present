@@ -63,6 +63,7 @@ typedef struct USED_BLOCK {
   unsigned int         t : 1;       //!< FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK
   unsigned int         f : 1;       //!< FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE
   uint8_t              vm_id;       //!< mruby/c VM ID
+  uint8_t              ref_count;   //!< reference counter
   MRBC_ALLOC_MEMSIZE_T size;        //!< block size, header included
   MRBC_ALLOC_MEMSIZE_T prev_offset; //!< offset of previous physical block
 } USED_BLOCK;
@@ -71,6 +72,7 @@ typedef struct FREE_BLOCK {
   unsigned int         t : 1;       //!< FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK
   unsigned int         f : 1;       //!< FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE
   uint8_t              vm_id;       //!< dummy
+  uint8_t              ref_count;   //!< dummy
   MRBC_ALLOC_MEMSIZE_T size;        //!< block size, header included
   MRBC_ALLOC_MEMSIZE_T prev_offset; //!< offset of previous physical block
 
@@ -80,13 +82,18 @@ typedef struct FREE_BLOCK {
 
 #define PHYS_NEXT(p) ((uint8_t *)(p) + (p)->size)
 #define PHYS_PREV(p) ((uint8_t *)(p) - (p)->prev_offset)
-#define SET_PHYS_PREV(p1,p2) \
+#define SET_PHYS_PREV(p1,p2)				\
   ((p2)->prev_offset = (uint8_t *)(p2)-(uint8_t *)(p1))
-#define SET_VM_ID(p,id) \
+
+#define SET_VM_ID(p,id)							\
   (((USED_BLOCK *)((uint8_t *)(p) - sizeof(USED_BLOCK)))->vm_id = (id))
-#define GET_VM_ID(p) \
+#define GET_VM_ID(p)							\
   (((USED_BLOCK *)((uint8_t *)(p) - sizeof(USED_BLOCK)))->vm_id)
 
+#define SET_REF_COUNT(p,cnt)						\
+  (((USED_BLOCK *)((uint8_t *)(p) - sizeof(USED_BLOCK)))->ref_count = (cnt))
+#define GET_REF_COUNT(p)						\
+  (((USED_BLOCK *)((uint8_t *)(p) - sizeof(USED_BLOCK)))->ref_count)
 
 // memory pool
 static unsigned int memory_pool_size;
@@ -497,6 +504,7 @@ uint8_t* mrbc_alloc(const mrb_vm *vm, unsigned int size)
   uint8_t *ptr = mrbc_raw_alloc(size);
   if( ptr == NULL ) return NULL;	// ENOMEM
   if( vm ) SET_VM_ID(ptr, vm->vm_id);
+  SET_REF_COUNT(ptr, 1);
 
   return ptr;
 }
@@ -579,3 +587,57 @@ int mrbc_get_vm_id(void *ptr)
 {
   return GET_VM_ID(ptr);
 }
+
+
+//================================================================
+/*! get ref_count
+
+  @param  ptr	Return value of mrbc_alloc()
+  @return int   reference counter
+*/
+int mrbc_get_ref_count(void *ptr)
+{
+  return GET_REF_COUNT(ptr);
+}
+
+
+//================================================================
+/*! set ref_count
+
+  @param  ptr	Return value of mrbc_alloc()
+  @param  cnt   reference counter
+*/
+void mrbc_set_ref_count(void *ptr, const int cnt)
+{
+  SET_REF_COUNT(ptr, cnt);
+}
+
+
+//================================================================
+/*! increment ref_count
+
+  @param  ptr	Return value of mrbc_alloc()
+*/
+void mrbc_inc_ref_count(void *ptr)
+{
+  SET_REF_COUNT(ptr, GET_REF_COUNT(ptr) + 1 );
+}
+
+
+//================================================================
+/*! decrementt ref_count and free 
+
+  @param  vm	pointer to VM.
+  @param  ptr	Return value of mrbc_alloc()
+*/
+void mrbc_dec_ref_count(const mrb_vm *vm, void *ptr)
+{
+  int cnt = GET_REF_COUNT(ptr);
+  if( --cnt > 0 ){
+    SET_REF_COUNT(ptr, cnt);
+  } else {
+    mrbc_free(vm, ptr);
+  }
+}
+
+

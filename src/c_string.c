@@ -96,6 +96,19 @@ static void c_string_to_fixnum(mrb_vm *vm, mrb_value *v)
 
 
 
+// method
+// string <<
+static void c_string_concat(mrb_vm *vm, mrb_value *v)
+{
+  mrb_value *v2 = &GET_ARG(1);
+  int len = strlen(v->str) + strlen(v2->str) + 1;
+  uint8_t *str = mrbc_realloc(vm, v->str, len);
+  strcat(str, v2->str);
+
+  v->str = (char *)str;
+}
+
+
 // init class
 void mrbc_init_class_string(mrb_vm *vm)
 {
@@ -105,4 +118,5 @@ void mrbc_init_class_string(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_string, "length", c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "!=", c_string_neq);
   mrbc_define_method(vm, mrbc_class_string, "to_i", c_string_to_fixnum);
+  mrbc_define_method(vm, mrbc_class_string, "<<", c_string_concat);
 }
