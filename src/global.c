@@ -80,7 +80,7 @@ mrb_value global_object_get(mrb_sym sym_id)
   } else {
     /* nil */
     mrb_value v;
-    v.tt = MRB_TT_FALSE;
+    v.tt = MRB_TT_NIL;
     return v;
   }
 }
@@ -91,7 +91,7 @@ mrb_object const_get(mrb_sym sym_id) {
     return mrbc_const[index].obj;
   } else {
     mrb_object obj;
-    obj.tt = MRB_TT_FALSE;
+    obj.tt = MRB_TT_NIL;
     return obj;
   }
 }
