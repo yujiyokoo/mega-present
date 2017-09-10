@@ -441,7 +441,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_proc *m = find_method(vm, recv, sym_id);
 
   if( m == 0 ) {
-    console_printf("no method(%s)!\n", sym);
+    console_printf("No method. vtype=%d method='%s'\n", recv.tt, sym);
     return 0;
   }
 
