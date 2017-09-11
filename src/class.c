@@ -195,6 +195,17 @@ void c_object_neq(mrb_vm *vm, mrb_value *v)
   }
 }
 
+// Object#class
+void c_object_class(mrb_vm *vm, mrb_value *v)
+{
+  // TODO: return class name
+  char *name = "(class name)";
+  char *str = (char *)mrbc_alloc(vm, sizeof(name)+1);
+  strcpy(str, name);
+  v->tt = MRB_TT_STRING;
+  v->str = str;
+}
+
 static void mrbc_init_class_object(mrb_vm *vm)
 {
   // Class
@@ -202,6 +213,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "puts", c_puts_nl);
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
+  mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
 }
 
 
