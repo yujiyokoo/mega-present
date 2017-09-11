@@ -3,8 +3,8 @@
   Realtime multitask monitor for mruby/c
 
   <pre>
-  Copyright (C) 2016 Kyushu Institute of Technology.
-  Copyright (C) 2016 Shimane IT Open-Innovation Center.
+  Copyright (C) 2016-2017 Kyushu Institute of Technology.
+  Copyright (C) 2016-2017 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -362,16 +362,16 @@ MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
   tcb->priority_preemption = tcb->priority;
 
   // assign VM on TCB
-  if( tcb->state != TASKSTATE_DOMANT ) {
-    tcb->vm = mrbc_vm_open();
-    if( !tcb->vm ) return 0;    // error. can't open VM.
-				// NOTE: memory leak MrbcTcb. but ignore.
+  tcb->vm = mrbc_vm_open();
+  if( !tcb->vm ) return NULL;    // error. can't open VM.
+				 // NOTE: memory leak MrbcTcb. but ignore.
 
-    if( mrbc_load_mrb(tcb->vm, vm_code) != 0 ) {
-      console_printf("Error: Illegal bytecode.\n");
-      mrbc_vm_close(tcb->vm);
-      return 0;
-    }
+  if( mrbc_load_mrb(tcb->vm, vm_code) != 0 ) {
+    console_printf("Error: Illegal bytecode.\n");
+    mrbc_vm_close(tcb->vm);
+    return NULL;
+  }
+  if( tcb->state != TASKSTATE_DOMANT ) {
     mrbc_vm_begin(tcb->vm);
   }
 
@@ -380,6 +380,36 @@ MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
   hal_enable_irq();
 
   return tcb;
+}
+
+
+//================================================================
+/*! Start execution of dormant task.
+
+  @param	tcb	Task control block with parameter, or NULL.
+  @retval	int	zero / no error.
+*/
+int mrbc_start_task(MrbcTcb *tcb)
+{
+  if( tcb->state != TASKSTATE_DOMANT ) return -1;
+  tcb->timeslice           = TIMESLICE_TICK;
+  tcb->priority_preemption = tcb->priority;
+  mrbc_vm_begin(tcb->vm);
+
+  hal_disable_irq();
+
+  MrbcTcb *t = q_ready_;
+  while( t != NULL ) {
+    if( t->state == TASKSTATE_RUNNING ) t->vm->flag_preemption = 1;
+    t = t->next;
+  }
+
+  q_delete_task(tcb);
+  tcb->state = TASKSTATE_READY;
+  q_insert_task(tcb);
+  hal_enable_irq();
+
+  return 0;
 }
 
 
@@ -424,11 +454,10 @@ int mrbc_run(void)
       q_insert_task(tcb);
       hal_enable_irq();
       mrbc_vm_end(tcb->vm);
-      mrbc_vm_close(tcb->vm);
-      tcb->vm = 0;
-
+#if MRBC_SCHEDULER_EXIT
       if( q_ready_ == NULL && q_waiting_ == NULL &&
-          q_suspended_ == NULL ) break;
+          q_suspended_ == NULL ) return 0;
+#endif
       continue;
     }
 
@@ -445,9 +474,8 @@ int mrbc_run(void)
       }
     }
     hal_enable_irq();
-  }
 
-  return 0;
+  } // eternal loop
 }
 
 
@@ -542,21 +570,39 @@ void pq(MrbcTcb *p_tcb)
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf("%08x ", (int)((uint64_t)p & 0xffffffff));
+    console_printf("%08x  ", ((uintptr_t)p & 0xffffffff));
     p = p->next;
   }
   console_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" pri: %2d ", p->priority_preemption);
+    console_printf(" nx:%04x  ", ((uintptr_t)p->next & 0xffff));
     p = p->next;
   }
   console_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" nx:%04x ", (int)((uint64_t)p->next & 0xffff));
+    console_printf(" pri:%3d  ", p->priority_preemption);
+    p = p->next;
+  }
+  console_printf("\n");
+
+  p = p_tcb;
+  while( p != NULL ) {
+    console_printf(" tms:%3d  ", p->timeslice);
+    p = p->next;
+  }
+  console_printf("\n");
+
+  p = p_tcb;
+  while( p != NULL ) {
+    console_printf(" st:%c%c%c%c  ",
+                   (p->state & TASKSTATE_SUSPENDED)?'s':'-',
+                   (p->state & TASKSTATE_WAITING)?'w':'-',
+                   (p->state &(TASKSTATE_RUNNING & ~TASKSTATE_READY))?'R':'-',
+                   (p->state & TASKSTATE_READY)?'r':'-' );
     p = p->next;
   }
   console_printf("\n");
@@ -565,13 +611,9 @@ void pq(MrbcTcb *p_tcb)
 
 void pqall(void)
 {
-  //  console_printf("<<<<< DOMANT >>>>>\n");
-  //  pq(q_domant_);
-  console_printf("<<<<< READY >>>>>\n");
-  pq(q_ready_);
-  console_printf("<<<<< WAITING >>>>>\n");
-  pq(q_waiting_);
-  console_printf("<<<<< SUSPENDED >>>>>\n");
-  pq(q_suspended_);
+  console_printf("<<<<< DOMANT >>>>>\n");	pq(q_domant_);
+  console_printf("<<<<< READY >>>>>\n");	pq(q_ready_);
+  console_printf("<<<<< WAITING >>>>>\n");	pq(q_waiting_);
+  console_printf("<<<<< SUSPENDED >>>>>\n");	pq(q_suspended_);
 }
 #endif

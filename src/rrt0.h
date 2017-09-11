@@ -3,8 +3,8 @@
   Realtime multitask monitor for mruby/c
 
   <pre>
-  Copyright (C) 2016 Kyushu Institute of Technology.
-  Copyright (C) 2016 Shimane IT Open-Innovation Center.
+  Copyright (C) 2016-2017 Kyushu Institute of Technology.
+  Copyright (C) 2016-2017 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -65,6 +65,7 @@ typedef struct MrbcTcb {
 void mrbc_tick(void);
 void mrbc_init(uint8_t *ptr, unsigned int size );
 MrbcTcb *mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb);
+int mrbc_start_task(MrbcTcb *tcb);
 int mrbc_run(void);
 void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms);
 void mrbc_relinquish(MrbcTcb *tcb);
