@@ -43,7 +43,7 @@ void mrubyc(uint8_t *mrbbuf)
   mrbc_init_alloc(memory_pool, MEMORY_SIZE);
   init_static();
 
-  vm = mrbc_vm_open();
+  vm = mrbc_vm_open(NULL);
   if( vm == 0 ) {
     fprintf(stderr, "Error: Can't open VM.\n");
     return;

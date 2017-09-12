@@ -367,7 +367,7 @@ MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
   tcb->priority_preemption = tcb->priority;
 
   // assign VM on TCB
-  tcb->vm = mrbc_vm_open();
+  tcb->vm = mrbc_vm_open(NULL);
   if( !tcb->vm ) return NULL;    // error. can't open VM.
 				 // NOTE: memory leak MrbcTcb. but ignore.
 
