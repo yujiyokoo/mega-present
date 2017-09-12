@@ -33,6 +33,11 @@ const int TIMESLICE_TICK = 10; // 10 * 1ms(HardwareTimer)  255 max
 
 
 /***** Macros ***************************************************************/
+#ifndef MRBC_SCHEDULER_EXIT
+#define MRBC_SCHEDULER_EXIT 0
+#endif
+
+
 /***** Typedefs *************************************************************/
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
@@ -454,6 +459,7 @@ int mrbc_run(void)
       q_insert_task(tcb);
       hal_enable_irq();
       mrbc_vm_end(tcb->vm);
+
 #if MRBC_SCHEDULER_EXIT
       if( q_ready_ == NULL && q_waiting_ == NULL &&
           q_suspended_ == NULL ) return 0;
