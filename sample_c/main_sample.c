@@ -18,7 +18,7 @@ int main(void)
   mrbc_init_alloc(memory_pool, MEMORY_SIZE);
   init_static();
 
-  vm = mrbc_vm_open();
+  vm = mrbc_vm_open(NULL);
   if( vm == NULL ){
     printf("VM open Error\n");
     return 1;

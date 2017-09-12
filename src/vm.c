@@ -3,8 +3,8 @@
   mruby bytecode executor.
 
   <pre>
-  Copyright (C) 2015 Kyushu Institute of Technology.
-  Copyright (C) 2015 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2017 Kyushu Institute of Technology.
+  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -1247,14 +1247,18 @@ mrb_irep *new_irep(mrb_vm *vm)
 /*!@brief
   Open the VM.
 
+  @param vm     Pointer to mrb_vm or NULL.
   @return	Pointer to mrb_vm.
   @retval NULL	error.
 */
-mrb_vm *mrbc_vm_open(void)
+mrb_vm *mrbc_vm_open(mrb_vm *vm_arg)
 {
-  // allocate memory.
-  mrb_vm *vm = (mrb_vm *)mrbc_raw_alloc( sizeof(mrb_vm) );
-  if( vm == NULL ) return NULL;
+  mrb_vm *vm;
+  if( (vm = vm_arg) == NULL ) {
+    // allocate memory.
+    vm = (mrb_vm *)mrbc_raw_alloc( sizeof(mrb_vm) );
+    if( vm == NULL ) return NULL;
+  }
 
   // allocate vm id.
   int vm_id = 0;
@@ -1268,12 +1272,13 @@ mrb_vm *mrbc_vm_open(void)
     }
   }
   if( vm_id == 0 ) {
-    mrbc_raw_free(vm);
+    if( vm_arg == NULL ) mrbc_raw_free(vm);
     return NULL;
   }
 
   // initialize attributes.
   memset(vm, 0, sizeof(mrb_vm));	// caution: suppose NULL is zero.
+  if( vm_arg == NULL ) vm->flag_need_memfree = 1;
   vm->vm_id = vm_id;
 
   return vm;
@@ -1285,7 +1290,7 @@ mrb_vm *mrbc_vm_open(void)
 /*!@brief
   Close the VM.
 
-  @param  vm  Pointer to VM
+  @param  vm  Pointer to mrb_vm
 */
 void mrbc_vm_close(mrb_vm *vm)
 {
@@ -1309,7 +1314,7 @@ void mrbc_vm_close(mrb_vm *vm)
     irep = irep_next;
   }
 
-  mrbc_raw_free(vm);
+  if( vm->flag_need_memfree ) mrbc_raw_free(vm);
 }
 
 

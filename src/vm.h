@@ -3,8 +3,8 @@
   mruby bytecode executor.
 
   <pre>
-  Copyright (C) 2015 Kyushu Institute of Technology.
-  Copyright (C) 2015 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2017 Kyushu Institute of Technology.
+  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -82,11 +82,12 @@ typedef struct VM {
   int32_t error_code;
 
   volatile int8_t flag_preemption;
+  int8_t flag_need_memfree;
 } mrb_vm;
 
 
 mrb_irep *new_irep(mrb_vm *vm);
-mrb_vm *mrbc_vm_open(void);
+mrb_vm *mrbc_vm_open(mrb_vm *vm);
 void mrbc_vm_close(mrb_vm *vm);
 void mrbc_vm_begin(mrb_vm *vm);
 void mrbc_vm_end(mrb_vm *vm);
