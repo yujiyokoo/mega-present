@@ -529,6 +529,24 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
+  Execute RETURN
+
+  R(A) := block (16=6:1:5:4)
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_blkpush( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute ADD
 
   R(A) := R(A)+R(A+1) (Syms[B]=:+,C=1)
@@ -1402,6 +1420,7 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_SENDB:      ret = op_send      (vm, code, regs); break;
     case OP_ENTER:      ret = op_enter     (vm, code, regs); break;
     case OP_RETURN:     ret = op_return    (vm, code, regs); break;
+    case OP_BLKPUSH:    ret = op_blkpush   (vm, code, regs); break;
     case OP_ADD:        ret = op_add       (vm, code, regs); break;
     case OP_ADDI:       ret = op_addi      (vm, code, regs); break;
     case OP_SUB:        ret = op_sub       (vm, code, regs); break;
