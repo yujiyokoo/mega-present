@@ -971,6 +971,7 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
     }
   }
 
+  mrbc_release(vm, &regs[arg_a]);
   regs[arg_a] = v;
 
   return 0;
@@ -1002,6 +1003,7 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
   v.str = mrbc_string_dup(vm, ptr->str);
 
   int arg_a = GETARG_A(code);
+  mrbc_release(vm, &regs[GETARG_A(code)]);
   regs[arg_a] = v;
   return 0;
 }
