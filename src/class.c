@@ -2,8 +2,8 @@
   @brief
 
   <pre>
-  Copyright (C) 2015-2016 Kyushu Institute of Technology.
-  Copyright (C) 2015-2016 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2017 Kyushu Institute of Technology.
+  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -11,8 +11,11 @@
   </pre>
 */
 
+#include <string.h>
+
 #include "value.h"
 #include "class.h"
+#include "alloc.h"
 #include "static.h"
 #include "console.h"
 
@@ -127,7 +130,7 @@ void mrbc_define_method_proc(mrb_vm *vm, mrb_class *cls, mrb_sym sym_id, mrb_pro
 
 
 // Object - puts
-void c_puts(mrb_vm *vm, mrb_value *v)
+static void c_puts(mrb_vm *vm, mrb_value *v)
 {
   mrb_value *arg0 = v+1;
   switch( arg0->tt ){
@@ -179,14 +182,23 @@ void c_puts(mrb_vm *vm, mrb_value *v)
   }
 }
 
-void c_puts_nl(mrb_vm *vm, mrb_value *v)
+static void c_puts_nl(mrb_vm *vm, mrb_value *v)
 {
   c_puts(vm, v);
   console_printf("\n");
 }
 
+
+//================================================================
+// Object class
+
+static void c_object_not(mrb_vm *vm, mrb_value *v)
+{
+  SET_FALSE_RETURN();
+}
+
 // Object !=
-void c_object_neq(mrb_vm *vm, mrb_value *v)
+static void c_object_neq(mrb_vm *vm, mrb_value *v)
 {
   if( mrbc_eq(v, &GET_ARG(1)) ){
     SET_FALSE_RETURN();
@@ -196,7 +208,7 @@ void c_object_neq(mrb_vm *vm, mrb_value *v)
 }
 
 // Object#class
-void c_object_class(mrb_vm *vm, mrb_value *v)
+static void c_object_class(mrb_vm *vm, mrb_value *v)
 {
   // TODO: return class name
   char *name = "(class name)";
@@ -212,14 +224,17 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_class_object = mrbc_class_alloc(vm, "Object", 0);
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "puts", c_puts_nl);
+  mrbc_define_method(vm, mrbc_class_object, "!", c_object_not);
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
   mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
 }
 
 
-// =============== FalseClass
 
-void c_false_ne(mrb_vm *vm, mrb_value *v)
+//================================================================
+// False class
+
+static void c_false_neq(mrb_vm *vm, mrb_value *v)
 {
   mrb_object *arg0 = v+1;
   if( arg0->tt == MRB_TT_FALSE ){
@@ -229,7 +244,7 @@ void c_false_ne(mrb_vm *vm, mrb_value *v)
   }
 }
 
-void c_false_not(mrb_vm *vm, mrb_value *v)
+static void c_false_not(mrb_vm *vm, mrb_value *v)
 {
   SET_TRUE_RETURN();
 }
@@ -239,14 +254,16 @@ static void mrbc_init_class_false(mrb_vm *vm)
   // Class
   mrbc_class_false = mrbc_class_alloc(vm, "FalseClass", mrbc_class_object);
   // Methods
-  mrbc_define_method(vm, mrbc_class_false, "!=", c_false_ne);
+  mrbc_define_method(vm, mrbc_class_false, "!=", c_false_neq);
   mrbc_define_method(vm, mrbc_class_false, "!", c_false_not);
 }
 
 
-// =============== TrueClass
 
-void c_true_ne(mrb_vm *vm, mrb_value *v)
+//================================================================
+// True class
+
+static void c_true_neq(mrb_vm *vm, mrb_value *v)
 {
   mrb_object *arg0 = v+1;
   if( arg0->tt == MRB_TT_TRUE ){
@@ -256,21 +273,12 @@ void c_true_ne(mrb_vm *vm, mrb_value *v)
   }
 }
 
-void c_true_not(mrb_vm *vm, mrb_value *v)
-{
-  SET_FALSE_RETURN();
-}
-
-
-
 static void mrbc_init_class_true(mrb_vm *vm)
 {
   // Class
   mrbc_class_true = mrbc_class_alloc(vm, "TrueClass", mrbc_class_object);
   // Methods
-  mrbc_define_method(vm, mrbc_class_true, "!=", c_true_ne);
-  mrbc_define_method(vm, mrbc_class_true, "!", c_true_not);
-
+  mrbc_define_method(vm, mrbc_class_true, "!=", c_true_neq);
 }
 
 

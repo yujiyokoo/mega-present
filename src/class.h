@@ -2,8 +2,8 @@
   @brief
 
   <pre>
-  Copyright (C) 2015-2016 Kyushu Institute of Technology.
-  Copyright (C) 2015-2016 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2017 Kyushu Institute of Technology.
+  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
