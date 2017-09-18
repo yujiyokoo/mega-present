@@ -12,6 +12,7 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+#include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
@@ -37,6 +38,8 @@ const int TIMESLICE_TICK = 10; // 10 * 1ms(HardwareTimer)  255 max
 #define MRBC_SCHEDULER_EXIT 0
 #endif
 
+#define VM2TCB(p) ((MrbcTcb *)((uint8_t *)p - offsetof(MrbcTcb, vm)))
+
 
 /***** Typedefs *************************************************************/
 /***** Function prototypes **************************************************/
@@ -46,6 +49,7 @@ static MrbcTcb *q_ready_;
 static MrbcTcb *q_waiting_;
 static MrbcTcb *q_suspended_;
 static volatile uint32_t tick_;
+
 
 /***** Global variables *****************************************************/
 /***** Signal catching functions ********************************************/
@@ -146,32 +150,12 @@ static void q_delete_task(MrbcTcb *p_tcb)
 
 
 //================================================================
-/*! Find requested task
-
-  @param        Pointer of vm
-  @return       Pointer of MrbcTcb. zero is not found.
- */
-static inline MrbcTcb* find_requested_task(mrb_vm *vm)
-{
-  MrbcTcb *tcb;
-
-  for( tcb = q_ready_; tcb != NULL; tcb = tcb->next ) {
-    if( tcb->vm == vm ) break;
-  }
-
-  return tcb;
-}
-
-
-//================================================================
 /*! 一定時間停止（cruby互換）
 
 */
 static void c_sleep(mrb_vm *vm, mrb_value *v)
 {
-  MrbcTcb *tcb = find_requested_task(vm);
-
-  if( tcb == NULL ) return;
+  MrbcTcb *tcb = VM2TCB(vm);
 
   switch( v[1].tt ) {
   case MRB_TT_FIXNUM:
@@ -196,9 +180,7 @@ static void c_sleep(mrb_vm *vm, mrb_value *v)
 */
 static void c_sleep_ms(mrb_vm *vm, mrb_value *v)
 {
-  MrbcTcb *tcb = find_requested_task(vm);
-
-  if( tcb == NULL ) return;
+  MrbcTcb *tcb = VM2TCB(vm);
 
   mrbc_sleep_ms(tcb, GET_INT_ARG(1));
 }
@@ -210,9 +192,7 @@ static void c_sleep_ms(mrb_vm *vm, mrb_value *v)
 */
 static void c_relinquish(mrb_vm *vm, mrb_value *v)
 {
-  MrbcTcb *tcb = find_requested_task(vm);
-
-  if( tcb == NULL ) return;
+  MrbcTcb *tcb = VM2TCB(vm);
 
   mrbc_relinquish(tcb);
 }
@@ -224,9 +204,7 @@ static void c_relinquish(mrb_vm *vm, mrb_value *v)
 */
 static void c_change_priority(mrb_vm *vm, mrb_value *v)
 {
-  MrbcTcb *tcb = find_requested_task(vm);
-
-  if( tcb == NULL ) return;
+  MrbcTcb *tcb = VM2TCB(vm);
 
   mrbc_change_priority(tcb, GET_INT_ARG(1));
 }
@@ -238,9 +216,7 @@ static void c_change_priority(mrb_vm *vm, mrb_value *v)
 */
 static void c_suspend_task(mrb_vm *vm, mrb_value *v)
 {
-  MrbcTcb *tcb = find_requested_task(vm);
-
-  if( tcb == NULL ) return;
+  MrbcTcb *tcb = VM2TCB(vm);
 
   mrbc_suspend_task(tcb);
 }
@@ -252,9 +228,7 @@ static void c_suspend_task(mrb_vm *vm, mrb_value *v)
 */
 static void c_resume_task(mrb_vm *vm, mrb_value *v)
 {
-  MrbcTcb *tcb = find_requested_task(vm);
-
-  if( tcb == NULL ) return;
+  MrbcTcb *tcb = VM2TCB(vm);
 
   // TODO: 未デバグ。引数で与えられたTCBのタスクを実行再開する。
   mrbc_resume_task(tcb);
@@ -267,9 +241,7 @@ static void c_resume_task(mrb_vm *vm, mrb_value *v)
 */
 static void c_get_tcb(mrb_vm *vm, mrb_value *v)
 {
-  MrbcTcb *tcb = find_requested_task(vm);
-
-  if( tcb == NULL ) return;
+  MrbcTcb *tcb = VM2TCB(vm);
 
   // TODO: 未実装。TCBポインタをオブジェクトとして返す。
 }
@@ -294,7 +266,7 @@ void mrbc_tick(void)
      (tcb->state == TASKSTATE_RUNNING) &&
      (tcb->timeslice > 0)) {
     tcb->timeslice--;
-    if( tcb->timeslice == 0 ) tcb->vm->flag_preemption = 1;
+    if( tcb->timeslice == 0 ) tcb->vm.flag_preemption = 1;
   }
 
   // 待ちタスクキューから、ウェイクアップすべきタスクを探す
@@ -315,7 +287,7 @@ void mrbc_tick(void)
   if( flag_preemption ) {
     tcb = q_ready_;
     while( tcb != NULL ) {
-      if( tcb->state == TASKSTATE_RUNNING ) tcb->vm->flag_preemption = 1;
+      if( tcb->state == TASKSTATE_RUNNING ) tcb->vm.flag_preemption = 1;
       tcb = tcb->next;
     }
   }
@@ -345,6 +317,19 @@ void mrbc_init(uint8_t *ptr, unsigned int size )
 
 
 //================================================================
+/*! dinamic initializer of MrbcTcb
+
+*/
+void mrbc_init_tcb(MrbcTcb *tcb)
+{
+  memset(tcb, 0, sizeof(MrbcTcb));
+  tcb->priority = 128;
+  tcb->priority_preemption = 128;
+  tcb->state = TASKSTATE_READY;
+}
+
+
+//================================================================
 /*! specify running VM code.
 
   @param        vm_code pointer of VM byte code.
@@ -360,24 +345,24 @@ MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
     tcb = (MrbcTcb*)mrbc_raw_alloc( sizeof(MrbcTcb) );
     if( tcb == NULL ) return NULL;	// ENOMEM
 
-    static const MrbcTcb init_val = MRBC_TCB_INITIALIZER;
-    *tcb = init_val;
+    mrbc_init_tcb( tcb );
   }
   tcb->timeslice           = TIMESLICE_TICK;
   tcb->priority_preemption = tcb->priority;
 
-  // assign VM on TCB
-  tcb->vm = mrbc_vm_open(NULL);
-  if( !tcb->vm ) return NULL;    // error. can't open VM.
-				 // NOTE: memory leak MrbcTcb. but ignore.
+  // assign VM ID
+  if( mrbc_vm_open( &tcb->vm ) == NULL ) {
+    console_printf("Error: Can't assign VM-ID.\n");
+    return NULL;
+  }
 
-  if( mrbc_load_mrb(tcb->vm, vm_code) != 0 ) {
+  if( mrbc_load_mrb(&tcb->vm, vm_code) != 0 ) {
     console_printf("Error: Illegal bytecode.\n");
-    mrbc_vm_close(tcb->vm);
+    mrbc_vm_close( &tcb->vm );
     return NULL;
   }
   if( tcb->state != TASKSTATE_DOMANT ) {
-    mrbc_vm_begin(tcb->vm);
+    mrbc_vm_begin( &tcb->vm );
   }
 
   hal_disable_irq();
@@ -399,13 +384,13 @@ int mrbc_start_task(MrbcTcb *tcb)
   if( tcb->state != TASKSTATE_DOMANT ) return -1;
   tcb->timeslice           = TIMESLICE_TICK;
   tcb->priority_preemption = tcb->priority;
-  mrbc_vm_begin(tcb->vm);
+  mrbc_vm_begin(&tcb->vm);
 
   hal_disable_irq();
 
   MrbcTcb *t = q_ready_;
   while( t != NULL ) {
-    if( t->state == TASKSTATE_RUNNING ) t->vm->flag_preemption = 1;
+    if( t->state == TASKSTATE_RUNNING ) t->vm.flag_preemption = 1;
     t = t->next;
   }
 
@@ -437,13 +422,13 @@ int mrbc_run(void)
     int res = 0;
 
 #ifndef MRBC_NO_TIMER
-    tcb->vm->flag_preemption = 0;
-    res = mrbc_vm_run(tcb->vm);
+    tcb->vm.flag_preemption = 0;
+    res = mrbc_vm_run(&tcb->vm);
 
 #else
     while( tcb->timeslice > 0 ) {
-      tcb->vm->flag_preemption = 1;
-      res = mrbc_vm_run(tcb->vm);
+      tcb->vm.flag_preemption = 1;
+      res = mrbc_vm_run(&tcb->vm);
       tcb->timeslice--;
       if( res < 0 ) break;
       if( tcb->state != TASKSTATE_RUNNING ) break;
@@ -458,7 +443,7 @@ int mrbc_run(void)
       tcb->state = TASKSTATE_DOMANT;
       q_insert_task(tcb);
       hal_enable_irq();
-      mrbc_vm_end(tcb->vm);
+      mrbc_vm_end(&tcb->vm);
 
 #if MRBC_SCHEDULER_EXIT
       if( q_ready_ == NULL && q_waiting_ == NULL &&
@@ -499,7 +484,7 @@ void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms)
   q_insert_task(tcb);
   hal_enable_irq();
 
-  tcb->vm->flag_preemption = 1;
+  tcb->vm.flag_preemption = 1;
 }
 
 
@@ -510,7 +495,7 @@ void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms)
 void mrbc_relinquish(MrbcTcb *tcb)
 {
   tcb->timeslice           = 0;
-  tcb->vm->flag_preemption = 1;
+  tcb->vm.flag_preemption = 1;
 }
 
 
@@ -523,7 +508,7 @@ void mrbc_change_priority(MrbcTcb *tcb, int priority)
   tcb->priority            = (uint8_t)priority;
   tcb->priority_preemption = (uint8_t)priority;
   tcb->timeslice           = 0;
-  tcb->vm->flag_preemption = 1;
+  tcb->vm.flag_preemption = 1;
 }
 
 
@@ -539,7 +524,7 @@ void mrbc_suspend_task(MrbcTcb *tcb)
   q_insert_task(tcb);
   hal_enable_irq();
 
-  tcb->vm->flag_preemption = 1;
+  tcb->vm.flag_preemption = 1;
 }
 
 
@@ -553,7 +538,7 @@ void mrbc_resume_task(MrbcTcb *tcb)
 
   MrbcTcb *t = q_ready_;
   while( t != NULL ) {
-    if( t->state == TASKSTATE_RUNNING ) t->vm->flag_preemption = 1;
+    if( t->state == TASKSTATE_RUNNING ) t->vm.flag_preemption = 1;
     t = t->next;
   }
 

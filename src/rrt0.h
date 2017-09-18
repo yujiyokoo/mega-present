@@ -22,6 +22,8 @@ extern "C" {
 #include <stdint.h>
 
 /***** Local headers ********************************************************/
+#include "vm.h"
+
 /***** Constant values ******************************************************/
 
 //================================================
@@ -44,10 +46,8 @@ enum MrbcTaskState {
 /*!@brief
   Task control block
 */
-struct VM;
 typedef struct MrbcTcb {
   struct MrbcTcb *next;
-  struct VM      *vm;
   uint8_t         priority;
   uint8_t         priority_preemption;
   uint8_t         timeslice;
@@ -55,15 +55,16 @@ typedef struct MrbcTcb {
   union {
     uint32_t wakeup_tick;
   };
+  struct VM vm;
 } MrbcTcb;
 
-#define MRBC_TCB_INITIALIZER { 0, 0, 128, 128, 0, TASKSTATE_READY }
 
 
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
 void mrbc_tick(void);
 void mrbc_init(uint8_t *ptr, unsigned int size );
+void mrbc_init_tcb(MrbcTcb *tcb);
 MrbcTcb *mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb);
 int mrbc_start_task(MrbcTcb *tcb);
 int mrbc_run(void);
