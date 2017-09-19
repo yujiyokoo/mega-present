@@ -480,7 +480,7 @@ uint8_t* mrbc_raw_realloc(void *ptr, unsigned int size)
   uint8_t *new_ptr = mrbc_raw_alloc(size);
   if( new_ptr == NULL ) return NULL;  // ENOMEM
 
-  memcpy(new_ptr, ptr, target->size);
+  memcpy(new_ptr, ptr, target->size - sizeof(USED_BLOCK));
   SET_VM_ID(new_ptr, target->vm_id);
   mrbc_raw_free(ptr);
 
@@ -625,7 +625,7 @@ void mrbc_inc_ref_count(void *ptr)
 
 
 //================================================================
-/*! decrementt ref_count and free 
+/*! decrementt ref_count and free
 
   @param  vm	pointer to VM.
   @param  ptr	Return value of mrbc_alloc()
@@ -639,5 +639,3 @@ void mrbc_dec_ref_count(const mrb_vm *vm, void *ptr)
     mrbc_free(vm, ptr);
   }
 }
-
-
