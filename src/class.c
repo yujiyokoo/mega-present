@@ -30,50 +30,35 @@
 
 //================================================================
 /*!@brief
-  find class from a object
+  find class by object
 
   @param  vm
   @param  obj
   @return pointer to mrb_class
 */
-mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
+static mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
 {
-  mrb_class *cls = mrbc_class_object;
-  switch( obj->tt ){
-    case MRB_TT_ARRAY:
-      cls = mrbc_class_array;
-      break;
-    case MRB_TT_HASH:
-      cls = mrbc_class_hash;
-      break;
-    case MRB_TT_FIXNUM:
-      cls = mrbc_class_fixnum;
-      break;
-    case MRB_TT_SYMBOL:
-      cls = mrbc_class_symbol;
-      break;
-    case MRB_TT_FALSE:
-      cls = mrbc_class_false;
-      break;
-    case MRB_TT_TRUE:
-      cls = mrbc_class_true;
-      break;
-#if MRBC_USE_FLOAT
-    case MRB_TT_FLOAT:
-      cls = mrbc_class_float;
-      break;
-#endif
-#if MRBC_USE_STRING
-    case MRB_TT_STRING:
-      cls = mrbc_class_string;
-      break;
-#endif
-    case MRB_TT_USERTOP:
-      cls = vm->target_class;
-    break;
-    default:
-      break;
+  mrb_class *cls;
+
+  switch( obj->tt ) {
+  case MRB_TT_TRUE:	cls = mrbc_class_true;		break;
+  case MRB_TT_FALSE:	cls = mrbc_class_false; 	break;
+  case MRB_TT_NIL:	cls = mrbc_class_nil;		break;
+  case MRB_TT_FIXNUM:	cls = mrbc_class_fixnum;	break;
+  case MRB_TT_FLOAT:	cls = mrbc_class_float; 	break;
+  case MRB_TT_SYMBOL:	cls = mrbc_class_symbol;	break;
+
+  case MRB_TT_OBJECT:	cls = mrbc_class_object;	break;
+  case MRB_TT_ARRAY:	cls = mrbc_class_array; 	break;
+  case MRB_TT_STRING:	cls = mrbc_class_string;	break;
+  case MRB_TT_RANGE:	cls = mrbc_class_range; 	break;
+  case MRB_TT_HASH:	cls = mrbc_class_hash;		break;
+
+  case MRB_TT_USERTOP:	cls = vm->target_class; 	break;
+
+  default:		cls = mrbc_class_object;	break;
   }
+
   return cls;
 }
 
@@ -128,6 +113,8 @@ void mrbc_define_method_proc(mrb_vm *vm, mrb_class *cls, mrb_sym sym_id, mrb_pro
 }
 
 
+//================================================================
+// Object class
 
 // Object - puts
 static void c_puts(mrb_vm *vm, mrb_value *v)
@@ -189,9 +176,6 @@ static void c_puts_nl(mrb_vm *vm, mrb_value *v)
 }
 
 
-//================================================================
-// Object class
-
 static void c_object_not(mrb_vm *vm, mrb_value *v)
 {
   SET_FALSE_RETURN();
@@ -232,30 +216,32 @@ static void mrbc_init_class_object(mrb_vm *vm)
 
 
 //================================================================
-// False class
+// Nil class
 
-static void c_false_neq(mrb_vm *vm, mrb_value *v)
-{
-  mrb_object *arg0 = v+1;
-  if( arg0->tt == MRB_TT_FALSE ){
-    SET_FALSE_RETURN();
-  } else {
-    SET_TRUE_RETURN();
-  }
-}
-
-static void c_false_not(mrb_vm *vm, mrb_value *v)
+static void c_nil_false_not(mrb_vm *vm, mrb_value *v)
 {
   SET_TRUE_RETURN();
 }
+
+static void mrbc_init_class_nil(mrb_vm *vm)
+{
+  // Class
+  mrbc_class_nil = mrbc_class_alloc(vm, "NilClass", mrbc_class_object);
+  // Methods
+  mrbc_define_method(vm, mrbc_class_nil, "!", c_nil_false_not);
+}
+
+
+
+//================================================================
+// False class
 
 static void mrbc_init_class_false(mrb_vm *vm)
 {
   // Class
   mrbc_class_false = mrbc_class_alloc(vm, "FalseClass", mrbc_class_object);
   // Methods
-  mrbc_define_method(vm, mrbc_class_false, "!=", c_false_neq);
-  mrbc_define_method(vm, mrbc_class_false, "!", c_false_not);
+  mrbc_define_method(vm, mrbc_class_false, "!", c_nil_false_not);
 }
 
 
@@ -263,28 +249,22 @@ static void mrbc_init_class_false(mrb_vm *vm)
 //================================================================
 // True class
 
-static void c_true_neq(mrb_vm *vm, mrb_value *v)
-{
-  mrb_object *arg0 = v+1;
-  if( arg0->tt == MRB_TT_TRUE ){
-    SET_FALSE_RETURN();
-  } else {
-    SET_TRUE_RETURN();
-  }
-}
-
 static void mrbc_init_class_true(mrb_vm *vm)
 {
   // Class
   mrbc_class_true = mrbc_class_alloc(vm, "TrueClass", mrbc_class_object);
   // Methods
-  mrbc_define_method(vm, mrbc_class_true, "!=", c_true_neq);
 }
 
+
+
+//================================================================
+// initialize
 
 void mrbc_init_class(void)
 {
   mrbc_init_class_object(0);
+  mrbc_init_class_nil(0);
   mrbc_init_class_false(0);
   mrbc_init_class_true(0);
 

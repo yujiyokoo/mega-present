@@ -29,12 +29,8 @@ mrb_class *mrbc_class_nil;
 mrb_class *mrbc_class_array;
 mrb_class *mrbc_class_fixnum;
 mrb_class *mrbc_class_symbol;
-#if MRBC_USE_FLOAT
 mrb_class *mrbc_class_float;
-#endif
-#if MRBC_USE_STRING
 mrb_class *mrbc_class_string;
-#endif
 mrb_class *mrbc_class_range;
 mrb_class *mrbc_class_hash;
 
