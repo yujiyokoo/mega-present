@@ -42,7 +42,6 @@ static mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
 
   switch( obj->tt ) {
   case MRB_TT_TRUE:	cls = mrbc_class_true;		break;
-  case MRB_TT_PROC:     cls = mrbc_class_proc;          break;
   case MRB_TT_FALSE:	cls = mrbc_class_false; 	break;
   case MRB_TT_NIL:	cls = mrbc_class_nil;		break;
   case MRB_TT_FIXNUM:	cls = mrbc_class_fixnum;	break;
@@ -50,6 +49,7 @@ static mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
   case MRB_TT_SYMBOL:	cls = mrbc_class_symbol;	break;
 
   case MRB_TT_OBJECT:	cls = mrbc_class_object;	break;
+  case MRB_TT_PROC:	cls = mrbc_class_proc;		break;
   case MRB_TT_ARRAY:	cls = mrbc_class_array; 	break;
   case MRB_TT_STRING:	cls = mrbc_class_string;	break;
   case MRB_TT_RANGE:	cls = mrbc_class_range; 	break;
@@ -228,7 +228,7 @@ void c_proc_call(mrb_vm *vm, mrb_value *v)
   callinfo->n_args = 2;
   vm->callinfo_top++;
 
-  
+
 
   // target irep
   vm->pc = 0;
