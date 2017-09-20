@@ -32,6 +32,7 @@ extern mrb_vm mrbc_vm[];
 /* Class Tree */
 extern mrb_class *mrbc_class_object;
 
+extern mrb_class *mrbc_class_proc;
 extern mrb_class *mrbc_class_false;
 extern mrb_class *mrbc_class_true;
 extern mrb_class *mrbc_class_nil;
