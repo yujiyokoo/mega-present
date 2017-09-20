@@ -605,28 +605,6 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  OP_SENDB
-
-  R(A) := block (16=6:1:5:4)
-
-  @param  vm    A pointer of VM.
-  @param  code  bytecode
-  @param  regs  vm->regs + vm->reg_top
-  @retval 0  No error.
-*/
-inline static int op_sendb( mrb_vm *vm, uint32_t code, mrb_value *regs )
-{
-  int ra = GETARG_A(code);
-  mrb_value *stack = regs + 1;
-  regs[ ra ] = stack[0];
-  
-  return 0;
-}
-
-
-
-//================================================================
-/*!@brief
   Execute ADDI
 
   R(A) := R(A)+C (Syms[B]=:+)
