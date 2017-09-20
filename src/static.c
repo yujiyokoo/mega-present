@@ -22,6 +22,9 @@ mrb_globalobject mrbc_global[MAX_GLOBAL_OBJECT_SIZE];
 /* Class Tree */
 mrb_class *mrbc_class_object;
 
+/* Proc */
+mrb_class *mrbc_class_proc;
+
 /* Classes */
 mrb_class *mrbc_class_false;
 mrb_class *mrbc_class_true;

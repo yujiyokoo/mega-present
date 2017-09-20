@@ -49,6 +49,9 @@ mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
     case MRB_TT_SYMBOL:
       cls = mrbc_class_symbol;
       break;
+    case MRB_TT_PROC:
+      cls = mrbc_class_proc;
+      break;
     case MRB_TT_FALSE:
       cls = mrbc_class_false;
       break;
@@ -216,6 +219,36 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
 }
 
+// =============== ProcClass
+
+void c_proc_call(mrb_vm *vm, mrb_value *v)
+{
+  // similar to OP_SEND
+
+  // callinfo
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  callinfo->reg_top = vm->reg_top;
+  callinfo->pc_irep = vm->pc_irep;
+  callinfo->pc = vm->pc;
+  callinfo->n_args = 2;
+  vm->callinfo_top++;
+
+  
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = v->proc->func.irep;
+
+}
+
+
+static void mrbc_init_class_proc(mrb_vm *vm)
+{
+  // Class
+  mrbc_class_proc= mrbc_class_alloc(vm, "Proc", mrbc_class_object);
+  // Methods
+  mrbc_define_method(vm, mrbc_class_proc, "call", c_proc_call);
+}
 
 // =============== FalseClass
 
@@ -242,6 +275,8 @@ static void mrbc_init_class_false(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_false, "!=", c_false_ne);
   mrbc_define_method(vm, mrbc_class_false, "!", c_false_not);
 }
+
+
 
 
 // =============== TrueClass
@@ -277,6 +312,7 @@ static void mrbc_init_class_true(mrb_vm *vm)
 void mrbc_init_class(void)
 {
   mrbc_init_class_object(0);
+  mrbc_init_class_proc(0);
   mrbc_init_class_false(0);
   mrbc_init_class_true(0);
 

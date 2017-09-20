@@ -433,8 +433,23 @@ inline static int op_jmpnot( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrb_value recv = regs[GETARG_A(code)];
-  int rb = GETARG_B(code);
+  int ra = GETARG_A(code);
+  mrb_value recv = regs[ra];
+  int rb = GETARG_B(code);  // index of method sym
+  int rc = GETARG_C(code);  // numbr of params
+
+  // Block param
+  int bidx = ra + rc + 1;
+  if( GET_OPCODE(code) == OP_SEND ){
+    // OP_SEND: set nil
+    regs[bidx].tt = MRB_TT_NIL;
+  } else {
+    // OP_SENDB: set Proc objec
+    if( regs[bidx].tt != MRB_TT_NIL && regs[bidx].tt != MRB_TT_PROC ){
+      // convert to Proc
+    }
+  }
+
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrb_sym sym_id = str_to_symid(sym);
   mrb_proc *m = find_method(vm, recv, sym_id);
@@ -444,13 +459,13 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
     return 0;
   }
 
-  // is C func?
+  // m is C func
   if( m->c_func ) {
     m->func.func(vm, regs + GETARG_A(code));
     return 0;
   }
-
-  // is Ruby method.
+  
+  // m is Ruby method.
   // callinfo
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
   callinfo->reg_top = vm->reg_top;
@@ -539,6 +554,9 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_blkpush( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  int ra = GETARG_A(code);
+  regs[ra] = regs[ra-1];
+
   return 0;
 }
 
