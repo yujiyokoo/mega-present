@@ -526,15 +526,18 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   // return value
   mrb_value v = regs[GETARG_A(code)];
+  mrbc_dup(vm, &v);
   regs[0] = v;
   // restore irep,pc,regs
   vm->callinfo_top--;
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  int reg_top = vm->reg_top;
+  vm->reg_top = callinfo->reg_top;
   // clear regs and restore vm->reg_top
-  while( vm->reg_top > callinfo->reg_top ){
-    mrbc_release(vm, &regs[vm->reg_top]);
-    regs[vm->reg_top].tt = MRB_TT_EMPTY;
-    vm->reg_top--;
+  while( reg_top > callinfo->reg_top ){
+    mrbc_release(vm, &regs[reg_top]);
+    regs[reg_top].tt = MRB_TT_EMPTY;
+    reg_top--;
   }
   // restore others
   vm->pc_irep = callinfo->pc_irep;
