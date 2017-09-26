@@ -33,7 +33,7 @@
   <pre>
   Structure
    "RITE"	identifier
-   "0003"	version
+   "0004"	version
    0000		CRC
    0000_0000	total size
    "MATZ"	compiler name
@@ -104,47 +104,44 @@ static int load_header(struct VM *vm, const uint8_t **pos)
 */
 static int load_irep(struct VM *vm, const uint8_t **pos)
 {
-  const uint8_t *p = *pos;
-  p += 4;
-  int section_size = bin_to_uint32(p);
-  p += 4;
+  const uint8_t *p = *pos + 4;                  // "IREP"
+  int section_size = bin_to_uint32(p); p += 4;
 
-  if( memcmp(p, "0000", 4) != 0 ) {
+  if( memcmp(p, "0000", 4) != 0 ) {             // rite version
     vm->error_code = LOAD_FILE_IREP_ERROR_VERSION;
     return -1;
   }
   p += 4;
 
-  int cnt = 0;
-  while( cnt < section_size ) {
-    cnt += bin_to_uint32(p) + 8;
-    p += 4;
+  int rlen_total = 1;
+  do {
+    p += 4;                                     // skip record size
 
     // new irep
     mrb_irep *irep = new_irep(0);
-    if( irep == 0 ) {
+    if( irep == NULL ) {
       vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
       return -1;
     }
 
     // add irep into vm->irep (at tail)
     // TODO: Optimize this process
-    if( vm->irep == 0 ) {
+    if( vm->irep == NULL ) {
       vm->irep = irep;
     } else {
       mrb_irep *p = vm->irep;
-      while( p->next != 0 ) {
+      while( p->next != NULL ) {
         p = p->next;
       }
       p->next = irep;
     }
-    irep->next = 0;
 
     // nlocals,nregs,rlen
     irep->nlocals = bin_to_uint16(p);  p += 2;
     irep->nregs = bin_to_uint16(p);    p += 2;
     irep->rlen = bin_to_uint16(p);     p += 2;
     irep->ilen = bin_to_uint32(p);     p += 4;
+    rlen_total += irep->rlen;
 
     // padding
     p += (-(p - *pos + 2) & 0x03);  // +2 = (RITE(22) + IREP(12)) & 0x03
@@ -154,49 +151,49 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
     p += irep->ilen * 4;
 
     // POOL BLOCK
-    irep->ptr_to_pool = 0;
-    int plen = bin_to_uint32(p);    p += 4;
-    int i;
-    for( i=0 ; i<plen ; i++ ){
+    int plen = bin_to_uint32(p);        p += 4;
+    while( --plen >= 0 ) {
       int tt = *p++;
-      int obj_size = bin_to_uint16(p);   p += 2;
-      mrb_object *ptr = mrbc_obj_alloc(0, MRB_TT_FALSE);
-      if( ptr == 0 ){
+      int obj_size = bin_to_uint16(p);  p += 2;
+      mrb_object *obj = mrbc_obj_alloc(0, MRB_TT_FALSE);
+      if( obj == NULL ){
         vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
 	return -1;
       }
-      switch( tt ){
+      switch( tt ) {
 #if MRBC_USE_STRING
-        case 0: { // IREP_TT_STRING
-          ptr->tt = MRB_TT_STRING;
-	  ptr->str = (char*)p;
-        } break;
+      case 0: { // IREP_TT_STRING
+        obj->tt = MRB_TT_STRING;
+        obj->str = (char*)p;
+      } break;
 #endif
-        case 1: { // IREP_TT_FIXNUM
-          char buf[obj_size+1];
-          memcpy(buf, p, obj_size);
-          buf[obj_size] = '\0';
-          ptr->tt = MRB_TT_FIXNUM;
-          ptr->i = atoi(buf);
-        } break;
+      case 1: { // IREP_TT_FIXNUM
+        char buf[obj_size+1];
+        memcpy(buf, p, obj_size);
+        buf[obj_size] = '\0';
+        obj->tt = MRB_TT_FIXNUM;
+        obj->i = atoi(buf);
+      } break;
 #if MRBC_USE_FLOAT
-        case 2: { // IREP_TT_FLOAT
-          char buf[obj_size+1];
-          memcpy(buf, p, obj_size);
-          buf[obj_size] = '\0';
-          ptr->tt = MRB_TT_FLOAT;
-          ptr->d = atof(buf);
-        } break;
+      case 2: { // IREP_TT_FLOAT
+        char buf[obj_size+1];
+        memcpy(buf, p, obj_size);
+        buf[obj_size] = '\0';
+        obj->tt = MRB_TT_FLOAT;
+        obj->d = atof(buf);
+      } break;
 #endif
-        default:
-          break;
+      default:
+        break;
       }
-      if( irep->ptr_to_pool == 0 ){
-        irep->ptr_to_pool = ptr;
+      if( irep->ptr_to_pool == NULL ){
+        irep->ptr_to_pool = obj;
       } else {
-        mrb_object *pp = irep->ptr_to_pool;
-        while( pp->next != 0 ) pp = pp->next;
-        pp->next = ptr;
+        mrb_object *p = irep->ptr_to_pool;
+        while( p->next != NULL ) {
+          p = p->next;
+        }
+        p->next = obj;
       }
       p += obj_size;
     }
@@ -204,13 +201,14 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
     // SYMS BLOCK
     irep->ptr_to_sym = (uint8_t*)p;
     int slen = bin_to_uint32(p);    p += 4;
-    for( i=0 ; i<slen ; i++ ){
+    while( --slen >= 0 ) {
       int s = bin_to_uint16(p);     p += 2;
       p += s+1;
     }
-  }
 
-  /* TODO: size */
+    rlen_total -= 1;
+  } while( rlen_total > 0 );
+
   *pos += section_size;
   return 0;
 }

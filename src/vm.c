@@ -466,7 +466,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
     m->func.func(vm, regs + GETARG_A(code));
     return 0;
   }
-  
+
   // m is Ruby method.
   // callinfo
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
@@ -1258,6 +1258,8 @@ inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 mrb_irep *new_irep(mrb_vm *vm)
 {
   mrb_irep *p = (mrb_irep *)mrbc_alloc(vm, sizeof(mrb_irep));
+  if( p )
+    memset(p, 0, sizeof(mrb_irep));	// caution: assume NULL is zero.
   return p;
 }
 
@@ -1298,7 +1300,7 @@ mrb_vm *mrbc_vm_open(mrb_vm *vm_arg)
   }
 
   // initialize attributes.
-  memset(vm, 0, sizeof(mrb_vm));	// caution: suppose NULL is zero.
+  memset(vm, 0, sizeof(mrb_vm));	// caution: assume NULL is zero.
   if( vm_arg == NULL ) vm->flag_need_memfree = 1;
   vm->vm_id = vm_id;
 
