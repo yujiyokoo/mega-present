@@ -25,11 +25,11 @@ static void c_fixnum_comp(mrb_vm *vm, mrb_value *v)
 {
   int num = GET_INT_ARG(1);
   if(v->i > num){
-  SET_INT_RETURN(1);
+    SET_INT_RETURN(1);
   }else if(v->i == num){
-  SET_INT_RETURN(0);
+    SET_INT_RETURN(0);
   }else{
-  SET_INT_RETURN(-1);
+    SET_INT_RETURN(-1);
   }
 }
 
@@ -133,7 +133,6 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
 // Operator unary -
 static void c_float_negative(mrb_vm *vm, mrb_value *v)
 {
-  // ARG(-1) means self
   double num = GET_FLOAT_ARG(0);
   SET_FLOAT_RETURN( -num );
 }
