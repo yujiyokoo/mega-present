@@ -21,3 +21,4 @@ src/hal
 
 # Mac
 .DS_Store
+*.dSYM
