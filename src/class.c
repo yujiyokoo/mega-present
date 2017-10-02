@@ -26,6 +26,7 @@
 #include "c_symbol.h"
 #include "c_range.h"
 
+#include "c_ext.h"
 
 
 //================================================================
@@ -311,4 +312,7 @@ void mrbc_init_class(void)
   mrbc_init_class_array(0);
   mrbc_init_class_range(0);
   mrbc_init_class_hash(0);
+
+  // etension
+  mrbc_init_class_extension(0);
 }
