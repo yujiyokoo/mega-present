@@ -1174,10 +1174,67 @@ inline static int op_range( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  int ra = GETARG_A(code);
+  int rb = GETARG_B(code);
 
+  // sym_id : class name
+  mrb_irep *cur_irep = vm->pc_irep;
+  char *sym = find_irep_symbol(cur_irep->ptr_to_sym, rb);
+  
+  // super: pointer to super class
+  mrb_class *super  = mrbc_class_object;
+  if( regs[ra+1].tt == MRB_TT_CLASS ){
+    super = regs[ra+1].cls;
+  }
+
+  mrb_class *cls = mrbc_class_alloc(vm, sym, super);
+
+  mrb_value ret;
+  ret.tt = MRB_TT_CLASS;
+  ret.cls = cls;
+
+  regs[ra] = ret;
 
   return 0;
 }
+
+
+//================================================================
+/*!@brief
+  OP_EXEC
+
+  R(A) := blockexec(R(A),SEQ[Bx])
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+
+  // prepare callinfo
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  callinfo->reg_top = vm->reg_top;
+  callinfo->pc_irep = vm->pc_irep;
+  callinfo->pc = vm->pc;
+  callinfo->n_args = 0;
+  vm->callinfo_top++;
+
+  // find irep
+  int b = GETARG_Bx(code);
+  mrb_irep *p = vm->irep->next;
+  int i;
+  for( i = 0; i < b; i++ ) {
+    p = p->next;
+  }
+
+  vm->pc = 0;
+  vm->pc_irep = p;
+
+  return 0;
+}
+
 
 
 //================================================================
@@ -1443,6 +1500,7 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_LAMBDA:     ret = op_lambda    (vm, code, regs); break;
     case OP_RANGE:      ret = op_range     (vm, code, regs); break;
     case OP_CLASS:      ret = op_class     (vm, code, regs); break;
+    case OP_EXEC:       ret = op_exec      (vm, code, regs); break;
     case OP_METHOD:     ret = op_method    (vm, code, regs); break;
     case OP_TCLASS:     ret = op_tclass    (vm, code, regs); break;
     case OP_STOP:       ret = op_stop      (vm, code, regs); break;

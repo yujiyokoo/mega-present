@@ -30,7 +30,7 @@ mrb_class *mrbc_class_alloc(mrb_vm *vm, const char *name, mrb_class *super)
     v.tt = MRB_TT_CLASS;
     v.cls = ptr;
     // Add to global
-    global_object_add(sym_id, v);
+    const_add(sym_id, &v);
   }
   return ptr;
 }
