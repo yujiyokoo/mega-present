@@ -20,6 +20,7 @@
 extern "C" {
 #endif
 
+  /*
 #define OBJECT_WITH_SYMBOL\
   mrb_sym sym_id;\
   mrb_object obj
@@ -31,6 +32,9 @@ typedef struct GLOBAL_OBJECT {
 typedef struct CONST_OBJECT {
   OBJECT_WITH_SYMBOL;
 } mrb_constobject;
+  */
+
+void  mrbc_init_global(void);
 
 void global_object_add(mrb_sym sym_id, mrb_value v);
 mrb_value global_object_get(mrb_sym sym_id);

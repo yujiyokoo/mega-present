@@ -15,10 +15,6 @@
 #include "class.h"
 #include "symbol.h"
 
-/* Static Variables */
-mrb_constobject mrbc_const[MAX_CONST_COUNT];
-mrb_globalobject mrbc_global[MAX_GLOBAL_OBJECT_SIZE];
-
 /* Class Tree */
 mrb_class *mrbc_class_object;
 
@@ -39,17 +35,8 @@ mrb_class *mrbc_class_hash;
 
 void init_static(void)
 {
-  int i;
-
-  /* global objects */
-  for( i=0 ; i<MAX_GLOBAL_OBJECT_SIZE ; i++ ){
-    mrbc_global[i].sym_id = -1;
-  }
-
-  for( i=0 ; i<MAX_CONST_COUNT; i++ ){
-    mrbc_const[i].sym_id = -1;
-  }
-
   /* init class */
   mrbc_init_class();
+
+  mrbc_init_global();
 }

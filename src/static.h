@@ -45,10 +45,6 @@ extern mrb_class *mrbc_class_range;
 extern mrb_class *mrbc_class_hash;
 
 
-extern mrb_constobject mrbc_const[];
-/* Global Objects */
-extern mrb_globalobject mrbc_global[];
-
 void init_static(void);
 
 

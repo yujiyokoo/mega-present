@@ -12,10 +12,25 @@
 
 */
 
+typedef struct GLOBAL_OBJECT {
+  mrb_sym sym_id;
+  mrb_object obj;
+} mrb_globalobject;
+
+// max of global object in mrbc_global[]
+static int global_right;
+static mrb_globalobject mrbc_global[MAX_GLOBAL_OBJECT_SIZE];
+
+//
+void  mrbc_init_global(void)
+{
+  global_right = 0;
+}
+
 /* search */
 static int search_global_object(mrb_sym sym_id)
 {
-  int left = 0, right = MAX_GLOBAL_OBJECT_SIZE-1;
+  int left = 0, right = global_right - 1;
   while( left <= right ){
     int mid = (left+right)/2;
     if( mrbc_global[mid].sym_id == sym_id ) return mid;
@@ -28,6 +43,7 @@ static int search_global_object(mrb_sym sym_id)
   return -1;
 }
 
+/*
 static int search_const(mrb_sym sym_id) {
   int left = 0, right = MAX_CONST_COUNT-1;
   while (left <= right) {
@@ -41,13 +57,14 @@ static int search_const(mrb_sym sym_id) {
   }
   return -1;
 }
+*/
 
 /* add */
 void global_object_add(mrb_sym sym_id, mrb_value v)
 {
   int index = search_global_object(sym_id);
   if( index == -1 ){
-    index = MAX_GLOBAL_OBJECT_SIZE-1;
+    index = global_right - 1;
     while( index > 0 && mrbc_global[index].sym_id < sym_id ){
       mrbc_global[index] = mrbc_global[index-1];
       index--;
@@ -59,16 +76,7 @@ void global_object_add(mrb_sym sym_id, mrb_value v)
 
 void const_add(mrb_sym sym_id, mrb_object *obj)
 {
-  int index = search_const(sym_id);
-  if( index == -1 ){
-    index = MAX_CONST_COUNT-1;
-    while(index > 0 && mrbc_const[index].sym_id < sym_id ){
-      mrbc_const[index] = mrbc_const[index-1];
-      index--;
-    }
-  }
-  mrbc_const[index].sym_id = sym_id;
-  mrbc_const[index].obj = *obj;
+  global_object_add(sym_id, *obj);
 }
 
 /* get */
@@ -86,12 +94,5 @@ mrb_value global_object_get(mrb_sym sym_id)
 }
 
 mrb_object const_get(mrb_sym sym_id) {
-  int index = search_const(sym_id);
-  if (index >= 0){
-    return mrbc_const[index].obj;
-  } else {
-    mrb_object obj;
-    obj.tt = MRB_TT_NIL;
-    return obj;
-  }
+  return global_object_get(sym_id);
 }
