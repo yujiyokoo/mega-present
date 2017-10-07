@@ -482,6 +482,8 @@ uint8_t* mrbc_raw_realloc(void *ptr, unsigned int size)
 
   memcpy(new_ptr, ptr, target->size - sizeof(USED_BLOCK));
   SET_VM_ID(new_ptr, target->vm_id);
+  SET_REF_COUNT(new_ptr, GET_REF_COUNT(ptr));
+
   mrbc_raw_free(ptr);
 
   return new_ptr;
