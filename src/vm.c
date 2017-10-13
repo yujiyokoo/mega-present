@@ -1031,20 +1031,27 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrb_value v;
-  v.tt = MRB_TT_STRING;
-
+  int arg_a = GETARG_A(code);
   int arg_b = GETARG_Bx(code);
-  mrb_object *ptr = vm->pc_irep->ptr_to_pool;
+  mrb_value *ra = &regs[arg_a];
+
+  mrbc_release(vm, ra);
+  ra->tt = MRB_TT_STRING;
+
+  mrb_object *pool_obj = vm->pc_irep->ptr_to_pool;
   while( arg_b > 0 ){
-    ptr = ptr->next;
+    pool_obj = pool_obj->next;
+    assert( pool_obj );
     arg_b--;
   }
-  v.str = mrbc_string_dup(vm, ptr->str);
 
-  int arg_a = GETARG_A(code);
-  mrbc_release(vm, &regs[GETARG_A(code)]);
-  regs[arg_a] = v;
+  int len = bin_to_uint16(pool_obj->str - 2);
+  ra->str = (char *)mrbc_alloc( vm, len+1 );
+  if( !ra->str ) return -1;
+
+  memcpy( ra->str, pool_obj->str, len );
+  ra->str[len] = '\0';
+
   return 0;
 }
 
