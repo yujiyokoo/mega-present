@@ -1,9 +1,11 @@
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 #include "value.h"
 #include "static.h"
 #include "symbol.h"
 #include "alloc.h"
+#include "c_string.h"
 #include "vm.h"
 
 mrb_object *mrbc_obj_alloc(mrb_vm *vm, mrb_vtype tt)
@@ -75,7 +77,7 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
   case MRB_TT_FLOAT:
     return v1->d == v2->d;
   case MRB_TT_STRING:
-    return !strcmp(v1->str, v2->str);
+    return !strcmp(v1->obj->str, v2->obj->str);
   case MRB_TT_ARRAY: {
     mrb_value *array1 = v1->obj;
     mrb_value *array2 = v2->obj;
@@ -99,7 +101,7 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
 //================================================================
 /*!@brief
 
-  Duplicate mrb_value 
+  Duplicate mrb_value
 
   @param   vm    Pointer to VM
   @param   v     Pointer to mrb_value
@@ -107,9 +109,10 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
 void mrbc_dup(const mrb_vm *vm, mrb_value *v)
 {
   switch( v->tt ){
-  case MRB_TT_STRING:{
-    mrbc_inc_ref_count(v->str);
-  } break;
+  case MRB_TT_PROC:
+  case MRB_TT_STRING:
+    mrbc_inc_ref_count(v->obj);
+    break;
   default:
     // Nothing
     break;
@@ -119,20 +122,33 @@ void mrbc_dup(const mrb_vm *vm, mrb_value *v)
 //================================================================
 /*!@brief
 
-  Release object related memory (reference counter) 
+  Release object related memory (reference counter)
 
   @param   vm    Pointer to VM
-  @param   v     Pointer to mrb_value
+  @param   v     Pointer to target mrb_value
 */
 void mrbc_release(const mrb_vm *vm, mrb_value *v)
 {
-  switch( v->tt ){
-  case MRB_TT_STRING:{
-    mrbc_dec_ref_count(vm, v->str);
-  } break;
+  switch( v->tt ) {
+  case MRB_TT_PROC:
+    if( mrbc_dec_ref_count(v->obj) == 0 ) {
+      mrbc_free(vm, v->obj);
+    }
+    break;
+
+  case MRB_TT_STRING:
+    if( mrbc_dec_ref_count(v->obj) == 0 ) {
+      mrbc_string_destructor(v->obj);
+    }
+    break;
+
   default:
     // Nothing
     break;
   }
-}
 
+#ifndef NDEBUG
+  v->tt = MRB_TT_EMPTY;
+  v->obj = NULL;
+#endif
+}
