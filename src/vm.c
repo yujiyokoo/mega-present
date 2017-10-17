@@ -447,7 +447,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   mrb_value recv = regs[ra];
   int rb = GETARG_B(code);  // index of method sym
-  int rc = GETARG_C(code);  // numbr of params
+  int rc = GETARG_C(code);  // number of params
 
   // Block param
   int bidx = ra + rc + 1;
@@ -473,7 +473,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // m is C func
   if( m->c_func ) {
-    m->func.func(vm, regs + GETARG_A(code));
+    m->func.func(vm, regs + ra);
     return 0;
   }
 
@@ -483,7 +483,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->reg_top = vm->reg_top;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
-  callinfo->n_args = GETARG_C(code);
+  callinfo->n_args = rc;
   vm->callinfo_top++;
 
   // target irep
@@ -491,7 +491,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   vm->pc_irep = m->func.irep;
 
   // new regs
-  vm->reg_top += GETARG_A(code);
+  vm->reg_top += ra;
 
   return 0;
 }
