@@ -21,6 +21,8 @@
 extern "C" {
 #endif
 
+#define MRBC_STRING_C_STR(p) ((p)->obj->str)
+
 
 void mrbc_init_class_string(mrb_vm *vm);
 

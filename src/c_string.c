@@ -28,7 +28,7 @@
 
   @param  vm	pointer to VM.
   @param  src	source string or NULL
-  @return 	pointer to allocated mrb_value object.
+  @return 	pointer to allocated String object set.
 */
 mrb_value * mrbc_string_constructor(mrb_vm *vm, const char *src)
 {
@@ -72,7 +72,7 @@ mrb_value * mrbc_string_constructor(mrb_vm *vm, const char *src)
   @param  vm	pointer to VM.
   @param  src	source string or NULL
   @param  len	source length
-  @return 	pointer to allocated mrb_value object.
+  @return 	pointer to allocated String object set.
 */
 mrb_value * mrbc_string_constructor_w_len(mrb_vm *vm, const char *src, int len)
 {
@@ -113,7 +113,7 @@ mrb_value * mrbc_string_constructor_w_len(mrb_vm *vm, const char *src, int len)
 //================================================================
 /*! destructor
 
-  @param  target	source string or NULL
+  @param  target 	pointer to allocated String object set.
 */
 void mrbc_string_destructor(mrb_value *target)
 {
@@ -154,7 +154,7 @@ void mrbc_string_op_add(mrb_vm *vm, mrb_value *reg)
 */
 static void c_string_size(mrb_vm *vm, mrb_value *v)
 {
-  int i = strlen(v->obj->str);
+  int i = strlen(MRBC_STRING_C_STR(v));
 
   mrbc_release(vm, v);
   SET_INT_RETURN( i );
@@ -185,7 +185,7 @@ static void c_string_neq(mrb_vm *vm, mrb_value *v)
 */
 static void c_string_to_i(mrb_vm *vm, mrb_value *v)
 {
-  int i = atoi(v->obj->str);
+  int i = atoi(MRBC_STRING_C_STR(v));
 
   mrbc_release(vm, v);
   SET_INT_RETURN( i );
@@ -199,13 +199,13 @@ static void c_string_to_i(mrb_vm *vm, mrb_value *v)
 static void c_string_append(mrb_vm *vm, mrb_value *v)
 {
   mrb_value *v2 = &GET_ARG(1);
-  int len1 = strlen(v->obj->str);
-  int len2 = strlen(v2->obj->str);
+  int len1 = strlen(MRBC_STRING_C_STR(v));
+  int len2 = strlen(MRBC_STRING_C_STR(v2));
 
-  uint8_t *str = mrbc_realloc(vm, v->obj->str, len1+len2+1);
+  uint8_t *str = mrbc_realloc(vm, MRBC_STRING_C_STR(v), len1+len2+1);
   if( !str ) return;
 
-  memcpy(str + len1, v2->obj->str, len2 + 1);
+  memcpy(str + len1, MRBC_STRING_C_STR(v2), len2 + 1);
   v->obj->str = (char *)str;
 }
 
@@ -219,17 +219,17 @@ static void c_string_slice(mrb_vm *vm, mrb_value *v)
   mrb_value *v2 = &GET_ARG(1);
   switch(v2->tt) {
   case MRB_TT_FIXNUM:{
-    int len = strlen(v->obj->str);
+    int len = strlen(MRBC_STRING_C_STR(v));
     int idx = v2->i;
     int ch = 0;
     if( idx >= 0 ) {
       if( idx < len ) {
-        ch = *((uint8_t *)v->obj->str + idx);
+        ch = *((uint8_t *)MRBC_STRING_C_STR(v) + idx);
       }
     } else {
       idx += len;
       if( idx >= 0 ) {
-        ch = *((uint8_t *)v->obj->str + idx);
+        ch = *((uint8_t *)MRBC_STRING_C_STR(v) + idx);
       }
     }
 
