@@ -80,6 +80,17 @@ typedef struct RClass {
 } mrb_class;
 
 
+
+//================================================================
+/*!@brief
+
+*/
+typedef struct RInstance {
+  struct RClass *cls;    // class
+} mrb_instance;
+
+
+
 //================================================================
 /*!@brief
 
@@ -89,11 +100,14 @@ typedef struct RObject {
   mrb_vtype tt;
   union {
     int32_t i;             // MRB_TT_FIXNUM
-    struct RObject *obj;   // MRB_TT_OBJECT : link to object
+    struct RObject *handle;  // handle to objects 
+    struct RInstance *instance;  // MRB_TT_OBJECT : link to instance 
+    //    struct RObject *obj;   // MRB_TT_OBJECT : link to instance
     struct RClass *cls;    // MRB_TT_CLASS : link to class
     struct RProc *proc;    // MRB_TT_PROC : link to proc
     struct RObject *array; // MRB_TT_ARRAY : array of objects
     struct RObject *range; // MRB_TT_RANGE : link to range
+    struct RObject *hash;  // MRB_TT_HASH : link to range
     double d;              // MRB_TT_FLOAT : float
     char *str;             // MRB_TT_STRING : C-string
   };

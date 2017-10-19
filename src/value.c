@@ -30,7 +30,7 @@ mrb_class *mrbc_class_alloc(mrb_vm *vm, const char *name, mrb_class *super)
     v.tt = MRB_TT_CLASS;
     v.cls = ptr;
     // Add to global
-    const_add(sym_id, &v);
+    const_object_add(sym_id, &v);
   }
   return ptr;
 }
@@ -77,8 +77,8 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
   case MRB_TT_STRING:
     return !strcmp(v1->str, v2->str);
   case MRB_TT_ARRAY: {
-    mrb_value *array1 = v1->obj;
-    mrb_value *array2 = v2->obj;
+    mrb_value *array1 = v1->array;
+    mrb_value *array2 = v2->array;
     int i, len = array1[0].i;
     if( len != array2[0].i ) return 0;
     for( i=1 ; i<=len ; i++ ){

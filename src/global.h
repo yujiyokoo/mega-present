@@ -39,8 +39,8 @@ void  mrbc_init_global(void);
 void global_object_add(mrb_sym sym_id, mrb_value v);
 mrb_value global_object_get(mrb_sym sym_id);
 
-void const_add(mrb_sym sym_id, mrb_object *obj);
-mrb_object const_get(mrb_sym sym_id);
+void const_object_add(mrb_sym sym_id, mrb_object *obj);
+mrb_object const_object_get(mrb_sym sym_id);
 
 #ifdef __cplusplus
 }

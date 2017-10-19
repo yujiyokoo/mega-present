@@ -335,7 +335,7 @@ inline static int op_getconst( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_Bx(code);
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrb_sym sym_id = add_sym(sym);
-  regs[ra] = const_get(sym_id);
+  regs[ra] = const_object_get(sym_id);
   return 0;
 }
 
@@ -357,7 +357,7 @@ inline static int op_setconst( mrb_vm *vm, uint32_t code, mrb_value *regs ) {
   int rb = GETARG_Bx(code);
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrb_sym sym_id = add_sym(sym);
-  const_add(sym_id, &regs[ra]);
+  const_object_add(sym_id, &regs[ra]);
   return 0;
 }
 
@@ -985,13 +985,13 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   mrb_value v;
   v.tt = MRB_TT_ARRAY;
-  v.obj = 0;
+  v.array = 0;
 
   if( arg_c >= 0 ){
     // Handle
     mrb_value *handle = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value));
     if( handle == NULL ) return 0;  // ENOMEM
-    v.obj = handle;
+    v.array = handle;
     handle->tt = MRB_TT_HANDLE;
 
     mrb_object *p;
@@ -1000,7 +1000,7 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
     ptr = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c + 1));
     if( ptr == NULL ) return 0;  // ENOMEM
 
-    handle->obj = ptr;
+    handle->array = ptr;
     ptr->tt = MRB_TT_FIXNUM;
     ptr->i = arg_c;
 
@@ -1073,13 +1073,13 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_value *handle = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value));
   if( handle == NULL ) return 0;  // ENOMEM
 
-  v.obj = handle;
+  v.hash = handle;
   handle->tt = MRB_TT_HANDLE;
 
   // make hash
   mrb_value *hash = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c*2+1));
   if( hash == NULL ) return 0;  // ENOMEM
-  handle->obj = hash;
+  handle->hash = hash;
 
   hash[0].tt = MRB_TT_FIXNUM;
   hash[0].i = arg_c;
@@ -1419,7 +1419,7 @@ void mrbc_vm_begin(mrb_vm *vm)
   // set self to reg[0]
   vm->top_self = obj;
   vm->regs[0].tt = MRB_TT_USERTOP;
-  vm->regs[0].obj = obj;
+  vm->regs[0].cls = (struct RClass *)obj;  // TODO: use object link
 
   // target_class
   vm->target_class = cls;

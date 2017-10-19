@@ -49,7 +49,7 @@ static mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
   case MRB_TT_FLOAT:	cls = mrbc_class_float; 	break;
   case MRB_TT_SYMBOL:	cls = mrbc_class_symbol;	break;
 
-  case MRB_TT_OBJECT:	cls = mrbc_class_object;	break;
+  case MRB_TT_OBJECT:	cls = obj->instance->cls;       break;
   case MRB_TT_PROC:	cls = mrbc_class_proc;		break;
   case MRB_TT_ARRAY:	cls = mrbc_class_array; 	break;
   case MRB_TT_STRING:	cls = mrbc_class_string;	break;
@@ -154,7 +154,7 @@ static void c_puts(mrb_vm *vm, mrb_value *v)
     }
   } break;
   case MRB_TT_ARRAY:{
-    mrb_value *array = arg0->obj->obj;
+    mrb_value *array = arg0->array->array;
     int i, n = array[0].i;
     console_printf("[");
     for( i=1 ; i<=n ; i++ ){
@@ -204,6 +204,18 @@ static void c_object_class(mrb_vm *vm, mrb_value *v)
   v->str = str;
 }
 
+// Object.new
+static void c_object_new(mrb_vm *vm, mrb_value *v)
+{
+  mrb_instance *instance = (mrb_instance *)mrbc_alloc(vm, sizeof(mrb_instance));
+  mrb_value ret;
+  ret.tt = MRB_TT_OBJECT;
+  ret.instance = instance;
+  ret.instance->cls = mrbc_class_object;
+  mrbc_release(vm, v);
+  v[0] = ret;
+}
+
 static void mrbc_init_class_object(mrb_vm *vm)
 {
   // Class
@@ -213,6 +225,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_object, "!", c_object_not);
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
   mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
+  mrbc_define_method(vm, mrbc_class_object, "new", c_object_new);
 }
 
 // =============== ProcClass
