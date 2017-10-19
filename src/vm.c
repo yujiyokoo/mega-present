@@ -115,9 +115,13 @@ inline static int op_nop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_move( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrbc_release(vm, &regs[GETARG_A(code)]);
-  mrbc_dup(vm, &regs[GETARG_B(code)]);
-  regs[GETARG_A(code)] = regs[GETARG_B(code)];
+  int ra = GETARG_A(code);
+  int rb = GETARG_B(code);
+
+  mrbc_release(vm, &regs[ra]);
+  mrbc_dup(vm, &regs[rb]);
+  regs[ra] = regs[rb];
+
   return 0;
 }
 
@@ -162,9 +166,11 @@ inline static int op_loadl( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrbc_release(vm, &regs[GETARG_A(code)]);
-  regs[GETARG_A(code)].i = GETARG_sBx(code);
-  regs[GETARG_A(code)].tt = MRB_TT_FIXNUM;
+  int ra = GETARG_A(code);
+
+  mrbc_release(vm, &regs[ra]);
+  regs[ra].i = GETARG_sBx(code);
+  regs[ra].tt = MRB_TT_FIXNUM;
 
   return 0;
 }
@@ -229,9 +235,12 @@ inline static int op_loadnil( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadself( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrbc_release(vm, &regs[GETARG_A(code)]);
+  int ra = GETARG_A(code);
+
+  mrbc_release(vm, &regs[ra]);
   mrbc_dup(vm, &regs[0]);
-  regs[GETARG_A(code)] = regs[0];
+  regs[ra] = regs[0];
+
   return 0;
 }
 
@@ -438,12 +447,13 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   mrb_value recv = regs[ra];
   int rb = GETARG_B(code);  // index of method sym
-  int rc = GETARG_C(code);  // numbr of params
+  int rc = GETARG_C(code);  // number of params
 
   // Block param
   int bidx = ra + rc + 1;
   if( GET_OPCODE(code) == OP_SEND ){
     // OP_SEND: set nil
+    mrbc_release(vm, &regs[bidx]);
     regs[bidx].tt = MRB_TT_NIL;
   } else {
     // OP_SENDB: set Proc objec
@@ -463,7 +473,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // m is C func
   if( m->c_func ) {
-    m->func.func(vm, regs + GETARG_A(code));
+    m->func.func(vm, regs + ra);
     return 0;
   }
 
@@ -473,7 +483,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->reg_top = vm->reg_top;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
-  callinfo->n_args = GETARG_C(code);
+  callinfo->n_args = rc;
   vm->callinfo_top++;
 
   // target irep
@@ -481,7 +491,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   vm->pc_irep = m->func.irep;
 
   // new regs
-  vm->reg_top += GETARG_A(code);
+  vm->reg_top += ra;
 
   return 0;
 }
@@ -560,6 +570,9 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
 inline static int op_blkpush( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
+
+  mrbc_release(vm, &regs[ra]);
+  mrbc_dup(vm, &regs[ra-1] );
   regs[ra] = regs[ra-1];
 
   return 0;
@@ -580,25 +593,24 @@ inline static int op_blkpush( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
 
   // support Fixnum + Fixnum
-  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    regs[rr].i += regs[rr+1].i;
+  if( regs[ra].tt == MRB_TT_FIXNUM && regs[ra+1].tt == MRB_TT_FIXNUM ) {
+    regs[ra].i += regs[ra+1].i;
 #if MRBC_USE_FLOAT
-  } else if( regs[rr].tt == MRB_TT_FLOAT ){
-    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      regs[rr].d += regs[rr+1].i;
-    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      regs[rr].d += regs[rr+1].d;
+  } else if( regs[ra].tt == MRB_TT_FLOAT ){
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ){
+      regs[ra].d += regs[ra+1].i;
+    } else if( regs[ra+1].tt == MRB_TT_FLOAT ){
+      regs[ra].d += regs[ra+1].d;
     } else {
       op_send(vm, code, regs);
     }
 #endif
 #if MRBC_USE_STRING
-  } else if( regs[rr].tt == MRB_TT_STRING && regs[rr+1].tt == MRB_TT_STRING ){
-    regs[rr].str = mrbc_string_cat(vm, regs[rr].str, regs[rr+1].str);
-
+  } else if( regs[ra].tt == MRB_TT_STRING && regs[ra+1].tt == MRB_TT_STRING ){
+    mrbc_string_op_add(vm, &regs[ra]);
 #endif
   } else {
     op_send(vm, code, regs);
@@ -781,13 +793,12 @@ inline static int op_div( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
+  int result = mrbc_eq(&regs[ra], &regs[ra+1]);
 
-  if( mrbc_eq(&regs[rr], &regs[rr+1]) ){
-    regs[rr].tt = MRB_TT_TRUE;
-  } else {
-    regs[rr].tt = MRB_TT_FALSE;
-  }
+  mrbc_release(vm, &regs[ra]);
+  regs[ra].tt = result ? MRB_TT_TRUE : MRB_TT_FALSE;
+
   return 0;
 }
 
@@ -1031,20 +1042,24 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrb_value v;
-  v.tt = MRB_TT_STRING;
+  int ra = GETARG_A(code);
+  int rb = GETARG_Bx(code);
 
-  int arg_b = GETARG_Bx(code);
-  mrb_object *ptr = vm->pc_irep->ptr_to_pool;
-  while( arg_b > 0 ){
-    ptr = ptr->next;
-    arg_b--;
+  mrbc_release(vm, &regs[ra]);
+
+  mrb_object *pool_obj = vm->pc_irep->ptr_to_pool;
+  while( rb > 0 ) {
+    pool_obj = pool_obj->next;
+    assert( pool_obj );
+    rb--;
   }
-  v.str = mrbc_string_dup(vm, ptr->str);
 
-  int arg_a = GETARG_A(code);
-  mrbc_release(vm, &regs[GETARG_A(code)]);
-  regs[arg_a] = v;
+  /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
+  int len = bin_to_uint16(pool_obj->str - 2);
+  regs[ra].tt = MRB_TT_STRING;
+  regs[ra].obj = mrbc_string_constructor_w_len( vm, pool_obj->str, len );
+  if( !regs[ra].obj ) return -1;
+
   return 0;
 }
 
@@ -1116,24 +1131,26 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  // int c = GETARG_C(code); // TODO: Add flags support for OP_LAMBDA
-  int b = GETARG_b(code); // sequence position in irep list
+  int ra = GETARG_A(code);
+  int rb = GETARG_b(code);      // sequence position in irep list
+  // int c = GETARG_C(code);    // TODO: Add flags support for OP_LAMBDA
   mrb_proc *proc = mrbc_rproc_alloc(vm, "(lambda)");
   mrb_irep *current = vm->irep;
   mrb_irep *p = current->next; //starting from next for current sequence;
   assert( p != NULL );
 
-  // code length is p->ilen * sizeof(uint32_t);
   int i;
-  for( i = 0; i < b; i++ ) {
+  for( i = 0; i < rb; i++ ) {
     p = p->next;
     assert( p != NULL );
   }
   proc->c_func = 0;
   proc->func.irep = p;
-  int a = GETARG_A(code);
-  regs[a].tt = MRB_TT_PROC;
-  regs[a].proc = proc;
+
+  mrbc_release(vm, &regs[ra]);
+  regs[ra].tt = MRB_TT_PROC;
+  regs[ra].proc = proc;
+
   return 0;
 }
 
@@ -1193,17 +1210,18 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int a = GETARG_A(code);
-  mrb_proc *rproc = regs[a+1].proc;
+  int ra = GETARG_A(code);
+  int rb = GETARG_B(code);
+  mrb_proc *rproc = regs[ra+1].proc;
 
-  if( regs[a].tt == MRB_TT_CLASS ) {
-    mrb_class *cls = regs[a].cls;
-    int b = GETARG_B(code);
+  if( regs[ra].tt == MRB_TT_CLASS ) {
+    mrb_class *cls = regs[ra].cls;
     // sym_id : method name
     mrb_irep *cur_irep = vm->pc_irep;
-    char *sym = find_irep_symbol(cur_irep->ptr_to_sym, b);
+    char *sym = find_irep_symbol(cur_irep->ptr_to_sym, rb);
     int sym_id = add_sym( sym );
     mrbc_define_method_proc(vm, cls, sym_id, rproc);
+    mrbc_inc_ref_count(rproc);
   }
 
   return 0;
@@ -1223,8 +1241,11 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_tclass( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  regs[GETARG_A(code)].tt = MRB_TT_CLASS;
-  regs[GETARG_A(code)].cls = vm->target_class;
+  int ra = GETARG_A(code);
+
+  mrbc_release(vm, &regs[ra]);
+  regs[ra].tt = MRB_TT_CLASS;
+  regs[ra].cls = vm->target_class;
 
   return 0;
 }

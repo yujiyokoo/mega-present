@@ -622,22 +622,33 @@ void mrbc_set_ref_count(void *ptr, const int cnt)
 */
 void mrbc_inc_ref_count(void *ptr)
 {
-  SET_REF_COUNT(ptr, GET_REF_COUNT(ptr) + 1 );
+  assert( ptr > (void*)memory_pool );
+  assert( ptr < (void*)(memory_pool + memory_pool_size ) );
+
+  int cnt = GET_REF_COUNT(ptr);
+  assert( cnt != 0xff );
+
+  cnt++;
+  SET_REF_COUNT(ptr, cnt);
 }
 
 
 //================================================================
-/*! decrementt ref_count and free
+/*! decrementt ref_count
 
-  @param  vm	pointer to VM.
   @param  ptr	Return value of mrbc_alloc()
+  @return       reference count value.
 */
-void mrbc_dec_ref_count(const mrb_vm *vm, void *ptr)
+int mrbc_dec_ref_count(void *ptr)
 {
+  assert( ptr > (void*)memory_pool );
+  assert( ptr < (void*)(memory_pool + memory_pool_size ) );
+
   int cnt = GET_REF_COUNT(ptr);
-  if( --cnt > 0 ){
-    SET_REF_COUNT(ptr, cnt);
-  } else {
-    mrbc_free(vm, ptr);
-  }
+  assert( cnt != 0 );
+
+  cnt--;
+  SET_REF_COUNT(ptr, cnt);
+
+  return cnt;
 }
