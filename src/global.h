@@ -20,19 +20,6 @@
 extern "C" {
 #endif
 
-  /*
-#define OBJECT_WITH_SYMBOL\
-  mrb_sym sym_id;\
-  mrb_object obj
-
-typedef struct GLOBAL_OBJECT {
-  OBJECT_WITH_SYMBOL;
-} mrb_globalobject;
-
-typedef struct CONST_OBJECT {
-  OBJECT_WITH_SYMBOL;
-} mrb_constobject;
-  */
 
 void  mrbc_init_global(void);
 
