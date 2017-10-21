@@ -1130,7 +1130,7 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
     assert( p != NULL );
   }
   proc->c_func = 0;
-  proc->func.irep = p;
+  proc->func.irep = p->next;  // problem ?
   int a = GETARG_A(code);
   regs[a].tt = MRB_TT_PROC;
   regs[a].proc = proc;
@@ -1264,7 +1264,6 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
     char *sym = find_irep_symbol(cur_irep->ptr_to_sym, b);
     int sym_id = add_sym( sym );
     // add proc to class
-    //    mrbc_define_method_proc(vm, cls, sym_id, rproc);
     rproc->c_func = 0;
     rproc->sym_id = sym_id;
     rproc->next = cls->procs;
