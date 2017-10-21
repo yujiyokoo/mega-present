@@ -7,6 +7,8 @@
 #include "static.h"
 #include "value.h"
 #include "console.h"
+#include "c_string.h"
+
 
 static void c_fixnum_eq(mrb_vm *vm, mrb_value *v)
 {
@@ -79,32 +81,23 @@ static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v)
 #if MRBC_USE_STRING
 static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v)
 {
+  char buf[16];
+  char *p = buf + sizeof(buf) - 1;
   int num = v->i;
-  int i = 0, j = 0;
-  char buf[10];
-  int sign = 0;
+  int flag_minus = (num < 0);
 
-  if( num < 0 ){
-    sign = 1;
-    num = -num;
-  }
+  if( flag_minus ) num = -num;
+
+  *p = '\0';
   do {
-    buf[i++] = (num % 10) + '0';
-    num = num / 10;
+    *--p = (num % 10) + '0';
+    num /= 10;
   } while( num > 0 );
-  if( sign ){
-    buf[i] = '-';
-  } else {
-    i--;
-  }
-  char *str = (char *)mrbc_alloc(vm, i+2);
-  if( str == NULL ) return;  // ENOMEM
-  while( i>=0 ){
-    str[j++] = buf[i--];
-  }
-  str[j] = 0;
+
+  if( flag_minus ) *--p = '-';
+
   v->tt = MRB_TT_STRING;
-  v->str = str;
+  v->handle = mrbc_string_constructor(vm, p);
 }
 #endif
 

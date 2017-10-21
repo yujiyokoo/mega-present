@@ -118,7 +118,7 @@ static void c_puts(mrb_vm *vm, mrb_value *v)
     console_printf("%d", arg0->i);
     break;
   case MRB_TT_NIL:
-    console_printf("");
+    console_printf("(nil)");
     break;
   case MRB_TT_TRUE:
     console_printf("true");
@@ -131,11 +131,9 @@ static void c_puts(mrb_vm *vm, mrb_value *v)
     console_printf("%f", arg0->d);
     break;
 #endif
-#if MRBC_USE_STRING
   case MRB_TT_STRING:
-    console_printf("%s", arg0->str);
+    console_printf("%s", arg0->handle->str);
     break;
-#endif
   case MRB_TT_RANGE:{
     mrb_value *ptr = arg0->range;
     if( ptr[0].tt == MRB_TT_TRUE ){

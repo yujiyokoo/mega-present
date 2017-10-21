@@ -38,7 +38,7 @@ int mrbc_get_vm_id(void *ptr);
 void mrbc_set_ref_count(void *ptr, const int cnt);
 int mrbc_get_ref_count(void *ptr);
 void mrbc_inc_ref_count(void *ptr);
-void mrbc_dec_ref_count(const mrb_vm *vm, void *ptr);
+int mrbc_dec_ref_count(void *ptr);
 
 #ifdef __cplusplus
 }
