@@ -1212,6 +1212,7 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  mrb_value recv = regs[GETARG_A(code)];
 
   // prepare callinfo
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
@@ -1231,6 +1232,8 @@ inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   vm->pc = 0;
   vm->pc_irep = p;
+  
+  vm->target_class = find_class_by_object(vm, &recv);
 
   return 0;
 }
@@ -1260,7 +1263,12 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
     mrb_irep *cur_irep = vm->pc_irep;
     char *sym = find_irep_symbol(cur_irep->ptr_to_sym, b);
     int sym_id = add_sym( sym );
-    mrbc_define_method_proc(vm, cls, sym_id, rproc);
+    // add proc to class
+    //    mrbc_define_method_proc(vm, cls, sym_id, rproc);
+    rproc->c_func = 0;
+    rproc->sym_id = sym_id;
+    rproc->next = cls->procs;
+    cls->procs = rproc;
   }
 
   return 0;

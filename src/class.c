@@ -37,7 +37,7 @@
   @param  obj
   @return pointer to mrb_class
 */
-static mrb_class *find_class_by_object(mrb_vm *vm, mrb_object *obj)
+mrb_class *find_class_by_object(struct VM *vm, mrb_object *obj)
 {
   mrb_class *cls;
 
@@ -104,15 +104,6 @@ void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t
 }
 
 
-
-
-void mrbc_define_method_proc(mrb_vm *vm, mrb_class *cls, mrb_sym sym_id, mrb_proc *rproc)
-{
-  rproc->c_func = 0;
-  rproc->sym_id = sym_id;
-  rproc->next = cls->procs;
-  cls->procs = rproc;
-}
 
 
 //================================================================

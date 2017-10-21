@@ -16,11 +16,13 @@
 
 #include <stdint.h>
 #include "vm.h"
+#include "value.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+mrb_class *find_class_by_object(struct VM *vm, mrb_object *obj);
 mrb_proc *find_method(struct VM *vm, mrb_value recv, mrb_sym sym_id);
 
 void mrbc_init_class(void);
