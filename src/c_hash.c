@@ -7,14 +7,14 @@
 #include "static.h"
 #include "value.h"
 
-static void c_hash_size(mrb_vm *vm, mrb_value *v)
+static void c_hash_size(mrb_vm *vm, mrb_value *v, int argc)
 {
   SET_INT_RETURN(v->handle->hash->i);
 }
 
 
 // Hash = []
-static void c_hash_get(mrb_vm *vm, mrb_value *v)
+static void c_hash_get(mrb_vm *vm, mrb_value *v, int argc)
 {
   mrb_value *hash = v->handle->hash;
   int i;
@@ -36,7 +36,7 @@ static void c_hash_get(mrb_vm *vm, mrb_value *v)
 }
 
 // Hash = []=
-static void c_hash_set(mrb_vm *vm, mrb_value *v)
+static void c_hash_set(mrb_vm *vm, mrb_value *v, int argc)
 {
   mrb_value *hash = v->handle->hash;
   int i;

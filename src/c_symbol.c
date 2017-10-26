@@ -7,7 +7,7 @@
 #include "c_string.h"
 
 #if MRBC_USE_STRING
-static void c_symbol_to_s(mrb_vm *vm, mrb_value *v)
+static void c_symbol_to_s(mrb_vm *vm, mrb_value *v, int argc)
 {
   v->tt = MRB_TT_STRING;
   v->handle = mrbc_string_constructor(vm, symid_to_str(v->i));
@@ -15,12 +15,12 @@ static void c_symbol_to_s(mrb_vm *vm, mrb_value *v)
 #endif
 
 
-static void c_symbol_to_sym(mrb_vm *vm, mrb_value *v)
+static void c_symbol_to_sym(mrb_vm *vm, mrb_value *v, int argc)
 {
   // nothing
 }
 
-static void c_symbol_equal(mrb_vm *vm, mrb_value *v)
+static void c_symbol_equal(mrb_vm *vm, mrb_value *v, int argc)
 {
   if( mrbc_eq(v, &GET_ARG(1)) ){
     SET_TRUE_RETURN();

@@ -152,7 +152,7 @@ void mrbc_string_op_add(mrb_vm *vm, mrb_value *reg)
 //================================================================
 /*! (method) size, length
 */
-static void c_string_size(mrb_vm *vm, mrb_value *v)
+static void c_string_size(mrb_vm *vm, mrb_value *v, int argc)
 {
   int i = strlen(MRBC_STRING_C_STR(v));
 
@@ -165,7 +165,7 @@ static void c_string_size(mrb_vm *vm, mrb_value *v)
 //================================================================
 /*! (method) !=
 */
-static void c_string_neq(mrb_vm *vm, mrb_value *v)
+static void c_string_neq(mrb_vm *vm, mrb_value *v, int argc)
 {
   int result = mrbc_eq(v, v+1);
 
@@ -183,7 +183,7 @@ static void c_string_neq(mrb_vm *vm, mrb_value *v)
 /*! (method) to_i
   TODO: to_i(base = 10) only. need 2 to 36.
 */
-static void c_string_to_i(mrb_vm *vm, mrb_value *v)
+static void c_string_to_i(mrb_vm *vm, mrb_value *v, int argc)
 {
   int i = atoi(MRBC_STRING_C_STR(v));
 
@@ -196,7 +196,7 @@ static void c_string_to_i(mrb_vm *vm, mrb_value *v)
 //================================================================
 /*! (method) <<
 */
-static void c_string_append(mrb_vm *vm, mrb_value *v)
+static void c_string_append(mrb_vm *vm, mrb_value *v, int argc)
 {
   mrb_value *v2 = &GET_ARG(1);
   int len1 = strlen(MRBC_STRING_C_STR(v));
@@ -214,7 +214,7 @@ static void c_string_append(mrb_vm *vm, mrb_value *v)
 //================================================================
 /*! (method) []
 */
-static void c_string_slice(mrb_vm *vm, mrb_value *v)
+static void c_string_slice(mrb_vm *vm, mrb_value *v, int argc)
 {
   mrb_value *v2 = &GET_ARG(1);
   switch(v2->tt) {

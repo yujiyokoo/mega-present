@@ -473,7 +473,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // m is C func
   if( m->c_func ) {
-    m->func(vm, regs + ra);
+    m->func(vm, regs + ra, rc);
     return 0;
   }
 

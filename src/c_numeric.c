@@ -10,20 +10,20 @@
 #include "c_string.h"
 
 
-static void c_fixnum_eq(mrb_vm *vm, mrb_value *v)
+static void c_fixnum_eq(mrb_vm *vm, mrb_value *v, int argc)
 {
   console_printf("ERROR ==\n");
 }
 
 // Operator %
-static void c_fixnum_mod(mrb_vm *vm, mrb_value *v)
+static void c_fixnum_mod(mrb_vm *vm, mrb_value *v, int argc)
 {
   int num = GET_INT_ARG(1);
   SET_INT_RETURN( v->i % num );
 }
 
 // Operator <=>
-static void c_fixnum_comp(mrb_vm *vm, mrb_value *v)
+static void c_fixnum_comp(mrb_vm *vm, mrb_value *v, int argc)
 {
   int num = GET_INT_ARG(1);
   if(v->i > num){
@@ -36,14 +36,14 @@ static void c_fixnum_comp(mrb_vm *vm, mrb_value *v)
 }
 
 // Unary Operator ~; bit operation NOT
-static void c_fixnum_deny(mrb_vm *vm, mrb_value *v)
+static void c_fixnum_deny(mrb_vm *vm, mrb_value *v, int argc)
 {
   SET_INT_RETURN( (v->i + 1) * (-1)  );
 }
 
 
 // Operator &; bit operation AND
-static void c_fixnum_and(mrb_vm *vm, mrb_value *v)
+static void c_fixnum_and(mrb_vm *vm, mrb_value *v, int argc)
 {
   int num = GET_INT_ARG(1);
   SET_INT_RETURN(v->i & num);
@@ -65,21 +65,21 @@ static int32_t shift(int32_t x, int32_t y)
 }
 
 // Operator <<; bit operation LEFT_SHIFT
-static void c_fixnum_lshift(mrb_vm *vm, mrb_value *v)
+static void c_fixnum_lshift(mrb_vm *vm, mrb_value *v, int argc)
 {
   int num = GET_INT_ARG(1);
   SET_INT_RETURN( shift(v->i, num) );
 }
 
 // Operator >>; bit operation RIGHT_SHIFT
-static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v)
+static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v, int argc)
 {
   int num = GET_INT_ARG(1);
   SET_INT_RETURN( shift(v->i, -num) );
 }
 
 #if MRBC_USE_STRING
-static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v)
+static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v, int argc)
 {
   char buf[16];
   char *p = buf + sizeof(buf) - 1;
@@ -124,7 +124,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
 #if MRBC_USE_FLOAT
 
 // Operator unary -
-static void c_float_negative(mrb_vm *vm, mrb_value *v)
+static void c_float_negative(mrb_vm *vm, mrb_value *v, int argc)
 {
   double num = GET_FLOAT_ARG(0);
   SET_FLOAT_RETURN( -num );

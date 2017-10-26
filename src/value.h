@@ -116,7 +116,7 @@ typedef struct RObject mrb_value;
 
 
 struct VM;
-typedef void (*mrb_func_t)(struct VM *vm, mrb_value *v);
+typedef void (*mrb_func_t)(struct VM *vm, mrb_value *v, int argc);
 
 
 

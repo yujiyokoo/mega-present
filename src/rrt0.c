@@ -153,7 +153,7 @@ static void q_delete_task(MrbcTcb *p_tcb)
 /*! 一定時間停止（cruby互換）
 
 */
-static void c_sleep(mrb_vm *vm, mrb_value *v)
+static void c_sleep(mrb_vm *vm, mrb_value *v, int argc)
 {
   MrbcTcb *tcb = VM2TCB(vm);
 
@@ -178,7 +178,7 @@ static void c_sleep(mrb_vm *vm, mrb_value *v)
 /*! 一定時間停止（ms単位）
 
 */
-static void c_sleep_ms(mrb_vm *vm, mrb_value *v)
+static void c_sleep_ms(mrb_vm *vm, mrb_value *v, int argc)
 {
   MrbcTcb *tcb = VM2TCB(vm);
 
@@ -190,7 +190,7 @@ static void c_sleep_ms(mrb_vm *vm, mrb_value *v)
 /*! 実行権を手放す
 
 */
-static void c_relinquish(mrb_vm *vm, mrb_value *v)
+static void c_relinquish(mrb_vm *vm, mrb_value *v, int argc)
 {
   MrbcTcb *tcb = VM2TCB(vm);
 
@@ -202,7 +202,7 @@ static void c_relinquish(mrb_vm *vm, mrb_value *v)
 /*! プライオリティー変更
 
 */
-static void c_change_priority(mrb_vm *vm, mrb_value *v)
+static void c_change_priority(mrb_vm *vm, mrb_value *v, int argc)
 {
   MrbcTcb *tcb = VM2TCB(vm);
 
@@ -214,7 +214,7 @@ static void c_change_priority(mrb_vm *vm, mrb_value *v)
 /*! 実行停止
 
 */
-static void c_suspend_task(mrb_vm *vm, mrb_value *v)
+static void c_suspend_task(mrb_vm *vm, mrb_value *v, int argc)
 {
   MrbcTcb *tcb = VM2TCB(vm);
 
@@ -226,7 +226,7 @@ static void c_suspend_task(mrb_vm *vm, mrb_value *v)
 /*! 実行再開
 
 */
-static void c_resume_task(mrb_vm *vm, mrb_value *v)
+static void c_resume_task(mrb_vm *vm, mrb_value *v, int argc)
 {
   MrbcTcb *tcb = VM2TCB(vm);
 
@@ -239,7 +239,7 @@ static void c_resume_task(mrb_vm *vm, mrb_value *v)
 /*! TCBを得る
 
 */
-static void c_get_tcb(mrb_vm *vm, mrb_value *v)
+static void c_get_tcb(mrb_vm *vm, mrb_value *v, int argc)
 {
   MrbcTcb *tcb = VM2TCB(vm);
 

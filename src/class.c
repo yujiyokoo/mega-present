@@ -110,7 +110,7 @@ void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t
 // Object class
 
 // Object - puts
-static void c_puts(mrb_vm *vm, mrb_value *v)
+static void c_puts(mrb_vm *vm, mrb_value *v, int argc)
 {
   mrb_value *arg0 = v+1;
   switch( arg0->tt ){
@@ -118,7 +118,7 @@ static void c_puts(mrb_vm *vm, mrb_value *v)
     console_printf("%d", arg0->i);
     break;
   case MRB_TT_NIL:
-    console_printf("(nil)");
+    //console_printf("(nil)");
     break;
   case MRB_TT_TRUE:
     console_printf("true");
@@ -147,7 +147,7 @@ static void c_puts(mrb_vm *vm, mrb_value *v)
     int i, n = array[0].i;
     console_printf("[");
     for( i=1 ; i<=n ; i++ ){
-      c_puts(vm, &array[i-1]);
+      c_puts(vm, &array[i-1],argc);
       if( i!=n ){
 	console_printf(", ");
       }
@@ -160,20 +160,20 @@ static void c_puts(mrb_vm *vm, mrb_value *v)
   }
 }
 
-static void c_puts_nl(mrb_vm *vm, mrb_value *v)
+static void c_puts_nl(mrb_vm *vm, mrb_value *v, int argc)
 {
-  c_puts(vm, v);
+  c_puts(vm, v, argc);
   console_printf("\n");
 }
 
 
-static void c_object_not(mrb_vm *vm, mrb_value *v)
+static void c_object_not(mrb_vm *vm, mrb_value *v, int argc)
 {
   SET_FALSE_RETURN();
 }
 
 // Object !=
-static void c_object_neq(mrb_vm *vm, mrb_value *v)
+static void c_object_neq(mrb_vm *vm, mrb_value *v, int argc)
 {
   if( mrbc_eq(v, &GET_ARG(1)) ){
     SET_FALSE_RETURN();
@@ -183,7 +183,7 @@ static void c_object_neq(mrb_vm *vm, mrb_value *v)
 }
 
 // Object#class
-static void c_object_class(mrb_vm *vm, mrb_value *v)
+static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 {
   // TODO: return class name
   char *name = "(class name)";
@@ -194,7 +194,7 @@ static void c_object_class(mrb_vm *vm, mrb_value *v)
 }
 
 // Object.new
-static void c_object_new(mrb_vm *vm, mrb_value *v)
+static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
 {
   mrb_instance *instance = (mrb_instance *)mrbc_alloc(vm, sizeof(mrb_instance));
   mrb_value ret;
@@ -219,7 +219,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
 
 // =============== ProcClass
 
-static void c_proc_call(mrb_vm *vm, mrb_value *v)
+static void c_proc_call(mrb_vm *vm, mrb_value *v, int argc)
 {
   // similar to OP_SEND
 
@@ -249,7 +249,7 @@ static void mrbc_init_class_proc(mrb_vm *vm)
 //================================================================
 // Nil class
 
-static void c_nil_false_not(mrb_vm *vm, mrb_value *v)
+static void c_nil_false_not(mrb_vm *vm, mrb_value *v, int argc)
 {
   SET_TRUE_RETURN();
 }
