@@ -473,7 +473,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // m is C func
   if( m->c_func ) {
-    m->func.func(vm, regs + ra);
+    m->func(vm, regs + ra);
     return 0;
   }
 
@@ -488,7 +488,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // target irep
   vm->pc = 0;
-  vm->pc_irep = m->func.irep;
+  vm->pc_irep = m->irep;
 
   // new regs
   vm->reg_top += ra;
@@ -1146,7 +1146,7 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
   }
 
   proc->c_func = 0;
-  proc->func.irep = p->next;  // problem ?
+  proc->irep = p;
 
   mrbc_release(vm, &regs[ra]);
   regs[ra].tt = MRB_TT_PROC;
@@ -1198,7 +1198,7 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // sym_id : class name
   mrb_irep *cur_irep = vm->pc_irep;
   char *sym = find_irep_symbol(cur_irep->ptr_to_sym, rb);
-  
+
   // super: pointer to super class
   mrb_class *super  = mrbc_class_object;
   if( regs[ra+1].tt == MRB_TT_CLASS ){
@@ -1250,7 +1250,7 @@ inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   vm->pc = 0;
   vm->pc_irep = p;
-  
+
   vm->target_class = find_class_by_object(vm, &recv);
 
   return 0;

@@ -100,7 +100,7 @@ void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t
   rproc->c_func = 1;  // c-func
   rproc->next = cls->procs;
   cls->procs = rproc;
-  rproc->func.func = cfunc;
+  rproc->func = cfunc;
 }
 
 
@@ -219,7 +219,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
 
 // =============== ProcClass
 
-void c_proc_call(mrb_vm *vm, mrb_value *v)
+static void c_proc_call(mrb_vm *vm, mrb_value *v)
 {
   // similar to OP_SEND
 
@@ -231,12 +231,9 @@ void c_proc_call(mrb_vm *vm, mrb_value *v)
   callinfo->n_args = 2;
   vm->callinfo_top++;
 
-
-
   // target irep
   vm->pc = 0;
-  vm->pc_irep = v->proc->func.irep;
-
+  vm->pc_irep = v->proc->irep;
 }
 
 

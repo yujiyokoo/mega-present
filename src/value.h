@@ -100,8 +100,8 @@ typedef struct RObject {
   mrb_vtype tt;
   union {
     int32_t i;             // MRB_TT_FIXNUM
-    struct RObject *handle;  // handle to objects 
-    struct RInstance *instance;  // MRB_TT_OBJECT : link to instance 
+    struct RObject *handle;  // handle to objects
+    struct RInstance *instance;  // MRB_TT_OBJECT : link to instance
     //    struct RObject *obj;   // MRB_TT_OBJECT : link to instance
     struct RClass *cls;    // MRB_TT_CLASS : link to class
     struct RProc *proc;    // MRB_TT_PROC : link to proc
@@ -131,7 +131,7 @@ typedef struct RProc {
   union {
     struct IREP *irep;
     mrb_func_t func;
-  } func;
+  };
 } mrb_proc;
 
 
