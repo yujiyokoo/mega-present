@@ -20,6 +20,7 @@
 #include "c_string.h"
 #include "class.h"
 #include "static.h"
+#include "console.h"
 
 
 
@@ -200,12 +201,18 @@ static void c_string_append(mrb_vm *vm, mrb_value *v, int argc)
 {
   mrb_value *v2 = &GET_ARG(1);
   int len1 = strlen(MRBC_STRING_C_STR(v));
-  int len2 = strlen(MRBC_STRING_C_STR(v2));
+  int len2 = (v2->tt == MRB_TT_STRING) ? strlen(MRBC_STRING_C_STR(v2)) : 1;
 
   uint8_t *str = mrbc_realloc(vm, MRBC_STRING_C_STR(v), len1+len2+1);
   if( !str ) return;
 
-  memcpy(str + len1, MRBC_STRING_C_STR(v2), len2 + 1);
+  if( v2->tt == MRB_TT_STRING ) {
+    memcpy(str + len1, MRBC_STRING_C_STR(v2), len2 + 1);
+  } else if( v2->tt == MRB_TT_FIXNUM ) {
+    str[len1] = v2->i;
+    str[len1+1] = '\0';
+  }
+
   v->handle->str = (char *)str;
 }
 
@@ -216,11 +223,15 @@ static void c_string_append(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_string_slice(mrb_vm *vm, mrb_value *v, int argc)
 {
-  mrb_value *v2 = &GET_ARG(1);
-  switch(v2->tt) {
-  case MRB_TT_FIXNUM:{
+  mrb_value *v1 = &GET_ARG(1);
+  mrb_value *v2 = &GET_ARG(2);
+
+  /*
+    in case of slice(nth) -> String | nil
+  */
+  if( argc == 1 && v1->tt == MRB_TT_FIXNUM ) {
     int len = strlen(MRBC_STRING_C_STR(v));
-    int idx = v2->i;
+    int idx = v1->i;
     int ch = 0;
     if( idx >= 0 ) {
       if( idx < len ) {
@@ -245,12 +256,38 @@ static void c_string_slice(mrb_vm *vm, mrb_value *v, int argc)
       mrbc_release(vm, v);
       SET_NIL_RETURN();
     }
-  } break;
-  default:
-    break;
+    return;
   }
-}
 
+  /*
+    in case of slice(nth, len) -> String | nil
+  */
+  if( argc == 2 && v1->tt == MRB_TT_FIXNUM && v2->tt == MRB_TT_FIXNUM ) {
+    int len = strlen(MRBC_STRING_C_STR(v));
+    int idx = v1->i;
+    if( idx < 0 ) idx += len;
+
+    if( idx >= 0 ) {
+      int rlen = (v2->i < (len - idx)) ? v2->i : (len - idx);
+                                              // min( v2->i, (len-idx) )
+      if( rlen >= 0 ) {
+        mrb_value *s = mrbc_string_constructor_w_len(vm,
+                         MRBC_STRING_C_STR(v) + idx, rlen);
+        if( !s ) return;
+
+        mrbc_release(vm, v);
+        v->tt = MRB_TT_STRING;
+        v->handle = s;
+        return;
+      }
+    }
+    mrbc_release(vm, v);
+    SET_NIL_RETURN();
+    return;
+  }
+
+  console_print( "Not support such case in String#[].\n" );
+}
 
 
 //================================================================
