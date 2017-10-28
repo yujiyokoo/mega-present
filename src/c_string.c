@@ -125,27 +125,30 @@ void mrbc_string_destructor(mrb_value *target)
 
 
 //================================================================
-/*! op_add
-
-  @param  vm	pointer to VM.
-  @param  reg	pointer to R(A)
+/*! (method) +
 */
-void mrbc_string_op_add(mrb_vm *vm, mrb_value *reg)
+static void c_string_add(mrb_vm *vm, mrb_value *v, int argc)
 {
-  mrb_value *s1 = reg->handle;
-  mrb_value *s2 = (reg+1)->handle;
+  mrb_value *s1 = &GET_ARG(0);
+  mrb_value *s2 = &GET_ARG(1);
 
-  int len1 = strlen(s1->str);
-  int len2 = strlen(s2->str);
-  mrb_value *v = mrbc_string_constructor_w_len(vm, NULL, len1+len2);
-  if( !v ) return;
+  if( s2->tt != MRB_TT_STRING ) {
+    console_print( "Not support STRING + Other\n" );
+    return;
+  }
 
-  memcpy( v->str, s1->str, len1 );
-  memcpy( v->str+len1, s2->str, len2+1 );
+  int len1 = strlen(MRBC_STRING_C_STR(s1));
+  int len2 = strlen(MRBC_STRING_C_STR(s2));
 
-  mrbc_release(vm, reg);
-  reg->tt = MRB_TT_STRING;
-  reg->handle = v;
+  mrb_value *handle = mrbc_string_constructor_w_len(vm, NULL, len1+len2);
+  if( !handle ) return;
+
+  memcpy( handle->str, MRBC_STRING_C_STR(s1), len1 );
+  memcpy( handle->str+len1, MRBC_STRING_C_STR(s2), len2+1 );
+
+  mrbc_release(vm, v);
+  v->tt = MRB_TT_STRING;
+  v->handle = handle;
 }
 
 
@@ -297,6 +300,7 @@ void mrbc_init_class_string(mrb_vm *vm)
 {
   mrbc_class_string = mrbc_class_alloc(vm, "String", mrbc_class_object);
 
+  mrbc_define_method(vm, mrbc_class_string, "+", c_string_add);
   mrbc_define_method(vm, mrbc_class_string, "size", c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "length", c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "!=", c_string_neq);

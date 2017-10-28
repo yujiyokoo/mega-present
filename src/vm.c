@@ -87,7 +87,7 @@ static void not_supported(void)
 
 //================================================================
 /*!@brief
-  Execute NOP
+  Execute OP_NOP
 
   No operation
 
@@ -104,7 +104,7 @@ inline static int op_nop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute MOVE
+  Execute OP_MOVE
 
   R(A) := R(B)
 
@@ -128,7 +128,7 @@ inline static int op_move( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute LOADL
+  Execute OP_LOADL
 
   R(A) := Pool(Bx)
 
@@ -139,23 +139,26 @@ inline static int op_move( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadl( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   mrb_object *ptr = vm->pc_irep->ptr_to_pool;
   while( rb > 0 ){
     ptr = ptr->next;
+    assert( ptr );
     rb--;
   }
 
-  mrbc_release(vm, &regs[GETARG_A(code)]);
-  mrbc_dup(vm, ptr);
-  regs[GETARG_A(code)] = *ptr;
+  mrbc_release(vm, &regs[ra]);
+  mrbc_dup(vm, ptr);            // TODO: Need?
+  regs[ra] = *ptr;
+
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute LOADI
+  Execute OP_LOADI
 
   R(A) := sBx
 
@@ -169,8 +172,8 @@ inline static int op_loadi( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
 
   mrbc_release(vm, &regs[ra]);
-  regs[ra].i = GETARG_sBx(code);
   regs[ra].tt = MRB_TT_FIXNUM;
+  regs[ra].i = GETARG_sBx(code);
 
   return 0;
 }
@@ -178,7 +181,7 @@ inline static int op_loadi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute LOADSYM
+  Execute OP_LOADSYM
 
   R(A) := Syms(Bx)
 
@@ -196,8 +199,8 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_sym sym_id = add_sym(sym);
 
   mrbc_release(vm, &regs[ra]);
-  regs[ra].i = sym_id;
   regs[ra].tt = MRB_TT_SYMBOL;
+  regs[ra].i = sym_id;
 
   return 0;
 }
@@ -205,7 +208,7 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute LOADNIL
+  Execute OP_LOADNIL
 
   R(A) := nil
 
@@ -216,15 +219,18 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadnil( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrbc_release(vm, &regs[GETARG_A(code)]);
-  regs[GETARG_A(code)].tt = MRB_TT_NIL;
+  int ra = GETARG_A(code);
+
+  mrbc_release(vm, &regs[ra]);
+  regs[ra].tt = MRB_TT_NIL;
+
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute LOADSELF
+  Execute OP_LOADSELF
 
   R(A) := self
 
@@ -238,7 +244,7 @@ inline static int op_loadself( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
 
   mrbc_release(vm, &regs[ra]);
-  mrbc_dup(vm, &regs[0]);
+  mrbc_dup(vm, &regs[0]);       // TODO: Need?
   regs[ra] = regs[0];
 
   return 0;
@@ -247,7 +253,7 @@ inline static int op_loadself( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute LOADT
+  Execute OP_LOADT
 
   R(A) := true
 
@@ -258,15 +264,18 @@ inline static int op_loadself( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrbc_release(vm, &regs[GETARG_A(code)]);
-  regs[GETARG_A(code)].tt = MRB_TT_TRUE;
+  int ra = GETARG_A(code);
+
+  mrbc_release(vm, &regs[ra]);
+  regs[ra].tt = MRB_TT_TRUE;
+
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute LOADF
+  Execute OP_LOADF
 
   R(A) := false
 
@@ -277,15 +286,18 @@ inline static int op_loadt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_loadf( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrbc_release(vm, &regs[GETARG_A(code)]);
-  regs[GETARG_A(code)].tt = MRB_TT_FALSE;
+  int ra = GETARG_A(code);
+
+  mrbc_release(vm, &regs[ra]);
+  regs[ra].tt = MRB_TT_FALSE;
+
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute GETGLOBAL
+  Execute OP_GETGLOBAL
 
   R(A) := getglobal(Syms(Bx))
 
@@ -300,14 +312,17 @@ inline static int op_getglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_Bx(code);
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrb_sym sym_id = add_sym(sym);
+
+  mrbc_release(vm, &regs[ra]);
   regs[ra] = global_object_get(sym_id);
+
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute SETGLOBAL
+  Execute OP_SETGLOBAL
 
   setglobal(Syms(Bx), R(A))
 
@@ -323,13 +338,14 @@ inline static int op_setglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrb_sym sym_id = add_sym(sym);
   global_object_add(sym_id, regs[ra]);
+
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute GETCONST
+  Execute OP_GETCONST
 
   R(A) := constget(Syms(Bx))
 
@@ -344,14 +360,17 @@ inline static int op_getconst( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_Bx(code);
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrb_sym sym_id = add_sym(sym);
+
+  mrbc_release(vm, &regs[ra]);
   regs[ra] = const_object_get(sym_id);
+
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute SETCONST
+  Execute OP_SETCONST
 
   constset(Syms(Bx),R(A))
 
@@ -367,13 +386,14 @@ inline static int op_setconst( mrb_vm *vm, uint32_t code, mrb_value *regs ) {
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrb_sym sym_id = add_sym(sym);
   const_object_add(sym_id, &regs[ra]);
+
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute JMP
+  Execute OP_JMP
 
   pc += sBx
 
@@ -391,7 +411,7 @@ inline static int op_jmp( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute JMPIF
+  Execute OP_JMPIF
 
   if R(A) pc += sBx
 
@@ -412,7 +432,7 @@ inline static int op_jmpif( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute JMPNOT
+  Execute OP_JMPNOT
 
   if not R(A) pc += sBx
 
@@ -433,7 +453,7 @@ inline static int op_jmpnot( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute SEND
+  Execute OP_SEND
 
   R(A) := call(R(A),Syms(B),R(A+1),...,R(A+C))
 
@@ -499,7 +519,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute ENTER
+  Execute OP_ENTER
 
   arg setup according to flags (23=5:5:1:5:5:1:1)
 
@@ -523,7 +543,7 @@ inline static int op_enter( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute RETURN
+  Execute OP_RETURN
 
   return R(A) (B=normal,in-block return/break)
 
@@ -558,7 +578,7 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute RETURN
+  Execute OP_BLKPUSH
 
   R(A) := block (16=6:1:5:4)
 
@@ -582,7 +602,7 @@ inline static int op_blkpush( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute ADD
+  Execute OP_ADD
 
   R(A) := R(A)+R(A+1) (Syms[B]=:+,C=1)
 
@@ -595,34 +615,40 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
 
-  // support Fixnum + Fixnum
-  if( regs[ra].tt == MRB_TT_FIXNUM && regs[ra+1].tt == MRB_TT_FIXNUM ) {
-    regs[ra].i += regs[ra+1].i;
+  if( regs[ra].tt == MRB_TT_FIXNUM ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {	// in case of Fixnum, Fixnum
+      regs[ra].i += regs[ra+1].i;
+      return 0;
+    }
 #if MRBC_USE_FLOAT
-  } else if( regs[ra].tt == MRB_TT_FLOAT ){
-    if( regs[ra+1].tt == MRB_TT_FIXNUM ){
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {	// in case of Fixnum, Float
+      regs[ra].tt = MRB_TT_FLOAT;
+      regs[ra].d = regs[ra].i + regs[ra+1].d;
+      return 0;
+    }
+  }
+  if( regs[ra].tt == MRB_TT_FLOAT ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {	// in case of Float, Fixnum
       regs[ra].d += regs[ra+1].i;
-    } else if( regs[ra+1].tt == MRB_TT_FLOAT ){
+      return 0;
+    }
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {	// in case of Float, Float
       regs[ra].d += regs[ra+1].d;
-    } else {
-      op_send(vm, code, regs);
+      return 0;
     }
 #endif
-#if MRBC_USE_STRING
-  } else if( regs[ra].tt == MRB_TT_STRING && regs[ra+1].tt == MRB_TT_STRING ){
-    mrbc_string_op_add(vm, &regs[ra]);
-#endif
-  } else {
-    op_send(vm, code, regs);
   }
 
+  // other case
+  op_send(vm, code, regs);
+  mrbc_release(vm, &regs[ra+1]);
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute ADDI
+  Execute OP_ADDI
 
   R(A) := R(A)+C (Syms[B]=:+)
 
@@ -633,22 +659,28 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_addi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
 
-  // support Fixnum + (value)
-  if( regs[rr].tt == MRB_TT_FIXNUM ) {
-    regs[rr].i += GETARG_C(code);
-  } else {
-    not_supported();
+  if( regs[ra].tt == MRB_TT_FIXNUM ) {
+    regs[ra].i += GETARG_C(code);
+    return 0;
   }
 
+#if MRBC_USE_FLOAT
+  if( regs[ra].tt == MRB_TT_FLOAT ) {
+    regs[ra].d += GETARG_C(code);
+    return 0;
+  }
+#endif
+
+  not_supported();
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute ADD
+  Execute OP_SUB
 
   R(A) := R(A)-R(A+1) (Syms[B]=:-,C=1)
 
@@ -659,32 +691,42 @@ inline static int op_addi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_sub( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
 
-  // support Fixnum - Fixnum
-  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    regs[rr].i -= regs[rr+1].i;
+  if( regs[ra].tt == MRB_TT_FIXNUM ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {	// in case of Fixnum, Fixnum
+      regs[ra].i -= regs[ra+1].i;
+      return 0;
+    }
 #if MRBC_USE_FLOAT
-  } else if( regs[rr].tt == MRB_TT_FLOAT ){
-    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      regs[rr].d -= regs[rr+1].i;
-    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      regs[rr].d -= regs[rr+1].d;
-    } else {
-      not_supported();
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {	// in case of Fixnum, Float
+      regs[ra].tt = MRB_TT_FLOAT;
+      regs[ra].d = regs[ra].i - regs[ra+1].d;
+      return 0;
+    }
+  }
+  if( regs[ra].tt == MRB_TT_FLOAT ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {	// in case of Float, Fixnum
+      regs[ra].d -= regs[ra+1].i;
+      return 0;
+    }
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {	// in case of Float, Float
+      regs[ra].d -= regs[ra+1].d;
+      return 0;
     }
 #endif
-  } else {
-    not_supported();
   }
 
+  // other case
+  op_send(vm, code, regs);
+  mrbc_release(vm, &regs[ra+1]);
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute
+  Execute OP_SUBI
 
   R(A) := R(A)-C (Syms[B]=:-)
 
@@ -695,22 +737,28 @@ inline static int op_sub( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_subi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
 
-  // support Fixnum + (value)
-  if( regs[rr].tt == MRB_TT_FIXNUM ) {
-    regs[rr].i -= GETARG_C(code);
-  } else {
-    not_supported();
+  if( regs[ra].tt == MRB_TT_FIXNUM ) {
+    regs[ra].i -= GETARG_C(code);
+    return 0;
   }
 
+#if MRBC_USE_FLOAT
+  if( regs[ra].tt == MRB_TT_FLOAT ) {
+    regs[ra].d -= GETARG_C(code);
+    return 0;
+  }
+#endif
+
+  not_supported();
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute
+  Execute OP_MUL
 
   R(A) := R(A)*R(A+1) (Syms[B]=:*)
 
@@ -721,32 +769,42 @@ inline static int op_subi( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_mul( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
 
-  // support Fixnum * Fixnum
-  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    regs[rr].i *= regs[rr+1].i;
+  if( regs[ra].tt == MRB_TT_FIXNUM ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {	// in case of Fixnum, Fixnum
+      regs[ra].i *= regs[ra+1].i;
+      return 0;
+    }
 #if MRBC_USE_FLOAT
-  } else if( regs[rr].tt == MRB_TT_FLOAT ){
-    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      regs[rr].d *= regs[rr+1].i;
-    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      regs[rr].d *= regs[rr+1].d;
-    } else {
-      not_supported();
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {	// in case of Fixnum, Float
+      regs[ra].tt = MRB_TT_FLOAT;
+      regs[ra].d = regs[ra].i * regs[ra+1].d;
+      return 0;
+    }
+  }
+  if( regs[ra].tt == MRB_TT_FLOAT ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {	// in case of Float, Fixnum
+      regs[ra].d *= regs[ra+1].i;
+      return 0;
+    }
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {	// in case of Float, Float
+      regs[ra].d *= regs[ra+1].d;
+      return 0;
     }
 #endif
-  } else {
-    not_supported();
   }
 
+  // other case
+  op_send(vm, code, regs);
+  mrbc_release(vm, &regs[ra+1]);
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute
+  Execute OP_DIV
 
   R(A) := R(A)/R(A+1) (Syms[B]=:/)
 
@@ -757,32 +815,42 @@ inline static int op_mul( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_div( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
 
-  // support Fixnum * Fixnum
-  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    regs[rr].i /= regs[rr+1].i;
+  if( regs[ra].tt == MRB_TT_FIXNUM ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {	// in case of Fixnum, Fixnum
+      regs[ra].i /= regs[ra+1].i;
+      return 0;
+    }
 #if MRBC_USE_FLOAT
-  } else if( regs[rr].tt == MRB_TT_FLOAT ){
-    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      regs[rr].d /= regs[rr+1].i;
-    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      regs[rr].d /= regs[rr+1].d;
-    } else {
-      not_supported();
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {	// in case of Fixnum, Float
+      regs[ra].tt = MRB_TT_FLOAT;
+      regs[ra].d = regs[ra].i / regs[ra+1].d;
+      return 0;
+    }
+  }
+  if( regs[ra].tt == MRB_TT_FLOAT ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {	// in case of Float, Fixnum
+      regs[ra].d /= regs[ra+1].i;
+      return 0;
+    }
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {	// in case of Float, Float
+      regs[ra].d /= regs[ra+1].d;
+      return 0;
     }
 #endif
-  } else {
-    not_supported();
   }
 
+  // other case
+  op_send(vm, code, regs);
+  mrbc_release(vm, &regs[ra+1]);
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute EQ
+  Execute OP_EQ
 
   R(A) := R(A)==R(A+1)  (Syms[B]=:==,C=1)
 
@@ -796,6 +864,7 @@ inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int result = mrbc_eq(&regs[ra], &regs[ra+1]);
 
+  mrbc_release(vm, &regs[ra+1]);
   mrbc_release(vm, &regs[ra]);
   regs[ra].tt = result ? MRB_TT_TRUE : MRB_TT_FALSE;
 
@@ -805,7 +874,7 @@ inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute LT
+  Execute OP_LT
 
   R(A) := R(A)<R(A+1)  (Syms[B]=:<,C=1)
 
@@ -816,40 +885,46 @@ inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_lt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
   int result;
 
-  // support Fixnum + Fixnum
-  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    result = regs[rr].i < regs[rr+1].i;
+  if( regs[ra].tt == MRB_TT_FIXNUM ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {
+      result = regs[ra].i < regs[ra+1].i;	// in case of Fixnum, Fixnum
+      goto DONE;
+    }
 #if MRBC_USE_FLOAT
-  } else if( regs[rr].tt == MRB_TT_FLOAT ){
-    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      result = regs[rr].d < regs[rr+1].i;
-    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      result = regs[rr].d < regs[rr+1].d;
-    } else {
-      result = 0;
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {
+      result = regs[ra].i < regs[ra+1].d;	// in case of Fixnum, Float
+      goto DONE;
+    }
+  }
+  if( regs[ra].tt == MRB_TT_FLOAT ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {
+      result = regs[ra].d < regs[ra+1].i;	// in case of Float, Fixnum
+      goto DONE;
+    }
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {
+      result = regs[ra].d < regs[ra+1].d;	// in case of Float, Float
+      goto DONE;
     }
 #endif
-  } else {
-    result = 0;
-    not_supported();
   }
 
-  if( result ) {
-    regs[rr].tt = MRB_TT_TRUE;
-  } else {
-    regs[rr].tt = MRB_TT_FALSE;
-  }
+  // other case
+  op_send(vm, code, regs);
+  mrbc_release(vm, &regs[ra+1]);
+  return 0;
 
+DONE:
+  regs[ra].tt = result ? MRB_TT_TRUE : MRB_TT_FALSE;
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute LE
+  Execute OP_LE
 
   R(A) := R(A)<=R(A+1)  (Syms[B]=:<=,C=1)
 
@@ -860,39 +935,46 @@ inline static int op_lt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_le( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
   int result;
 
-  // support Fixnum + Fixnum
-  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    result = regs[rr].i <= regs[rr+1].i;
+  if( regs[ra].tt == MRB_TT_FIXNUM ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {
+      result = regs[ra].i <= regs[ra+1].i;	// in case of Fixnum, Fixnum
+      goto DONE;
+    }
 #if MRBC_USE_FLOAT
-  } else if( regs[rr].tt == MRB_TT_FLOAT ){
-    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      result = regs[rr].d <= regs[rr+1].i;
-    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      result = regs[rr].d <= regs[rr+1].d;
-    } else {
-      result = 0;
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {
+      result = regs[ra].i <= regs[ra+1].d;	// in case of Fixnum, Float
+      goto DONE;
+    }
+  }
+  if( regs[ra].tt == MRB_TT_FLOAT ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {
+      result = regs[ra].d <= regs[ra+1].i;	// in case of Float, Fixnum
+      goto DONE;
+    }
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {
+      result = regs[ra].d <= regs[ra+1].d;	// in case of Float, Float
+      goto DONE;
     }
 #endif
-  } else {
-    result = 0;
-    not_supported();
-  }
-  if( result ) {
-    regs[rr].tt = MRB_TT_TRUE;
-  } else {
-    regs[rr].tt = MRB_TT_FALSE;
   }
 
+  // other case
+  op_send(vm, code, regs);
+  mrbc_release(vm, &regs[ra+1]);
+  return 0;
+
+DONE:
+  regs[ra].tt = result ? MRB_TT_TRUE : MRB_TT_FALSE;
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute GE
+  Execute OP_GT
 
   R(A) := R(A)>=R(A+1) (Syms[B]=:>=,C=1)
 
@@ -903,39 +985,46 @@ inline static int op_le( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_gt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
   int result;
 
-  // support Fixnum + Fixnum
-  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    result = regs[rr].i > regs[rr+1].i;
+  if( regs[ra].tt == MRB_TT_FIXNUM ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {
+      result = regs[ra].i > regs[ra+1].i;	// in case of Fixnum, Fixnum
+      goto DONE;
+    }
 #if MRBC_USE_FLOAT
-  } else if( regs[rr].tt == MRB_TT_FLOAT ){
-    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      result = regs[rr].d > regs[rr+1].i;
-    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      result = regs[rr].d > regs[rr+1].d;
-    } else {
-      result = 0;
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {
+      result = regs[ra].i > regs[ra+1].d;	// in case of Fixnum, Float
+      goto DONE;
+    }
+  }
+  if( regs[ra].tt == MRB_TT_FLOAT ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {
+      result = regs[ra].d > regs[ra+1].i;	// in case of Float, Fixnum
+      goto DONE;
+    }
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {
+      result = regs[ra].d > regs[ra+1].d;	// in case of Float, Float
+      goto DONE;
     }
 #endif
-  } else {
-    result = 0;
-    not_supported();
-  }
-  if( result ) {
-    regs[rr].tt = MRB_TT_TRUE;
-  } else {
-    regs[rr].tt = MRB_TT_FALSE;
   }
 
+  // other case
+  op_send(vm, code, regs);
+  mrbc_release(vm, &regs[ra+1]);
+  return 0;
+
+DONE:
+  regs[ra].tt = result ? MRB_TT_TRUE : MRB_TT_FALSE;
   return 0;
 }
 
 
 //================================================================
 /*!@brief
-  Execute GE
+  Execute OP_GE
 
   R(A) := R(A)>=R(A+1) (Syms[B]=:>=,C=1)
 
@@ -946,32 +1035,39 @@ inline static int op_gt( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_ge( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int rr = GETARG_A(code);
+  int ra = GETARG_A(code);
   int result;
 
-  // support Fixnum + Fixnum
-  if( regs[rr].tt == MRB_TT_FIXNUM && regs[rr+1].tt == MRB_TT_FIXNUM ) {
-    result = regs[rr].i >= regs[rr+1].i;
+  if( regs[ra].tt == MRB_TT_FIXNUM ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {
+      result = regs[ra].i >= regs[ra+1].i;	// in case of Fixnum, Fixnum
+      goto DONE;
+    }
 #if MRBC_USE_FLOAT
-  } else if( regs[rr].tt == MRB_TT_FLOAT ){
-    if( regs[rr+1].tt == MRB_TT_FIXNUM ){
-      result = regs[rr].d >= regs[rr+1].i;
-    } else if( regs[rr+1].tt == MRB_TT_FLOAT ){
-      result = regs[rr].d >= regs[rr+1].d;
-    } else {
-      result = 0;
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {
+      result = regs[ra].i >= regs[ra+1].d;	// in case of Fixnum, Float
+      goto DONE;
+    }
+  }
+  if( regs[ra].tt == MRB_TT_FLOAT ) {
+    if( regs[ra+1].tt == MRB_TT_FIXNUM ) {
+      result = regs[ra].d >= regs[ra+1].i;	// in case of Float, Fixnum
+      goto DONE;
+    }
+    if( regs[ra+1].tt == MRB_TT_FLOAT ) {
+      result = regs[ra].d >= regs[ra+1].d;	// in case of Float, Float
+      goto DONE;
     }
 #endif
-  } else {
-    result = 0;
-    not_supported();
-  }
-  if( result ) {
-    regs[rr].tt = MRB_TT_TRUE;
-  } else {
-    regs[rr].tt = MRB_TT_FALSE;
   }
 
+  // other case
+  op_send(vm, code, regs);
+  mrbc_release(vm, &regs[ra+1]);
+  return 0;
+
+DONE:
+  regs[ra].tt = result ? MRB_TT_TRUE : MRB_TT_FALSE;
   return 0;
 }
 
@@ -1120,7 +1216,7 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute  LAMBDA
+  Execute OP_LAMBDA
 
   R(A) := lambda(SEQ[Bz],Cz)
 
@@ -1158,7 +1254,7 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute  RANGE
+  Execute OP_RANGE
 
   R(A) := R(A) := range_new(R(B),R(B+1),C)
 
@@ -1179,7 +1275,7 @@ inline static int op_range( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute CLASS
+  Execute OP_CLASS
 
     R(A) := newclass(R(A),Syms(B),R(A+1))
     Syms(B): class name
@@ -1219,7 +1315,7 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  OP_EXEC
+  Execute OP_EXEC
 
   R(A) := blockexec(R(A),SEQ[Bx])
 
@@ -1260,7 +1356,7 @@ inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute METHOD
+  Execute OP_METHOD
 
   R(A).newmethod(Syms(B),R(A+1))
 
@@ -1295,7 +1391,7 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute TCLASS
+  Execute OP_TCLASS
 
   R(A) := target_class
 
@@ -1318,7 +1414,7 @@ inline static int op_tclass( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute STOP
+  Execute OP_STOP
 
   stop VM
 
@@ -1348,7 +1444,6 @@ mrb_irep *new_irep(mrb_vm *vm)
     memset(p, 0, sizeof(mrb_irep));	// caution: assume NULL is zero.
   return p;
 }
-
 
 
 
