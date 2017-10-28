@@ -350,6 +350,18 @@ static void c_string_insert(mrb_vm *vm, mrb_value *v, int argc)
 
 
 //================================================================
+/*! (method) ord
+*/
+static void c_string_ord(mrb_vm *vm, mrb_value *v, int argc)
+{
+  int i = MRBC_STRING_C_STR(v)[0];
+
+  mrbc_release(vm, v);
+  SET_INT_RETURN( i );
+}
+
+
+//================================================================
 /*! initialize
 */
 void mrbc_init_class_string(mrb_vm *vm)
@@ -364,4 +376,5 @@ void mrbc_init_class_string(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_string, "<<", c_string_append);
   mrbc_define_method(vm, mrbc_class_string, "[]", c_string_slice);
   mrbc_define_method(vm, mrbc_class_string, "[]=", c_string_insert);
+  mrbc_define_method(vm, mrbc_class_string, "ord", c_string_ord);
 }
