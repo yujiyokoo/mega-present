@@ -112,7 +112,7 @@ void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t
 // Object - puts
 static void c_puts(mrb_vm *vm, mrb_value *v, int argc)
 {
-  mrb_value *arg0 = v+1;
+  mrb_value *arg0 = &GET_ARG(1);
   switch( arg0->tt ){
   case MRB_TT_FIXNUM:
     console_printf("%d", arg0->i);
@@ -132,7 +132,7 @@ static void c_puts(mrb_vm *vm, mrb_value *v, int argc)
     break;
 #endif
   case MRB_TT_STRING:
-    console_printf("%s", arg0->handle->str);
+    console_printf("%s", MRBC_STRING_C_STR(arg0));
     break;
   case MRB_TT_RANGE:{
     mrb_value *ptr = arg0->range;
@@ -146,11 +146,9 @@ static void c_puts(mrb_vm *vm, mrb_value *v, int argc)
     mrb_value *array = arg0->array->array;
     int i, n = array[0].i;
     console_printf("[");
-    for( i=1 ; i<=n ; i++ ){
-      c_puts(vm, &array[i-1],argc);
-      if( i!=n ){
-	console_printf(", ");
-      }
+    for( i = 0 ; i < n ; i++ ) {
+      if( i != 0 ) console_printf(", ");
+      c_puts(vm, array + i, 1);
     }
     console_printf("]");
   } break;
@@ -162,8 +160,11 @@ static void c_puts(mrb_vm *vm, mrb_value *v, int argc)
 
 static void c_puts_nl(mrb_vm *vm, mrb_value *v, int argc)
 {
-  c_puts(vm, v, argc);
-  console_printf("\n");
+  int i;
+  for( i = 0; i < argc; i++ ) {
+    c_puts(vm, v+i, 1);
+    console_printf("\n");
+  }
 }
 
 
