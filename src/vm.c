@@ -473,7 +473,6 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int bidx = ra + rc + 1;
   if( GET_OPCODE(code) == OP_SEND ){
     // OP_SEND: set nil
-    mrbc_release(vm, &regs[bidx]);
     regs[bidx].tt = MRB_TT_NIL;
   } else {
     // OP_SENDB: set Proc objec
@@ -494,6 +493,12 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // m is C func
   if( m->c_func ) {
     m->func(vm, regs + ra, rc);
+
+    int r = ra + rc;
+    while( ra < r ) {
+      mrbc_release(vm, &regs[r]);
+      r--;
+    }
     return 0;
   }
 
