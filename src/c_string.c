@@ -294,6 +294,62 @@ static void c_string_slice(mrb_vm *vm, mrb_value *v, int argc)
 
 
 //================================================================
+/*! (method) []=
+*/
+static void c_string_insert(mrb_vm *vm, mrb_value *v, int argc)
+{
+  int nth;
+  int len;
+  mrb_value *val;
+
+  /*
+    in case of self[nth] = val
+  */
+  if( argc == 2 &&
+        GET_ARG(1).tt == MRB_TT_FIXNUM && GET_ARG(2).tt == MRB_TT_STRING ) {
+    nth = GET_ARG(1).i;
+    len = 1;
+    val = &GET_ARG(2);
+  }
+  /*
+    in case of self[nth, len] = val
+  */
+  else if( argc == 3 &&
+        GET_ARG(1).tt == MRB_TT_FIXNUM && GET_ARG(2).tt == MRB_TT_FIXNUM &&
+        GET_ARG(3).tt == MRB_TT_STRING ) {
+    nth = GET_ARG(1).i;
+    len = GET_ARG(2).i;
+    val = &GET_ARG(3);
+  }
+  /*
+    other cases
+  */
+  else {
+    console_print( "Not support\n" );
+    return;
+  }
+
+  int len1 = strlen(MRBC_STRING_C_STR(v));
+  int len2 = strlen(MRBC_STRING_C_STR(val));
+  if( nth < 0 ) nth = len1 + nth;               // adjust to positive number.
+  if( len > len1 - nth ) len = len1 - nth;
+  if( nth < 0 || nth > len1 || len < 0) {
+    console_print( "IndexError\n" );  // raise?
+    return;
+  }
+
+  uint8_t *str = mrbc_realloc(vm, MRBC_STRING_C_STR(v), len1 + len2 - len + 1);
+  if( !str ) return;
+
+  memmove( str + nth + len2, str + nth + len, len1 - nth - len );
+  memcpy( str + nth, MRBC_STRING_C_STR(val), len2 );
+  str[len1 + len2 - len] = '\0';
+
+  v->handle->str = (char *)str;
+}
+
+
+//================================================================
 /*! initialize
 */
 void mrbc_init_class_string(mrb_vm *vm)
@@ -307,4 +363,5 @@ void mrbc_init_class_string(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_string, "to_i", c_string_to_i);
   mrbc_define_method(vm, mrbc_class_string, "<<", c_string_append);
   mrbc_define_method(vm, mrbc_class_string, "[]", c_string_slice);
+  mrbc_define_method(vm, mrbc_class_string, "[]=", c_string_insert);
 }
