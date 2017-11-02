@@ -20,6 +20,7 @@
 #include "errorcode.h"
 #include "static.h"
 #include "value.h"
+#include "alloc.h"
 
 
 //================================================================
@@ -67,20 +68,16 @@ static int load_header(struct VM *vm, const uint8_t **pos)
 }
 
 
+
 //================================================================
 /*!@brief
-  Parse IREP section.
+  read one irep section.
 
   @param  vm    A pointer of VM.
   @param  pos	A pointer of pointer of IREP section.
-  @return int	zero if no error.
+  @return       Pointer of allocated mrb_irep or NULL
 
   <pre>
-  Structure
-   "IREP"	section identifier
-   0000_0000	section size
-   "0000"	rite version
-
    (loop n of child irep bellow)
    0000_0000	record size
    0000		n of local variable
@@ -102,116 +99,157 @@ static int load_header(struct VM *vm, const uint8_t **pos)
      ...	symbol data
   </pre>
 */
+static mrb_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
+{
+  const uint8_t *p = *pos + 4;			// skip record size
+
+  // new irep
+  mrb_irep *irep = new_irep(0);
+  if( irep == NULL ) {
+    vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
+    return NULL;
+  }
+
+  // nlocals,nregs,rlen
+  irep->nlocals = bin_to_uint16(p);	p += 2;
+  irep->nregs = bin_to_uint16(p);	p += 2;
+  irep->rlen = bin_to_uint16(p);	p += 2;
+  irep->ilen = bin_to_uint32(p);	p += 4;
+
+  // padding
+  p += (-(p - vm->mrb) & 0x03);
+
+  if( irep->rlen ) {
+    irep->reps = (mrb_irep **)mrbc_alloc(0, sizeof(mrb_irep *) * irep->rlen);
+    if( irep->reps == NULL ) {
+      vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
+      return NULL;
+    }
+  }
+
+  // ISEQ (code) BLOCK
+  irep->code = (uint8_t *)p;
+  p += irep->ilen * 4;
+
+  // POOL BLOCK
+  int plen = bin_to_uint32(p);		p += 4;
+  while( --plen >= 0 ) {
+    int tt = *p++;
+    int obj_size = bin_to_uint16(p);	p += 2;
+    mrb_object *obj = mrbc_obj_alloc(0, MRB_TT_EMPTY);
+    if( obj == NULL ) {
+      vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
+      return NULL;
+    }
+    switch( tt ) {
+#if MRBC_USE_STRING
+    case 0: { // IREP_TT_STRING
+      obj->tt = MRB_TT_STRING;
+      obj->str = (char*)p;
+    } break;
+#endif
+    case 1: { // IREP_TT_FIXNUM
+      char buf[obj_size+1];
+      memcpy(buf, p, obj_size);
+      buf[obj_size] = '\0';
+      obj->tt = MRB_TT_FIXNUM;
+      obj->i = atoi(buf);
+    } break;
+#if MRBC_USE_FLOAT
+    case 2: { // IREP_TT_FLOAT
+      char buf[obj_size+1];
+      memcpy(buf, p, obj_size);
+      buf[obj_size] = '\0';
+      obj->tt = MRB_TT_FLOAT;
+      obj->d = atof(buf);
+    } break;
+#endif
+    default:
+      break;
+    }
+    if( irep->ptr_to_pool == NULL ) {
+      irep->ptr_to_pool = obj;
+    } else {
+      mrb_object *p = irep->ptr_to_pool;
+      while( p->next != NULL ) {
+        p = p->next;
+      }
+      p->next = obj;
+    }
+    p += obj_size;
+  }
+
+  // SYMS BLOCK
+  irep->ptr_to_sym = (uint8_t*)p;
+  int slen = bin_to_uint32(p);		p += 4;
+  while( --slen >= 0 ) {
+    int s = bin_to_uint16(p);		p += 2;
+    p += s+1;
+  }
+
+  *pos = p;
+  return irep;
+}
+
+
+
+//================================================================
+/*!@brief
+  read all irep section.
+
+  @param  vm    A pointer of VM.
+  @param  pos	A pointer of pointer of IREP section.
+  @return       Pointer of allocated mrb_irep or NULL
+*/
+static mrb_irep * load_irep_0(struct VM *vm, const uint8_t **pos)
+{
+  mrb_irep *irep = load_irep_1(vm, pos);
+  if( !irep ) return NULL;
+
+  int i;
+  for( i = 0; i < irep->rlen; i++ ) {
+    irep->reps[i] = load_irep_0(vm, pos);
+  }
+
+  return irep;
+}
+
+
+
+//================================================================
+/*!@brief
+  Parse IREP section.
+
+  @param  vm    A pointer of VM.
+  @param  pos	A pointer of pointer of IREP section.
+  @return int	zero if no error.
+
+  <pre>
+  Structure
+   "IREP"	section identifier
+   0000_0000	section size
+   "0000"	rite version
+  </pre>
+*/
 static int load_irep(struct VM *vm, const uint8_t **pos)
 {
-  const uint8_t *p = *pos + 4;                  // "IREP"
-  int section_size = bin_to_uint32(p); p += 4;
-
-  if( memcmp(p, "0000", 4) != 0 ) {             // rite version
+  const uint8_t *p = *pos + 4;			// 4 = skip "RITE"
+  int section_size = bin_to_uint32(p);
+  p += 4;
+  if( memcmp(p, "0000", 4) != 0 ) {		// rite version
     vm->error_code = LOAD_FILE_IREP_ERROR_VERSION;
     return -1;
   }
   p += 4;
-
-  int rlen_total = 1;
-  do {
-    p += 4;                                     // skip record size
-
-    // new irep
-    mrb_irep *irep = new_irep(0);
-    if( irep == NULL ) {
-      vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
-      return -1;
-    }
-
-    // add irep into vm->irep (at tail)
-    // TODO: Optimize this process
-    if( vm->irep == NULL ) {
-      vm->irep = irep;
-    } else {
-      mrb_irep *p = vm->irep;
-      while( p->next != NULL ) {
-        p = p->next;
-      }
-      p->next = irep;
-    }
-
-    // nlocals,nregs,rlen
-    irep->nlocals = bin_to_uint16(p);  p += 2;
-    irep->nregs = bin_to_uint16(p);    p += 2;
-    irep->rlen = bin_to_uint16(p);     p += 2;
-    irep->ilen = bin_to_uint32(p);     p += 4;
-    rlen_total += irep->rlen;
-
-    // padding
-    p += (-(p - *pos + 2) & 0x03);  // +2 = (RITE(22) + IREP(12)) & 0x03
-
-    // ISEQ (code) BLOCK
-    irep->code = (uint8_t *)p;
-    p += irep->ilen * 4;
-
-    // POOL BLOCK
-    int plen = bin_to_uint32(p);        p += 4;
-    while( --plen >= 0 ) {
-      int tt = *p++;
-      int obj_size = bin_to_uint16(p);  p += 2;
-      mrb_object *obj = mrbc_obj_alloc(0, MRB_TT_EMPTY);
-      if( obj == NULL ){
-        vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
-	return -1;
-      }
-      switch( tt ) {
-#if MRBC_USE_STRING
-      case 0: { // IREP_TT_STRING
-        obj->tt = MRB_TT_STRING;
-        obj->str = (char*)p;
-      } break;
-#endif
-      case 1: { // IREP_TT_FIXNUM
-        char buf[obj_size+1];
-        memcpy(buf, p, obj_size);
-        buf[obj_size] = '\0';
-        obj->tt = MRB_TT_FIXNUM;
-        obj->i = atoi(buf);
-      } break;
-#if MRBC_USE_FLOAT
-      case 2: { // IREP_TT_FLOAT
-        char buf[obj_size+1];
-        memcpy(buf, p, obj_size);
-        buf[obj_size] = '\0';
-        obj->tt = MRB_TT_FLOAT;
-        obj->d = atof(buf);
-      } break;
-#endif
-      default:
-        break;
-      }
-      if( irep->ptr_to_pool == NULL ){
-        irep->ptr_to_pool = obj;
-      } else {
-        mrb_object *p = irep->ptr_to_pool;
-        while( p->next != NULL ) {
-          p = p->next;
-        }
-        p->next = obj;
-      }
-      p += obj_size;
-    }
-
-    // SYMS BLOCK
-    irep->ptr_to_sym = (uint8_t*)p;
-    int slen = bin_to_uint32(p);    p += 4;
-    while( --slen >= 0 ) {
-      int s = bin_to_uint16(p);     p += 2;
-      p += s+1;
-    }
-
-    rlen_total -= 1;
-  } while( rlen_total > 0 );
+  vm->irep = load_irep_0(vm, &p);
+  if( vm->irep == NULL ) {
+    return -1;
+  }
 
   *pos += section_size;
   return 0;
 }
+
 
 
 //================================================================
