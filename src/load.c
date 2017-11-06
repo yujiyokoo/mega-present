@@ -117,8 +117,9 @@ static mrb_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   irep->ilen = bin_to_uint32(p);	p += 4;
 
   // padding
-  p += (-(p - vm->mrb) & 0x03);
+  p += (vm->mrb - p) & 0x03;
 
+  // allocate memory for child irep's pointers
   if( irep->rlen ) {
     irep->reps = (mrb_irep **)mrbc_alloc(0, sizeof(mrb_irep *) * irep->rlen);
     if( irep->reps == NULL ) {

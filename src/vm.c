@@ -453,9 +453,10 @@ inline static int op_jmpnot( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute OP_SEND
+  Execute OP_SEND / OP_SENDB
 
-  R(A) := call(R(A),Syms(B),R(A+1),...,R(A+C))
+  OP_SEND   R(A) := call(R(A),Syms(B),R(A+1),...,R(A+C))
+  OP_SENDB  R(A) := call(R(A),Syms(B),R(A+1),...,R(A+C),&R(A+C+1))
 
   @param  vm    A pointer of VM.
   @param  code  bytecode
