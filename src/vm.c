@@ -453,9 +453,10 @@ inline static int op_jmpnot( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute OP_SEND
+  Execute OP_SEND / OP_SENDB
 
-  R(A) := call(R(A),Syms(B),R(A+1),...,R(A+C))
+  OP_SEND   R(A) := call(R(A),Syms(B),R(A+1),...,R(A+C))
+  OP_SENDB  R(A) := call(R(A),Syms(B),R(A+1),...,R(A+C),&R(A+C+1))
 
   @param  vm    A pointer of VM.
   @param  code  bytecode
@@ -1236,18 +1237,9 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_b(code);      // sequence position in irep list
   // int c = GETARG_C(code);    // TODO: Add flags support for OP_LAMBDA
   mrb_proc *proc = mrbc_rproc_alloc(vm, "(lambda)");
-  mrb_irep *current = vm->irep;
-  mrb_irep *p = current->next; //starting from next for current sequence;
-  assert( p != NULL );
-
-  int i;
-  for( i = 0; i < rb; i++ ) {
-    p = p->next;
-    assert( p != NULL );
-  }
 
   proc->c_func = 0;
-  proc->irep = p;
+  proc->irep = vm->irep->reps[rb];
 
   mrbc_release(vm, &regs[ra]);
   regs[ra].tt = MRB_TT_PROC;
@@ -1331,7 +1323,10 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrb_value recv = regs[GETARG_A(code)];
+  int ra = GETARG_A(code);
+  int rb = GETARG_Bx(code);
+
+  mrb_value recv = regs[ra];
 
   // prepare callinfo
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
@@ -1341,16 +1336,8 @@ inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->n_args = 0;
   vm->callinfo_top++;
 
-  // find irep
-  int b = GETARG_Bx(code);
-  mrb_irep *p = vm->irep->next;
-  int i;
-  for( i = 0; i < b; i++ ) {
-    p = p->next;
-  }
-
   vm->pc = 0;
-  vm->pc_irep = p;
+  vm->pc_irep = vm->irep->reps[rb];
 
   vm->target_class = find_class_by_object(vm, &recv);
 
@@ -1497,6 +1484,27 @@ mrb_vm *mrbc_vm_open(mrb_vm *vm_arg)
 
 //================================================================
 /*!@brief
+  release mrb_irep holds memory
+*/
+static void irep_destructor( mrb_irep *irep )
+{
+  mrb_object *obj = irep->ptr_to_pool;
+  while( obj != NULL ) {
+    mrb_object *obj_next = obj->next;
+    mrbc_raw_free(obj);
+    obj = obj_next;
+  }
+
+  int i;
+  for( i = 0; i < irep->rlen; i++ ) {
+    irep_destructor( irep->reps[i] );
+  }
+  mrbc_raw_free( irep );
+}
+
+
+//================================================================
+/*!@brief
   Close the VM.
 
   @param  vm  Pointer to mrb_vm
@@ -1509,20 +1517,8 @@ void mrbc_vm_close(mrb_vm *vm)
   assert( i < Num(free_vm_bitmap) );
   free_vm_bitmap[i] &= ~(1 << (FREE_BITMAP_WIDTH - n - 1));
 
-  // free irep and ptr_to_pool objects
-  mrb_irep *irep = vm->irep;
-  while( irep != NULL ) {
-    mrb_object *obj = irep->ptr_to_pool;
-    while( obj != NULL ) {
-      mrb_object *obj_next = obj->next;
-      mrbc_raw_free(obj);
-      obj = obj_next;
-    }
-    mrb_irep *irep_next = irep->next;
-    mrbc_raw_free(irep);
-    irep = irep_next;
-  }
-
+  // free irep and vm
+  irep_destructor( vm->irep );
   if( vm->flag_need_memfree ) mrbc_raw_free(vm);
 }
 

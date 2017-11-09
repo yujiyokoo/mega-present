@@ -30,19 +30,16 @@ extern "C" {
   IREP Internal REPresentation
 */
 typedef struct IREP {
-  int16_t unused;    //! unused flag
-  struct IREP *next; //! irep linked list
+  uint16_t nlocals;		//!< # of local variables
+  uint16_t nregs;		//!< # of register variables
+  uint16_t rlen;		//!< # of child IREP blocks
+  uint16_t ilen;		//!< # of irep
 
-  uint8_t    *code;
-  mrb_object *ptr_to_pool;
-  uint8_t    *ptr_to_sym;
+  uint8_t     *code;		//!< ISEQ (code) BLOCK
+  mrb_object  *ptr_to_pool;
+  uint8_t     *ptr_to_sym;
+  struct IREP **reps;
 
-  int16_t nlocals;
-  int16_t nregs;
-  int16_t rlen;
-  int32_t ilen;
-
-  int16_t iseq;
 } mrb_irep;
 
 
@@ -63,7 +60,7 @@ typedef struct CALLINFO {
   Virtual Machine
 */
 typedef struct VM {
-  mrb_irep *irep;       // irep linked list
+  mrb_irep *irep;
 
   uint8_t        vm_id; // vm_id : 1..n
   const uint8_t *mrb;   // bytecode
