@@ -1234,7 +1234,7 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
 inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
-  int rb = GETARG_b(code);      // sequence position in irep list
+  int rb = GETARG_Bz(code);      // sequence position in irep list
   // int c = GETARG_C(code);    // TODO: Add flags support for OP_LAMBDA
   mrb_proc *proc = mrbc_rproc_alloc(vm, "(lambda)");
 
