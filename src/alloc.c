@@ -652,3 +652,66 @@ int mrbc_dec_ref_count(void *ptr)
 
   return cnt;
 }
+
+
+#ifdef MRBC_DEBUG
+//================================================================
+/*! statistics
+
+  @param  *total	returns total memory.
+  @param  *used		returns used memory.
+  @param  *free		returns free memory.
+  @param  *flagment	returns memory flagmentation
+*/
+void mrbc_alloc_statistics(int *total, int *used, int *free, int *flagmentation)
+{
+  *total = memory_pool_size;
+  *used = 0;
+  *free = 0;
+  *flagmentation = 0;
+
+  USED_BLOCK *ptr = (USED_BLOCK *)memory_pool;
+  int flag_used_free = ptr->f;
+  while( 1 ) {
+    if( ptr->f ) {
+      *free += ptr->size;
+    } else {
+      *used += ptr->size;
+    }
+    if( flag_used_free != ptr->f ) {
+      (*flagmentation)++;
+      flag_used_free = ptr->f;
+    }
+
+    if( ptr->t == FLAG_TAIL_BLOCK ) break;
+
+    ptr = (USED_BLOCK *)PHYS_NEXT(ptr);
+  }
+}
+
+
+
+//================================================================
+/*! statistics
+
+  @param  vm_id		vm_id
+  @return int		total used memory size
+*/
+int mrbc_alloc_vm_used( int vm_id )
+{
+  USED_BLOCK *ptr = (USED_BLOCK *)memory_pool;
+  int total = 0;
+
+  while( 1 ) {
+    if( ptr->vm_id == vm_id && !ptr->f ) {
+      total += ptr->size;
+    }
+    if( ptr->t == FLAG_TAIL_BLOCK ) break;
+
+    ptr = (USED_BLOCK *)PHYS_NEXT(ptr);
+  }
+
+  return total;
+}
+
+#endif

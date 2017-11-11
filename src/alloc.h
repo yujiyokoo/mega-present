@@ -40,6 +40,10 @@ int mrbc_get_ref_count(void *ptr);
 void mrbc_inc_ref_count(void *ptr);
 int mrbc_dec_ref_count(void *ptr);
 
+// for statistics or debug. (need #define MRBC_DEBUG)
+void mrbc_alloc_statistics(int *total, int *used, int *free, int *flagmentation);
+int mrbc_alloc_vm_used( int vm_id );
+
 #ifdef __cplusplus
 }
 #endif
