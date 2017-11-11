@@ -13,7 +13,6 @@ mrb_object *mrbc_obj_alloc(mrb_vm *vm, mrb_vtype tt)
   mrb_object *ptr = (mrb_object *)mrbc_alloc(vm, sizeof(mrb_object));
   if( ptr ){
     ptr->tt = tt;
-    ptr->next = 0;
   }
   return ptr;
 }

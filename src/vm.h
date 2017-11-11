@@ -34,11 +34,12 @@ typedef struct IREP {
   uint16_t nregs;		//!< # of register variables
   uint16_t rlen;		//!< # of child IREP blocks
   uint16_t ilen;		//!< # of irep
+  uint16_t plen;		//!< # of pool
 
   uint8_t     *code;		//!< ISEQ (code) BLOCK
-  mrb_object  *ptr_to_pool;
+  mrb_object  **pools;          //!< array of POOL objects pointer.
   uint8_t     *ptr_to_sym;
-  struct IREP **reps;
+  struct IREP **reps;		//!< array of child IREP's pointer.
 
 } mrb_irep;
 

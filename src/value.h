@@ -96,7 +96,6 @@ typedef struct RInstance {
 
 */
 typedef struct RObject {
-  struct RObject *next;
   mrb_vtype tt;
   union {
     int32_t i;             // MRB_TT_FIXNUM

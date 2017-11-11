@@ -133,8 +133,19 @@ static mrb_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   p += irep->ilen * 4;
 
   // POOL BLOCK
-  int plen = bin_to_uint32(p);		p += 4;
-  while( --plen >= 0 ) {
+  irep->plen = bin_to_uint32(p);	p += 4;
+  if( irep->plen ) {
+    irep->pools = (mrb_object**)mrbc_alloc(0, sizeof(void*) * irep->plen);
+    if(irep->pools == NULL ) {
+      vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
+      return NULL;
+    }
+  } else {
+    irep->pools = NULL;
+  }
+
+  int i;
+  for( i = 0; i < irep->plen; i++ ) {
     int tt = *p++;
     int obj_size = bin_to_uint16(p);	p += 2;
     mrb_object *obj = mrbc_obj_alloc(0, MRB_TT_EMPTY);
@@ -168,15 +179,8 @@ static mrb_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
     default:
       break;
     }
-    if( irep->ptr_to_pool == NULL ) {
-      irep->ptr_to_pool = obj;
-    } else {
-      mrb_object *p = irep->ptr_to_pool;
-      while( p->next != NULL ) {
-        p = p->next;
-      }
-      p->next = obj;
-    }
+
+    irep->pools[i] = obj;
     p += obj_size;
   }
 

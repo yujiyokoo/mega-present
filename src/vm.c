@@ -141,16 +141,13 @@ inline static int op_loadl( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  mrb_object *ptr = vm->pc_irep->ptr_to_pool;
-  while( rb > 0 ){
-    ptr = ptr->next;
-    assert( ptr );
-    rb--;
-  }
 
   mrbc_release(vm, &regs[ra]);
-  mrbc_dup(vm, ptr);            // TODO: Need?
-  regs[ra] = *ptr;
+
+  // regs[ra] = vm->pc_irep->pools[rb];
+
+  mrb_object *pool_obj = vm->pc_irep->pools[rb];
+  regs[ra] = *pool_obj;
 
   return 0;
 }
@@ -1149,12 +1146,7 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   mrbc_release(vm, &regs[ra]);
 
-  mrb_object *pool_obj = vm->pc_irep->ptr_to_pool;
-  while( rb > 0 ) {
-    pool_obj = pool_obj->next;
-    assert( pool_obj );
-    rb--;
-  }
+  mrb_object *pool_obj = vm->pc_irep->pools[rb];
 
   /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
   int len = bin_to_uint16(pool_obj->str - 2);
@@ -1488,17 +1480,20 @@ mrb_vm *mrbc_vm_open(mrb_vm *vm_arg)
 */
 static void irep_destructor( mrb_irep *irep )
 {
-  mrb_object *obj = irep->ptr_to_pool;
-  while( obj != NULL ) {
-    mrb_object *obj_next = obj->next;
-    mrbc_raw_free(obj);
-    obj = obj_next;
-  }
-
   int i;
+
+  // release pools.
+  for( i = 0; i < irep->plen; i++ ) {
+    mrbc_raw_free( irep->pools[i] );
+  }
+  if( irep->plen ) mrbc_raw_free( irep->pools );
+
+  // release child ireps.
   for( i = 0; i < irep->rlen; i++ ) {
     irep_destructor( irep->reps[i] );
   }
+  if( irep->rlen ) mrbc_raw_free( irep->reps );
+
   mrbc_raw_free( irep );
 }
 
@@ -1535,7 +1530,7 @@ void mrbc_vm_begin(mrb_vm *vm)
   vm->pc_irep = vm->irep;
   vm->pc = 0;
   vm->reg_top = 0;
-  vm->callinfo_top = 0;
+  memset(vm->regs, 0, sizeof(vm->regs));
 
   mrb_class *cls = mrbc_class_alloc(vm, "UserTop", mrbc_class_object);
   mrb_object *obj = mrbc_obj_alloc(vm, MRB_TT_USERTOP);
@@ -1545,6 +1540,9 @@ void mrbc_vm_begin(mrb_vm *vm)
   vm->top_self = obj;
   vm->regs[0].tt = MRB_TT_USERTOP;
   vm->regs[0].cls = (struct RClass *)obj;  // TODO: use object link
+
+  vm->callinfo_top = 0;
+  memset(vm->callinfo, 0, sizeof(vm->callinfo));
 
   // target_class
   vm->target_class = cls;
