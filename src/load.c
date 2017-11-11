@@ -140,8 +140,6 @@ static mrb_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
       vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
       return NULL;
     }
-  } else {
-    irep->pools = NULL;
   }
 
   int i;
