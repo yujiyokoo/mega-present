@@ -1,10 +1,10 @@
 /*! @file
   @brief
-
+  mruby/c value definitions
 
   <pre>
-  Copyright (C) 2015 Kyushu Institute of Technology.
-  Copyright (C) 2015 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2017 Kyushu Institute of Technology.
+  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -166,6 +166,79 @@ void mrbc_release(const struct VM *vm, mrb_value *v);
 #define GET_ARG(n)                v[n]
 #define GET_FLOAT_ARG(n)          v[n].d
 #define GET_STRING_ARG(n)          v[n].str
+
+
+
+//================================================================
+/*!@brief
+  Returns a fixnum in mruby/c.
+
+  @param  n	int value
+  @return	mrb_value of type fixnum.
+*/
+static inline mrb_value mrb_fixnum_value( int n )
+{
+  mrb_value value = {
+    .tt = MRB_TT_FIXNUM,
+    .i = n };
+  return value;
+}
+
+
+//================================================================
+/*!@brief
+  Returns a float in mruby/c.
+
+  @param  n	dluble value
+  @return	mrb_value of type float.
+*/
+static inline mrb_value mrb_float_value( double n )
+{
+  mrb_value value = {
+    .tt = MRB_TT_FLOAT,
+    .d = n };
+  return value;
+}
+
+
+//================================================================
+/*!@brief
+  Returns a nil in mruby/c.
+
+  @return	mrb_value of type nil.
+*/
+static inline mrb_value mrb_nil_value(void)
+{
+  mrb_value value = {.tt = MRB_TT_NIL};
+  return value;
+}
+
+
+//================================================================
+/*!@brief
+  Returns a true in mruby/c.
+
+  @return	mrb_value of type true.
+*/
+static inline mrb_value mrb_true_value(void)
+{
+  mrb_value value = {.tt = MRB_TT_TRUE};
+  return value;
+}
+
+
+//================================================================
+/*!@brief
+  Returns a false in mruby/c.
+
+  @return	mrb_value of type false.
+*/
+static inline mrb_value mrb_false_value(void)
+{
+  mrb_value value = {.tt = MRB_TT_FALSE};
+  return value;
+}
+
 
 #ifdef __cplusplus
 }
