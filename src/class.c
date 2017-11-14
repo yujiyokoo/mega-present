@@ -110,50 +110,56 @@ void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t
 // Object class
 
 // Object - puts
-static void c_puts(mrb_vm *vm, mrb_value *v, int argc)
+void c_puts(mrb_value *v)
 {
-  mrb_value *arg0 = &GET_ARG(1);
-  switch( arg0->tt ){
+  switch( v->tt ){
   case MRB_TT_FIXNUM:
-    console_printf("%d", arg0->i);
+    console_printf("%d", v->i);
     break;
+
   case MRB_TT_NIL:
     //console_printf("(nil)");
     break;
+
   case MRB_TT_TRUE:
     console_printf("true");
     break;
+
   case MRB_TT_FALSE:
     console_printf("false");
     break;
+
 #if MRBC_USE_FLOAT
   case MRB_TT_FLOAT:
-    console_printf("%f", arg0->d);
+    console_printf("%f", v->d);
     break;
 #endif
+
   case MRB_TT_STRING:
-    console_printf("%s", MRBC_STRING_C_STR(arg0));
+    console_printf("%s", MRBC_STRING_C_STR(v));
     break;
-  case MRB_TT_RANGE:{
-    mrb_value *ptr = arg0->range;
-    if( ptr[0].tt == MRB_TT_TRUE ){
-      console_printf("%d...%d", ptr[1].i, ptr[2].i);
-    } else {
-      console_printf("%d..%d", ptr[1].i, ptr[2].i);
-    }
-  } break;
+
+  case MRB_TT_RANGE:
+    v = v->range;
+    c_puts(v+1);
+    console_printf("..");
+    if( v[0].tt == MRB_TT_TRUE ) console_putchar('.');
+    c_puts(v+2);
+    break;
+
   case MRB_TT_ARRAY:{
-    mrb_value *array = arg0->array->array;
+    mrb_value *array = v->array->array;
     int i, n = array[0].i;
     console_printf("[");
     for( i = 0 ; i < n ; i++ ) {
       if( i != 0 ) console_printf(", ");
-      c_puts(vm, array + i, 1);
+      c_puts(array + i);
     }
     console_printf("]");
   } break;
+
   default:
-    console_printf("Not supported: MRB_TT_XX(%d)", arg0->tt);
+    console_printf("Not supported: MRB_TT_XX(%d)", v->tt);
     break;
   }
 }
@@ -162,7 +168,7 @@ static void c_puts_nl(mrb_vm *vm, mrb_value *v, int argc)
 {
   int i;
   for( i = 0; i < argc; i++ ) {
-    c_puts(vm, v+i, 1);
+    c_puts(v+i+1);
     console_printf("\n");
   }
 }

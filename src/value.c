@@ -6,6 +6,7 @@
 #include "symbol.h"
 #include "alloc.h"
 #include "c_string.h"
+#include "c_range.h"
 #include "vm.h"
 
 mrb_object *mrbc_obj_alloc(mrb_vm *vm, mrb_vtype tt)
@@ -110,6 +111,7 @@ void mrbc_dup(const mrb_vm *vm, mrb_value *v)
   switch( v->tt ){
   case MRB_TT_PROC:
   case MRB_TT_STRING:
+  case MRB_TT_RANGE:
     mrbc_inc_ref_count(v->handle);
     break;
   default:
@@ -138,6 +140,12 @@ void mrbc_release(const mrb_vm *vm, mrb_value *v)
   case MRB_TT_STRING:
     if( mrbc_dec_ref_count(v->handle) == 0 ) {
       mrbc_string_destructor(v->handle);
+    }
+    break;
+
+  case MRB_TT_RANGE:
+    if( mrbc_dec_ref_count(v->handle) == 0 ) {
+      mrbc_range_delete(vm, v);
     }
     break;
 

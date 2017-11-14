@@ -1245,7 +1245,7 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
 /*!@brief
   Execute OP_RANGE
 
-  R(A) := R(A) := range_new(R(B),R(B+1),C)
+  R(A) := range_new(R(B),R(B+1),C)
 
   @param  vm    A pointer of VM.
   @param  code  bytecode
@@ -1254,10 +1254,19 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_range( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int a = GETARG_A(code);
-  int b = GETARG_B(code);
-  int c = GETARG_C(code);
-  regs[a] = mrbc_range_new(vm, &regs[b], &regs[b+1], c);
+  int ra = GETARG_A(code);
+  int rb = GETARG_B(code);
+  int rc = GETARG_C(code);
+
+  mrbc_dup(vm, &regs[rb]);
+  mrbc_dup(vm, &regs[rb+1]);
+
+  mrb_value value = mrbc_range_new(vm, &regs[rb], &regs[rb+1], rc);
+  if( value.range == NULL ) return -1;		// ENOMEM
+
+  mrbc_release(vm, &regs[ra]);
+  regs[ra] = value;
+
   return 0;
 }
 
