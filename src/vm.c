@@ -1143,16 +1143,15 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-
-  mrbc_release(vm, &regs[ra]);
-
   mrb_object *pool_obj = vm->pc_irep->pools[rb];
 
   /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
   int len = bin_to_uint16(pool_obj->str - 2);
-  regs[ra].tt = MRB_TT_STRING;
-  regs[ra].handle = mrbc_string_constructor_w_len( vm, pool_obj->str, len );
-  if( !regs[ra].handle ) return -1;
+  mrb_value value = mrbc_string_new(vm, pool_obj->str, len);
+  if( value.handle == NULL ) return -1;		// ENOMEM
+
+  mrbc_release(vm, &regs[ra]);
+  regs[ra] = value;
 
   return 0;
 }

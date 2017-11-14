@@ -21,14 +21,14 @@
 extern "C" {
 #endif
 
-#define MRBC_STRING_C_STR(p) ((p)->handle->str)
+#define MRBC_STRING_CSTR(p) ((p)->handle->str)
 
 
 void mrbc_init_class_string(mrb_vm *vm);
 
-mrb_value * mrbc_string_constructor(mrb_vm *vm, const char *src);
-mrb_value * mrbc_string_constructor_w_len(mrb_vm *vm, const char *src, int len);
-void mrbc_string_destructor(mrb_value *target);
+mrb_value mrbc_string_new(mrb_vm *vm, const char *src, int len);
+mrb_value mrbc_string_new_cstr(mrb_vm *vm, const char *src);
+void mrbc_string_delete(mrb_vm *vm, mrb_value *v);
 
 #ifdef __cplusplus
 }

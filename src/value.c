@@ -106,7 +106,7 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
   @param   vm    Pointer to VM
   @param   v     Pointer to mrb_value
 */
-void mrbc_dup(const mrb_vm *vm, mrb_value *v)
+void mrbc_dup(mrb_vm *vm, mrb_value *v)
 {
   switch( v->tt ){
   case MRB_TT_PROC:
@@ -128,7 +128,7 @@ void mrbc_dup(const mrb_vm *vm, mrb_value *v)
   @param   vm    Pointer to VM
   @param   v     Pointer to target mrb_value
 */
-void mrbc_release(const mrb_vm *vm, mrb_value *v)
+void mrbc_release(mrb_vm *vm, mrb_value *v)
 {
   switch( v->tt ) {
   case MRB_TT_PROC:
@@ -139,7 +139,7 @@ void mrbc_release(const mrb_vm *vm, mrb_value *v)
 
   case MRB_TT_STRING:
     if( mrbc_dec_ref_count(v->handle) == 0 ) {
-      mrbc_string_destructor(v->handle);
+      mrbc_string_delete(vm, v);
     }
     break;
 

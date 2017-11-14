@@ -136,7 +136,7 @@ void c_puts(mrb_value *v)
 #endif
 
   case MRB_TT_STRING:
-    console_printf("%s", MRBC_STRING_C_STR(v));
+    console_printf("%s", MRBC_STRING_CSTR(v));
     break;
 
   case MRB_TT_RANGE:

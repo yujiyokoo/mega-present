@@ -96,8 +96,8 @@ static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v, int argc)
 
   if( flag_minus ) *--p = '-';
 
-  v->tt = MRB_TT_STRING;
-  v->handle = mrbc_string_constructor(vm, p);
+  mrb_value value = mrbc_string_new_cstr(vm, p);
+  SET_RETURN(value);
 }
 #endif
 
