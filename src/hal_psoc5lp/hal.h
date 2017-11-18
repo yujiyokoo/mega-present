@@ -47,7 +47,7 @@ extern "C" {
 /***** Typedefs *************************************************************/
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
-int hal_write(int fd, const void *buf, size_t nbytes);
+int hal_write(int fd, const void *buf, int nbytes);
 int hal_flush(int fd);
 
 

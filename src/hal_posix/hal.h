@@ -62,7 +62,7 @@ void hal_disable_irq(void);
   @param  buf   pointer of buffer.
   @param  nbytes        output byte length.
 */
-inline static int hal_write(int fd, const void *buf, size_t nbytes)
+inline static int hal_write(int fd, const void *buf, int nbytes)
 {
   return write(1, buf, nbytes);
 }
