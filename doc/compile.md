@@ -1,10 +1,10 @@
 # How to compile?
 
-To make mruby/c sample programs, just `make` in top directory. `Makefile` generates mruby/c VM library `libmruby.a` and mruby/c executables.
+To make mruby/c sample programs, just `make` in top directory. `Makefile` generates mruby/c VM library `libmrubyc.a` and mruby/c executables.
 
-## libmruby.c
+## libmrubyc.a
 
-`libmruby.c` is generated in `/src` directory.
+`libmrubyc.a` is generated in `/src` directory.
 
 
 ## mruby/c executables
