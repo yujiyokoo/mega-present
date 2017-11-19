@@ -17,6 +17,7 @@
 #include "class.h"
 #include "alloc.h"
 #include "static.h"
+#include "symbol.h"
 #include "console.h"
 
 #include "c_array.h"
@@ -192,13 +193,12 @@ static void c_object_neq(mrb_vm *vm, mrb_value *v, int argc)
 // Object#class
 static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 {
-  // TODO: return class name
-  char *name = "(class name)";
-  char *str = (char *)mrbc_alloc(vm, sizeof(name)+1);
-  strcpy(str, name);
-  v->tt = MRB_TT_STRING;
-  v->str = str;
+  mrb_class * cls = find_class_by_object( vm, v );
+  mrb_value value = mrbc_string_new_cstr(vm, symid_to_str(cls->name) );
+  mrbc_release(vm, v);
+  SET_RETURN(value);
 }
+
 
 // Object.new
 static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
