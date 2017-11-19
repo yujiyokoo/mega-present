@@ -38,7 +38,6 @@ typedef int16_t mrb_sym;
 // #define GET_TYPE(v) ((v).tt)
 #define IS_FIXNUM(v) (((v).tt)==MRB_TT_FIXNUM)
 
-#pragma pack(2)
 
 //================================================================
 /*!@brief
