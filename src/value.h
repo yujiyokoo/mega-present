@@ -177,9 +177,8 @@ void mrbc_release(struct VM *vm, mrb_value *v);
 */
 static inline mrb_value mrb_fixnum_value( int n )
 {
-  mrb_value value = {
-    .tt = MRB_TT_FIXNUM,
-    .i = n };
+  mrb_value value = {.tt = MRB_TT_FIXNUM};
+  value.i = n;
   return value;
 }
 
@@ -193,9 +192,8 @@ static inline mrb_value mrb_fixnum_value( int n )
 */
 static inline mrb_value mrb_float_value( double n )
 {
-  mrb_value value = {
-    .tt = MRB_TT_FLOAT,
-    .d = n };
+  mrb_value value = {.tt = MRB_TT_FLOAT};
+  value.d = n;
   return value;
 }
 
