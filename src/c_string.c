@@ -122,6 +122,38 @@ static void c_string_add(mrb_vm *vm, mrb_value *v, int argc)
 
 
 //================================================================
+/*! (method) ===
+*/
+static void c_string_eql(mrb_vm *vm, mrb_value *v, int argc)
+{
+  mrb_value *s1 = &GET_ARG(0);
+  mrb_value *s2 = &GET_ARG(1);
+  int result = 0;
+
+  if( s2->tt != MRB_TT_STRING ) {
+    goto DONE;
+  }
+
+  int len1 = strlen(MRBC_STRING_CSTR(s1));
+  int len2 = strlen(MRBC_STRING_CSTR(s2));
+  if( len1 != len2 ) {    // false
+    goto DONE;
+  }
+
+  result = (memcmp( MRBC_STRING_CSTR(s1), MRBC_STRING_CSTR(s2), len1 ) == 0);
+
+ DONE:
+  mrbc_release(vm, v);
+  if( result ) {
+    SET_TRUE_RETURN();
+  } else {
+    SET_FALSE_RETURN();
+  }
+}
+
+
+
+//================================================================
 /*! (method) size, length
 */
 static void c_string_size(mrb_vm *vm, mrb_value *v, int argc)
@@ -130,23 +162,6 @@ static void c_string_size(mrb_vm *vm, mrb_value *v, int argc)
 
   mrbc_release(vm, v);
   SET_INT_RETURN( i );
-}
-
-
-
-//================================================================
-/*! (method) !=
-*/
-static void c_string_neq(mrb_vm *vm, mrb_value *v, int argc)
-{
-  int result = mrbc_eq(v, v+1);
-
-  mrbc_release(vm, v);
-  if( result ) {
-    SET_FALSE_RETURN();
-  } else {
-    SET_TRUE_RETURN();
-  }
 }
 
 
@@ -163,6 +178,27 @@ static void c_string_to_i(mrb_vm *vm, mrb_value *v, int argc)
   SET_INT_RETURN( i );
 }
 
+
+#if MRBC_USE_FLOAT
+//================================================================
+/*! (method) to_f
+*/
+static void c_string_to_f(mrb_vm *vm, mrb_value *v, int argc)
+{
+  double d = atof(MRBC_STRING_CSTR(v));
+
+  mrbc_release(vm, v);
+  SET_FLOAT_RETURN( d );
+}
+#endif
+
+
+//================================================================
+/*! (method) to_s
+*/
+static void c_string_to_s(mrb_vm *vm, mrb_value *v, int argc)
+{
+}
 
 
 //================================================================
@@ -333,13 +369,17 @@ void mrbc_init_class_string(mrb_vm *vm)
 {
   mrbc_class_string = mrbc_class_alloc(vm, "String", mrbc_class_object);
 
-  mrbc_define_method(vm, mrbc_class_string, "+", c_string_add);
-  mrbc_define_method(vm, mrbc_class_string, "size", c_string_size);
-  mrbc_define_method(vm, mrbc_class_string, "length", c_string_size);
-  mrbc_define_method(vm, mrbc_class_string, "!=", c_string_neq);
-  mrbc_define_method(vm, mrbc_class_string, "to_i", c_string_to_i);
-  mrbc_define_method(vm, mrbc_class_string, "<<", c_string_append);
-  mrbc_define_method(vm, mrbc_class_string, "[]", c_string_slice);
-  mrbc_define_method(vm, mrbc_class_string, "[]=", c_string_insert);
-  mrbc_define_method(vm, mrbc_class_string, "ord", c_string_ord);
+  mrbc_define_method(vm, mrbc_class_string, "+",	c_string_add);
+  mrbc_define_method(vm, mrbc_class_string, "===",	c_string_eql);
+  mrbc_define_method(vm, mrbc_class_string, "size",	c_string_size);
+  mrbc_define_method(vm, mrbc_class_string, "length",	c_string_size);
+  mrbc_define_method(vm, mrbc_class_string, "to_i",	c_string_to_i);
+  mrbc_define_method(vm, mrbc_class_string, "to_s",	c_string_to_s);
+  mrbc_define_method(vm, mrbc_class_string, "<<",	c_string_append);
+  mrbc_define_method(vm, mrbc_class_string, "[]",	c_string_slice);
+  mrbc_define_method(vm, mrbc_class_string, "[]=",	c_string_insert);
+  mrbc_define_method(vm, mrbc_class_string, "ord",	c_string_ord);
+#if MRBC_USE_FLOAT
+  mrbc_define_method(vm, mrbc_class_string, "to_f",	c_string_to_f);
+#endif
 }

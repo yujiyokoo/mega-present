@@ -183,7 +183,10 @@ static void c_object_not(mrb_vm *vm, mrb_value *v, int argc)
 // Object !=
 static void c_object_neq(mrb_vm *vm, mrb_value *v, int argc)
 {
-  if( mrbc_eq(v, &GET_ARG(1)) ){
+  int result = mrbc_eq(v, v+1);
+
+  mrbc_release(vm, v);
+  if( result ) {
     SET_FALSE_RETURN();
   } else {
     SET_TRUE_RETURN();
