@@ -10,11 +10,6 @@
 #include "c_string.h"
 
 
-static void c_fixnum_eq(mrb_vm *vm, mrb_value *v, int argc)
-{
-  console_printf("ERROR ==\n");
-}
-
 // Operator %
 static void c_fixnum_mod(mrb_vm *vm, mrb_value *v, int argc)
 {
@@ -107,7 +102,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
 {
   // Fixnum
   mrbc_class_fixnum = mrbc_class_alloc(vm, "Fixnum", mrbc_class_object);
-  mrbc_define_method(vm, mrbc_class_fixnum, "==", c_fixnum_eq);
+
   mrbc_define_method(vm, mrbc_class_fixnum, "%", c_fixnum_mod);
   mrbc_define_method(vm, mrbc_class_fixnum, "<=>", c_fixnum_comp);
   mrbc_define_method(vm, mrbc_class_fixnum, "~", c_fixnum_deny);
