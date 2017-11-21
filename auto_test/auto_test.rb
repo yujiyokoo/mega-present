@@ -1,4 +1,4 @@
-#
+#!/usr/bin/env ruby
 #
 #
 
@@ -11,9 +11,11 @@ if ARGV.count == 0 then
   exit
 end
 
+mruby_path = ENV['MRUBY_ROOT']
+mruby_path = '../../mruby' unless mruby_path
 
-$mruby_exe = '../../mruby/bin/mruby'
-$mrbc_exe = '../../mruby/bin/mrbc'
+$mruby_exe = File.join(mruby_path, 'bin/mruby')
+$mrbc_exe = File.join(mruby_path, 'bin/mrbc')
 $mrubyc_exe = '../sample_c/mrubyc'
 
 unless File.exists?($mruby_exe) then
