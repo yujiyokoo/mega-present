@@ -1141,6 +1141,7 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+#if MRBC_USE_STRING
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   mrb_object *pool_obj = vm->pc_irep->pools[rb];
@@ -1153,6 +1154,9 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrbc_release(vm, &regs[ra]);
   regs[ra] = value;
 
+#else
+  not_supported();
+#endif
   return 0;
 }
 

@@ -23,7 +23,7 @@
 #include "console.h"
 
 
-
+#if MRBC_USE_STRING
 //================================================================
 /*! constructor
 
@@ -198,6 +198,7 @@ static void c_string_to_f(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_string_to_s(mrb_vm *vm, mrb_value *v, int argc)
 {
+  // nothing to do.
 }
 
 
@@ -383,3 +384,6 @@ void mrbc_init_class_string(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_string, "to_f",	c_string_to_f);
 #endif
 }
+
+
+#endif // MRBC_USE_STRING

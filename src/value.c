@@ -137,11 +137,13 @@ void mrbc_release(mrb_vm *vm, mrb_value *v)
     }
     break;
 
+#if MRBC_USE_STRING
   case MRB_TT_STRING:
     if( mrbc_dec_ref_count(v->handle) == 0 ) {
       mrbc_string_delete(vm, v);
     }
     break;
+#endif
 
   case MRB_TT_RANGE:
     if( mrbc_dec_ref_count(v->handle) == 0 ) {

@@ -196,10 +196,12 @@ static void c_object_neq(mrb_vm *vm, mrb_value *v, int argc)
 // Object#class
 static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 {
+#if MRBC_USE_STRING
   mrb_class * cls = find_class_by_object( vm, v );
   mrb_value value = mrbc_string_new_cstr(vm, symid_to_str(cls->name) );
   mrbc_release(vm, v);
   SET_RETURN(value);
+#endif
 }
 
 
