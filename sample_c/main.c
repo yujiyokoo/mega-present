@@ -25,11 +25,11 @@ uint8_t * load_mrb_file(const char *filename)
 
   // allocate memory
   uint8_t *p = malloc(size);
-  if( p == NULL ) {
+  if( p != NULL ) {
+    fread(p, sizeof(uint8_t), size, fp);
+  } else {
     fprintf(stderr, "Memory allocate error.\n");
-    return NULL;
   }
-  fread(p, sizeof(uint8_t), size, fp);
   fclose(fp);
 
   return p;
@@ -72,6 +72,7 @@ int main(int argc, char *argv[])
   if( mrbbuf == 0 ) return 1;
 
   mrubyc( mrbbuf );
+  free( mrbbuf );
 
   return 0;
 }
