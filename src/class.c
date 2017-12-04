@@ -123,11 +123,11 @@ void c_puts(mrb_value *v)
     break;
 
   case MRB_TT_TRUE:
-    console_printf("true");
+    console_print("true");
     break;
 
   case MRB_TT_FALSE:
-    console_printf("false");
+    console_print("false");
     break;
 
 #if MRBC_USE_FLOAT
@@ -137,7 +137,7 @@ void c_puts(mrb_value *v)
 #endif
 
   case MRB_TT_STRING:
-    console_printf("%s", MRBC_STRING_CSTR(v));
+    console_print(MRBC_STRING_CSTR(v));
     break;
 
   case MRB_TT_RANGE:
@@ -151,12 +151,12 @@ void c_puts(mrb_value *v)
   case MRB_TT_ARRAY:{
     mrb_value *array = v->array->array;
     int i, n = array[0].i;
-    console_printf("[");
+    console_putchar('[');
     for( i = 0 ; i < n ; i++ ) {
-      if( i != 0 ) console_printf(", ");
+      if( i != 0 ) console_print(", ");
       c_puts(array + i);
     }
-    console_printf("]");
+    console_putchar(']');
   } break;
 
   default:
@@ -170,7 +170,7 @@ static void c_puts_nl(mrb_vm *vm, mrb_value *v, int argc)
   int i;
   for( i = 0; i < argc; i++ ) {
     c_puts(v+i+1);
-    console_printf("\n");
+    console_putchar('\n');
   }
 }
 

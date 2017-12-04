@@ -1,238 +1,345 @@
 /*! @file
   @brief
-  console I/O module.
+  console output module. (not yet input)
 
   <pre>
-  Copyright (C) 2015 Kyushu Institute of Technology.
-  Copyright (C) 2015 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2017 Kyushu Institute of Technology.
+  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
   </pre>
 */
 
+#include "vm_config.h"
+#include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
-#include <stdint.h>
-#include "vm_config.h"
-#include "hal/hal.h"
-#include "console.h"
 #if MRBC_USE_FLOAT
 #include <stdio.h>
 #endif
+#include "console.h"
 
-
-//================================================================
-/*! output string with format
-
-  @param  value		output value
-  @param  align		left(-1) or right(1)
-  @param  w		width
-  @param  base		n base
-  @param  pad		padding character
-*/
-static void format_output_str(const char *value, int align, int w, char pad)
-{
-  if( !value ) return;
-
-  int len = strlen(value);
-  int n_pad = w - len;
-
-  if( align == 1 ) {
-    while( n_pad-- > 0 ) {
-      console_putchar(pad);
-    }
-  }
-  hal_write(1, value, len);
-  while( n_pad-- > 0 ) {
-    console_putchar(pad);
-  }
-}
-
-
-//================================================================
-/*! output int value with format
-
-  @param  value		output value
-  @param  align		left(-1) or right(1)
-  @param  w		width
-  @param  base		n base
-  @param  pad		padding character
-*/
-static void format_output_int(int32_t value, int align, int w, int base, char pad)
-{
-  char buf[21];
-  int sign = 0;
-  int idx = sizeof(buf);
-  buf[--idx] = 0;
-
-  if( value < 0 ) {
-    sign  = -1;
-    value = -value;
-  }
-
-  do {
-    buf[--idx] = "0123456789ABCDEF"[value % base];
-    value /= base;
-  } while( value != 0 && idx != 0 );
-
-  if( sign < 0 && align > 0 && pad == '0' ) {
-    console_putchar('-');	// when "%08d",-12345 then "-0012345"
-    w--;
-  } else if( sign < 0 && idx != 0 ) {
-    buf[--idx] = '-';
-  }
-
-  format_output_str(buf + idx, align, w, pad);
-}
-
-
-//================================================================
-/*! output unsigned int value with format
-
-  @param  value		output value
-  @param  align		left(-1) or right(1)
-  @param  w		width
-  @param  base		n base
-  @param  pad		padding character
-*/
-static void format_output_uint(uint32_t value, int align, int w, int base, char pad)
-{
-  char buf[21];
-  int idx = sizeof(buf);
-  buf[--idx] = 0;
-
-  do {
-    buf[--idx] = "0123456789ABCDEF"[value % base];
-    value /= base;
-  } while( value != 0 && idx != 0 );
-
-  format_output_str(buf + idx, align, w, pad);
-}
-
-
-//================================================================
-/*! output double value with format
-
-  @param  value		output value
-  @param  align		left(-1) or right(1)
-  @param  w		width
-  @param  pad		padding character
-*/
-#if MRBC_USE_FLOAT
-static void format_output_float(double value, int align, int w, char pad)
-{
-  char buf[21];
-  sprintf(buf, "%f", value);
-  console_print(buf);
-}
-#endif
-
-//================================================================
-/*! output a character
-
-  @param  c	character
-*/
-void console_putchar(char c)
-{
-  hal_write(1, &c, 1);
-}
-
-
-//================================================================
-/*! output string
-
-  @param str	str
-*/
-void console_print(const char *str)
-{
-  hal_write(1, str, strlen(str));
-}
 
 
 //================================================================
 /*! output formatted string
 
-  @param  fmt		format string.
-  @note
+  @param  fstr		format string.
 */
-void console_printf(const char *fmt, ...)
+void console_printf(const char *fstr, ...)
 {
-  va_list params;
-  va_start(params, fmt);
+  va_list ap;
+  va_start(ap, fstr);
 
-  int c;
-  while((c = *fmt++)) {
-    if( c != '%' ) {
-      console_putchar(c);
-      continue;
+  MrbcPrintf pf;
+  char buf[82];
+  mrbc_printf_init( &pf, buf, sizeof(buf), fstr );
+
+  int ret;
+  while( 1 ) {
+    ret = mrbc_printf_main( &pf );
+    if( mrbc_printf_len( &pf ) ) {
+      hal_write(1, buf, mrbc_printf_len( &pf ));
+      mrbc_printf_clear( &pf );
     }
+    if( ret == 0 ) break;
+    if( ret < 0 ) continue;
+    if( ret > 0 ) {
+      switch(pf.fmt.type) {
+      case 'c':
+	ret = mrbc_printf_char( &pf, va_arg(ap, int) );
+	break;
 
-    int  align = 1;	// left(-1) or right(1)
-    char pad   = ' ';	// padding
-    int  w     = 0;	// width
-    while( 1 ) {
-      switch( (c = *fmt++) ) {
-      case '-':
-        align = -1;
-        break;
+      case 's':
+	ret = mrbc_printf_str( &pf, va_arg(ap, char *), ' ');
+	break;
 
-      case '0':
-        if( pad == ' ' ) {
-          pad = '0';
-          break;
-        }
-	// fall through.
+      case 'd':
+      case 'i':
+      case 'u':
+	ret = mrbc_printf_int( &pf, va_arg(ap, uint32_t), 10);
+	break;
 
-      case '1': case '2': case '3': case '4': case '5':
-      case '6': case '7': case '8': case '9':
-        w = w * 10 + (c - '0');
-        break;
+      case 'b':
+      case 'B':
+	ret = mrbc_printf_int( &pf, va_arg(ap, uint32_t), 2);
+	break;
 
-      case '\0':
-	goto L_return;
-
-      default:
-        goto L_exit;
-      }
-    }
-
-L_exit:
-    switch(c) {
-    case 's':
-      format_output_str(va_arg(params, char *), align, w, pad);
-      break;
-
-    case 'd':
-    case 'i':
-      format_output_int(va_arg(params, int), align, w, 10, pad);
-      break;
-
-    case 'u':
-      format_output_uint(va_arg(params, unsigned int), align, w, 10, pad);
-      break;
-
-    case 'X':
-    case 'x':
-      format_output_uint(va_arg(params, unsigned int), align, w, 16, pad);
-      break;
+      case 'x':
+      case 'X':
+	ret = mrbc_printf_int( &pf, va_arg(ap, uint32_t), 16);
+	break;
 
 #if MRBC_USE_FLOAT
-    case 'F':
-    case 'f':
-      format_output_float(va_arg(params, double), align, w, pad);
-      break;
+      case 'f':
+      case 'e':
+      case 'E':
+      case 'g':
+      case 'G':
+	ret = mrbc_printf_float( &pf, va_arg(ap, double) );
+	break;
 #endif
 
-    case 'c':
-      console_putchar(va_arg(params, int));	// ignore "%03c" and others.
-      break;
+      default:
+	break;
+      }
 
-    default:
-      console_putchar(c);
+      hal_write(1, buf, mrbc_printf_len( &pf ));
+      mrbc_printf_clear( &pf );
     }
   }
 
-L_return:
-  va_end(params);
+  va_end(ap);
+}
+
+
+
+//================================================================
+/*! sprintf subcontract function
+
+  @param  pf	pointer to MrbcPrintf
+  @retval 0	(format string) done.
+  @retval 1	found a format identifier.
+  @retval -1	buffer full.
+  @note		not terminate ('\0') buffer tail.
+*/
+int mrbc_printf_main( MrbcPrintf *pf )
+{
+  int ch = -1;
+  pf->fmt = (struct MrbcPrintfFormat){0};
+
+  while( pf->p < pf->buf_end && (ch = *pf->fstr) != '\0' ) {
+    pf->fstr++;
+    if( ch == '%' ) {
+      if( *pf->fstr == '%' ) {	// is "%%"
+	pf->fstr++;
+      } else {
+	goto PARSE_FLAG;
+      }
+    }
+    *pf->p++ = ch;
+  }
+  return -(ch != '\0');
+
+
+ PARSE_FLAG:
+  // parse format - '%' [flag] [width] [.precision] type
+  //   e.g. "%05d"
+  while( (ch = *pf->fstr) ) {
+    switch( ch ) {
+    case '+': pf->fmt.flag_plus = 1; break;
+    case ' ': pf->fmt.flag_space = 1; break;
+    case '-': pf->fmt.flag_minus = 1; break;
+    case '0': pf->fmt.flag_zero = 1; break;
+    default : goto PARSE_WIDTH;
+    }
+    pf->fstr++;
+  }
+
+ PARSE_WIDTH:
+  while( (ch = *pf->fstr - '0'), (0 <= ch && ch <= 9)) {	// isdigit()
+    pf->fmt.width = pf->fmt.width * 10 + ch;
+    pf->fstr++;
+  }
+  if( *pf->fstr == '.' ) {
+    pf->fstr++;
+    while( (ch = *pf->fstr - '0'), (0 <= ch && ch <= 9)) {
+      pf->fmt.precision = pf->fmt.precision * 10 + ch;
+      pf->fstr++;
+    }
+  }
+  if( *pf->fstr ) pf->fmt.type = *pf->fstr++;
+
+  return 1;
+}
+
+
+
+//================================================================
+/*! sprintf subcontract function for char '%c'
+
+  @param  pf	pointer to MrbcPrintf
+  @param  ch	output character (ASCII)
+  @retval 0	done.
+  @retval -1	buffer full.
+  @note		not terminate ('\0') buffer tail.
+*/
+int mrbc_printf_char( MrbcPrintf *pf, int ch )
+{
+  if( pf->fmt.flag_minus ) {
+    if( pf->p == pf->buf_end ) return -1;
+    *pf->p++ = ch;
+  }
+
+  int width = pf->fmt.width;
+  while( --width > 0 ) {
+    if( pf->p == pf->buf_end ) return -1;
+    *pf->p++ = ' ';
+  }
+
+  if( !pf->fmt.flag_minus ) {
+    if( pf->p == pf->buf_end ) return -1;
+    *pf->p++ = ch;
+  }
+
+  return 0;
+}
+
+
+
+//================================================================
+/*! sprintf subcontract function for char '%s'
+
+  @param  pf	pointer to MrbcPrintf.
+  @param  str	output string.
+  @param  pad	padding character.
+  @retval 0	done.
+  @retval -1	buffer full.
+  @note		not terminate ('\0') buffer tail.
+*/
+int mrbc_printf_str( MrbcPrintf *pf, const char *str, int pad )
+{
+  int ret = 0;
+
+  if( str == NULL ) str = "(null)";
+  int len = strlen(str);
+  if( pf->fmt.precision && len > pf->fmt.precision ) len = pf->fmt.precision;
+
+  int tw = len;
+  if( pf->fmt.width > len ) tw = pf->fmt.width;
+
+  int remain = pf->buf_end - pf->p;
+  if( len > remain ) {
+    len = remain;
+    ret = -1;
+  }
+  if( tw > remain ) {
+    tw = remain;
+    ret = -1;
+  }
+
+  int n_pad = tw - len;
+
+  if( !pf->fmt.flag_minus ) {
+    while( n_pad-- > 0 ) {
+      *pf->p++ = pad;
+    }
+  }
+  while( len-- > 0 ) {
+    *pf->p++ = *str++;
+  }
+  while( n_pad-- > 0 ) {
+    *pf->p++ = pad;
+  }
+
+  return ret;
+}
+
+
+
+//================================================================
+/*! sprintf subcontract function for integer '%d' '%x' '%b'
+
+  @param  pf	pointer to MrbcPrintf.
+  @param  value	output value.
+  @param  base	n base.
+  @retval 0	done.
+  @retval -1	buffer full.
+  @note		not terminate ('\0') buffer tail.
+*/
+int mrbc_printf_int( MrbcPrintf *pf, int32_t value, int base )
+{
+  int sign = 0;
+  uint32_t v = (uint32_t)value;
+
+  if( pf->fmt.type == 'd' || pf->fmt.type == 'i' ) {	// signed.
+    if( value < 0 ) {
+      sign = '-';
+      v = (uint32_t)-value;
+    } else if( pf->fmt.flag_plus ) {
+      sign = '+';
+    } else if( pf->fmt.flag_space ) {
+      sign = ' ';
+    }
+  }
+
+  if( pf->fmt.flag_minus || pf->fmt.width == 0 ) {
+    pf->fmt.flag_zero = 0; // disable zero padding if left align or width zero.
+  }
+  pf->fmt.precision = 0;
+
+  int bias_a = (pf->fmt.type == 'x') ? 'a' - 10 : 'A' - 10;
+
+  // create string to local buffer
+  char buf[32+2];	// int32 + terminate + 1
+  char *p = buf + sizeof(buf) - 1;
+  *p = '\0';
+  do {
+    int i = v % base;
+    *--p = (i < 10)? i + '0' : i + bias_a;
+    v /= base;
+  } while( v != 0 );
+
+  // decide pad character and output sign character
+  int pad;
+  if( pf->fmt.flag_zero ) {
+    pad = '0';
+    if( sign ) {
+      *pf->p++ = sign;
+      if( pf->p >= pf->buf_end ) return -1;
+      pf->fmt.width--;
+    }
+  } else {
+    pad = ' ';
+    if( sign ) *--p = sign;
+  }
+  return mrbc_printf_str( pf, p, pad );
+}
+
+
+
+#if MRBC_USE_FLOAT
+//================================================================
+/*! sprintf subcontract function for float(double) '%f'
+
+  @param  pf	pointer to MrbcPrintf.
+  @param  value	output value.
+  @retval 0	done.
+  @retval -1	buffer full.
+*/
+int mrbc_printf_float( MrbcPrintf *pf, double value )
+{
+  char fstr[16];
+  const char *p1 = pf->fstr;
+  char *p2 = fstr + sizeof(fstr) - 1;
+
+  *p2 = '\0';
+  while( (*--p2 = *--p1) != '%' )
+    ;
+
+  snprintf( pf->p, (pf->buf_end - pf->p), p2, value );
+
+  while( *pf->p != '\0' )
+    pf->p++;
+
+  return -(pf->p == pf->buf_end);
+}
+#endif
+
+
+
+//================================================================
+/*! replace output buffer
+
+  @param  pf	pointer to MrbcPrintf
+  @param  buf	pointer to output buffer.
+  @param  size	buffer size.
+*/
+void mrbc_printf_replace_buffer(MrbcPrintf *pf, char *buf, int size)
+{
+  int p_ofs = pf->p - pf->buf;
+  pf->buf = buf;
+  pf->buf_end = buf + size - 1;
+  pf->p = pf->buf + p_ofs;
 }
