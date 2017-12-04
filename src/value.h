@@ -152,19 +152,19 @@ void mrbc_dup(struct VM *vm, mrb_value *v);
 void mrbc_release(struct VM *vm, mrb_value *v);
 
 // for C call
-#define SET_INT_RETURN(n)         {v[0].tt=MRB_TT_FIXNUM;v[0].i=(n);}
-#define SET_NIL_RETURN()          v[0].tt=MRB_TT_NIL
-#define SET_FLOAT_RETURN(n)       {v[0].tt=MRB_TT_FLOAT;v[0].d=(n);}
-#define SET_FALSE_RETURN()        v[0].tt=MRB_TT_FALSE
-#define SET_TRUE_RETURN()         v[0].tt=MRB_TT_TRUE
-#define SET_RETURN(n)             v[0]=n
+#define SET_INT_RETURN(n)	(v[0].tt=MRB_TT_FIXNUM, v[0].i=(n))
+#define SET_NIL_RETURN()	(v[0].tt=MRB_TT_NIL)
+#define SET_FLOAT_RETURN(n)	(v[0].tt=MRB_TT_FLOAT, v[0].d=(n))
+#define SET_FALSE_RETURN()	(v[0].tt=MRB_TT_FALSE)
+#define SET_TRUE_RETURN()	(v[0].tt=MRB_TT_TRUE)
+#define SET_RETURN(n)		(v[0]=(n))
 
-#define GET_TT_ARG(n)             v[n].tt
-#define GET_INT_ARG(n)            v[n].i
-#define GET_ARY_ARG(n)            v[n]
-#define GET_ARG(n)                v[n]
-#define GET_FLOAT_ARG(n)          v[n].d
-#define GET_STRING_ARG(n)          v[n].str
+#define GET_TT_ARG(n)		(v[(n)].tt)
+#define GET_INT_ARG(n)		(v[(n)].i)
+#define GET_ARY_ARG(n)		(v[(n)])
+#define GET_ARG(n)		(v[(n)])
+#define GET_FLOAT_ARG(n)	(v[(n)].d)
+#define GET_STRING_ARG(n)	(v[(n)].str)
 
 
 
