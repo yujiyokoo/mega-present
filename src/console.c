@@ -269,7 +269,7 @@ int mrbc_printf_int( MrbcPrintf *pf, int32_t value, int base )
   }
   pf->fmt.precision = 0;
 
-  int bias_a = (pf->fmt.type == 'x') ? 'a' - 10 : 'A' - 10;
+  int bias_a = (pf->fmt.type == 'X') ? 'A' - 10 : 'a' - 10;
 
   // create string to local buffer
   char buf[32+2];	// int32 + terminate + 1

@@ -76,22 +76,22 @@ static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v, int argc)
 #if MRBC_USE_STRING
 static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v, int argc)
 {
+  int base = 10;
+  if( argc ) {
+	base = GET_INT_ARG(1);
+	if( base < 2 || base > 36 ) {
+	  return;	// raise ? ArgumentError
+	}
+  }
+
+  MrbcPrintf pf;
   char buf[16];
-  char *p = buf + sizeof(buf) - 1;
-  int num = v->i;
-  int flag_minus = (num < 0);
+  mrbc_printf_init( &pf, buf, sizeof(buf), NULL );
+  pf.fmt.type = 'd';
+  mrbc_printf_int( &pf, v->i, base );
+  mrbc_printf_end( &pf );
 
-  if( flag_minus ) num = -num;
-
-  *p = '\0';
-  do {
-    *--p = (num % 10) + '0';
-    num /= 10;
-  } while( num > 0 );
-
-  if( flag_minus ) *--p = '-';
-
-  mrb_value value = mrbc_string_new_cstr(vm, p);
+  mrb_value value = mrbc_string_new_cstr(vm, buf);
   SET_RETURN(value);
 }
 #endif
