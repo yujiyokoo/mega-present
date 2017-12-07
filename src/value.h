@@ -151,6 +151,9 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2);
 void mrbc_dup(struct VM *vm, mrb_value *v);
 void mrbc_release(struct VM *vm, mrb_value *v);
 
+int32_t mrbc_atoi( const char *s, int base );
+
+
 // for C call
 #define SET_INT_RETURN(n)	(v[0].tt=MRB_TT_FIXNUM, v[0].i=(n))
 #define SET_NIL_RETURN()	(v[0].tt=MRB_TT_NIL)

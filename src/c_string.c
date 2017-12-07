@@ -195,11 +195,18 @@ static void c_string_size(mrb_vm *vm, mrb_value *v, int argc)
 
 //================================================================
 /*! (method) to_i
-  TODO: to_i(base = 10) only. need 2 to 36.
 */
 static void c_string_to_i(mrb_vm *vm, mrb_value *v, int argc)
 {
-  int32_t i = atol(MRBC_STRING_CSTR(v));
+  int base = 10;
+  if( argc ) {
+	base = GET_INT_ARG(1);
+	if( base < 2 || base > 36 ) {
+	  return;	// raise ? ArgumentError
+	}
+  }
+
+  int32_t i = mrbc_atoi( MRBC_STRING_CSTR(v), base );
 
   mrbc_release(vm, v);
   SET_INT_RETURN( i );

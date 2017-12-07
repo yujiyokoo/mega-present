@@ -161,3 +161,58 @@ void mrbc_release(mrb_vm *vm, mrb_value *v)
   v->handle = NULL;
 #endif
 }
+
+
+
+//================================================================
+/*!@brief
+
+  convert ASCII string to integer mruby/c version
+
+  @param  s	source string.
+  @param  base	n base.
+  @return	result.
+*/
+int32_t mrbc_atoi( const char *s, int base )
+{
+  int ret = 0;
+  int sign = 0;
+
+ REDO:
+  switch( *s ) {
+  case '-':
+	sign = 1;
+	// fall through.
+  case '+':
+	s++;
+	break;
+
+  case ' ':
+	s++;
+	goto REDO;
+  }
+
+  int ch;
+  while( (ch = *s++) != '\0' ) {
+	int n;
+
+	if( 'a' <= ch ) {
+	  n = ch - 'a' + 10;
+	} else
+	if( 'A' <= ch ) {
+	  n = ch - 'A' + 10;
+	} else
+    if( '0' <= ch && ch <= '9' ) {
+	  n = ch - '0';
+	} else {
+	  break;
+	}
+	if( n >= base ) break;
+
+	ret = ret * base + n;
+  }
+
+  if( sign ) ret = -ret;
+
+  return ret;
+}
