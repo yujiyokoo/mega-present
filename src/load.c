@@ -163,7 +163,7 @@ static mrb_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
       memcpy(buf, p, obj_size);
       buf[obj_size] = '\0';
       obj->tt = MRB_TT_FIXNUM;
-      obj->i = atoi(buf);
+      obj->i = atol(buf);
     } break;
 #if MRBC_USE_FLOAT
     case 2: { // IREP_TT_FLOAT
