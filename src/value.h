@@ -178,7 +178,7 @@ int32_t mrbc_atoi( const char *s, int base );
   @param  n	int value
   @return	mrb_value of type fixnum.
 */
-static inline mrb_value mrb_fixnum_value( int n )
+static inline mrb_value mrb_fixnum_value( int32_t n )
 {
   mrb_value value = {.tt = MRB_TT_FIXNUM};
   value.i = n;

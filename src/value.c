@@ -181,35 +181,35 @@ int32_t mrbc_atoi( const char *s, int base )
  REDO:
   switch( *s ) {
   case '-':
-	sign = 1;
-	// fall through.
+    sign = 1;
+    // fall through.
   case '+':
-	s++;
-	break;
+    s++;
+    break;
 
   case ' ':
-	s++;
-	goto REDO;
+    s++;
+    goto REDO;
   }
 
   int ch;
   while( (ch = *s++) != '\0' ) {
-	int n;
+    int n;
 
-	if( 'a' <= ch ) {
-	  n = ch - 'a' + 10;
-	} else
-	if( 'A' <= ch ) {
-	  n = ch - 'A' + 10;
-	} else
+    if( 'a' <= ch ) {
+      n = ch - 'a' + 10;
+    } else
+    if( 'A' <= ch ) {
+      n = ch - 'A' + 10;
+    } else
     if( '0' <= ch && ch <= '9' ) {
-	  n = ch - '0';
-	} else {
-	  break;
-	}
-	if( n >= base ) break;
+      n = ch - '0';
+    } else {
+      break;
+    }
+    if( n >= base ) break;
 
-	ret = ret * base + n;
+    ret = ret * base + n;
   }
 
   if( sign ) ret = -ret;

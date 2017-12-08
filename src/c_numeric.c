@@ -78,10 +78,10 @@ static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v, int argc)
 {
   int base = 10;
   if( argc ) {
-	base = GET_INT_ARG(1);
-	if( base < 2 || base > 36 ) {
-	  return;	// raise ? ArgumentError
-	}
+    base = GET_INT_ARG(1);
+    if( base < 2 || base > 36 ) {
+      return;	// raise ? ArgumentError
+    }
   }
 
   MrbcPrintf pf;
