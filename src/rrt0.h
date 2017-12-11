@@ -31,7 +31,7 @@ extern "C" {
   Task state
 */
 enum MrbcTaskState {
-  TASKSTATE_DOMANT    = 0x00,
+  TASKSTATE_DORMANT   = 0x00,
   TASKSTATE_READY     = 0x01,
   TASKSTATE_RUNNING   = 0x03,
   TASKSTATE_WAITING   = 0x04,

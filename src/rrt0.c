@@ -44,7 +44,7 @@ const int TIMESLICE_TICK = 10; // 10 * 1ms(HardwareTimer)  255 max
 /***** Typedefs *************************************************************/
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
-static MrbcTcb *q_domant_;
+static MrbcTcb *q_dormant_;
 static MrbcTcb *q_ready_;
 static MrbcTcb *q_waiting_;
 static MrbcTcb *q_suspended_;
@@ -71,7 +71,7 @@ static void q_insert_task(MrbcTcb *p_tcb)
   MrbcTcb **pp_q;
 
   switch( p_tcb->state ) {
-  case TASKSTATE_DOMANT: pp_q = &q_domant_; break;
+  case TASKSTATE_DORMANT: pp_q   = &q_dormant_; break;
   case TASKSTATE_READY:
   case TASKSTATE_RUNNING: pp_q   = &q_ready_; break;
   case TASKSTATE_WAITING: pp_q   = &q_waiting_; break;
@@ -119,7 +119,7 @@ static void q_delete_task(MrbcTcb *p_tcb)
   MrbcTcb **pp_q;
 
   switch( p_tcb->state ) {
-  case TASKSTATE_DOMANT: pp_q = &q_domant_; break;
+  case TASKSTATE_DORMANT: pp_q   = &q_dormant_; break;
   case TASKSTATE_READY:
   case TASKSTATE_RUNNING: pp_q   = &q_ready_; break;
   case TASKSTATE_WAITING: pp_q   = &q_waiting_; break;
@@ -361,7 +361,7 @@ MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
     mrbc_vm_close( &tcb->vm );
     return NULL;
   }
-  if( tcb->state != TASKSTATE_DOMANT ) {
+  if( tcb->state != TASKSTATE_DORMANT ) {
     mrbc_vm_begin( &tcb->vm );
   }
 
@@ -381,7 +381,7 @@ MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
 */
 int mrbc_start_task(MrbcTcb *tcb)
 {
-  if( tcb->state != TASKSTATE_DOMANT ) return -1;
+  if( tcb->state != TASKSTATE_DORMANT ) return -1;
   tcb->timeslice           = TIMESLICE_TICK;
   tcb->priority_preemption = tcb->priority;
   mrbc_vm_begin(&tcb->vm);
@@ -440,7 +440,7 @@ int mrbc_run(void)
     if( res < 0 ) {
       hal_disable_irq();
       q_delete_task(tcb);
-      tcb->state = TASKSTATE_DOMANT;
+      tcb->state = TASKSTATE_DORMANT;
       q_insert_task(tcb);
       hal_enable_irq();
       mrbc_vm_end(&tcb->vm);
@@ -602,7 +602,7 @@ void pq(MrbcTcb *p_tcb)
 
 void pqall(void)
 {
-  console_printf("<<<<< DOMANT >>>>>\n");	pq(q_domant_);
+  console_printf("<<<<< DORMANT >>>>>\n");	pq(q_dormant_);
   console_printf("<<<<< READY >>>>>\n");	pq(q_ready_);
   console_printf("<<<<< WAITING >>>>>\n");	pq(q_waiting_);
   console_printf("<<<<< SUSPENDED >>>>>\n");	pq(q_suspended_);
