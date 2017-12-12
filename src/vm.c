@@ -37,7 +37,7 @@ static uint32_t free_vm_bitmap[MAX_VM_COUNT / 32 + 1];
 //================================================================
 /*! Number of leading zeros.
 
-  @param	x	target (16bit unsined)
+  @param	x	target (32bit unsined)
   @retval	int	nlz value
 */
 static inline int nlz32(uint32_t x)
