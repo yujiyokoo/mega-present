@@ -1,7 +1,9 @@
 
+#include "vm_config.h"
+#include <assert.h>
 #include "value.h"
 #include "static.h"
-#include "vm_config.h"
+#include "global.h"
 
 /*
 
@@ -51,13 +53,17 @@ static int search_global_object(mrb_sym sym_id, mrbc_globaltype gtype)
 void global_object_add(mrb_sym sym_id, mrb_value v)
 {
   int index = search_global_object(sym_id, MRBC_GLOBAL_OBJECT);
-  if( index == -1 ){
-    index = global_end;
-    global_end++;
+  if( index == -1 ) {
+    index = global_end++;
+    assert( index < MAX_GLOBAL_OBJECT_SIZE );	// maybe raise ex
+  } else {
+    mrbc_release( 0, &(mrbc_global[index].obj) ); // WARNING: vm_id is missing.
   }
+
   mrbc_global[index].gtype = MRBC_GLOBAL_OBJECT;
   mrbc_global[index].sym_id = sym_id;
   mrbc_global[index].obj = v;
+  mrbc_dup( 0, &v );
 }
 
 /* add const */
@@ -69,6 +75,7 @@ void const_object_add(mrb_sym sym_id, mrb_object *obj)
   if( index == -1 ){
     index = global_end;
     global_end++;
+    assert( index < MAX_GLOBAL_OBJECT_SIZE );	// maybe raise ex
   }
   mrbc_global[index].gtype = MRBC_CONST_OBJECT;
   mrbc_global[index].sym_id = sym_id;
@@ -80,12 +87,10 @@ mrb_value global_object_get(mrb_sym sym_id)
 {
   int index = search_global_object(sym_id, MRBC_GLOBAL_OBJECT);
   if( index >= 0 ){
+    mrbc_dup( 0, &mrbc_global[index].obj );
     return mrbc_global[index].obj;
   } else {
-    /* nil */
-    mrb_value v;
-    v.tt = MRB_TT_NIL;
-    return v;
+    return mrb_nil_value();
   }
 }
 
@@ -96,9 +101,6 @@ mrb_object const_object_get(mrb_sym sym_id) {
   if( index >= 0 ){
     return mrbc_global[index].obj;
   } else {
-    /* nil */
-    mrb_value v;
-    v.tt = MRB_TT_NIL;
-    return v;
+    return mrb_nil_value();
   }
 }

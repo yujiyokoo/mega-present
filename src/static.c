@@ -35,8 +35,7 @@ mrb_class *mrbc_class_hash;
 
 void init_static(void)
 {
-  /* init class */
-  mrbc_init_class();
-
   mrbc_init_global();
+
+  mrbc_init_class();
 }
