@@ -120,3 +120,14 @@ const char* symid_to_str(mrb_sym sym_id)
 
   return sym_index[sym_id].pos;
 }
+
+
+void debug_all_symbols(void)
+{
+#ifdef MRBC_DEBUG
+  int i;
+  for( i=0 ; i<sym_index_pos ; i++ ){
+    console_printf("%03d:%s\n", i, sym_index[i].pos);
+  }
+#endif
+}

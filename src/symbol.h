@@ -24,6 +24,7 @@ mrb_sym add_sym(const char *str);
 mrb_sym str_to_symid(const char *str);
 const char* symid_to_str(mrb_sym sym_id);
 
+void debug_all_symbols(void);
 
 #ifdef __cplusplus
 }

@@ -1234,7 +1234,7 @@ inline static int op_lambda( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrb_proc *proc = mrbc_rproc_alloc(vm, "(lambda)");
 
   proc->c_func = 0;
-  proc->irep = vm->irep->reps[rb];
+  proc->irep = vm->pc_irep->reps[rb];
 
   mrbc_release(vm, &regs[ra]);
   regs[ra].tt = MRB_TT_PROC;

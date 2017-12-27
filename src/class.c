@@ -217,6 +217,16 @@ static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
   v[0] = ret;
 }
 
+
+// Object.debug
+#ifdef MRBC_DEBUG
+static void c_object_debug(mrb_vm *vm, mrb_value *v, int argc)
+{
+  debug_all_symbols();
+}
+#endif
+
+
 static void mrbc_init_class_object(mrb_vm *vm)
 {
   // Class
@@ -227,6 +237,10 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
   mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
   mrbc_define_method(vm, mrbc_class_object, "new", c_object_new);
+
+#ifdef MRBC_DEBUG
+  mrbc_define_method(vm, mrbc_class_object, "debug", c_object_debug);
+#endif
 }
 
 // =============== ProcClass
