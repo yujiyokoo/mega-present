@@ -51,6 +51,7 @@ mrb_class *find_class_by_object(struct VM *vm, mrb_object *obj)
   case MRB_TT_SYMBOL:	cls = mrbc_class_symbol;	break;
 
   case MRB_TT_OBJECT:	cls = obj->instance->cls;       break;
+  case MRB_TT_CLASS:    cls = obj->cls;                 break;
   case MRB_TT_PROC:	cls = mrbc_class_proc;		break;
   case MRB_TT_ARRAY:	cls = mrbc_class_array; 	break;
   case MRB_TT_STRING:	cls = mrbc_class_string;	break;
@@ -212,7 +213,7 @@ static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
   mrb_value ret;
   ret.tt = MRB_TT_OBJECT;
   ret.instance = instance;
-  ret.instance->cls = mrbc_class_object;
+  ret.instance->cls = vm->target_class;
   mrbc_release(vm, v);
   v[0] = ret;
 }
