@@ -211,7 +211,7 @@ static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
   mrb_value ret;
   ret.tt = MRB_TT_OBJECT;
   ret.instance = instance;
-  ret.instance->cls = vm->target_class;
+  ret.instance->cls = find_class_by_object(vm, v);
   mrbc_release(vm, v);
   v[0] = ret;
 }
