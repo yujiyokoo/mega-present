@@ -58,8 +58,6 @@ mrb_class *find_class_by_object(struct VM *vm, mrb_object *obj)
   case MRB_TT_RANGE:	cls = mrbc_class_range; 	break;
   case MRB_TT_HASH:	cls = mrbc_class_hash;		break;
 
-  case MRB_TT_USERTOP:	cls = vm->target_class; 	break;
-
   default:		cls = mrbc_class_object;	break;
   }
 
