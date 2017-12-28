@@ -158,6 +158,10 @@ void c_puts(mrb_value *v)
     console_putchar(']');
   } break;
 
+  case MRB_TT_CLASS:
+    console_print( symid_to_str( v->cls->name ) );
+    break;
+
   default:
     console_printf("Not supported: MRB_TT_XX(%d)", v->tt);
     break;
@@ -196,7 +200,7 @@ static void c_object_neq(mrb_vm *vm, mrb_value *v, int argc)
 static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 {
 #if MRBC_USE_STRING
-  mrb_class * cls = find_class_by_object( vm, v );
+  mrb_class *cls = find_class_by_object( vm, v );
   mrb_value value = mrbc_string_new_cstr(vm, symid_to_str(cls->name) );
   mrbc_release(vm, v);
   SET_RETURN(value);
@@ -223,6 +227,30 @@ static void c_object_debug(mrb_vm *vm, mrb_value *v, int argc)
 {
   debug_all_symbols();
 }
+
+
+static void c_object_instance_methods(mrb_vm *vm, mrb_value *v, int argc)
+{
+  // TODO: check argument.
+
+  // temporary code for operation check.
+  console_printf( "[" );
+  int flag_first = 1;
+
+  mrb_class *cls = find_class_by_object( vm, v );
+  mrb_proc *proc = cls->procs;
+  while( proc ) {
+    console_printf( "%s:%s", (flag_first ? "" : ", "),
+		    symid_to_str(proc->sym_id) );
+    flag_first = 0;
+    proc = proc->next;
+  }
+
+  console_printf( "]" );
+
+  mrbc_release(vm, v);
+  SET_NIL_RETURN();
+}
 #endif
 
 
@@ -239,6 +267,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
 
 #ifdef MRBC_DEBUG
   mrbc_define_method(vm, mrbc_class_object, "debug", c_object_debug);
+  mrbc_define_method(vm, mrbc_class_object, "instance_methods", c_object_instance_methods);
 #endif
 }
 
