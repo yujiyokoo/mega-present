@@ -1545,13 +1545,11 @@ void mrbc_vm_begin(mrb_vm *vm)
   memset(vm->regs, 0, sizeof(vm->regs));
 
   mrb_class *cls = mrbc_class_alloc(vm, "UserTop", mrbc_class_object);
-  mrb_object *obj = mrbc_obj_alloc(vm, MRB_TT_USERTOP);
-  obj->cls = cls;
+  vm->user_top = cls;
 
   // set self to reg[0]
-  vm->top_self = obj;
   vm->regs[0].tt = MRB_TT_USERTOP;
-  vm->regs[0].cls = (struct RClass *)obj;  // TODO: use object link
+  vm->regs[0].cls = cls;
 
   vm->callinfo_top = 0;
   memset(vm->callinfo, 0, sizeof(vm->callinfo));

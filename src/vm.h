@@ -74,8 +74,8 @@ typedef struct VM {
   uint16_t     callinfo_top;
   mrb_callinfo callinfo[MAX_CALLINFO_SIZE];
 
-  mrb_class  *target_class;
-  mrb_object *top_self; // ?
+  mrb_class *target_class;
+  mrb_class *user_top;
 
   int32_t error_code;
 
