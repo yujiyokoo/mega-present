@@ -507,6 +507,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
   callinfo->n_args = rc;
+  callinfo->target_class = vm->target_class;
   vm->callinfo_top++;
 
   // target irep
@@ -575,6 +576,7 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // restore others
   vm->pc_irep = callinfo->pc_irep;
   vm->pc = callinfo->pc;
+  vm->target_class = callinfo->target_class;
   return 0;
 }
 
@@ -1337,6 +1339,7 @@ inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->reg_top = vm->reg_top;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
+  callinfo->target_class = vm->target_class;
   callinfo->n_args = 0;
   vm->callinfo_top++;
 
@@ -1594,7 +1597,8 @@ int mrbc_vm_run( mrb_vm *vm )
     mrb_value *regs = vm->regs + vm->reg_top;
 
     // Dispatch
-    switch( GET_OPCODE(code) ) {
+    int opcode = GET_OPCODE(code);
+    switch( opcode ) {
     case OP_NOP:        ret = op_nop       (vm, code, regs); break;
     case OP_MOVE:       ret = op_move      (vm, code, regs); break;
     case OP_LOADL:      ret = op_loadl     (vm, code, regs); break;

@@ -52,6 +52,7 @@ typedef struct CALLINFO {
   mrb_irep *pc_irep;
   uint16_t  pc;
   uint16_t  reg_top;
+  mrb_class *target_class;
   uint8_t   n_args;     // num of args
 } mrb_callinfo;
 
