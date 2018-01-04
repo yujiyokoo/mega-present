@@ -2,6 +2,7 @@
 mrubyc
 mrubyc_sample
 mrubyc_concurrent
+mrubyc_myclass
 
 # Object files
 *.o

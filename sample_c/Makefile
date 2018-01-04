@@ -7,7 +7,7 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
-TARGETS = mrubyc mrubyc_sample mrubyc_concurrent
+TARGETS = mrubyc mrubyc_sample mrubyc_concurrent mrubyc_myclass
 CFLAGS = -g -I ../src -Wall -Wpointer-arith
 LDFLAGS = -L ../src
 LIBMRUBYC = ../src/libmrubyc.a
@@ -22,6 +22,9 @@ mrubyc_sample: main_sample.c $(LIBMRUBYC)
 
 mrubyc_concurrent: main_concurrent.c $(LIBMRUBYC)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ main_concurrent.c $(LIBMRUBYC)
+
+mrubyc_myclass: main_myclass.c $(LIBMRUBYC)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ main_myclass.c $(LIBMRUBYC)
 
 clean:
 	@rm -f $(TARGETS) *~
