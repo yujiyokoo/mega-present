@@ -96,6 +96,15 @@ mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrb_sym sym_id)
 
 
 
+//================================================================
+/*!@brief
+  define class or instance method
+
+  @param  vm		pointer to vm.
+  @param  cls		pointer to class.
+  @param  name		method name.
+  @param  cfunc		pointer to function.
+*/
 void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t cfunc)
 {
   mrb_proc *rproc = mrbc_rproc_alloc(vm, name);

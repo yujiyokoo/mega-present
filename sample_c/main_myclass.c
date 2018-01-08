@@ -44,7 +44,7 @@ static void c_myclass_func(mrb_vm *vm, mrb_value *v, int argc)
 
 void make_class(mrb_vm *vm)
 {
-  mrb_class *cls = mrbc_class_alloc(vm, "MyClass", mrbc_class_object);
+  mrb_class *cls = mrbc_define_class(vm, "MyClass", mrbc_class_object);
   mrbc_define_method(vm, cls, "func", c_myclass_func);
 }
 

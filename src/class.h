@@ -27,7 +27,13 @@ mrb_proc *find_method(struct VM *vm, mrb_value recv, mrb_sym sym_id);
 
 void mrbc_init_class(void);
 void mrbc_define_method(struct VM *vm, mrb_class *cls, const char *name, mrb_func_t func);
-void mrbc_define_method_proc(struct VM *vm, mrb_class *cls, mrb_sym sym_id, mrb_proc *rproc);
+
+
+static inline mrb_class * mrbc_define_class( mrb_vm *vm, const char *name, mrb_class *super )
+{
+  return mrbc_class_alloc( vm, name, super );
+}
+
 
 #ifdef __cplusplus
 }
