@@ -306,10 +306,10 @@ void mrbc_init_alloc(void *ptr, unsigned int size)
 /*! allocate memory
 
   @param  size	request size.
-  @return uint8_t * pointer to allocated memory.
+  @return void * pointer to allocated memory.
   @retval NULL	error.
 */
-uint8_t* mrbc_raw_alloc(unsigned int size)
+void * mrbc_raw_alloc(unsigned int size)
 {
   // TODO: maximum alloc size
   //  (1 << (FLI_BIT_WIDTH + SLI_BIT_WIDTH + IGNORE_LSBS)) - alpha
@@ -429,10 +429,10 @@ void mrbc_raw_free(void *ptr)
 
   @param  ptr	Return value of mrbc_raw_alloc()
   @param  size	request size
-  @return uint8_t * pointer to allocated memory.
+  @return void * pointer to allocated memory.
   @retval NULL	error.
 */
-uint8_t* mrbc_raw_realloc(void *ptr, unsigned int size)
+void * mrbc_raw_realloc(void *ptr, unsigned int size)
 {
   USED_BLOCK  *target     = (USED_BLOCK *)((uint8_t *)ptr - sizeof(USED_BLOCK));
   unsigned int alloc_size = size + sizeof(FREE_BLOCK);
@@ -498,10 +498,10 @@ uint8_t* mrbc_raw_realloc(void *ptr, unsigned int size)
 
   @param  vm	pointer to VM.
   @param  size	request size.
-  @return uint8_t * pointer to allocated memory.
+  @return void * pointer to allocated memory.
   @retval NULL	error.
 */
-uint8_t* mrbc_alloc(const mrb_vm *vm, unsigned int size)
+void * mrbc_alloc(const mrb_vm *vm, unsigned int size)
 {
   uint8_t *ptr = mrbc_raw_alloc(size);
   if( ptr == NULL ) return NULL;	// ENOMEM
@@ -518,10 +518,10 @@ uint8_t* mrbc_alloc(const mrb_vm *vm, unsigned int size)
   @param  vm	pointer to VM.
   @param  ptr	Return value of mrbc_alloc()
   @param  size	request size.
-  @return uint8_t * pointer to allocated memory.
+  @return void * pointer to allocated memory.
   @retval NULL	error.
 */
-uint8_t* mrbc_realloc(const mrb_vm *vm, void *ptr, unsigned int size)
+void * mrbc_realloc(const mrb_vm *vm, void *ptr, unsigned int size)
 {
   return mrbc_raw_realloc(ptr, size);
 }
