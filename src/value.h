@@ -167,7 +167,7 @@ int32_t mrbc_atoi( const char *s, int base );
 #define GET_ARY_ARG(n)		(v[(n)])
 #define GET_ARG(n)		(v[(n)])
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
-#define GET_STRING_ARG(n)	(v[(n)].str)
+#define GET_STRING_ARG(n)	(v[(n)].handle->str)
 
 
 
