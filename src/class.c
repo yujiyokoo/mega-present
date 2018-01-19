@@ -222,13 +222,7 @@ static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 // Object.new
 static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
 {
-  mrb_instance *instance = (mrb_instance *)mrbc_alloc(vm, sizeof(mrb_instance));
-  mrb_value ret;
-  ret.tt = MRB_TT_OBJECT;
-  ret.instance = instance;
-  ret.instance->cls = find_class_by_object(vm, v);
-  mrbc_release(vm, v);
-  v[0] = ret;
+  *v = mrbc_instance_new(vm, v->cls, 0);
 }
 
 

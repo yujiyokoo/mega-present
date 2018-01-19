@@ -86,6 +86,7 @@ typedef struct RClass {
 */
 typedef struct RInstance {
   struct RClass *cls;    // class
+  uint8_t data[];
 } mrb_instance;
 
 
@@ -152,6 +153,10 @@ void mrbc_dup(struct VM *vm, mrb_value *v);
 void mrbc_release(struct VM *vm, mrb_value *v);
 
 int32_t mrbc_atoi( const char *s, int base );
+
+mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
+void mrbc_instance_delete(struct VM *vm, mrb_value *v);
+
 
 
 // for C call
