@@ -158,6 +158,11 @@ static void c_sleep(mrb_vm *vm, mrb_value *v, int argc)
 {
   MrbcTcb *tcb = VM2TCB(vm);
 
+  if( argc == 0 ) {
+    mrbc_suspend_task(tcb);
+    return;
+  }
+
   switch( v[1].tt ) {
   case MRB_TT_FIXNUM:
     mrbc_sleep_ms(tcb, GET_INT_ARG(1) * 1000);
@@ -168,8 +173,6 @@ static void c_sleep(mrb_vm *vm, mrb_value *v, int argc)
     break;
 
   default:
-
-    // TODO 引数なしの場合は永久停止
     break;
   }
 }
@@ -212,39 +215,45 @@ static void c_change_priority(mrb_vm *vm, mrb_value *v, int argc)
 
 
 //================================================================
-/*! 実行停止
+/*! 実行停止 (BETA)
 
 */
 static void c_suspend_task(mrb_vm *vm, mrb_value *v, int argc)
 {
-  MrbcTcb *tcb = VM2TCB(vm);
+  if( argc == 0 ) {
+    MrbcTcb *tcb = VM2TCB(vm);
+    mrbc_suspend_task(tcb);	// suspend self.
+    return;
+  }
 
-  mrbc_suspend_task(tcb);
+  if( v[1].tt != MRB_TT_HANDLE ) return;	// error.
+  mrbc_suspend_task( (MrbcTcb *)(v[1].handle) );
 }
 
 
 //================================================================
-/*! 実行再開
+/*! 実行再開 (BETA)
 
 */
 static void c_resume_task(mrb_vm *vm, mrb_value *v, int argc)
 {
-  MrbcTcb *tcb = VM2TCB(vm);
-
-  // TODO: 未デバグ。引数で与えられたTCBのタスクを実行再開する。
-  mrbc_resume_task(tcb);
+  if( v[1].tt != MRB_TT_HANDLE ) return;	// error.
+  mrbc_resume_task( (MrbcTcb *)(v[1].handle) );
 }
 
 
 //================================================================
-/*! TCBを得る
+/*! TCBを得る (BETA)
 
 */
 static void c_get_tcb(mrb_vm *vm, mrb_value *v, int argc)
 {
   MrbcTcb *tcb = VM2TCB(vm);
 
-  // TODO: 未実装。TCBポインタをオブジェクトとして返す。
+  mrb_value value = {.tt = MRB_TT_HANDLE};
+  value.handle = (void*)tcb;
+
+  SET_RETURN( value );
 }
 
 
@@ -372,6 +381,8 @@ void mrbc_init(uint8_t *ptr, unsigned int size )
   mrbc_define_method(0, mrbc_class_object, "change_priority", c_change_priority);
   mrbc_define_method(0, mrbc_class_object, "suspend_task",    c_suspend_task);
   mrbc_define_method(0, mrbc_class_object, "resume_task",     c_resume_task);
+  mrbc_define_method(0, mrbc_class_object, "get_tcb",	      c_get_tcb);
+
 
   mrb_class *c_mutex;
   c_mutex = mrbc_define_class(0, "Mutex", mrbc_class_object);
