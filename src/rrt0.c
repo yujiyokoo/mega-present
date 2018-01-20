@@ -3,8 +3,8 @@
   Realtime multitask monitor for mruby/c
 
   <pre>
-  Copyright (C) 2016-2017 Kyushu Institute of Technology.
-  Copyright (C) 2016-2017 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2018 Kyushu Institute of Technology.
+  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -39,6 +39,7 @@ const int TIMESLICE_TICK = 10; // 10 * 1ms(HardwareTimer)  255 max
 #endif
 
 #define VM2TCB(p) ((MrbcTcb *)((uint8_t *)p - offsetof(MrbcTcb, vm)))
+#define MRBC_MUTEX_TRACE(...) ((void)0)
 
 
 /***** Typedefs *************************************************************/
@@ -187,7 +188,7 @@ static void c_sleep_ms(mrb_vm *vm, mrb_value *v, int argc)
 
 
 //================================================================
-/*! 実行権を手放す
+/*! 実行権を手放す (BETA)
 
 */
 static void c_relinquish(mrb_vm *vm, mrb_value *v, int argc)
@@ -247,6 +248,63 @@ static void c_get_tcb(mrb_vm *vm, mrb_value *v, int argc)
 }
 
 
+//================================================================
+/*! mutex constructor method
+
+*/
+static void c_mutex_new(mrb_vm *vm, mrb_value *v, int argc)
+{
+  *v = mrbc_instance_new(vm, v->cls, sizeof(MrbcMutex));
+  if( !v->instance ) return;
+
+  mrbc_mutex_init( (MrbcMutex *)(v->instance->data) );
+}
+
+
+//================================================================
+/*! mutex lock method
+
+*/
+static void c_mutex_lock(mrb_vm *vm, mrb_value *v, int argc)
+{
+  int r = mrbc_mutex_lock( (MrbcMutex *)v->instance->data, VM2TCB(vm) );
+  if( r == 0 ) return;  // return self
+
+  // raise ThreadError
+  assert(!"Mutex recursive lock.");
+}
+
+
+//================================================================
+/*! mutex unlock method
+
+*/
+static void c_mutex_unlock(mrb_vm *vm, mrb_value *v, int argc)
+{
+  int r = mrbc_mutex_unlock( (MrbcMutex *)v->instance->data, VM2TCB(vm) );
+  if( r == 0 ) return;  // return self
+
+  // raise ThreadError
+  assert(!"Mutex unlock error. not owner or not locked.");
+}
+
+
+//================================================================
+/*! mutex trylock method
+
+*/
+static void c_mutex_trylock(mrb_vm *vm, mrb_value *v, int argc)
+{
+  int r = mrbc_mutex_trylock( (MrbcMutex *)v->instance->data, VM2TCB(vm) );
+  if( r == 0 ) {
+    SET_TRUE_RETURN();
+  } else {
+    SET_FALSE_RETURN();
+  }
+}
+
+
+
 /***** Global functions *****************************************************/
 
 //================================================================
@@ -275,7 +333,7 @@ void mrbc_tick(void)
     MrbcTcb *t = tcb;
     tcb = tcb->next;
 
-    if( t->wakeup_tick == tick_ ) {
+    if( t->reason == TASKREASON_SLEEP && t->wakeup_tick == tick_ ) {
       q_delete_task(t);
       t->state     = TASKSTATE_READY;
       t->timeslice = TIMESLICE_TICK;
@@ -292,6 +350,7 @@ void mrbc_tick(void)
     }
   }
 }
+
 
 
 //================================================================
@@ -313,6 +372,13 @@ void mrbc_init(uint8_t *ptr, unsigned int size )
   mrbc_define_method(0, mrbc_class_object, "change_priority", c_change_priority);
   mrbc_define_method(0, mrbc_class_object, "suspend_task",    c_suspend_task);
   mrbc_define_method(0, mrbc_class_object, "resume_task",     c_resume_task);
+
+  mrb_class *c_mutex;
+  c_mutex = mrbc_define_class(0, "Mutex", mrbc_class_object);
+  mrbc_define_method(0, c_mutex, "new", c_mutex_new);
+  mrbc_define_method(0, c_mutex, "lock", c_mutex_lock);
+  mrbc_define_method(0, c_mutex, "unlock", c_mutex_unlock);
+  mrbc_define_method(0, c_mutex, "try_lock", c_mutex_trylock);
 }
 
 
@@ -480,6 +546,7 @@ void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms)
   q_delete_task(tcb);
   tcb->timeslice   = 0;
   tcb->state       = TASKSTATE_WAITING;
+  tcb->reason      = TASKREASON_SLEEP;
   tcb->wakeup_tick = tick_ + ms;
   q_insert_task(tcb);
   hal_enable_irq();
@@ -549,6 +616,143 @@ void mrbc_resume_task(MrbcTcb *tcb)
 }
 
 
+//================================================================
+/*! mutex initialize
+
+*/
+MrbcMutex * mrbc_mutex_init( MrbcMutex *mutex )
+{
+  if( mutex == NULL ) {
+    mutex = (MrbcMutex*)mrbc_raw_alloc( sizeof(MrbcMutex) );
+    if( mutex == NULL ) return NULL;	// ENOMEM
+  }
+
+  static const MrbcMutex init_val = MRBC_MUTEX_INITIALIZER;
+  *mutex = init_val;
+
+  return mutex;
+}
+
+
+//================================================================
+/*! mutex lock
+
+*/
+int mrbc_mutex_lock( MrbcMutex *mutex, MrbcTcb *tcb )
+{
+  MRBC_MUTEX_TRACE("mutex lock / MUTEX: %p TCB: %p",  mutex, tcb );
+
+  int ret = 0;
+  hal_disable_irq();
+
+  // Try lock mutex;
+  if( mutex->lock == 0 ) {      // a future does use TAS?
+    mutex->lock = 1;
+    mutex->tcb = tcb;
+    MRBC_MUTEX_TRACE("  lock OK\n" );
+    goto DONE;
+  }
+  MRBC_MUTEX_TRACE("  lock FAIL\n" );
+
+  // Can't lock mutex
+  // check recursive lock.
+  if( mutex->tcb == tcb ) {
+    ret = 1;
+    goto DONE;
+  }
+
+  // To WAITING state.
+  q_delete_task(tcb);
+  tcb->state  = TASKSTATE_WAITING;
+  tcb->reason = TASKREASON_MUTEX;
+  tcb->mutex = mutex;
+  q_insert_task(tcb);
+  tcb->vm.flag_preemption = 1;
+
+ DONE:
+  hal_enable_irq();
+
+  return ret;
+}
+
+
+//================================================================
+/*! mutex unlock
+
+*/
+int mrbc_mutex_unlock( MrbcMutex *mutex, MrbcTcb *tcb )
+{
+  MRBC_MUTEX_TRACE("mutex unlock / MUTEX: %p TCB: %p\n",  mutex, tcb );
+
+  // check some parameters.
+  if( !mutex->lock ) return 1;
+  if( mutex->tcb != tcb ) return 2;
+
+  // wakeup ONE waiting task.
+  int flag_preemption = 0;
+  hal_disable_irq();
+  tcb = q_waiting_;
+  while( tcb != NULL ) {
+    if( tcb->reason == TASKREASON_MUTEX && tcb->mutex == mutex ) {
+      MRBC_MUTEX_TRACE("SW: TCB: %p\n", tcb );
+      mutex->tcb = tcb;
+      q_delete_task(tcb);
+      tcb->state = TASKSTATE_READY;
+      q_insert_task(tcb);
+      flag_preemption = 1;
+      break;
+    }
+    tcb = tcb->next;
+  }
+
+  if( flag_preemption ) {
+    tcb = q_ready_;
+    while( tcb != NULL ) {
+      if( tcb->state == TASKSTATE_RUNNING ) tcb->vm.flag_preemption = 1;
+      tcb = tcb->next;
+    }
+  }
+  else {
+    // unlock mutex
+    MRBC_MUTEX_TRACE("mutex unlock all.\n" );
+    mutex->lock = 0;
+  }
+
+  hal_enable_irq();
+
+  return 0;
+}
+
+
+//================================================================
+/*! mutex trylock
+
+*/
+int mrbc_mutex_trylock( MrbcMutex *mutex, MrbcTcb *tcb )
+{
+  MRBC_MUTEX_TRACE("mutex try lock / MUTEX: %p TCB: %p",  mutex, tcb );
+
+  int ret;
+  hal_disable_irq();
+
+  if( mutex->lock == 0 ) {
+    mutex->lock = 1;
+    mutex->tcb = tcb;
+    ret = 0;
+    MRBC_MUTEX_TRACE("  trylock OK\n" );
+  }
+  else {
+    MRBC_MUTEX_TRACE("  trylock FAIL\n" );
+    ret = 1;
+  }
+
+  hal_enable_irq();
+  return ret;
+}
+
+
+
+
 #ifdef MRBC_DEBUG
 
 //================================================================
@@ -582,18 +786,18 @@ void pq(MrbcTcb *p_tcb)
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" tms:%3d  ", p->timeslice);
+    console_printf(" st:%c%c%c%c  ",
+                   (p->state & TASKSTATE_SUSPENDED)?'S':'-',
+                   (p->state & TASKSTATE_WAITING)?("sm"[p->reason]):'-',
+                   (p->state &(TASKSTATE_RUNNING & ~TASKSTATE_READY))?'R':'-',
+                   (p->state & TASKSTATE_READY)?'r':'-' );
     p = p->next;
   }
   console_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" st:%c%c%c%c  ",
-                   (p->state & TASKSTATE_SUSPENDED)?'s':'-',
-                   (p->state & TASKSTATE_WAITING)?'w':'-',
-                   (p->state &(TASKSTATE_RUNNING & ~TASKSTATE_READY))?'R':'-',
-                   (p->state & TASKSTATE_READY)?'r':'-' );
+    console_printf(" tmsl:%2d ", p->timeslice);
     p = p->next;
   }
   console_printf("\n");
@@ -602,7 +806,7 @@ void pq(MrbcTcb *p_tcb)
 
 void pqall(void)
 {
-  console_printf("<<<<< DORMANT >>>>>\n");	pq(q_dormant_);
+//  console_printf("<<<<< DORMANT >>>>>\n");	pq(q_dormant_);
   console_printf("<<<<< READY >>>>>\n");	pq(q_ready_);
   console_printf("<<<<< WAITING >>>>>\n");	pq(q_waiting_);
   console_printf("<<<<< SUSPENDED >>>>>\n");	pq(q_suspended_);
