@@ -3,8 +3,8 @@
   mruby bytecode executor.
 
   <pre>
-  Copyright (C) 2015-2017 Kyushu Institute of Technology.
-  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2018 Kyushu Institute of Technology.
+  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -1151,7 +1151,7 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
   /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
   int len = bin_to_uint16(pool_obj->str - 2);
   mrb_value value = mrbc_string_new(vm, pool_obj->str, len);
-  if( value.handle == NULL ) return -1;		// ENOMEM
+  if( value.h_str == NULL ) return -1;		// ENOMEM
 
   mrbc_release(vm, &regs[ra]);
   regs[ra] = value;

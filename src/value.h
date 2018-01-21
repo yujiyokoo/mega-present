@@ -3,8 +3,8 @@
   mruby/c value definitions
 
   <pre>
-  Copyright (C) 2015-2017 Kyushu Institute of Technology.
-  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2018 Kyushu Institute of Technology.
+  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -90,13 +90,13 @@ typedef struct RInstance {
 } mrb_instance;
 
 
-
+struct MrbcHandleString;
 //================================================================
 /*!@brief
-
+  mruby/c value object.
 */
 typedef struct RObject {
-  mrb_vtype tt;
+  mrb_vtype tt : 8;
   union {
     int32_t i;             // MRB_TT_FIXNUM
     struct RObject *handle;  // handle to objects
@@ -108,7 +108,9 @@ typedef struct RObject {
     struct RObject *range; // MRB_TT_RANGE : link to range
     struct RObject *hash;  // MRB_TT_HASH : link to range
     double d;              // MRB_TT_FLOAT : float
-    char *str;             // MRB_TT_STRING : C-string
+    char *str;             // MRB_TT_STRING : C-string (only loader use.)
+
+    struct MrbcHandleString *h_str;
   };
 } mrb_object;
 typedef struct RObject mrb_value;
@@ -172,7 +174,7 @@ void mrbc_instance_delete(struct VM *vm, mrb_value *v);
 #define GET_ARY_ARG(n)		(v[(n)])
 #define GET_ARG(n)		(v[(n)])
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
-#define GET_STRING_ARG(n)	(v[(n)].handle->str)
+#define GET_STRING_ARG(n)	(v[(n)].h_str->str)
 
 
 

@@ -1,3 +1,17 @@
+/*! @file
+  @brief
+  mruby/c value definitions
+
+  <pre>
+  Copyright (C) 2015-2018 Kyushu Institute of Technology.
+  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+
+  </pre>
+*/
+
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
@@ -8,6 +22,7 @@
 #include "c_string.h"
 #include "c_range.h"
 #include "vm.h"
+
 
 mrb_object *mrbc_obj_alloc(mrb_vm *vm, mrb_vtype tt)
 {
@@ -77,7 +92,8 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
   case MRB_TT_FLOAT:
     return v1->d == v2->d;
   case MRB_TT_STRING:
-    return !strcmp(v1->handle->str, v2->handle->str);
+    if( v1->h_str->size != v2->h_str->size ) return 0;
+    return !memcmp(v1->h_str->str, v2->h_str->str, v1->h_str->size);
   case MRB_TT_ARRAY: {
     mrb_value *array1 = v1->array;
     mrb_value *array2 = v2->array;
@@ -139,7 +155,7 @@ void mrbc_release(mrb_vm *vm, mrb_value *v)
 
 #if MRBC_USE_STRING
   case MRB_TT_STRING:
-    if( mrbc_dec_ref_count(v->handle) == 0 ) {
+    if( mrbc_dec_ref_count(v->h_str) == 0 ) {
       mrbc_string_delete(vm, v);
     }
     break;
@@ -156,10 +172,8 @@ void mrbc_release(mrb_vm *vm, mrb_value *v)
     break;
   }
 
-#ifndef NDEBUG
   v->tt = MRB_TT_EMPTY;
   v->handle = NULL;
-#endif
 }
 
 
