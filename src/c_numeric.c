@@ -74,6 +74,15 @@ static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v, int argc)
 }
 
 #if MRBC_USE_STRING
+static void c_fixnum_chr(mrb_vm *vm, mrb_value *v, int argc)
+{
+  char buf[2] = { GET_INT_ARG(0) };
+
+  mrb_value value = mrbc_string_new(vm, buf, 1);
+  SET_RETURN(value);
+}
+
+
 static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v, int argc)
 {
   int base = 10;
@@ -110,6 +119,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_fixnum, "<<", c_fixnum_lshift);
   mrbc_define_method(vm, mrbc_class_fixnum, ">>", c_fixnum_rshift);
 #if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_fixnum, "chr", c_fixnum_chr);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_s", c_fixnum_to_s);
 #endif
 }
