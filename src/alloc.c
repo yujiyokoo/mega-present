@@ -3,8 +3,8 @@
   mrubyc memory management.
 
   <pre>
-  Copyright (C) 2015 Kyushu Institute of Technology.
-  Copyright (C) 2015 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2018 Kyushu Institute of Technology.
+  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -626,6 +626,7 @@ void mrbc_inc_ref_count(void *ptr)
   assert( ptr < (void*)(memory_pool + memory_pool_size ) );
 
   int cnt = GET_REF_COUNT(ptr);
+  assert( cnt > 0 );
   assert( cnt != 0xff );
 
   cnt++;
