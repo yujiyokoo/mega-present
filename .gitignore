@@ -15,7 +15,7 @@ mrubyc_myclass
 *~
 
 # sample_ruby
-sample_ruby/*.txt
+sample_ruby/**/*.txt
 
 # ignore hal
 src/hal
