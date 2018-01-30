@@ -61,6 +61,14 @@ void mrbc_range_delete(mrb_vm *vm, mrb_value *v)
 }
 
 
+//================================================================
+/*! clear vm_id
+*/
+void mrbc_range_clear_vm_id(mrb_value *v)
+{
+  mrbc_set_vm_id( v->range, 0 );
+}
+
 
 //================================================================
 /*! (method) ===

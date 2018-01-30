@@ -42,6 +42,7 @@ mrb_value mrbc_string_new(mrb_vm *vm, const void *src, int len);
 mrb_value mrbc_string_new_cstr(mrb_vm *vm, const char *src);
 mrb_value mrbc_string_new_alloc(mrb_vm *vm, void *buf, int len);
 void mrbc_string_delete(mrb_vm *vm, mrb_value *v);
+void mrbc_string_clear_vm_id(mrb_value *v);
 void mrbc_init_class_string(mrb_vm *vm);
 
 #ifdef __cplusplus
