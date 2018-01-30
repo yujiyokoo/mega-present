@@ -1427,6 +1427,11 @@ inline static int op_tclass( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
+  int i;
+  for( i = 0; i < MAX_REGS_SIZE; i++ ) {
+    mrbc_release( vm, &vm->regs[i] );
+  }
+
   vm->flag_preemption = 1;
   return -1;
 }
@@ -1576,6 +1581,7 @@ void mrbc_vm_begin(mrb_vm *vm)
 */
 void mrbc_vm_end(mrb_vm *vm)
 {
+  mrbc_global_clear_vm_id();
   mrbc_free_all(vm);
 }
 

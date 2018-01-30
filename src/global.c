@@ -4,6 +4,7 @@
 #include "value.h"
 #include "static.h"
 #include "global.h"
+#include "mrubyc.h"
 
 /*
 
@@ -15,12 +16,12 @@
 */
 
 typedef enum {
-  MRBC_GLOBAL_OBJECT,
-  MRBC_CONST_OBJECT
+  MRBC_GLOBAL_OBJECT = 1,
+  MRBC_CONST_OBJECT,
 } mrbc_globaltype;
 
 typedef struct GLOBAL_OBJECT {
-  mrbc_globaltype gtype;
+  mrbc_globaltype gtype : 8;
   mrb_sym sym_id;
   mrb_object obj;
 } mrb_globalobject;
@@ -102,5 +103,26 @@ mrb_object const_object_get(mrb_sym sym_id) {
     return mrbc_global[index].obj;
   } else {
     return mrb_nil_value();
+  }
+}
+
+
+/* clear vm_id in global object for process terminated. */
+void mrbc_global_clear_vm_id(void)
+{
+  int i;
+  for( i = 0; i < global_end; i++ ) {
+    if( mrbc_global[i].gtype != MRBC_GLOBAL_OBJECT ) continue;
+
+    switch( mrbc_global[i].obj.tt ) {
+    case MRB_TT_STRING:
+      mrbc_string_clear_vm_id( &mrbc_global[i].obj );
+      break;
+    case MRB_TT_RANGE:
+      mrbc_range_clear_vm_id( &mrbc_global[i].obj );
+      break;
+    default:
+      ;
+    }
   }
 }

@@ -127,6 +127,17 @@ void mrbc_string_delete(mrb_vm *vm, mrb_value *v)
 
 
 //================================================================
+/*! clear vm_id
+*/
+void mrbc_string_clear_vm_id(mrb_value *v)
+{
+  mrbc_set_vm_id( v->h_str, 0 );
+  mrbc_set_vm_id( v->h_str->str, 0 );
+}
+
+
+
+//================================================================
 /*! (method) +
 */
 static void c_string_add(mrb_vm *vm, mrb_value *v, int argc)
