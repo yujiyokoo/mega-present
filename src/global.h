@@ -29,6 +29,9 @@ mrb_value global_object_get(mrb_sym sym_id);
 void const_object_add(mrb_sym sym_id, mrb_object *obj);
 mrb_object const_object_get(mrb_sym sym_id);
 
+void mrbc_global_clear_vm_id(void);
+
+
 #ifdef __cplusplus
 }
 #endif
