@@ -559,9 +559,12 @@ inline static int op_enter( mrb_vm *vm, uint32_t code, mrb_value *regs )
 inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   // return value
-  mrb_value v = regs[GETARG_A(code)];
-  mrbc_dup(vm, &v);
-  regs[0] = v;
+  int ra = GETARG_A(code);
+  if( ra != 0 ){
+    mrb_value v = regs[ra];
+    mrbc_dup(vm, &v);
+    regs[0] = v;
+  }
   // restore irep,pc,regs
   vm->callinfo_top--;
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;

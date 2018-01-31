@@ -16,6 +16,7 @@
 #include <string.h>
 #include <assert.h>
 #include "value.h"
+#include "class.h"
 #include "static.h"
 #include "symbol.h"
 #include "alloc.h"
@@ -241,16 +242,39 @@ int32_t mrbc_atoi( const char *s, int base )
   @param  vm    Pointer to VM.
   @param  cls	Pointer to Class (mrb_class).
   @param  size	size of additional data.
-  @return	mrb_instance object.
 */
-mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size)
+void mrbc_instance_new(struct VM *vm, mrb_class *cls, int size, mrb_value *v, int argc)
 {
-  mrb_value v = {.tt = MRB_TT_OBJECT};
-  v.instance = (mrb_instance *)mrbc_alloc(vm, sizeof(mrb_instance) + size);
-  if( v.instance == NULL ) return v;	// ENOMEM
-  v.instance->cls = cls;
+  //  mrb_value v = {.tt = MRB_TT_OBJECT};
+  //  v.instance = (mrb_instance *)mrbc_alloc(vm, sizeof(mrb_instance) + size);
+  //  if( v.instance == NULL ) return v;	// ENOMEM
+  //  v.instance->cls = cls;
+  v->tt = MRB_TT_OBJECT;
+  v->instance = (mrb_instance *)mrbc_alloc(vm, sizeof(mrb_instance) + size);
+  if( v->instance == NULL ) return;	// ENOMEM
+  v->instance->cls = cls;
 
-  return v;
+  // call "initialize"
+  mrb_sym sym_id = str_to_symid("initialize");
+  mrb_proc *m = find_method(vm, *v, sym_id);
+  if( m ){
+    // m is Ruby method.
+    // callinfo
+    mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+    callinfo->reg_top = vm->reg_top;
+    callinfo->pc_irep = vm->pc_irep;
+    callinfo->pc = vm->pc;
+    callinfo->n_args = 0;
+    callinfo->target_class = vm->target_class;
+    vm->callinfo_top++;
+    
+    // target irep
+    vm->pc = 0;
+    vm->pc_irep = m->irep;
+
+    // skip recv and symbol(new)
+    vm->reg_top += 2;
+  }  
 }
 
 

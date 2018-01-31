@@ -156,7 +156,7 @@ void mrbc_release(struct VM *vm, mrb_value *v);
 
 int32_t mrbc_atoi( const char *s, int base );
 
-mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
+void mrbc_instance_new(struct VM *vm, mrb_class *cls, int size, mrb_value *v, int argc);
 void mrbc_instance_delete(struct VM *vm, mrb_value *v);
 
 
