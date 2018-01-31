@@ -222,7 +222,8 @@ static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 // Object.new
 static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
 {
-  *v = mrbc_instance_new(vm, v->cls, 0);
+  mrbc_instance_new(vm, v->cls, 0, v, argc);
+  
 }
 
 
