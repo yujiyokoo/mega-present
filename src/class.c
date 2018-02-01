@@ -115,6 +115,43 @@ void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t
 }
 
 
+// Call a method 
+// v[0]: receiver
+// v[1..]: params
+//================================================================
+/*!@brief
+  call a method with params
+
+  @param  vm		pointer to vm
+  @param  name		method name
+  @param  v		receiver and params
+  @param  argc		num of params
+*/
+void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
+{
+  mrb_sym sym_id = str_to_symid(name);
+  mrb_proc *m = find_method(vm, v[0], sym_id);
+  
+  if( m==0 ) return;   // no initialize method
+  // call initialize method 
+  
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  callinfo->reg_top = vm->reg_top;
+  callinfo->pc_irep = vm->pc_irep;
+  callinfo->pc = vm->pc;
+  callinfo->n_args = 0;
+  callinfo->target_class = vm->target_class;
+  vm->callinfo_top++;
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = m->irep;
+
+  // new regs
+  vm->reg_top += 2;
+
+}
+
 
 
 //================================================================
@@ -223,6 +260,8 @@ static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
 {
   *v = mrbc_instance_new(vm, v->cls, 0);
+  // call "initialize"
+  mrbc_funcall(vm, "initialize", v, argc);
 }
 
 

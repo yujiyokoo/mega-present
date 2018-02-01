@@ -263,7 +263,7 @@ static void c_get_tcb(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_mutex_new(mrb_vm *vm, mrb_value *v, int argc)
 {
-  mrbc_instance_new(vm, v->cls, sizeof(MrbcMutex), v, argc);
+  *v = mrbc_instance_new(vm, v->cls, sizeof(MrbcMutex));
   if( !v->instance ) return;
 
   mrbc_mutex_init( (MrbcMutex *)(v->instance->data) );

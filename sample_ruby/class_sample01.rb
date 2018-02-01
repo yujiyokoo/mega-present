@@ -1,12 +1,8 @@
-
-a = false
-b = true
-
-if a!=b then
-  puts 1
+class MyClass
+  def func
+    puts "class func"
+  end
 end
 
-if b!=a then
-  puts 2
-end
-
+a = MyClass.new
+a.func
