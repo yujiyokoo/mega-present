@@ -148,7 +148,7 @@ void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
   vm->pc_irep = m->irep;
 
   // new regs
-  vm->reg_top += 2;
+  vm->reg_top += 2;   // recv and symbol(:new)
 
 }
 
