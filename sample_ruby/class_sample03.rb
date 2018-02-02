@@ -8,5 +8,11 @@ class MyClass
   end
 end
 
+class MyClass2 < MyClass
+end    
+
 a = MyClass.new(5)
 a.func
+
+b = MyClass2.new(5)
+b.func

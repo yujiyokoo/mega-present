@@ -23,4 +23,4 @@ a.func
 a = MyClass2.new
 a.func
 
-a = MyClass3.new.func
+MyClass3.new.func
