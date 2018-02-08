@@ -188,11 +188,10 @@ void c_puts(mrb_value *v)
     break;
 
   case MRB_TT_RANGE:
-    v = v->range;
-    c_puts(v+1);
+    c_puts(&v->h_range->first);
     console_printf("..");
-    if( v[0].tt == MRB_TT_TRUE ) console_putchar('.');
-    c_puts(v+2);
+    if( v->h_range->flag_exclude ) console_putchar('.');
+    c_puts(&v->h_range->last);
     break;
 
   case MRB_TT_ARRAY:{

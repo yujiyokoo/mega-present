@@ -25,22 +25,23 @@
 /*! constructor
 
   @param  vm		pointer to VM.
-  @param  v_st		pointer to start value.
-  @param  v_ed		pointer to end value.
-  @param  exclude	true: exclude the end object, otherwise include.
+  @param  v_first	pointer to first value.
+  @param  v_last	pointer to last value.
+  @param  flag_exclude	true: exclude the end object, otherwise include.
   @return		range object.
 */
-mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclude)
+mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_first, mrb_value *v_last, int flag_exclude)
 {
-  mrb_value value;
+  mrb_value value = {.tt = MRB_TT_RANGE};
 
-  value.tt = MRB_TT_RANGE;
-  value.range = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value) * 3);
-  if( !value.range ) return value;	// ENOMEM
+  value.h_range = mrbc_alloc(vm, sizeof(MrbcHandleRange));
+  if( !value.h_range ) return value;		// ENOMEM
 
-  value.range[0].tt = exclude ? MRB_TT_TRUE : MRB_TT_FALSE;
-  value.range[1] = *v_st;
-  value.range[2] = *v_ed;
+  value.h_range->ref_count = 1;		// TODO: not use yet.
+  value.h_range->tt = MRB_TT_STRING;	// TODO: for DEBUG
+  value.h_range->flag_exclude = flag_exclude;
+  value.h_range->first = *v_first;
+  value.h_range->last = *v_last;
 
   return value;
 }
@@ -53,11 +54,10 @@ mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclu
 */
 void mrbc_range_delete(mrb_value *v)
 {
-  mrb_value *obj = v->range;
+  mrbc_release( &v->h_range->first );
+  mrbc_release( &v->h_range->last );
 
-  mrbc_release( &obj[1] );
-  mrbc_release( &obj[2] );
-  mrbc_raw_free( obj );
+  mrbc_raw_free( v->h_range );
 }
 
 
@@ -66,7 +66,9 @@ void mrbc_range_delete(mrb_value *v)
 */
 void mrbc_range_clear_vm_id(mrb_value *v)
 {
-  mrbc_set_vm_id( v->range, 0 );
+  // TODO: set first and last member's vm_id to zero.
+
+  mrbc_set_vm_id( v->h_range, 0 );
 }
 
 
@@ -75,19 +77,17 @@ void mrbc_range_clear_vm_id(mrb_value *v)
 */
 static void c_range_equal3(mrb_vm *vm, mrb_value *v, int argc)
 {
-
   int result = 0;
-  mrb_value *flag = &v->range[0];
-  mrb_value *v_st = &v->range[1];
-  mrb_value *v_ed = &v->range[2];
+
+  mrb_value *v_first = &v->h_range->first;
+  mrb_value *v_last =&v->h_range->last;
   mrb_value *v1 = v+1;
 
-  if( v_st->tt == MRB_TT_FIXNUM && v1->tt == MRB_TT_FIXNUM ) {
-
-    if( flag->tt == MRB_TT_TRUE ) {
-      result = (v_st->i <= v1->i) && (v1->i < v_ed->i);
+  if( v_first->tt == MRB_TT_FIXNUM && v1->tt == MRB_TT_FIXNUM ) {
+    if( v->h_range->flag_exclude ) {
+      result = (v_first->i <= v1->i) && (v1->i < v_last->i);
     } else {
-      result = (v_st->i <= v1->i) && (v1->i <= v_ed->i);
+      result = (v_first->i <= v1->i) && (v1->i <= v_last->i);
     }
     goto DONE;
   }

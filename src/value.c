@@ -77,24 +77,28 @@ mrb_proc *mrbc_rproc_alloc_to_class(mrb_vm *vm, const char *name, mrb_class *cls
 // EQ? two objects
 // EQ: return true
 // NEQ: return false
-int mrbc_eq(mrb_value *v1, mrb_value *v2)
+int mrbc_eq(const mrb_value *v1, const mrb_value *v2)
 {
   // TT_XXX is different
   if( v1->tt != v2->tt ) return 0;
+
   // check value
   switch( v1->tt ){
   case MRB_TT_TRUE:
   case MRB_TT_FALSE:
   case MRB_TT_NIL:
     return 1;
+
   case MRB_TT_FIXNUM:
   case MRB_TT_SYMBOL:
     return v1->i == v2->i;
+
   case MRB_TT_FLOAT:
     return v1->d == v2->d;
+
   case MRB_TT_STRING:
-    if( v1->h_str->size != v2->h_str->size ) return 0;
-    return !memcmp(v1->h_str->str, v2->h_str->str, v1->h_str->size);
+    return mrbc_string_compare( v1, v2 );
+
   case MRB_TT_ARRAY: {
     mrb_value *array1 = v1->array;
     mrb_value *array2 = v2->array;
@@ -109,6 +113,10 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
       return 0;
     }
   } break;
+
+  case MRB_TT_RANGE:
+    return mrbc_range_compare( v1, v2 );
+
   default:
     return 0;
   }

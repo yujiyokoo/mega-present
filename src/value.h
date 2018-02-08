@@ -91,6 +91,8 @@ typedef struct RInstance {
 
 
 struct MrbcHandleString;
+struct MrbcHandleRange;
+
 //================================================================
 /*!@brief
   mruby/c value object.
@@ -105,12 +107,12 @@ typedef struct RObject {
     struct RClass *cls;    // MRB_TT_CLASS : link to class
     struct RProc *proc;    // MRB_TT_PROC : link to proc
     struct RObject *array; // MRB_TT_ARRAY : array of objects
-    struct RObject *range; // MRB_TT_RANGE : link to range
     struct RObject *hash;  // MRB_TT_HASH : link to range
     double d;              // MRB_TT_FLOAT : float
     char *str;             // MRB_TT_STRING : C-string (only loader use.)
 
     struct MrbcHandleString *h_str;
+    struct MrbcHandleRange *h_range;
   };
 } mrb_object;
 typedef struct RObject mrb_value;
@@ -148,7 +150,7 @@ mrb_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
 mrb_proc *mrbc_rproc_alloc_to_class(struct VM *vm, const char *name, mrb_class *cls);
 
 // EQ two objects
-int mrbc_eq(mrb_value *v1, mrb_value *v2);
+int mrbc_eq(const mrb_value *v1, const mrb_value *v2);
 
 // Other functions
 void mrbc_dup(mrb_value *v);

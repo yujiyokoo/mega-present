@@ -15,6 +15,7 @@
 #define MRBC_SRC_C_STRING_H_
 
 #include <stdint.h>
+#include <string.h>
 #include "vm.h"
 
 #ifdef __cplusplus
@@ -44,6 +45,14 @@ mrb_value mrbc_string_new_alloc(mrb_vm *vm, void *buf, int len);
 void mrbc_string_delete(mrb_value *v);
 void mrbc_string_clear_vm_id(mrb_value *v);
 void mrbc_init_class_string(mrb_vm *vm);
+
+
+static inline int mrbc_string_compare(const mrb_value *v1, const mrb_value *v2)
+{
+  if( v1->h_str->size != v2->h_str->size ) return 0;
+  return !memcmp(v1->h_str->str, v2->h_str->str, v1->h_str->size);
+}
+
 
 #ifdef __cplusplus
 }
