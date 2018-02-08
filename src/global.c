@@ -58,13 +58,13 @@ void global_object_add(mrb_sym sym_id, mrb_value v)
     index = global_end++;
     assert( index < MAX_GLOBAL_OBJECT_SIZE );	// maybe raise ex
   } else {
-    mrbc_release( 0, &(mrbc_global[index].obj) ); // WARNING: vm_id is missing.
+    mrbc_release( &(mrbc_global[index].obj) );
   }
 
   mrbc_global[index].gtype = MRBC_GLOBAL_OBJECT;
   mrbc_global[index].sym_id = sym_id;
   mrbc_global[index].obj = v;
-  mrbc_dup( 0, &v );
+  mrbc_dup( &v );
 }
 
 /* add const */
@@ -88,7 +88,7 @@ mrb_value global_object_get(mrb_sym sym_id)
 {
   int index = search_global_object(sym_id, MRBC_GLOBAL_OBJECT);
   if( index >= 0 ){
-    mrbc_dup( 0, &mrbc_global[index].obj );
+    mrbc_dup( &mrbc_global[index].obj );
     return mrbc_global[index].obj;
   } else {
     return mrb_nil_value();

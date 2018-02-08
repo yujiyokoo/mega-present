@@ -115,10 +115,9 @@ mrb_value mrbc_string_new_alloc(mrb_vm *vm, void *buf, int len)
 //================================================================
 /*! destructor
 
-  @param  vm	pointer to VM.
   @param  v	pointer to target value
 */
-void mrbc_string_delete(mrb_vm *vm, mrb_value *v)
+void mrbc_string_delete(mrb_value *v)
 {
   mrbc_raw_free(v->h_str->str);
   mrbc_raw_free(v->h_str);
@@ -156,7 +155,7 @@ static void c_string_add(mrb_vm *vm, mrb_value *v, int argc)
   memcpy( value.h_str->str,            h1->str, h1->size );
   memcpy( value.h_str->str + h1->size, h2->str, h2->size + 1 );
 
-  mrbc_release(vm, v);
+  mrbc_release(v);
   SET_RETURN(value);
 }
 
@@ -177,7 +176,7 @@ static void c_string_eql(mrb_vm *vm, mrb_value *v, int argc)
   result = !memcmp(h1->str, h2->str, h1->size);
 
  DONE:
-  mrbc_release(vm, v);
+  mrbc_release(v);
   if( result ) {
     SET_TRUE_RETURN();
   } else {
@@ -194,7 +193,7 @@ static void c_string_size(mrb_vm *vm, mrb_value *v, int argc)
 {
   int32_t size = v->h_str->size;
 
-  mrbc_release(vm, v);
+  mrbc_release(v);
   SET_INT_RETURN( size );
 }
 
@@ -215,7 +214,7 @@ static void c_string_to_i(mrb_vm *vm, mrb_value *v, int argc)
 
   int32_t i = mrbc_atoi( MRBC_STRING_CSTR(v), base );
 
-  mrbc_release(vm, v);
+  mrbc_release(v);
   SET_INT_RETURN( i );
 }
 
@@ -228,7 +227,7 @@ static void c_string_to_f(mrb_vm *vm, mrb_value *v, int argc)
 {
   double d = atof(MRBC_STRING_CSTR(v));
 
-  mrbc_release(vm, v);
+  mrbc_release(v);
   SET_FLOAT_RETURN( d );
 }
 #endif
@@ -300,7 +299,7 @@ static void c_string_slice(mrb_vm *vm, mrb_value *v, int argc)
 
     value.h_str->str[0] = ch;
     value.h_str->str[1] = '\0';
-    mrbc_release(vm, v);
+    mrbc_release(v);
     SET_RETURN(value);
     return;		// normal return
   }
@@ -321,7 +320,7 @@ static void c_string_slice(mrb_vm *vm, mrb_value *v, int argc)
     mrb_value value = mrbc_string_new(vm, v->h_str->str + idx, rlen);
     if( !value.h_str ) goto RETURN_NIL;		// ENOMEM
 
-    mrbc_release(vm, v);
+    mrbc_release(v);
     SET_RETURN(value);
     return;		// normal return
   }
@@ -334,7 +333,7 @@ static void c_string_slice(mrb_vm *vm, mrb_value *v, int argc)
 
 
  RETURN_NIL:
-  mrbc_release(vm, v);
+  mrbc_release(v);
   SET_NIL_RETURN();
 }
 
@@ -404,7 +403,7 @@ static void c_string_ord(mrb_vm *vm, mrb_value *v, int argc)
 {
   int i = MRBC_STRING_CSTR(v)[0];
 
-  mrbc_release(vm, v);
+  mrbc_release(v);
   SET_INT_RETURN( i );
 }
 
@@ -523,7 +522,7 @@ static void c_sprintf(mrb_vm *vm, mrb_value *v, int argc)
 
   mrb_value value = mrbc_string_new_alloc( vm, pf.buf, buflen );
 
-  mrbc_release(vm, v);
+  mrbc_release(v);
   SET_RETURN(value);
 }
 

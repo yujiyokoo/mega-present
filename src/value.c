@@ -120,10 +120,9 @@ int mrbc_eq(mrb_value *v1, mrb_value *v2)
 
   Duplicate mrb_value
 
-  @param   vm    Pointer to VM
   @param   v     Pointer to mrb_value
 */
-void mrbc_dup(mrb_vm *vm, mrb_value *v)
+void mrbc_dup(mrb_value *v)
 {
   switch( v->tt ){
   case MRB_TT_PROC:
@@ -142,29 +141,28 @@ void mrbc_dup(mrb_vm *vm, mrb_value *v)
 
   Release object related memory (reference counter)
 
-  @param   vm    Pointer to VM
   @param   v     Pointer to target mrb_value
 */
-void mrbc_release(mrb_vm *vm, mrb_value *v)
+void mrbc_release(mrb_value *v)
 {
   switch( v->tt ) {
   case MRB_TT_PROC:
     if( mrbc_dec_ref_count(v->handle) == 0 ) {
-      mrbc_free(vm, v->handle);
+      mrbc_raw_free(v->handle);
     }
     break;
 
 #if MRBC_USE_STRING
   case MRB_TT_STRING:
     if( mrbc_dec_ref_count(v->h_str) == 0 ) {
-      mrbc_string_delete(vm, v);
+      mrbc_string_delete(v);
     }
     break;
 #endif
 
   case MRB_TT_RANGE:
     if( mrbc_dec_ref_count(v->handle) == 0 ) {
-      mrbc_range_delete(vm, v);
+      mrbc_range_delete(v);
     }
     break;
 

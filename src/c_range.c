@@ -3,8 +3,8 @@
   mruby/c Range object
 
   <pre>
-  Copyright (C) 2015-2017 Kyushu Institute of Technology.
-  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2018 Kyushu Institute of Technology.
+  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -51,13 +51,13 @@ mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_st, mrb_value *v_ed, int exclu
 
   @param  target 	pointer to range object.
 */
-void mrbc_range_delete(mrb_vm *vm, mrb_value *v)
+void mrbc_range_delete(mrb_value *v)
 {
   mrb_value *obj = v->range;
 
-  mrbc_release( vm, &obj[1] );
-  mrbc_release( vm, &obj[2] );
-  mrbc_raw_free(obj);
+  mrbc_release( &obj[1] );
+  mrbc_release( &obj[2] );
+  mrbc_raw_free( obj );
 }
 
 
@@ -95,7 +95,7 @@ static void c_range_equal3(mrb_vm *vm, mrb_value *v, int argc)
   return;
 
  DONE:
-  mrbc_release(vm, v);
+  mrbc_release(v);
   if( result ) {
     SET_TRUE_RETURN();
   } else {

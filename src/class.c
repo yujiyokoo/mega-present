@@ -115,7 +115,7 @@ void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t
 }
 
 
-// Call a method 
+// Call a method
 // v[0]: receiver
 // v[1..]: params
 //================================================================
@@ -131,10 +131,10 @@ void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
 {
   mrb_sym sym_id = str_to_symid(name);
   mrb_proc *m = find_method(vm, v[0], sym_id);
-  
+
   if( m==0 ) return;   // no initialize method
-  // call initialize method 
-  
+  // call initialize method
+
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
   callinfo->reg_top = vm->reg_top;
   callinfo->pc_irep = vm->pc_irep;
@@ -236,7 +236,7 @@ static void c_object_neq(mrb_vm *vm, mrb_value *v, int argc)
 {
   int result = mrbc_eq(v, v+1);
 
-  mrbc_release(vm, v);
+  mrbc_release(v);
   if( result ) {
     SET_FALSE_RETURN();
   } else {
@@ -250,7 +250,7 @@ static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 #if MRBC_USE_STRING
   mrb_class *cls = find_class_by_object( vm, v );
   mrb_value value = mrbc_string_new_cstr(vm, symid_to_str(cls->name) );
-  mrbc_release(vm, v);
+  mrbc_release(v);
   SET_RETURN(value);
 #endif
 }
@@ -292,7 +292,7 @@ static void c_object_instance_methods(mrb_vm *vm, mrb_value *v, int argc)
 
   console_printf( "]" );
 
-  mrbc_release(vm, v);
+  mrbc_release(v);
   SET_NIL_RETURN();
 }
 #endif
