@@ -198,8 +198,8 @@ void c_puts(mrb_value *v)
     mrb_value *array = v->array->array;
     int i, n = array[0].i;
     console_putchar('[');
-    for( i = 0 ; i < n ; i++ ) {
-      if( i != 0 ) console_print(", ");
+    for( i = 1 ; i <= n ; i++ ) {
+      if( i > 1 ) console_print(", ");
       c_puts(array + i);
     }
     console_putchar(']');
