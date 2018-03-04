@@ -1433,7 +1433,7 @@ inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
   }
 
   vm->flag_preemption = 1;
-  return -1;
+  return 0;
 }
 
 
