@@ -101,8 +101,20 @@ int mrbc_vm_run(mrb_vm *vm);
 */
 inline static uint32_t bin_to_uint32( const void *s )
 {
+#if MRBC_REQUIRE_32BIT_ALIGNMENT 
+  uint8_t *p = (uint8_t *)s;
+  uint32_t x = *p++;
+  x <<= 8;
+  x |= *p++;
+  x <<= 8;
+  x |= *p++;
+  x <<= 8;
+  x |= *p;
+  return x;
+#else
   uint32_t x = *((uint32_t *)s);
   return (x << 24) | ((x & 0xff00) << 8) | ((x >> 8) & 0xff00) | (x >> 24);
+#endif
 }
 
 
@@ -115,8 +127,10 @@ inline static uint32_t bin_to_uint32( const void *s )
 */
 inline static uint16_t bin_to_uint16( const void *s )
 {
-  uint16_t x = *((uint16_t *)s);
-  return (x << 8) | (x >> 8);
+  uint8_t *p = (uint8_t *)s;
+  uint16_t x = *p++ << 8;
+  x |= *p;
+  return x;
 }
 
 
