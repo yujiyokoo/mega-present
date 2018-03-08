@@ -12,6 +12,7 @@
 */
 
 #include <string.h>
+#include <assert.h>
 
 #include "value.h"
 #include "class.h"
@@ -96,7 +97,50 @@ mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrb_sym sym_id)
 
 //================================================================
 /*!@brief
-  define class or instance method
+  define class
+
+  @param  vm		pointer to vm.
+  @param  name		method name.
+  @param  super		super class.
+*/
+mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
+{
+  mrb_class *cls;
+  mrb_sym sym_id = add_sym(name);
+  mrb_object obj = const_object_get(sym_id);
+
+  // create a new class?
+  if( obj.tt == MRB_TT_NIL ) {
+    cls = mrbc_alloc( 0, sizeof(mrb_class) );
+    if( !cls ) return cls;	// ENOMEM
+
+    cls->name = sym_id;
+    cls->super = super;
+    cls->procs = 0;
+
+    // register to global constant.
+    mrb_value v = {.tt = MRB_TT_CLASS};
+    v.cls = cls;
+    const_object_add(sym_id, &v);
+
+    return cls;
+  }
+
+  // already?
+  if( obj.tt == MRB_TT_CLASS ) {
+    return obj.cls;
+  }
+
+  // error.
+  // raise TypeError.
+  assert( !"TypeError" );
+}
+
+
+
+//================================================================
+/*!@brief
+  define class method or instance method.
 
   @param  vm		pointer to vm.
   @param  cls		pointer to class.

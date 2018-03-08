@@ -506,8 +506,8 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->reg_top = vm->reg_top;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
-  callinfo->n_args = rc;
   callinfo->target_class = vm->target_class;
+  callinfo->n_args = rc;
   vm->callinfo_top++;
 
   // target irep
@@ -1297,20 +1297,13 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_B(code);
 
-  // sym_id : class name
   mrb_irep *cur_irep = vm->pc_irep;
-  char *sym = find_irep_symbol(cur_irep->ptr_to_sym, rb);
+  char *name = find_irep_symbol(cur_irep->ptr_to_sym, rb);
+  mrb_class *super = (regs[ra+1].tt == MRB_TT_CLASS) ? regs[ra+1].cls : mrbc_class_object;
 
-  // super: pointer to super class
-  mrb_class *super  = mrbc_class_object;
-  if( regs[ra+1].tt == MRB_TT_CLASS ){
-    super = regs[ra+1].cls;
-  }
+  mrb_class *cls = mrbc_define_class(vm, name, super);
 
-  mrb_class *cls = mrbc_class_alloc(vm, sym, super);
-
-  mrb_value ret;
-  ret.tt = MRB_TT_CLASS;
+  mrb_value ret = {.tt = MRB_TT_CLASS};
   ret.cls = cls;
 
   regs[ra] = ret;
@@ -1346,8 +1339,12 @@ inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->n_args = 0;
   vm->callinfo_top++;
 
+  // target irep
   vm->pc = 0;
   vm->pc_irep = vm->irep->reps[rb];
+
+  // new regs
+  vm->reg_top += ra;
 
   vm->target_class = find_class_by_object(vm, &recv);
 
