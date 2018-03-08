@@ -100,7 +100,7 @@ mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrb_sym sym_id)
   define class
 
   @param  vm		pointer to vm.
-  @param  name		method name.
+  @param  name		class name.
   @param  super		super class.
 */
 mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
