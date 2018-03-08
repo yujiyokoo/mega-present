@@ -139,9 +139,6 @@ typedef struct RProc {
 // alloc one object
 mrb_object *mrbc_obj_alloc(struct VM *vm, mrb_vtype tt);
 
-// alloc one class
-mrb_class *mrbc_class_alloc(struct VM *vm, const char *name, mrb_class *super);
-
 
 // alloc one RProc
 mrb_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);

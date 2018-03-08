@@ -34,24 +34,6 @@ mrb_object *mrbc_obj_alloc(mrb_vm *vm, mrb_vtype tt)
   return ptr;
 }
 
-mrb_class *mrbc_class_alloc(mrb_vm *vm, const char *name, mrb_class *super)
-{
-  mrb_class *ptr = (mrb_class *)mrbc_alloc(vm, sizeof(mrb_class));
-  mrb_value v;
-  if( ptr ){
-    // new class
-    mrb_sym sym_id = add_sym(name);
-    ptr->super = super;
-    ptr->name = sym_id;
-    ptr->procs = 0;
-    // create value
-    v.tt = MRB_TT_CLASS;
-    v.cls = ptr;
-    // Add to global
-    const_object_add(sym_id, &v);
-  }
-  return ptr;
-}
 
 mrb_proc *mrbc_rproc_alloc(mrb_vm *vm, const char *name)
 {

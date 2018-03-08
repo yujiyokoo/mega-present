@@ -533,7 +533,7 @@ static void c_sprintf(mrb_vm *vm, mrb_value *v, int argc)
 */
 void mrbc_init_class_string(mrb_vm *vm)
 {
-  mrbc_class_string = mrbc_class_alloc(vm, "String", mrbc_class_object);
+  mrbc_class_string = mrbc_define_class(vm, "String", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_string, "+",	c_string_add);
   mrbc_define_method(vm, mrbc_class_string, "===",	c_string_eql);

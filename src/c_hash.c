@@ -78,7 +78,7 @@ static void c_hash_set(mrb_vm *vm, mrb_value *v, int argc)
 void mrbc_init_class_hash(mrb_vm *vm)
 {
   // Hash
-  mrbc_class_hash = mrbc_class_alloc(vm, "Hash", mrbc_class_object);
+  mrbc_class_hash = mrbc_define_class(vm, "Hash", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_hash, "size", c_hash_size);
   mrbc_define_method(vm, mrbc_class_hash, "[]", c_hash_get);

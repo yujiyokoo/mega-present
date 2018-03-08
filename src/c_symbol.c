@@ -33,7 +33,7 @@ static void c_symbol_equal(mrb_vm *vm, mrb_value *v, int argc)
 void mrbc_init_class_symbol(mrb_vm *vm)
 {
   // Symbol
-  mrbc_class_symbol = mrbc_class_alloc(vm, "Symbol", mrbc_class_object);
+  mrbc_class_symbol = mrbc_define_class(vm, "Symbol", mrbc_class_object);
 
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_symbol, "to_s", c_symbol_to_s);

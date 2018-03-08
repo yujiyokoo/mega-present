@@ -110,7 +110,7 @@ static void c_range_equal3(mrb_vm *vm, mrb_value *v, int argc)
 */
 void mrbc_init_class_range(mrb_vm *vm)
 {
-  mrbc_class_range = mrbc_class_alloc(vm, "Range", mrbc_class_object);
+  mrbc_class_range = mrbc_define_class(vm, "Range", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_range, "===", c_range_equal3);
 }

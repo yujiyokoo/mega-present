@@ -342,7 +342,7 @@ static void c_object_instance_methods(mrb_vm *vm, mrb_value *v, int argc)
 static void mrbc_init_class_object(mrb_vm *vm)
 {
   // Class
-  mrbc_class_object = mrbc_class_alloc(vm, "Object", 0);
+  mrbc_class_object = mrbc_define_class(vm, "Object", 0);
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "puts", c_puts_nl);
   mrbc_define_method(vm, mrbc_class_object, "!", c_object_not);
@@ -379,7 +379,7 @@ static void c_proc_call(mrb_vm *vm, mrb_value *v, int argc)
 static void mrbc_init_class_proc(mrb_vm *vm)
 {
   // Class
-  mrbc_class_proc= mrbc_class_alloc(vm, "Proc", mrbc_class_object);
+  mrbc_class_proc= mrbc_define_class(vm, "Proc", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_proc, "call", c_proc_call);
 }
@@ -396,7 +396,7 @@ static void c_nil_false_not(mrb_vm *vm, mrb_value *v, int argc)
 static void mrbc_init_class_nil(mrb_vm *vm)
 {
   // Class
-  mrbc_class_nil = mrbc_class_alloc(vm, "NilClass", mrbc_class_object);
+  mrbc_class_nil = mrbc_define_class(vm, "NilClass", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_nil, "!", c_nil_false_not);
 }
@@ -409,7 +409,7 @@ static void mrbc_init_class_nil(mrb_vm *vm)
 static void mrbc_init_class_false(mrb_vm *vm)
 {
   // Class
-  mrbc_class_false = mrbc_class_alloc(vm, "FalseClass", mrbc_class_object);
+  mrbc_class_false = mrbc_define_class(vm, "FalseClass", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_false, "!", c_nil_false_not);
 }
@@ -422,7 +422,7 @@ static void mrbc_init_class_false(mrb_vm *vm)
 static void mrbc_init_class_true(mrb_vm *vm)
 {
   // Class
-  mrbc_class_true = mrbc_class_alloc(vm, "TrueClass", mrbc_class_object);
+  mrbc_class_true = mrbc_define_class(vm, "TrueClass", mrbc_class_object);
   // Methods
 }
 

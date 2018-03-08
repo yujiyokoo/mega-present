@@ -169,7 +169,7 @@ static void c_array_pop(mrb_vm *vm, mrb_value *v, int argc)
 void mrbc_init_class_array(mrb_vm *vm)
 {
   // Array
-  mrbc_class_array = mrbc_class_alloc(vm, "Array", mrbc_class_object);
+  mrbc_class_array = mrbc_define_class(vm, "Array", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_array, "!=", c_array_neq);
   mrbc_define_method(vm, mrbc_class_array, "count", c_array_size);
