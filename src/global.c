@@ -77,10 +77,14 @@ void const_object_add(mrb_sym sym_id, mrb_object *obj)
     index = global_end;
     global_end++;
     assert( index < MAX_GLOBAL_OBJECT_SIZE );	// maybe raise ex
+  } else {
+    // warning: already initialized constant.
+    mrbc_release( &(mrbc_global[index].obj) );
   }
   mrbc_global[index].gtype = MRBC_CONST_OBJECT;
   mrbc_global[index].sym_id = sym_id;
   mrbc_global[index].obj = *obj;
+  mrbc_dup( obj );
 }
 
 /* get */
@@ -97,9 +101,11 @@ mrb_value global_object_get(mrb_sym sym_id)
 
 /* get const */
 /* TODO: Integrate with get_global_object */
-mrb_object const_object_get(mrb_sym sym_id) {
+mrb_object const_object_get(mrb_sym sym_id)
+{
   int index = search_global_object(sym_id, MRBC_CONST_OBJECT);
   if( index >= 0 ){
+    mrbc_dup( &mrbc_global[index].obj );
     return mrbc_global[index].obj;
   } else {
     return mrb_nil_value();
@@ -112,8 +118,6 @@ void mrbc_global_clear_vm_id(void)
 {
   int i;
   for( i = 0; i < global_end; i++ ) {
-    if( mrbc_global[i].gtype != MRBC_GLOBAL_OBJECT ) continue;
-
     switch( mrbc_global[i].obj.tt ) {
     case MRB_TT_STRING:
       mrbc_string_clear_vm_id( &mrbc_global[i].obj );

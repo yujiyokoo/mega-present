@@ -116,10 +116,12 @@ void mrbc_dup(mrb_value *v)
 {
   switch( v->tt ){
   case MRB_TT_PROC:
-  case MRB_TT_STRING:
   case MRB_TT_RANGE:
     mrbc_inc_ref_count(v->handle);
     break;
+  case MRB_TT_STRING:
+    mrbc_inc_ref_count(v->handle);
+    v->h_str->ref_count++;	// no effect, yet.
   default:
     // Nothing
     break;
@@ -144,6 +146,7 @@ void mrbc_release(mrb_value *v)
 
 #if MRBC_USE_STRING
   case MRB_TT_STRING:
+    v->h_str->ref_count--;	// no effect, yet.
     if( mrbc_dec_ref_count(v->h_str) == 0 ) {
       mrbc_string_delete(v);
     }
