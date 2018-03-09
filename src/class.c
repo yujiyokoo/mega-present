@@ -269,6 +269,7 @@ static void c_puts_nl(mrb_vm *vm, mrb_value *v, int argc)
 
 static void c_object_not(mrb_vm *vm, mrb_value *v, int argc)
 {
+  mrbc_release(v);
   SET_FALSE_RETURN();
 }
 
