@@ -78,6 +78,6 @@
 /* 32it alignment is required */
 /* 0: Byte alignment */
 /* 1: 32bit alignment */
-#define MRBC_REQUIRE_32BIT_ALIGNMENT 1
+#define MRBC_REQUIRE_32BIT_ALIGNMENT 0
 
 #endif
