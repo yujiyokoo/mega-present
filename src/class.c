@@ -12,6 +12,7 @@
 */
 
 #include <string.h>
+#include <assert.h>
 
 #include "value.h"
 #include "class.h"
@@ -58,8 +59,6 @@ mrb_class *find_class_by_object(struct VM *vm, mrb_object *obj)
   case MRB_TT_RANGE:	cls = mrbc_class_range; 	break;
   case MRB_TT_HASH:	cls = mrbc_class_hash;		break;
 
-  case MRB_TT_USERTOP:  cls = vm->user_top;             break;
-
   default:		cls = mrbc_class_object;	break;
   }
 
@@ -98,7 +97,50 @@ mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrb_sym sym_id)
 
 //================================================================
 /*!@brief
-  define class or instance method
+  define class
+
+  @param  vm		pointer to vm.
+  @param  name		class name.
+  @param  super		super class.
+*/
+mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
+{
+  mrb_class *cls;
+  mrb_sym sym_id = add_sym(name);
+  mrb_object obj = const_object_get(sym_id);
+
+  // create a new class?
+  if( obj.tt == MRB_TT_NIL ) {
+    cls = mrbc_alloc( 0, sizeof(mrb_class) );
+    if( !cls ) return cls;	// ENOMEM
+
+    cls->name = sym_id;
+    cls->super = super;
+    cls->procs = 0;
+
+    // register to global constant.
+    mrb_value v = {.tt = MRB_TT_CLASS};
+    v.cls = cls;
+    const_object_add(sym_id, &v);
+
+    return cls;
+  }
+
+  // already?
+  if( obj.tt == MRB_TT_CLASS ) {
+    return obj.cls;
+  }
+
+  // error.
+  // raise TypeError.
+  assert( !"TypeError" );
+}
+
+
+
+//================================================================
+/*!@brief
+  define class method or instance method.
 
   @param  vm		pointer to vm.
   @param  cls		pointer to class.
@@ -198,8 +240,8 @@ void c_puts(mrb_value *v)
     mrb_value *array = v->array->array;
     int i, n = array[0].i;
     console_putchar('[');
-    for( i = 0 ; i < n ; i++ ) {
-      if( i != 0 ) console_print(", ");
+    for( i = 1 ; i <= n ; i++ ) {
+      if( i > 1 ) console_print(", ");
       c_puts(array + i);
     }
     console_putchar(']');
@@ -227,6 +269,7 @@ static void c_puts_nl(mrb_vm *vm, mrb_value *v, int argc)
 
 static void c_object_not(mrb_vm *vm, mrb_value *v, int argc)
 {
+  mrbc_release(v);
   SET_FALSE_RETURN();
 }
 
@@ -300,7 +343,7 @@ static void c_object_instance_methods(mrb_vm *vm, mrb_value *v, int argc)
 static void mrbc_init_class_object(mrb_vm *vm)
 {
   // Class
-  mrbc_class_object = mrbc_class_alloc(vm, "Object", 0);
+  mrbc_class_object = mrbc_define_class(vm, "Object", 0);
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "puts", c_puts_nl);
   mrbc_define_method(vm, mrbc_class_object, "!", c_object_not);
@@ -337,7 +380,7 @@ static void c_proc_call(mrb_vm *vm, mrb_value *v, int argc)
 static void mrbc_init_class_proc(mrb_vm *vm)
 {
   // Class
-  mrbc_class_proc= mrbc_class_alloc(vm, "Proc", mrbc_class_object);
+  mrbc_class_proc= mrbc_define_class(vm, "Proc", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_proc, "call", c_proc_call);
 }
@@ -354,7 +397,7 @@ static void c_nil_false_not(mrb_vm *vm, mrb_value *v, int argc)
 static void mrbc_init_class_nil(mrb_vm *vm)
 {
   // Class
-  mrbc_class_nil = mrbc_class_alloc(vm, "NilClass", mrbc_class_object);
+  mrbc_class_nil = mrbc_define_class(vm, "NilClass", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_nil, "!", c_nil_false_not);
 }
@@ -367,7 +410,7 @@ static void mrbc_init_class_nil(mrb_vm *vm)
 static void mrbc_init_class_false(mrb_vm *vm)
 {
   // Class
-  mrbc_class_false = mrbc_class_alloc(vm, "FalseClass", mrbc_class_object);
+  mrbc_class_false = mrbc_define_class(vm, "FalseClass", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_false, "!", c_nil_false_not);
 }
@@ -380,7 +423,7 @@ static void mrbc_init_class_false(mrb_vm *vm)
 static void mrbc_init_class_true(mrb_vm *vm)
 {
   // Class
-  mrbc_class_true = mrbc_class_alloc(vm, "TrueClass", mrbc_class_object);
+  mrbc_class_true = mrbc_define_class(vm, "TrueClass", mrbc_class_object);
   // Methods
 }
 

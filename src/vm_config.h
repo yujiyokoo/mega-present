@@ -71,4 +71,13 @@
 /* USE String. Support String class */
 #define MRBC_USE_STRING 1
 
+
+
+/* Hardware dependent flags */
+
+/* 32it alignment is required */
+/* 0: Byte alignment */
+/* 1: 32bit alignment */
+#define MRBC_REQUIRE_32BIT_ALIGNMENT 0
+
 #endif

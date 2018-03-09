@@ -63,8 +63,6 @@ typedef enum {
   MRB_TT_RANGE,
   MRB_TT_HASH,
 
-  MRB_TT_USERTOP,
-
 } mrb_vtype;
 
 
@@ -140,9 +138,6 @@ typedef struct RProc {
 
 // alloc one object
 mrb_object *mrbc_obj_alloc(struct VM *vm, mrb_vtype tt);
-
-// alloc one class
-mrb_class *mrbc_class_alloc(struct VM *vm, const char *name, mrb_class *super);
 
 
 // alloc one RProc

@@ -110,7 +110,7 @@ static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v, int argc)
 void mrbc_init_class_fixnum(mrb_vm *vm)
 {
   // Fixnum
-  mrbc_class_fixnum = mrbc_class_alloc(vm, "Fixnum", mrbc_class_object);
+  mrbc_class_fixnum = mrbc_define_class(vm, "Fixnum", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_fixnum, "%", c_fixnum_mod);
   mrbc_define_method(vm, mrbc_class_fixnum, "<=>", c_fixnum_comp);
@@ -151,7 +151,7 @@ static void c_float_to_i(mrb_vm *vm, mrb_value *v, int argc)
 void mrbc_init_class_float(mrb_vm *vm)
 {
   // Float
-  mrbc_class_float = mrbc_class_alloc(vm, "Float", mrbc_class_object);
+  mrbc_class_float = mrbc_define_class(vm, "Float", mrbc_class_object);
   mrbc_define_method(vm, mrbc_class_float, "-@", c_float_negative);
   mrbc_define_method(vm, mrbc_class_float, "to_i", c_float_to_i);
 }

@@ -506,8 +506,8 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->reg_top = vm->reg_top;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
-  callinfo->n_args = rc;
   callinfo->target_class = vm->target_class;
+  callinfo->n_args = rc;
   vm->callinfo_top++;
 
   // target irep
@@ -1297,20 +1297,13 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_B(code);
 
-  // sym_id : class name
   mrb_irep *cur_irep = vm->pc_irep;
-  char *sym = find_irep_symbol(cur_irep->ptr_to_sym, rb);
+  char *name = find_irep_symbol(cur_irep->ptr_to_sym, rb);
+  mrb_class *super = (regs[ra+1].tt == MRB_TT_CLASS) ? regs[ra+1].cls : mrbc_class_object;
 
-  // super: pointer to super class
-  mrb_class *super  = mrbc_class_object;
-  if( regs[ra+1].tt == MRB_TT_CLASS ){
-    super = regs[ra+1].cls;
-  }
+  mrb_class *cls = mrbc_define_class(vm, name, super);
 
-  mrb_class *cls = mrbc_class_alloc(vm, sym, super);
-
-  mrb_value ret;
-  ret.tt = MRB_TT_CLASS;
+  mrb_value ret = {.tt = MRB_TT_CLASS};
   ret.cls = cls;
 
   regs[ra] = ret;
@@ -1346,8 +1339,12 @@ inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->n_args = 0;
   vm->callinfo_top++;
 
+  // target irep
   vm->pc = 0;
   vm->pc_irep = vm->irep->reps[rb];
+
+  // new regs
+  vm->reg_top += ra;
 
   vm->target_class = find_class_by_object(vm, &recv);
 
@@ -1375,16 +1372,38 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   if( regs[ra].tt == MRB_TT_CLASS ) {
     mrb_class *cls = regs[ra].cls;
+
     // sym_id : method name
     mrb_irep *cur_irep = vm->pc_irep;
     char *sym = find_irep_symbol(cur_irep->ptr_to_sym, rb);
     int sym_id = add_sym( sym );
+
+    // check same name method
+    mrb_proc *p = cls->procs;
+    void *pp = &cls->procs;
+    while( p != NULL ) {
+      if( p->sym_id == sym_id ) break;
+      pp = &p->next;
+      p = p->next;
+    }
+    if( p ) {
+      // found it.
+      *((mrb_proc**)pp) = p->next;
+      if( !p->c_func ) {
+	mrb_value v = {.tt = MRB_TT_PROC};
+	v.proc = p;
+	mrbc_release(&v);
+      }
+    }
+
     // add proc to class
     rproc->c_func = 0;
     rproc->sym_id = sym_id;
     rproc->next = cls->procs;
     cls->procs = rproc;
+
     mrbc_inc_ref_count(rproc);
+    mrbc_set_vm_id(rproc, 0);
   }
 
   return 0;
@@ -1555,18 +1574,15 @@ void mrbc_vm_begin(mrb_vm *vm)
   vm->reg_top = 0;
   memset(vm->regs, 0, sizeof(vm->regs));
 
-  mrb_class *cls = mrbc_class_alloc(vm, "UserTop", mrbc_class_object);
-  vm->user_top = cls;
-
   // set self to reg[0]
-  vm->regs[0].tt = MRB_TT_USERTOP;
-  vm->regs[0].cls = cls;
+  vm->regs[0].tt = MRB_TT_CLASS;
+  vm->regs[0].cls = mrbc_class_object;
 
   vm->callinfo_top = 0;
   memset(vm->callinfo, 0, sizeof(vm->callinfo));
 
   // target_class
-  vm->target_class = cls;
+  vm->target_class = mrbc_class_object;
 
   vm->error_code = 0;
   vm->flag_preemption = 0;
