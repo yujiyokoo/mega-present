@@ -10,17 +10,22 @@
 #include "c_string.h"
 
 
-// Operator %
+//================================================================
+/*! (operator) %
+ */
 static void c_fixnum_mod(mrb_vm *vm, mrb_value *v, int argc)
 {
-  int num = GET_INT_ARG(1);
+  int32_t num = GET_INT_ARG(1);
   SET_INT_RETURN( v->i % num );
 }
 
-// Operator <=>
+
+//================================================================
+/*! (operator) <=>
+ */
 static void c_fixnum_comp(mrb_vm *vm, mrb_value *v, int argc)
 {
-  int num = GET_INT_ARG(1);
+  int32_t num = GET_INT_ARG(1);
   if(v->i > num){
     SET_INT_RETURN(1);
   }else if(v->i == num){
@@ -30,21 +35,50 @@ static void c_fixnum_comp(mrb_vm *vm, mrb_value *v, int argc)
   }
 }
 
-// Unary Operator ~; bit operation NOT
-static void c_fixnum_deny(mrb_vm *vm, mrb_value *v, int argc)
-{
-  SET_INT_RETURN( (v->i + 1) * (-1)  );
-}
 
-
-// Operator &; bit operation AND
+//================================================================
+/*! (operator) &; bit operation AND
+ */
 static void c_fixnum_and(mrb_vm *vm, mrb_value *v, int argc)
 {
-  int num = GET_INT_ARG(1);
+  int32_t num = GET_INT_ARG(1);
   SET_INT_RETURN(v->i & num);
 }
 
-// x-bit left shift for x
+
+//================================================================
+/*! (operator) |; bit operation OR
+ */
+static void c_fixnum_or(mrb_vm *vm, mrb_value *v, int argc)
+{
+  int32_t num = GET_INT_ARG(1);
+  SET_INT_RETURN(v->i | num);
+}
+
+
+//================================================================
+/*! (operator) ^; bit operation XOR
+ */
+static void c_fixnum_xor(mrb_vm *vm, mrb_value *v, int argc)
+{
+  int32_t num = GET_INT_ARG(1);
+  SET_INT_RETURN( v->i ^ num );
+}
+
+
+//================================================================
+/*! (operator) ~; bit operation NOT
+ */
+static void c_fixnum_not(mrb_vm *vm, mrb_value *v, int argc)
+{
+  int32_t num = GET_INT_ARG(0);
+  SET_INT_RETURN( ~num );
+}
+
+
+//================================================================
+/*! x-bit left shift for x
+ */
 static int32_t shift(int32_t x, int32_t y)
 {
   if( y >= 33 ){
@@ -59,14 +93,20 @@ static int32_t shift(int32_t x, int32_t y)
   return x;
 }
 
-// Operator <<; bit operation LEFT_SHIFT
+
+//================================================================
+/*! (operator) <<; bit operation LEFT_SHIFT
+ */
 static void c_fixnum_lshift(mrb_vm *vm, mrb_value *v, int argc)
 {
   int num = GET_INT_ARG(1);
   SET_INT_RETURN( shift(v->i, num) );
 }
 
-// Operator >>; bit operation RIGHT_SHIFT
+
+//================================================================
+/*! (operator) >>; bit operation RIGHT_SHIFT
+ */
 static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v, int argc)
 {
   int num = GET_INT_ARG(1);
@@ -132,8 +172,10 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
 
   mrbc_define_method(vm, mrbc_class_fixnum, "%", c_fixnum_mod);
   mrbc_define_method(vm, mrbc_class_fixnum, "<=>", c_fixnum_comp);
-  mrbc_define_method(vm, mrbc_class_fixnum, "~", c_fixnum_deny);
   mrbc_define_method(vm, mrbc_class_fixnum, "&", c_fixnum_and);
+  mrbc_define_method(vm, mrbc_class_fixnum, "|", c_fixnum_or);
+  mrbc_define_method(vm, mrbc_class_fixnum, "^", c_fixnum_xor);
+  mrbc_define_method(vm, mrbc_class_fixnum, "~", c_fixnum_not);
   mrbc_define_method(vm, mrbc_class_fixnum, "<<", c_fixnum_lshift);
   mrbc_define_method(vm, mrbc_class_fixnum, ">>", c_fixnum_rshift);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_i", c_ineffect);
@@ -163,7 +205,7 @@ static void c_float_negative(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_float_to_i(mrb_vm *vm, mrb_value *v, int argc)
 {
-  int i = (int)GET_FLOAT_ARG(0);
+  int32_t i = (int32_t)GET_FLOAT_ARG(0);
   SET_INT_RETURN( i );
 }
 
