@@ -234,15 +234,6 @@ static void c_string_to_f(mrb_vm *vm, mrb_value *v, int argc)
 
 
 //================================================================
-/*! (method) to_s
-*/
-static void c_string_to_s(mrb_vm *vm, mrb_value *v, int argc)
-{
-  // nothing to do.
-}
-
-
-//================================================================
 /*! (method) <<
 */
 static void c_string_append(mrb_vm *vm, mrb_value *v, int argc)
@@ -540,7 +531,7 @@ void mrbc_init_class_string(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_string, "size",	c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "length",	c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "to_i",	c_string_to_i);
-  mrbc_define_method(vm, mrbc_class_string, "to_s",	c_string_to_s);
+  mrbc_define_method(vm, mrbc_class_string, "to_s",	c_ineffect);
   mrbc_define_method(vm, mrbc_class_string, "<<",	c_string_append);
   mrbc_define_method(vm, mrbc_class_string, "[]",	c_string_slice);
   mrbc_define_method(vm, mrbc_class_string, "[]=",	c_string_insert);

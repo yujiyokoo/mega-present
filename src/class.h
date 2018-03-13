@@ -29,6 +29,7 @@ void mrbc_init_class(void);
 mrb_class * mrbc_define_class(struct VM *vm, const char *name, mrb_class *super);
 void mrbc_define_method(struct VM *vm, mrb_class *cls, const char *name, mrb_func_t func);
 
+void c_ineffect(mrb_vm *vm, mrb_value *v, int argc);
 
 
 #ifdef __cplusplus

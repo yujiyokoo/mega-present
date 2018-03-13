@@ -73,7 +73,22 @@ static void c_fixnum_rshift(mrb_vm *vm, mrb_value *v, int argc)
   SET_INT_RETURN( shift(v->i, -num) );
 }
 
+
+//================================================================
+/*! (method) to_f
+*/
+static void c_fixnum_to_f(mrb_vm *vm, mrb_value *v, int argc)
+{
+  double f = GET_INT_ARG(0);
+  SET_FLOAT_RETURN( f );
+}
+
+
+
 #if MRBC_USE_STRING
+//================================================================
+/*! (method) chr
+*/
 static void c_fixnum_chr(mrb_vm *vm, mrb_value *v, int argc)
 {
   char buf[2] = { GET_INT_ARG(0) };
@@ -83,6 +98,9 @@ static void c_fixnum_chr(mrb_vm *vm, mrb_value *v, int argc)
 }
 
 
+//================================================================
+/*! (method) to_s
+*/
 static void c_fixnum_to_s(mrb_vm *vm, mrb_value *v, int argc)
 {
   int base = 10;
@@ -118,6 +136,8 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_fixnum, "&", c_fixnum_and);
   mrbc_define_method(vm, mrbc_class_fixnum, "<<", c_fixnum_lshift);
   mrbc_define_method(vm, mrbc_class_fixnum, ">>", c_fixnum_rshift);
+  mrbc_define_method(vm, mrbc_class_fixnum, "to_i", c_ineffect);
+  mrbc_define_method(vm, mrbc_class_fixnum, "to_f", c_fixnum_to_f);
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_fixnum, "chr", c_fixnum_chr);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_s", c_fixnum_to_s);
@@ -148,12 +168,30 @@ static void c_float_to_i(mrb_vm *vm, mrb_value *v, int argc)
 }
 
 
+//================================================================
+/*! (method) to_s
+*/
+static void c_float_to_s(mrb_vm *vm, mrb_value *v, int argc)
+{
+  char buf[16];
+
+  snprintf( buf, sizeof(buf), "%g", v->d );
+  mrb_value value = mrbc_string_new_cstr(vm, buf);
+  SET_RETURN(value);
+}
+
+
+//================================================================
+/*! initialize class Float
+*/
 void mrbc_init_class_float(mrb_vm *vm)
 {
   // Float
   mrbc_class_float = mrbc_define_class(vm, "Float", mrbc_class_object);
   mrbc_define_method(vm, mrbc_class_float, "-@", c_float_negative);
   mrbc_define_method(vm, mrbc_class_float, "to_i", c_float_to_i);
+  mrbc_define_method(vm, mrbc_class_float, "to_f", c_ineffect);
+  mrbc_define_method(vm, mrbc_class_float, "to_s", c_float_to_s);
 }
 
 #endif

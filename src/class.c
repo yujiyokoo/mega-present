@@ -430,6 +430,16 @@ static void mrbc_init_class_true(mrb_vm *vm)
 
 
 //================================================================
+/*! Ineffect operator / method
+*/
+void c_ineffect(mrb_vm *vm, mrb_value *v, int argc)
+{
+  // nothing to do.
+}
+
+
+
+//================================================================
 // initialize
 
 void mrbc_init_class(void)
