@@ -71,9 +71,12 @@ typedef enum {
 
 */
 typedef struct RClass {
-  mrb_sym name;   // class name
-  struct RClass *super;    // mrbc_class[super]
-  struct RProc *procs;   // mrbc_proc[rprocs], linked list
+  mrb_sym name;		// class name
+#ifdef MRBC_DEBUG
+  const char *names;	// for debug. delete soon.
+#endif
+  struct RClass *super;	// mrbc_class[super]
+  struct RProc *procs;	// mrbc_proc[rprocs], linked list
 } mrb_class;
 
 
@@ -83,7 +86,8 @@ typedef struct RClass {
 
 */
 typedef struct RInstance {
-  struct RClass *cls;    // class
+  uint16_t ref_count;	// TODO: not use yet.
+  struct RClass *cls;
   uint8_t data[];
 } mrb_instance;
 
@@ -129,6 +133,9 @@ typedef struct RProc {
   struct RProc *next;
   unsigned int c_func:1;   // 0:IREP, 1:C Func
   mrb_sym sym_id;
+#ifdef MRBC_DEBUG
+  const char *names;		// for debug; delete soon
+#endif
   union {
     struct IREP *irep;
     mrb_func_t func;
@@ -154,7 +161,7 @@ void mrbc_release(mrb_value *v);
 int32_t mrbc_atoi( const char *s, int base );
 
 mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
-void mrbc_instance_delete(struct VM *vm, mrb_value *v);
+void mrbc_instance_delete(mrb_value *v);
 
 
 

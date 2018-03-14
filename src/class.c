@@ -115,6 +115,9 @@ mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
     if( !cls ) return cls;	// ENOMEM
 
     cls->name = sym_id;
+#ifdef MRBC_DEBUG
+    cls->names = name;	// for debug; delete soon.
+#endif
     cls->super = super;
     cls->procs = 0;
 

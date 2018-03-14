@@ -40,6 +40,9 @@ mrb_proc *mrbc_rproc_alloc(mrb_vm *vm, const char *name)
   mrb_proc *ptr = (mrb_proc *)mrbc_alloc(vm, sizeof(mrb_proc));
   if( ptr ) {
     ptr->sym_id = add_sym(name);
+#ifdef MRBC_DEBUG
+    ptr->names = name;	// for debug; delete soon.
+#endif
     ptr->next = 0;
   }
   return ptr;
@@ -122,6 +125,9 @@ void mrbc_dup(mrb_value *v)
   case MRB_TT_STRING:
     mrbc_inc_ref_count(v->handle);
     v->h_str->ref_count++;	// no effect, yet.
+  case MRB_TT_OBJECT:
+    mrbc_inc_ref_count(v->instance);
+    v->instance->ref_count++;	// no effect, yet.
   default:
     // Nothing
     break;
@@ -158,6 +164,14 @@ void mrbc_release(mrb_value *v)
       mrbc_range_delete(v);
     }
     break;
+
+  case MRB_TT_OBJECT:
+    v->instance->ref_count--;	// no effect, yet.
+    if( mrbc_dec_ref_count(v->instance) == 0 ) {
+      mrbc_instance_delete(v);
+    }
+    break;
+
 
   default:
     // Nothing
@@ -252,10 +266,9 @@ mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size)
 
   mrb_instance destructor
 
-  @param  vm	pointer to VM.
   @param  v	pointer to target value
 */
-void mrbc_instance_delete(struct VM *vm, mrb_value *v)
+void mrbc_instance_delete(mrb_value *v)
 {
   mrbc_raw_free( v->instance );
 }
