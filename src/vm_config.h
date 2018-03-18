@@ -42,7 +42,7 @@
 
 /* maximum size of symbol table */
 #ifndef MAX_SYMBOLS_SIZE
-#define MAX_SYMBOLS_SIZE 400
+#define MAX_SYMBOLS_SIZE 1024
 #endif
 
 /* maximum number of symbols */
