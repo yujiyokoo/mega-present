@@ -28,6 +28,7 @@
 
 #include "c_string.h"
 #include "c_range.h"
+#include "c_array.h"
 
 static uint32_t free_vm_bitmap[MAX_VM_COUNT / 32 + 1];
 #define FREE_BITMAP_WIDTH 32
@@ -463,9 +464,9 @@ inline static int op_jmpnot( mrb_vm *vm, uint32_t code, mrb_value *regs )
 inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
-  mrb_value recv = regs[ra];
   int rb = GETARG_B(code);  // index of method sym
   int rc = GETARG_C(code);  // number of params
+  mrb_value recv = regs[ra];
 
   // Block param
   int bidx = ra + rc + 1;
@@ -649,7 +650,6 @@ inline static int op_add( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // other case
   op_send(vm, code, regs);
-  mrbc_release(&regs[ra+1]);
   return 0;
 }
 
@@ -1093,41 +1093,19 @@ DONE:
 */
 inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int arg_a = GETARG_A(code);
-  int arg_b = GETARG_B(code);
-  int arg_c = GETARG_C(code);
-  mrb_value *ptr;
+  int ra = GETARG_A(code);
+  int rb = GETARG_B(code);
+  int rc = GETARG_C(code);
 
-  mrb_value v;
-  v.tt = MRB_TT_ARRAY;
-  v.array = 0;
+  mrb_value value = mrbc_array_new(vm, rc);
+  if( value.h_array == NULL ) return -1;	// ENOMEM
 
-  if( arg_c >= 0 ){
-    // Handle
-    mrb_value *handle = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value));
-    if( handle == NULL ) return 0;  // ENOMEM
-    v.array = handle;
-    handle->tt = MRB_TT_HANDLE;
+  memcpy( value.h_array->data, &regs[rb], sizeof(mrb_value) * rc );
+  memset( &regs[rb], 0, sizeof(mrb_value) * rc );
+  value.h_array->n_stored = rc;
 
-    mrb_object *p;
-    // ptr[0] : array info
-    // ptr[1..] : array elements
-    ptr = (mrb_value*)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c + 1));
-    if( ptr == NULL ) return 0;  // ENOMEM
-
-    handle->array = ptr;
-    ptr->tt = MRB_TT_FIXNUM;
-    ptr->i = arg_c;
-
-    p = ptr + 1;
-    while( arg_c > 0 ){
-      *p++ = regs[arg_b++];
-      arg_c--;
-    }
-  }
-
-  mrbc_release(&regs[arg_a]);
-  regs[arg_a] = v;
+  mrbc_release(&regs[ra]);
+  regs[ra] = value;
 
   return 0;
 }

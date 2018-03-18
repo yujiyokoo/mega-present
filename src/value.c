@@ -22,6 +22,7 @@
 #include "alloc.h"
 #include "c_string.h"
 #include "c_range.h"
+#include "c_array.h"
 #include "vm.h"
 
 
@@ -84,20 +85,8 @@ int mrbc_eq(const mrb_value *v1, const mrb_value *v2)
   case MRB_TT_STRING:
     return mrbc_string_compare( v1, v2 );
 
-  case MRB_TT_ARRAY: {
-    mrb_value *array1 = v1->array;
-    mrb_value *array2 = v2->array;
-    int i, len = array1[0].i;
-    if( len != array2[0].i ) return 0;
-    for( i=1 ; i<=len ; i++ ){
-      if( !mrbc_eq(array1+i, array2+i) ) break;
-    }
-    if( i > len ){
-      return 1;
-    } else {
-      return 0;
-    }
-  } break;
+  case MRB_TT_ARRAY:
+    return mrbc_array_compare( v1, v2 );
 
   case MRB_TT_RANGE:
     return mrbc_range_compare( v1, v2 );
@@ -110,7 +99,6 @@ int mrbc_eq(const mrb_value *v1, const mrb_value *v2)
 
 //================================================================
 /*!@brief
-
   Duplicate mrb_value
 
   @param   v     Pointer to mrb_value
@@ -125,23 +113,44 @@ void mrbc_dup(mrb_value *v)
   case MRB_TT_STRING:
     mrbc_inc_ref_count(v->handle);
     v->h_str->ref_count++;	// no effect, yet.
+    assert( v->h_str->ref_count < 255 );
+    break;
   case MRB_TT_OBJECT:
     mrbc_inc_ref_count(v->instance);
     v->instance->ref_count++;	// no effect, yet.
+    break;
+  case MRB_TT_ARRAY:
+    v->h_array->ref_count++;
+    assert( v->h_array->ref_count < 255 );
+    break;
+
   default:
     // Nothing
     break;
   }
 }
 
+
 //================================================================
 /*!@brief
-
-  Release object related memory (reference counter)
+  Release object related memory
 
   @param   v     Pointer to target mrb_value
 */
 void mrbc_release(mrb_value *v)
+{
+  mrbc_dec_ref_counter(v);
+  v->tt = MRB_TT_EMPTY;
+}
+
+
+//================================================================
+/*!@brief
+  Decrement reference counter
+
+  @param   v     Pointer to target mrb_value
+*/
+void mrbc_dec_ref_counter(mrb_value *v)
 {
   switch( v->tt ) {
   case MRB_TT_PROC:
@@ -172,16 +181,17 @@ void mrbc_release(mrb_value *v)
     }
     break;
 
+  case MRB_TT_ARRAY:
+    if( --v->h_array->ref_count == 0 ) {
+      mrbc_array_delete(v);
+    }
+    break;
 
   default:
     // Nothing
     break;
   }
-
-  v->tt = MRB_TT_EMPTY;
-  v->handle = NULL;
 }
-
 
 
 //================================================================
