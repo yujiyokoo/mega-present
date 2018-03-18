@@ -41,7 +41,7 @@ typedef int16_t mrb_sym;
 
 //================================================================
 /*!@brief
-
+  define the value type.
 */
 typedef enum {
   /* internal use */
@@ -54,6 +54,7 @@ typedef enum {
   MRB_TT_FIXNUM,
   MRB_TT_FLOAT,
   MRB_TT_SYMBOL,
+
   /* non-primitive */
   MRB_TT_OBJECT = 20,
   MRB_TT_CLASS,
@@ -68,7 +69,7 @@ typedef enum {
 
 //================================================================
 /*!@brief
-
+  mruby/c class object.
 */
 typedef struct RClass {
   mrb_sym name;		// class name
@@ -83,7 +84,7 @@ typedef struct RClass {
 
 //================================================================
 /*!@brief
-
+  mruby/c instance object.
 */
 typedef struct RInstance {
   uint16_t ref_count;	// TODO: not use yet.
@@ -113,6 +114,7 @@ typedef struct RObject {
     double d;              // MRB_TT_FLOAT : float
     char *str;             // MRB_TT_STRING : C-string (only loader use.)
 
+    struct MrbcHandleArray *h_array;
     struct MrbcHandleString *h_str;
     struct MrbcHandleRange *h_range;
   };
@@ -127,7 +129,7 @@ typedef void (*mrb_func_t)(struct VM *vm, mrb_value *v, int argc);
 
 //================================================================
 /*!@brief
-
+  mruby/c proc object.
 */
 typedef struct RProc {
   struct RProc *next;
@@ -142,26 +144,6 @@ typedef struct RProc {
   };
 } mrb_proc;
 
-
-// alloc one object
-mrb_object *mrbc_obj_alloc(struct VM *vm, mrb_vtype tt);
-
-
-// alloc one RProc
-mrb_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
-mrb_proc *mrbc_rproc_alloc_to_class(struct VM *vm, const char *name, mrb_class *cls);
-
-// EQ two objects
-int mrbc_eq(const mrb_value *v1, const mrb_value *v2);
-
-// Other functions
-void mrbc_dup(mrb_value *v);
-void mrbc_release(mrb_value *v);
-
-int32_t mrbc_atoi( const char *s, int base );
-
-mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
-void mrbc_instance_delete(mrb_value *v);
 
 
 
@@ -179,6 +161,19 @@ void mrbc_instance_delete(mrb_value *v);
 #define GET_ARG(n)		(v[(n)])
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
 #define GET_STRING_ARG(n)	(v[(n)].h_str->str)
+
+
+
+mrb_object *mrbc_obj_alloc(struct VM *vm, mrb_vtype tt);
+mrb_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
+mrb_proc *mrbc_rproc_alloc_to_class(struct VM *vm, const char *name, mrb_class *cls);
+int mrbc_eq(const mrb_value *v1, const mrb_value *v2);
+void mrbc_dup(mrb_value *v);
+void mrbc_release(mrb_value *v);
+void mrbc_dec_ref_counter(mrb_value *v);
+int32_t mrbc_atoi(const char *s, int base);
+mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
+void mrbc_instance_delete(mrb_value *v);
 
 
 

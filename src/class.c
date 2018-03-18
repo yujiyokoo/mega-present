@@ -211,7 +211,7 @@ void c_puts(mrb_value *v)
     break;
 
   case MRB_TT_NIL:
-    //console_printf("(nil)");
+    console_printf("(nil)");
     break;
 
   case MRB_TT_TRUE:
@@ -240,11 +240,11 @@ void c_puts(mrb_value *v)
     break;
 
   case MRB_TT_ARRAY:{
-    mrb_value *array = v->array->array;
-    int i, n = array[0].i;
+    mrb_value *array = v->h_array->data;
+    int i, n = v->h_array->n_stored;
     console_putchar('[');
-    for( i = 1 ; i <= n ; i++ ) {
-      if( i > 1 ) console_print(", ");
+    for( i = 0 ; i < n ; i++ ) {
+      if( i > 0 ) console_print(", ");
       c_puts(array + i);
     }
     console_putchar(']');
