@@ -114,7 +114,7 @@ mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
     cls = mrbc_alloc( 0, sizeof(mrb_class) );
     if( !cls ) return cls;	// ENOMEM
 
-    cls->name = sym_id;
+    cls->sym_id = sym_id;
 #ifdef MRBC_DEBUG
     cls->names = name;	// for debug; delete soon.
 #endif
@@ -251,7 +251,7 @@ void c_puts(mrb_value *v)
   } break;
 
   case MRB_TT_CLASS:
-    console_print( symid_to_str( v->cls->name ) );
+    console_print( symid_to_str( v->cls->sym_id ) );
     break;
 
   default:
@@ -294,7 +294,7 @@ static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 {
 #if MRBC_USE_STRING
   mrb_class *cls = find_class_by_object( vm, v );
-  mrb_value value = mrbc_string_new_cstr(vm, symid_to_str(cls->name) );
+  mrb_value value = mrbc_string_new_cstr(vm, symid_to_str(cls->sym_id) );
   mrbc_release(v);
   SET_RETURN(value);
 #endif

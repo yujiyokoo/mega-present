@@ -72,7 +72,7 @@ typedef enum {
   mruby/c class object.
 */
 typedef struct RClass {
-  mrb_sym name;		// class name
+  mrb_sym sym_id;	// class name
 #ifdef MRBC_DEBUG
   const char *names;	// for debug. delete soon.
 #endif
