@@ -48,9 +48,10 @@ typedef enum {
   MRB_TT_HANDLE = -1,
   /* primitive */
   MRB_TT_EMPTY = 0,
-  MRB_TT_TRUE,
-  MRB_TT_FALSE,
   MRB_TT_NIL,
+  MRB_TT_FALSE,		// (note) true/false threshold. see op_jmpif
+
+  MRB_TT_TRUE,
   MRB_TT_FIXNUM,
   MRB_TT_FLOAT,
   MRB_TT_SYMBOL,

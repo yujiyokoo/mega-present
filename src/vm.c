@@ -420,8 +420,7 @@ inline static int op_jmp( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_jmpif( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int tt = regs[GETARG_A(code)].tt;
-  if( tt != MRB_TT_FALSE && tt != MRB_TT_NIL ) {
+  if( regs[GETARG_A(code)].tt > MRB_TT_FALSE ) {
     vm->pc += GETARG_sBx(code) - 1;
   }
   return 0;
@@ -441,8 +440,7 @@ inline static int op_jmpif( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_jmpnot( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int tt = regs[GETARG_A(code)].tt;
-  if( tt == MRB_TT_FALSE || tt == MRB_TT_NIL ) {
+  if( regs[GETARG_A(code)].tt <= MRB_TT_FALSE ) {
     vm->pc += GETARG_sBx(code) - 1;
   }
   return 0;
