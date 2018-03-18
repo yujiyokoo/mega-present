@@ -110,15 +110,18 @@ void mrbc_dup(mrb_value *v)
   case MRB_TT_RANGE:
     mrbc_inc_ref_count(v->handle);
     break;
+
   case MRB_TT_STRING:
     mrbc_inc_ref_count(v->handle);
     v->h_str->ref_count++;	// no effect, yet.
     assert( v->h_str->ref_count < 255 );
     break;
+
   case MRB_TT_OBJECT:
     mrbc_inc_ref_count(v->instance);
     v->instance->ref_count++;	// no effect, yet.
     break;
+
   case MRB_TT_ARRAY:
     v->h_array->ref_count++;
     assert( v->h_array->ref_count < 255 );
