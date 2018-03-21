@@ -199,6 +199,26 @@ void mrbc_dec_ref_counter(mrb_value *v)
 
 //================================================================
 /*!@brief
+  clear vm id
+
+  @param   v     Pointer to target mrb_value
+*/
+void mrbc_clear_vm_id(mrb_value *v)
+{
+  switch( v->tt ) {
+  case MRB_TT_ARRAY:	mrbc_array_clear_vm_id(v);	break;
+  case MRB_TT_STRING:	mrbc_string_clear_vm_id(v);	break;
+  case MRB_TT_RANGE:	mrbc_range_clear_vm_id(v);	break;
+
+  default:
+    // Nothing
+    break;
+  }
+}
+
+
+//================================================================
+/*!@brief
 
   convert ASCII string to integer mruby/c version
 

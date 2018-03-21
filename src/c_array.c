@@ -89,8 +89,15 @@ void mrbc_array_delete(mrb_value *ary)
 */
 void mrbc_array_clear_vm_id(mrb_value *ary)
 {
-  mrbc_set_vm_id( ary->h_array, 0 );
-  // TODO: implement.
+  MrbcHandleArray *h = ary->h_array;
+
+  mrbc_set_vm_id( h, 0 );
+
+  mrb_value *p1 = h->data;
+  const mrb_value *p2 = p1 + h->n_stored;
+  while( p1 < p2 ) {
+    mrbc_clear_vm_id(p1++);
+  }
 }
 
 
@@ -358,8 +365,8 @@ static void c_array_get(mrb_vm *vm, mrb_value *v, int argc)
   */
   if( argc == 1 && v1->tt == MRB_TT_FIXNUM ) {
     mrb_value val = mrbc_array_get(v, v1->i);
-    mrbc_release(v);
     mrbc_dup(&val);
+    mrbc_release(v);
     SET_RETURN(val);
     return;
   }

@@ -172,6 +172,7 @@ int mrbc_eq(const mrb_value *v1, const mrb_value *v2);
 void mrbc_dup(mrb_value *v);
 void mrbc_release(mrb_value *v);
 void mrbc_dec_ref_counter(mrb_value *v);
+void mrbc_clear_vm_id(mrb_value *v);
 int32_t mrbc_atoi(const char *s, int base);
 mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
 void mrbc_instance_delete(mrb_value *v);

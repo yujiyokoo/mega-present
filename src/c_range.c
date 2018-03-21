@@ -66,9 +66,9 @@ void mrbc_range_delete(mrb_value *v)
 */
 void mrbc_range_clear_vm_id(mrb_value *v)
 {
-  // TODO: set first and last member's vm_id to zero.
-
   mrbc_set_vm_id( v->h_range, 0 );
+  mrbc_clear_vm_id( &v->h_range->first );
+  mrbc_clear_vm_id( &v->h_range->last );
 }
 
 

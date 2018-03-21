@@ -118,15 +118,6 @@ void mrbc_global_clear_vm_id(void)
 {
   int i;
   for( i = 0; i < global_end; i++ ) {
-    switch( mrbc_global[i].obj.tt ) {
-    case MRB_TT_STRING:
-      mrbc_string_clear_vm_id( &mrbc_global[i].obj );
-      break;
-    case MRB_TT_RANGE:
-      mrbc_range_clear_vm_id( &mrbc_global[i].obj );
-      break;
-    default:
-      ;
-    }
+    mrbc_clear_vm_id( &mrbc_global[i].obj );
   }
 }
