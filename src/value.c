@@ -40,6 +40,7 @@ mrb_proc *mrbc_rproc_alloc(mrb_vm *vm, const char *name)
 {
   mrb_proc *ptr = (mrb_proc *)mrbc_alloc(vm, sizeof(mrb_proc));
   if( ptr ) {
+    ptr->ref_count = 1;
     ptr->sym_id = add_sym(name);
 #ifdef MRBC_DEBUG
     ptr->names = name;	// for debug; delete soon.
@@ -47,16 +48,6 @@ mrb_proc *mrbc_rproc_alloc(mrb_vm *vm, const char *name)
     ptr->next = 0;
   }
   return ptr;
-}
-
-mrb_proc *mrbc_rproc_alloc_to_class(mrb_vm *vm, const char *name, mrb_class *cls)
-{
-  mrb_proc *rproc = mrbc_rproc_alloc(vm, name);
-  if( rproc != 0 ){
-    rproc->next = cls->procs;
-    cls->procs = rproc;
-  }
-  return rproc;
 }
 
 
@@ -106,25 +97,14 @@ int mrbc_eq(const mrb_value *v1, const mrb_value *v2)
 void mrbc_dup(mrb_value *v)
 {
   switch( v->tt ){
-  case MRB_TT_PROC:
-  case MRB_TT_RANGE:
-    mrbc_inc_ref_count(v->handle);
-    break;
-
-  case MRB_TT_STRING:
-    mrbc_inc_ref_count(v->handle);
-    v->h_str->ref_count++;	// no effect, yet.
-    assert( v->h_str->ref_count < 255 );
-    break;
-
   case MRB_TT_OBJECT:
-    mrbc_inc_ref_count(v->instance);
-    v->instance->ref_count++;	// no effect, yet.
-    break;
-
+  case MRB_TT_PROC:
   case MRB_TT_ARRAY:
-    v->h_array->ref_count++;
-    assert( v->h_array->ref_count < 255 );
+  case MRB_TT_STRING:
+  case MRB_TT_RANGE:
+    assert( v->instance->ref_count > 0 );
+    assert( v->instance->ref_count != 0xff );	// check max value.
+    v->instance->ref_count++;
     break;
 
   default:
@@ -155,40 +135,32 @@ void mrbc_release(mrb_value *v)
 */
 void mrbc_dec_ref_counter(mrb_value *v)
 {
-  switch( v->tt ) {
-  case MRB_TT_PROC:
-    if( mrbc_dec_ref_count(v->handle) == 0 ) {
-      mrbc_raw_free(v->handle);
-    }
-    break;
-
-#if MRBC_USE_STRING
-  case MRB_TT_STRING:
-    v->h_str->ref_count--;	// no effect, yet.
-    if( mrbc_dec_ref_count(v->h_str) == 0 ) {
-      mrbc_string_delete(v);
-    }
-    break;
-#endif
-
-  case MRB_TT_RANGE:
-    if( mrbc_dec_ref_count(v->handle) == 0 ) {
-      mrbc_range_delete(v);
-    }
-    break;
-
+  switch( v->tt ){
   case MRB_TT_OBJECT:
-    v->instance->ref_count--;	// no effect, yet.
-    if( mrbc_dec_ref_count(v->instance) == 0 ) {
-      mrbc_instance_delete(v);
-    }
+  case MRB_TT_PROC:
+  case MRB_TT_ARRAY:
+  case MRB_TT_STRING:
+  case MRB_TT_RANGE:
+    assert( v->instance->ref_count != 0 );
+    v->instance->ref_count--;
     break;
 
-  case MRB_TT_ARRAY:
-    if( --v->h_array->ref_count == 0 ) {
-      mrbc_array_delete(v);
-    }
-    break;
+  default:
+    // Nothing
+    return;
+  }
+
+  // release memory?
+  if( v->instance->ref_count != 0 ) return;
+
+  switch( v->tt ) {
+  case MRB_TT_OBJECT:	mrbc_instance_delete(v);	break;
+  case MRB_TT_PROC:	mrbc_raw_free(v->handle);	break;
+  case MRB_TT_ARRAY:	mrbc_array_delete(v);		break;
+#if MRBC_USE_STRING
+  case MRB_TT_STRING:	mrbc_string_delete(v);		break;
+#endif
+  case MRB_TT_RANGE:	mrbc_range_delete(v);		break;
 
   default:
     // Nothing
@@ -274,7 +246,46 @@ int32_t mrbc_atoi( const char *s, int base )
 
 //================================================================
 /*!@brief
+  mrb_irep allocator
 
+  @param  vm	Pointer of VM.
+  @return	Pointer of allocated mrb_irep
+*/
+mrb_irep *mrbc_irep_alloc(mrb_vm *vm)
+{
+  mrb_irep *p = (mrb_irep *)mrbc_alloc(vm, sizeof(mrb_irep));
+  if( p )
+    memset(p, 0, sizeof(mrb_irep));	// caution: assume NULL is zero.
+  return p;
+}
+
+
+//================================================================
+/*!@brief
+  release mrb_irep holds memory
+*/
+void mrbc_irep_free(mrb_irep *irep)
+{
+  int i;
+
+  // release pools.
+  for( i = 0; i < irep->plen; i++ ) {
+    mrbc_raw_free( irep->pools[i] );
+  }
+  if( irep->plen ) mrbc_raw_free( irep->pools );
+
+  // release child ireps.
+  for( i = 0; i < irep->rlen; i++ ) {
+    mrbc_irep_free( irep->reps[i] );
+  }
+  if( irep->rlen ) mrbc_raw_free( irep->reps );
+
+  mrbc_raw_free( irep );
+}
+
+
+//================================================================
+/*!@brief
   mrb_instance constructor
 
   @param  vm    Pointer to VM.
@@ -287,6 +298,9 @@ mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size)
   mrb_value v = {.tt = MRB_TT_OBJECT};
   v.instance = (mrb_instance *)mrbc_alloc(vm, sizeof(mrb_instance) + size);
   if( v.instance == NULL ) return v;	// ENOMEM
+
+  v.instance->ref_count = 1;
+  v.instance->tt = MRB_TT_OBJECT;	// for debug only.
   v.instance->cls = cls;
 
   return v;
@@ -296,7 +310,6 @@ mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size)
 
 //================================================================
 /*!@brief
-
   mrb_instance destructor
 
   @param  v	pointer to target value

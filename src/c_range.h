@@ -15,7 +15,6 @@
 #define MRBC_SRC_C_RANGE_H_
 
 #include <stdint.h>
-#include "vm.h"
 #include "value.h"
 
 #ifdef __cplusplus
@@ -27,8 +26,7 @@ extern "C" {
   Define Range object (same the handles of other objects)
 */
 typedef struct MrbcHandleRange {
-  uint16_t ref_count;	// TODO: not use yet.
-  mrb_vtype tt : 8;	// TODO: for debug use.
+  MRBC_OBJECT_HEADER;
 
   uint8_t flag_exclude;	// true: exclude the end object, otherwise include.
   mrb_value first;
@@ -36,12 +34,12 @@ typedef struct MrbcHandleRange {
 
 } MrbcHandleRange;
 
-
-mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_first, mrb_value *v_last, int flag_exclude);
+struct VM;
+mrb_value mrbc_range_new(struct VM *vm, mrb_value *v_first, mrb_value *v_last, int flag_exclude);
 void mrbc_range_delete(mrb_value *v);
 void mrbc_range_clear_vm_id(mrb_value *v);
 
-void mrbc_init_class_range(mrb_vm *vm);
+void mrbc_init_class_range(struct VM *vm);
 
 
 static inline int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2)

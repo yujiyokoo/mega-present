@@ -14,11 +14,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "vm.h"
 #include "vm_config.h"
+#include "vm.h"
 #include "load.h"
 #include "errorcode.h"
-#include "static.h"
 #include "value.h"
 #include "alloc.h"
 
@@ -41,7 +40,7 @@
    "0000"	compiler version
   </pre>
 */
-static int load_header(struct VM *vm, const uint8_t **pos)
+static int load_header(mrb_vm *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos;
 
@@ -99,12 +98,12 @@ static int load_header(struct VM *vm, const uint8_t **pos)
      ...	symbol data
   </pre>
 */
-static mrb_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
+static mrb_irep * load_irep_1(mrb_vm *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos + 4;			// skip record size
 
   // new irep
-  mrb_irep *irep = new_irep(0);
+  mrb_irep *irep = mrbc_irep_alloc(0);
   if( irep == NULL ) {
     vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
     return NULL;
@@ -204,7 +203,7 @@ static mrb_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   @param  pos	A pointer of pointer of IREP section.
   @return       Pointer of allocated mrb_irep or NULL
 */
-static mrb_irep * load_irep_0(struct VM *vm, const uint8_t **pos)
+static mrb_irep * load_irep_0(mrb_vm *vm, const uint8_t **pos)
 {
   mrb_irep *irep = load_irep_1(vm, pos);
   if( !irep ) return NULL;
@@ -234,7 +233,7 @@ static mrb_irep * load_irep_0(struct VM *vm, const uint8_t **pos)
    "0000"	rite version
   </pre>
 */
-static int load_irep(struct VM *vm, const uint8_t **pos)
+static int load_irep(mrb_vm *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos + 4;			// 4 = skip "RITE"
   int section_size = bin_to_uint32(p);
@@ -263,7 +262,7 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
   @param  pos	A pointer of pointer of LVAR section.
   @return int	zero if no error.
 */
-static int load_lvar(struct VM *vm, const uint8_t **pos)
+static int load_lvar(mrb_vm *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos;
 

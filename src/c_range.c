@@ -37,7 +37,7 @@ mrb_value mrbc_range_new(mrb_vm *vm, mrb_value *v_first, mrb_value *v_last, int 
   value.h_range = mrbc_alloc(vm, sizeof(MrbcHandleRange));
   if( !value.h_range ) return value;		// ENOMEM
 
-  value.h_range->ref_count = 1;		// TODO: not use yet.
+  value.h_range->ref_count = 1;
   value.h_range->tt = MRB_TT_STRING;	// TODO: for DEBUG
   value.h_range->flag_exclude = flag_exclude;
   value.h_range->first = *v_first;

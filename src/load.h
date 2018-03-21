@@ -20,8 +20,8 @@
 extern "C" {
 #endif
 
-
-int mrbc_load_mrb(mrb_vm *vm, const uint8_t *ptr);
+struct VM;
+int mrbc_load_mrb(struct VM *vm, const uint8_t *ptr);
 
 
 #ifdef __cplusplus

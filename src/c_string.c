@@ -49,7 +49,7 @@ mrb_value mrbc_string_new(mrb_vm *vm, const void *src, int len)
     return value;
   }
 
-  h->ref_count = 1;		// TODO: not use yet.
+  h->ref_count = 1;
   h->tt = MRB_TT_STRING;	// TODO: for DEBUG
   h->size = len;
   h->str = str;
@@ -101,7 +101,7 @@ mrb_value mrbc_string_new_alloc(mrb_vm *vm, void *buf, int len)
   h = (MrbcHandleString *)mrbc_alloc(vm, sizeof(MrbcHandleString));
   if( !h ) return value;		// ENOMEM
 
-  h->ref_count = 1;		// TODO: not use yet.
+  h->ref_count = 1;
   h->tt = MRB_TT_STRING;	// TODO: for DEBUG
   h->size = len;
   h->str = buf;

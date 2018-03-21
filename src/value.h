@@ -16,8 +16,6 @@
 #define MRBC_SRC_VALUE_H_
 
 #include <stdint.h>
-#include "vm_config.h"
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,8 +33,15 @@ typedef int16_t mrb_sym;
 #define MRB_ASPEC_REST(a)         (((a) >> 12) & 0x1)
 #define MRB_ASPEC_POST(a)         (((a) >> 7) & 0x1f)
 
-// #define GET_TYPE(v) ((v).tt)
-#define IS_FIXNUM(v) (((v).tt)==MRB_TT_FIXNUM)
+#define MRBC_OBJECT_HEADER \
+  uint16_t ref_count; \
+  mrb_vtype tt : 8  // TODO: for debug use only.
+
+
+struct VM;
+struct IREP;
+struct RObject;
+typedef void (*mrb_func_t)(struct VM *vm, struct RObject *v, int argc);
 
 
 //================================================================
@@ -55,10 +60,10 @@ typedef enum {
   MRB_TT_FIXNUM,
   MRB_TT_FLOAT,
   MRB_TT_SYMBOL,
+  MRB_TT_CLASS,
 
   /* non-primitive */
   MRB_TT_OBJECT = 20,
-  MRB_TT_CLASS,
   MRB_TT_PROC,
   MRB_TT_ARRAY,
   MRB_TT_STRING,
@@ -66,6 +71,33 @@ typedef enum {
   MRB_TT_HASH,
 
 } mrb_vtype;
+
+
+
+//================================================================
+/*!@brief
+  mruby/c value object.
+*/
+typedef struct RObject {
+  mrb_vtype tt : 8;
+  union {
+    int32_t i;             // MRB_TT_FIXNUM
+    struct RObject *handle;  // handle to objects
+    struct RInstance *instance;  // MRB_TT_OBJECT : link to instance
+    //    struct RObject *obj;   // MRB_TT_OBJECT : link to instance
+    struct RClass *cls;    // MRB_TT_CLASS : link to class
+    struct RProc *proc;    // MRB_TT_PROC : link to proc
+    //    struct RObject *array; // MRB_TT_ARRAY : array of objects
+    struct RObject *hash;  // MRB_TT_HASH : link to range
+    double d;              // MRB_TT_FLOAT : float
+    char *str;             // MRB_TT_STRING : C-string (only loader use.)
+
+    struct MrbcHandleArray *h_array;
+    struct MrbcHandleString *h_str;
+    struct MrbcHandleRange *h_range;
+  };
+} mrb_object;
+typedef struct RObject mrb_value;
 
 
 //================================================================
@@ -82,50 +114,16 @@ typedef struct RClass {
 } mrb_class;
 
 
-
 //================================================================
 /*!@brief
   mruby/c instance object.
 */
 typedef struct RInstance {
-  uint16_t ref_count;	// TODO: not use yet.
+  MRBC_OBJECT_HEADER;
+
   struct RClass *cls;
   uint8_t data[];
 } mrb_instance;
-
-
-struct MrbcHandleString;
-struct MrbcHandleRange;
-
-//================================================================
-/*!@brief
-  mruby/c value object.
-*/
-typedef struct RObject {
-  mrb_vtype tt : 8;
-  union {
-    int32_t i;             // MRB_TT_FIXNUM
-    struct RObject *handle;  // handle to objects
-    struct RInstance *instance;  // MRB_TT_OBJECT : link to instance
-    //    struct RObject *obj;   // MRB_TT_OBJECT : link to instance
-    struct RClass *cls;    // MRB_TT_CLASS : link to class
-    struct RProc *proc;    // MRB_TT_PROC : link to proc
-    struct RObject *array; // MRB_TT_ARRAY : array of objects
-    struct RObject *hash;  // MRB_TT_HASH : link to range
-    double d;              // MRB_TT_FLOAT : float
-    char *str;             // MRB_TT_STRING : C-string (only loader use.)
-
-    struct MrbcHandleArray *h_array;
-    struct MrbcHandleString *h_str;
-    struct MrbcHandleRange *h_range;
-  };
-} mrb_object;
-typedef struct RObject mrb_value;
-
-
-struct VM;
-typedef void (*mrb_func_t)(struct VM *vm, mrb_value *v, int argc);
-
 
 
 //================================================================
@@ -133,18 +131,19 @@ typedef void (*mrb_func_t)(struct VM *vm, mrb_value *v, int argc);
   mruby/c proc object.
 */
 typedef struct RProc {
-  struct RProc *next;
-  unsigned int c_func:1;   // 0:IREP, 1:C Func
+  MRBC_OBJECT_HEADER;
+
+  unsigned int c_func : 1;	// 0:IREP, 1:C Func
   mrb_sym sym_id;
 #ifdef MRBC_DEBUG
   const char *names;		// for debug; delete soon
 #endif
+  struct RProc *next;
   union {
     struct IREP *irep;
     mrb_func_t func;
   };
 } mrb_proc;
-
 
 
 
@@ -167,13 +166,14 @@ typedef struct RProc {
 
 mrb_object *mrbc_obj_alloc(struct VM *vm, mrb_vtype tt);
 mrb_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
-mrb_proc *mrbc_rproc_alloc_to_class(struct VM *vm, const char *name, mrb_class *cls);
 int mrbc_eq(const mrb_value *v1, const mrb_value *v2);
 void mrbc_dup(mrb_value *v);
 void mrbc_release(mrb_value *v);
 void mrbc_dec_ref_counter(mrb_value *v);
 void mrbc_clear_vm_id(mrb_value *v);
 int32_t mrbc_atoi(const char *s, int base);
+struct IREP *mrbc_irep_alloc(struct VM *vm);
+void mrbc_irep_free(struct IREP *irep);
 mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
 void mrbc_instance_delete(mrb_value *v);
 

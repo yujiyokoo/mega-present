@@ -16,7 +16,7 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "vm.h"
+#include "value.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,8 +27,7 @@ extern "C" {
   Define String handle.
 */
 typedef struct MrbcHandleString {
-  uint16_t ref_count;	// TODO: not use yet.
-  mrb_vtype tt : 8;	// TODO: for debug use.
+  MRBC_OBJECT_HEADER;
 
   uint16_t size;	//!< string length.
   uint8_t *str;		//!< pointer to allocated buffer.
@@ -38,13 +37,13 @@ typedef struct MrbcHandleString {
 
 #define MRBC_STRING_CSTR(p) ((char*)(p)->h_str->str)
 
-
-mrb_value mrbc_string_new(mrb_vm *vm, const void *src, int len);
-mrb_value mrbc_string_new_cstr(mrb_vm *vm, const char *src);
-mrb_value mrbc_string_new_alloc(mrb_vm *vm, void *buf, int len);
+struct VM;
+mrb_value mrbc_string_new(struct VM *vm, const void *src, int len);
+mrb_value mrbc_string_new_cstr(struct VM *vm, const char *src);
+mrb_value mrbc_string_new_alloc(struct VM *vm, void *buf, int len);
 void mrbc_string_delete(mrb_value *v);
 void mrbc_string_clear_vm_id(mrb_value *v);
-void mrbc_init_class_string(mrb_vm *vm);
+void mrbc_init_class_string(struct VM *vm);
 
 
 static inline int mrbc_string_compare(const mrb_value *v1, const mrb_value *v2)

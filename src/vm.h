@@ -17,8 +17,8 @@
 #define MRBC_SRC_VM_H_
 
 #include <stdint.h>
-#include "value.h"
 #include "vm_config.h"
+#include "value.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,7 +84,6 @@ typedef struct VM {
 } mrb_vm;
 
 
-mrb_irep *new_irep(mrb_vm *vm);
 mrb_vm *mrbc_vm_open(mrb_vm *vm);
 void mrbc_vm_close(mrb_vm *vm);
 void mrbc_vm_begin(mrb_vm *vm);
@@ -101,7 +100,7 @@ int mrbc_vm_run(mrb_vm *vm);
 */
 inline static uint32_t bin_to_uint32( const void *s )
 {
-#if MRBC_REQUIRE_32BIT_ALIGNMENT 
+#if MRBC_REQUIRE_32BIT_ALIGNMENT
   uint8_t *p = (uint8_t *)s;
   uint32_t x = *p++;
   x <<= 8;
@@ -127,7 +126,7 @@ inline static uint32_t bin_to_uint32( const void *s )
 */
 inline static uint16_t bin_to_uint16( const void *s )
 {
-#if MRBC_REQUIRE_32BIT_ALIGNMENT 
+#if MRBC_REQUIRE_32BIT_ALIGNMENT
   uint8_t *p = (uint8_t *)s;
   uint16_t x = *p++ << 8;
   x |= *p;

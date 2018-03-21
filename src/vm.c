@@ -17,10 +17,10 @@
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
+#include "vm_config.h"
 #include "vm.h"
 #include "alloc.h"
 #include "static.h"
-#include "vm_config.h"
 #include "opcode.h"
 #include "class.h"
 #include "symbol.h"
@@ -562,6 +562,7 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
   if( ra != 0 ){
     mrb_value v = regs[ra];
     mrbc_dup(&v);
+    mrbc_release(&regs[0]);
     regs[0] = v;
   }
   // restore irep,pc,regs
@@ -1344,7 +1345,7 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_B(code);
-  mrb_proc *rproc = regs[ra+1].proc;
+  mrb_proc *proc = regs[ra+1].proc;
 
   if( regs[ra].tt == MRB_TT_CLASS ) {
     mrb_class *cls = regs[ra].cls;
@@ -1373,13 +1374,14 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
     }
 
     // add proc to class
-    rproc->c_func = 0;
-    rproc->sym_id = sym_id;
-    rproc->next = cls->procs;
-    cls->procs = rproc;
+    proc->c_func = 0;
+    proc->sym_id = sym_id;
+    proc->names = sym;		// debug only.
+    proc->next = cls->procs;
+    cls->procs = proc;
 
-    mrbc_inc_ref_count(rproc);
-    mrbc_set_vm_id(rproc, 0);
+    mrbc_set_vm_id(proc, 0);
+    regs[ra+1].tt = MRB_TT_EMPTY;
   }
 
   return 0;
@@ -1434,23 +1436,6 @@ inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Allocate new IREP
-
-  @param  vm	Pointer of VM.
-  @return	Pointer of new IREP.
-*/
-mrb_irep *new_irep(mrb_vm *vm)
-{
-  mrb_irep *p = (mrb_irep *)mrbc_alloc(vm, sizeof(mrb_irep));
-  if( p )
-    memset(p, 0, sizeof(mrb_irep));	// caution: assume NULL is zero.
-  return p;
-}
-
-
-
-//================================================================
-/*!@brief
   Open the VM.
 
   @param vm     Pointer to mrb_vm or NULL.
@@ -1494,30 +1479,6 @@ mrb_vm *mrbc_vm_open(mrb_vm *vm_arg)
 
 //================================================================
 /*!@brief
-  release mrb_irep holds memory
-*/
-static void irep_destructor( mrb_irep *irep )
-{
-  int i;
-
-  // release pools.
-  for( i = 0; i < irep->plen; i++ ) {
-    mrbc_raw_free( irep->pools[i] );
-  }
-  if( irep->plen ) mrbc_raw_free( irep->pools );
-
-  // release child ireps.
-  for( i = 0; i < irep->rlen; i++ ) {
-    irep_destructor( irep->reps[i] );
-  }
-  if( irep->rlen ) mrbc_raw_free( irep->reps );
-
-  mrbc_raw_free( irep );
-}
-
-
-//================================================================
-/*!@brief
   Close the VM.
 
   @param  vm  Pointer to mrb_vm
@@ -1531,7 +1492,7 @@ void mrbc_vm_close(mrb_vm *vm)
   free_vm_bitmap[i] &= ~(1 << (FREE_BITMAP_WIDTH - n - 1));
 
   // free irep and vm
-  irep_destructor( vm->irep );
+  mrbc_irep_free( vm->irep );
   if( vm->flag_need_memfree ) mrbc_raw_free(vm);
 }
 

@@ -14,7 +14,7 @@
 #ifndef MRBC_SRC_C_ARRAY_H_
 #define MRBC_SRC_C_ARRAY_H_
 
-#include "vm.h"
+#include "value.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,8 +25,7 @@ extern "C" {
   Define Array handle.
 */
 typedef struct MrbcHandleArray {
-  uint16_t ref_count;	// TODO: not use yet.
-  mrb_vtype tt : 8;	// TODO: for debug use.
+  MRBC_OBJECT_HEADER;
 
   uint16_t data_size;	//!< data buffer size.
   uint16_t n_stored;	//!< # of stored.
@@ -35,8 +34,8 @@ typedef struct MrbcHandleArray {
 } MrbcHandleArray;
 
 
-
-mrb_value mrbc_array_new(mrb_vm *vm, int size);
+struct VM;
+mrb_value mrbc_array_new(struct VM *vm, int size);
 void mrbc_array_delete(mrb_value *ary);
 void mrbc_array_clear_vm_id(mrb_value *ary);
 int mrbc_array_resize(mrb_value *ary, int size);
@@ -50,7 +49,7 @@ void mrbc_array_insert(mrb_value *ary, int idx, mrb_value *set_val);
 mrb_value mrbc_array_remove(mrb_value *ary, int idx);
 void mrbc_array_clear(mrb_value *ary);
 int mrbc_array_compare(const mrb_value *v1, const mrb_value *v2);
-void mrbc_init_class_array(mrb_vm *vm);
+void mrbc_init_class_array(struct VM *vm);
 
 
 inline static int mrbc_array_size(const mrb_value *ary) {

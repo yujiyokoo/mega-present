@@ -12,6 +12,7 @@
 */
 
 #include <string.h>
+#include "vm_config.h"
 #include "symbol.h"
 #include "console.h"
 

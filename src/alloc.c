@@ -63,7 +63,7 @@ typedef struct USED_BLOCK {
   unsigned int         t : 1;       //!< FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK
   unsigned int         f : 1;       //!< FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE
   uint8_t              vm_id;       //!< mruby/c VM ID
-  uint8_t              ref_count;   //!< reference counter
+
   MRBC_ALLOC_MEMSIZE_T size;        //!< block size, header included
   MRBC_ALLOC_MEMSIZE_T prev_offset; //!< offset of previous physical block
 } USED_BLOCK;
@@ -72,7 +72,7 @@ typedef struct FREE_BLOCK {
   unsigned int         t : 1;       //!< FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK
   unsigned int         f : 1;       //!< FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE
   uint8_t              vm_id;       //!< dummy
-  uint8_t              ref_count;   //!< dummy
+
   MRBC_ALLOC_MEMSIZE_T size;        //!< block size, header included
   MRBC_ALLOC_MEMSIZE_T prev_offset; //!< offset of previous physical block
 
@@ -90,10 +90,6 @@ typedef struct FREE_BLOCK {
 #define GET_VM_ID(p)							\
   (((USED_BLOCK *)((uint8_t *)(p) - sizeof(USED_BLOCK)))->vm_id)
 
-#define SET_REF_COUNT(p,cnt)						\
-  (((USED_BLOCK *)((uint8_t *)(p) - sizeof(USED_BLOCK)))->ref_count = (cnt))
-#define GET_REF_COUNT(p)						\
-  (((USED_BLOCK *)((uint8_t *)(p) - sizeof(USED_BLOCK)))->ref_count)
 
 // memory pool
 static unsigned int memory_pool_size;
@@ -482,7 +478,6 @@ void * mrbc_raw_realloc(void *ptr, unsigned int size)
 
   memcpy(new_ptr, ptr, target->size - sizeof(USED_BLOCK));
   SET_VM_ID(new_ptr, target->vm_id);
-  SET_REF_COUNT(new_ptr, GET_REF_COUNT(ptr));
 
   mrbc_raw_free(ptr);
 
@@ -506,7 +501,6 @@ void * mrbc_alloc(const mrb_vm *vm, unsigned int size)
   uint8_t *ptr = mrbc_raw_alloc(size);
   if( ptr == NULL ) return NULL;	// ENOMEM
   if( vm ) SET_VM_ID(ptr, vm->vm_id);
-  SET_REF_COUNT(ptr, 1);
 
   return ptr;
 }
@@ -590,69 +584,6 @@ int mrbc_get_vm_id(void *ptr)
   return GET_VM_ID(ptr);
 }
 
-
-//================================================================
-/*! get ref_count
-
-  @param  ptr	Return value of mrbc_alloc()
-  @return int   reference counter
-*/
-int mrbc_get_ref_count(void *ptr)
-{
-  return GET_REF_COUNT(ptr);
-}
-
-
-//================================================================
-/*! set ref_count
-
-  @param  ptr	Return value of mrbc_alloc()
-  @param  cnt   reference counter
-*/
-void mrbc_set_ref_count(void *ptr, const int cnt)
-{
-  SET_REF_COUNT(ptr, cnt);
-}
-
-
-//================================================================
-/*! increment ref_count
-
-  @param  ptr	Return value of mrbc_alloc()
-*/
-void mrbc_inc_ref_count(void *ptr)
-{
-  assert( ptr > (void*)memory_pool );
-  assert( ptr < (void*)(memory_pool + memory_pool_size ) );
-
-  int cnt = GET_REF_COUNT(ptr);
-  assert( cnt > 0 );
-  assert( cnt != 0xff );
-
-  cnt++;
-  SET_REF_COUNT(ptr, cnt);
-}
-
-
-//================================================================
-/*! decrementt ref_count
-
-  @param  ptr	Return value of mrbc_alloc()
-  @return       reference count value.
-*/
-int mrbc_dec_ref_count(void *ptr)
-{
-  assert( ptr > (void*)memory_pool );
-  assert( ptr < (void*)(memory_pool + memory_pool_size ) );
-
-  int cnt = GET_REF_COUNT(ptr);
-  assert( cnt != 0 );
-
-  cnt--;
-  SET_REF_COUNT(ptr, cnt);
-
-  return cnt;
-}
 
 
 #ifdef MRBC_DEBUG

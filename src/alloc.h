@@ -34,10 +34,6 @@ void mrbc_free(const mrb_vm *vm, void *ptr);
 void mrbc_free_all(const mrb_vm *vm);
 void mrbc_set_vm_id(void *ptr, int vm_id);
 int mrbc_get_vm_id(void *ptr);
-void mrbc_set_ref_count(void *ptr, const int cnt);
-int mrbc_get_ref_count(void *ptr);
-void mrbc_inc_ref_count(void *ptr);
-int mrbc_dec_ref_count(void *ptr);
 
 // for statistics or debug. (need #define MRBC_DEBUG)
 void mrbc_alloc_statistics(int *total, int *used, int *free, int *flagmentation);
