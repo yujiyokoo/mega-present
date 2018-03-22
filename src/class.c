@@ -11,9 +11,9 @@
   </pre>
 */
 
+#include "vm_config.h"
 #include <string.h>
 #include <assert.h>
-
 #include "value.h"
 #include "class.h"
 #include "alloc.h"
@@ -252,6 +252,10 @@ void c_puts(mrb_value *v)
 
   case MRB_TT_CLASS:
     console_print( symid_to_str( v->cls->sym_id ) );
+    break;
+
+  case MRB_TT_SYMBOL:
+    console_print( symid_to_str( v->i ) );
     break;
 
   default:

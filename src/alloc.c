@@ -13,10 +13,10 @@
   </pre>
 */
 
+#include "vm_config.h"
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
-
 #include "alloc.h"
 #include "console.h"
 

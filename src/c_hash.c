@@ -1,3 +1,4 @@
+#include "vm_config.h"
 #include <stddef.h>
 
 #include "c_hash.h"

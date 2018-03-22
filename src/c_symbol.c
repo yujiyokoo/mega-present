@@ -1,3 +1,4 @@
+#include "vm_config.h"
 #include "c_symbol.h"
 
 #include "class.h"

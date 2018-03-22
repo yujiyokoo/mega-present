@@ -11,11 +11,9 @@
   </pre>
 */
 
+#include "vm_config.h"
 #include <string.h>
 #include <assert.h>
-#include <stdio.h>   // for debug
-
-#include "vm_config.h"
 #include "alloc.h"
 #include "static.h"
 #include "class.h"

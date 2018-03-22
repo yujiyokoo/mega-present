@@ -11,10 +11,10 @@
   </pre>
 */
 
+#include "vm_config.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "vm_config.h"
 #include "vm.h"
 #include "load.h"
 #include "errorcode.h"

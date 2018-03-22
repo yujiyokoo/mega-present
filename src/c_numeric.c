@@ -1,6 +1,5 @@
-#include <stdio.h>
-
 #include "vm_config.h"
+#include <stdio.h>
 #include "c_numeric.h"
 #include "alloc.h"
 #include "class.h"

@@ -10,8 +10,8 @@
   </pre>
 */
 
-#include "static.h"
 #include "vm_config.h"
+#include "static.h"
 #include "class.h"
 #include "symbol.h"
 

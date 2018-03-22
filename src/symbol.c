@@ -11,8 +11,8 @@
   </pre>
 */
 
-#include <string.h>
 #include "vm_config.h"
+#include <string.h>
 #include "symbol.h"
 #include "console.h"
 
