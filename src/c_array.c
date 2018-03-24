@@ -136,16 +136,19 @@ void mrbc_array_set(mrb_value *ary, int idx, mrb_value *set_val)
     if( mrbc_array_resize(ary, idx + 1) != 0 ) return;	// ENOMEM
   }
 
-  h->data[idx] = *set_val;
-
-  // clear empty cells if need.
-  if( idx >= h->n_stored ) {
+  if( idx < h->n_stored ) {
+    // release existing data.
+    mrbc_dec_ref_counter( &h->data[idx] );
+  } else {
+    // clear empty cells.
     int i;
     for( i = h->n_stored; i < idx; i++ ) {
       h->data[i] = mrb_nil_value();
     }
     h->n_stored = idx + 1;
   }
+
+  h->data[idx] = *set_val;
 }
 
 
@@ -170,7 +173,7 @@ void mrbc_array_push(mrb_value *ary, mrb_value *set_val)
   MrbcHandleArray *h = ary->h_array;
 
   if( h->n_stored >= h->data_size ) {
-    int size = h->data_size + 5;	// TODO 5 is better value?
+    int size = h->data_size + 6;
     if( mrbc_array_resize(ary, size) != 0 ) return;	// ENOMEM
   }
 
@@ -294,6 +297,12 @@ void mrbc_array_clear(mrb_value *ary)
 {
   MrbcHandleArray *h = ary->h_array;
 
+  mrb_value *p1 = h->data;
+  const mrb_value *p2 = p1 + h->n_stored;
+  while( p1 < p2 ) {
+    mrbc_dec_ref_counter(p1++);
+  }
+
   h->n_stored = 0;
 }
 
@@ -395,8 +404,6 @@ static void c_array_set(mrb_vm *vm, mrb_value *v, int argc)
     in case of self[nth] = val
   */
   if( argc == 2 && v1->tt == MRB_TT_FIXNUM ) {
-    mrb_value val = mrbc_array_get(v, v1->i);
-    mrbc_release(&val);
     mrbc_array_set(v, v1->i, v2);
     v2->tt = MRB_TT_EMPTY;
     return;
@@ -421,11 +428,6 @@ static void c_array_set(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_array_clear(mrb_vm *vm, mrb_value *v, int argc)
 {
-  int i;
-  for( i = 0; i < v->h_array->n_stored; i++ ) {
-    mrbc_release(&v->h_array->data[i]);
-  }
-
   mrbc_array_clear(v);
 }
 
