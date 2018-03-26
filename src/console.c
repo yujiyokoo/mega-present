@@ -318,7 +318,7 @@ int mrbc_printf_float( MrbcPrintf *pf, double value )
   while( (*--p2 = *--p1) != '%' )
     ;
 
-  snprintf( pf->p, (pf->buf_end - pf->p), p2, value );
+  snprintf( pf->p, (pf->buf_end - pf->p + 1), p2, value );
 
   while( *pf->p != '\0' )
     pf->p++;
