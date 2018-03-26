@@ -24,6 +24,7 @@
 #include "c_string.h"
 #include "c_range.h"
 #include "c_array.h"
+#include "c_hash.h"
 #include "vm.h"
 
 
@@ -83,6 +84,9 @@ int mrbc_eq(const mrb_value *v1, const mrb_value *v2)
   case MRB_TT_RANGE:
     return mrbc_range_compare( v1, v2 );
 
+  case MRB_TT_HASH:
+    return mrbc_hash_compare( v1, v2 );
+
   default:
     return 0;
   }
@@ -103,6 +107,7 @@ void mrbc_dup(mrb_value *v)
   case MRB_TT_ARRAY:
   case MRB_TT_STRING:
   case MRB_TT_RANGE:
+  case MRB_TT_HASH:
     assert( v->instance->ref_count > 0 );
     assert( v->instance->ref_count != 0xff );	// check max value.
     v->instance->ref_count++;
@@ -142,6 +147,7 @@ void mrbc_dec_ref_counter(mrb_value *v)
   case MRB_TT_ARRAY:
   case MRB_TT_STRING:
   case MRB_TT_RANGE:
+  case MRB_TT_HASH:
     assert( v->instance->ref_count != 0 );
     v->instance->ref_count--;
     break;
@@ -162,6 +168,7 @@ void mrbc_dec_ref_counter(mrb_value *v)
   case MRB_TT_STRING:	mrbc_string_delete(v);		break;
 #endif
   case MRB_TT_RANGE:	mrbc_range_delete(v);		break;
+  case MRB_TT_HASH:	mrbc_hash_delete(v);		break;
 
   default:
     // Nothing
@@ -182,6 +189,7 @@ void mrbc_clear_vm_id(mrb_value *v)
   case MRB_TT_ARRAY:	mrbc_array_clear_vm_id(v);	break;
   case MRB_TT_STRING:	mrbc_string_clear_vm_id(v);	break;
   case MRB_TT_RANGE:	mrbc_range_clear_vm_id(v);	break;
+  case MRB_TT_HASH:	mrbc_hash_clear_vm_id(v);	break;
 
   default:
     // Nothing

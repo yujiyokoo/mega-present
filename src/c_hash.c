@@ -1,88 +1,487 @@
-#include "vm_config.h"
-#include <stddef.h>
+/*! @file
+  @brief
+  mruby/c Hash class
 
+  <pre>
+  Copyright (C) 2015-2018 Kyushu Institute of Technology.
+  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  </pre>
+*/
+
+#include "vm_config.h"
+#include <string.h>
+#include <assert.h>
+
+#include "value.h"
+#include "vm.h"
+#include "alloc.h"
+#include "static.h"
+#include "class.h"
+#include "c_array.h"
 #include "c_hash.h"
 
-#include "alloc.h"
-#include "class.h"
-#include "static.h"
-#include "value.h"
 
-static void c_hash_size(mrb_vm *vm, mrb_value *v, int argc)
+
+//================================================================
+/*! constructor
+
+  @param  vm	pointer to VM.
+  @param  size	initial size
+  @return 	hash object
+*/
+mrb_value mrbc_hash_new(mrb_vm *vm, int size)
 {
-  SET_INT_RETURN(v->handle->hash->i);
+  mrb_value value = {.tt = MRB_TT_HASH};
+
+  /*
+    Allocate handle and data buffer.
+  */
+  MrbcHandleHash *h = mrbc_alloc(vm, sizeof(MrbcHandleHash));
+  if( !h ) return value;	// ENOMEM
+
+  mrb_value *data = mrbc_alloc(vm, sizeof(mrb_value) * size * 2);
+  if( !data ) {			// ENOMEM
+    mrbc_raw_free( h );
+    return value;
+  }
+
+  h->ref_count = 1;
+  h->tt = MRB_TT_HASH;
+  h->data_size = size * 2;
+  h->n_stored = 0;
+  h->data = data;
+
+  value.h_hash = h;
+  return value;
 }
 
 
-// Hash = []
-static void c_hash_get(mrb_vm *vm, mrb_value *v, int argc)
+//================================================================
+/*! destructor
+
+  @param  hash	pointer to target value
+*/
+void mrbc_hash_delete(mrb_value *hash)
 {
-  mrb_value *hash = v->handle->hash;
+  // TODO: delete other members (for search).
+
+  mrbc_array_delete(hash);
+}
+
+
+//================================================================
+/*! search key
+*/
+mrb_value * mrbc_hash_search(const mrb_value *hash, const mrb_value *key)
+{
+#ifndef MRBC_HASH_SEARCH_LINER
+#define MRBC_HASH_SEARCH_LINER
+#endif
+
+#ifdef MRBC_HASH_SEARCH_LINER
+  mrb_value *p1 = hash->h_hash->data;
+  const mrb_value *p2 = p1 + hash->h_hash->n_stored;
+
+  while( p1 < p2 ) {
+    if( mrbc_eq(p1, key) ) return p1;
+    p1 += 2;
+  }
+  return NULL;
+#endif
+
+#ifdef MRBC_HASH_SEARCH_LINER_ITERATOR
+  MrbcHashIterator ite = mrbc_hash_iterator(hash);
+  while( mrbc_hash_i_has_next(&ite) ) {
+    mrb_value *v = mrbc_hash_i_next(&ite);
+    if( mrbc_eq( v, key ) ) return v;
+  }
+  return NULL;
+#endif
+}
+
+
+//================================================================
+/*! setter
+*/
+void mrbc_hash_set(mrb_value *hash, mrb_value *key, mrb_value *val)
+{
+  mrb_value *v = mrbc_hash_search(hash, key);
+  if( v == NULL ) {
+    // set a new value
+    mrbc_array_push(hash, key);
+    mrbc_array_push(hash, val);
+
+  } else {
+    // replace a value
+    mrbc_dec_ref_counter(v);
+    *v = *key;
+    mrbc_dec_ref_counter(++v);
+    *v = *val;
+  }
+}
+
+
+//================================================================
+/*! getter
+*/
+mrb_value mrbc_hash_get(const mrb_value *hash, const mrb_value *key)
+{
+  mrb_value *v = mrbc_hash_search(hash, key);
+  return v ? *++v : mrb_nil_value();
+}
+
+
+//================================================================
+/*! remove a data
+*/
+mrb_value mrbc_hash_remove(mrb_value *hash, const mrb_value *key)
+{
+  mrb_value *v = mrbc_hash_search(hash, key);
+  if( v == NULL ) return mrb_nil_value();
+
+  mrbc_dec_ref_counter(v);	// key
+  mrb_value val = v[1];		// value
+
+  MrbcHandleHash *h = hash->h_hash;
+  h->n_stored -= 2;
+
+  memmove(v, v+2, (char*)(h->data + h->n_stored) - (char*)v);
+
+  // TODO: re-index hash table if need.
+
+  return val;
+}
+
+
+//================================================================
+/*! clear all
+*/
+void mrbc_hash_clear(mrb_value *hash)
+{
+  mrbc_array_clear(hash);
+
+  // TODO: re-index hash table if need.
+}
+
+
+//================================================================
+/*! compare
+*/
+int mrbc_hash_compare(const mrb_value *v1, const mrb_value *v2)
+{
+  if( v1->h_hash->n_stored != v2->h_hash->n_stored ) return 0;
+
+  mrb_value *d1 = v1->h_hash->data;
   int i;
-  int n = hash->i;       // hash size
-  mrb_value key = GET_ARG(1);  // search key
-
-  // ptr: 1st entry(key) of hash
-  mrb_value *ptr = &hash[1];
-
-  for( i=0 ; i<n ; i++ ){
-    if( mrbc_eq(ptr, &key) ){
-      SET_RETURN( *(ptr+1) );
-      return;
-    }
-    ptr += 2;
+  for( i = 0; i < mrbc_hash_size(v1); i++, d1++ ) {
+    mrb_value *d2 = mrbc_hash_search(v2, d1);	// check key
+    if( d2 == NULL ) return 0;
+    if( !mrbc_eq( ++d1, ++d2 ) ) return 0;	// check data
   }
 
-  SET_NIL_RETURN();
+  return 1;
 }
 
-// Hash = []=
-static void c_hash_set(mrb_vm *vm, mrb_value *v, int argc)
+
+//================================================================
+/*! duplicate
+*/
+mrb_value mrbc_hash_dup( mrb_vm *vm, mrb_value *src )
 {
-  mrb_value *hash = v->handle->hash;
-  int i;
-  int n = hash[0].i;       // hash size
-  mrb_value key = GET_ARG(1);  // search key
-  mrb_value val = GET_ARG(2);  // new value
+  mrb_value ret = mrbc_hash_new(vm, mrbc_hash_size(src));
+  if( ret.h_hash == NULL ) return ret;		// ENOMEM
 
-  mrb_value *ptr = &hash[1];
-  for( i=0 ; i<n ; i++ ){
-    if( mrbc_eq(ptr, &key) ){
-      *(ptr+1) = val;  // Change value
-      return;
+  MrbcHandleHash *h = src->h_hash;
+  memcpy( ret.h_hash->data, h->data, sizeof(mrb_value) * h->n_stored );
+  ret.h_hash->n_stored = h->n_stored;
+
+  mrb_value *p1 = h->data;
+  const mrb_value *p2 = p1 + h->n_stored;
+  while( p1 < p2 ) {
+    mrbc_dup(p1++);
+  }
+
+  // TODO: dup other members.
+
+  return ret;
+}
+
+
+
+
+//================================================================
+/*! (method) new
+*/
+static void c_hash_new(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_hash_new(vm, 0);
+  SET_RETURN(ret);
+}
+
+
+//================================================================
+/*! (operator) []
+*/
+static void c_hash_get(mrb_vm *vm, mrb_value v[], int argc)
+{
+  if( argc != 1 ) {
+    return;	// raise ArgumentError.
+  }
+
+  mrb_value ret = mrbc_hash_get(v, v+1);
+  mrbc_dup(&ret);
+  mrbc_release(v);
+  SET_RETURN(ret);
+}
+
+
+//================================================================
+/*! (operator) []=
+*/
+static void c_hash_set(mrb_vm *vm, mrb_value v[], int argc)
+{
+  if( argc != 2 ) {
+    return;	// raise ArgumentError.
+  }
+
+  mrb_value *v1 = &GET_ARG(1);
+  mrb_value *v2 = &GET_ARG(2);
+  mrbc_hash_set(v, v1, v2);
+  v1->tt = MRB_TT_EMPTY;
+  v2->tt = MRB_TT_EMPTY;
+}
+
+
+//================================================================
+/*! (method) clear
+*/
+static void c_hash_clear(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrbc_hash_clear(v);
+}
+
+
+//================================================================
+/*! (method) dup
+*/
+static void c_hash_dup(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_hash_dup( vm, &v[0] );
+
+  mrbc_release(v);
+  SET_RETURN(ret);
+}
+
+
+//================================================================
+/*! (method) delete
+*/
+static void c_hash_delete(mrb_vm *vm, mrb_value v[], int argc)
+{
+  // TODO : now, support only delete(key) -> object
+
+  mrb_value ret = mrbc_hash_remove(v, v+1);
+
+  // TODO: re-index hash table if need.
+
+  mrbc_release(v);
+  SET_RETURN(ret);
+}
+
+
+//================================================================
+/*! (method) empty?
+*/
+static void c_hash_empty(mrb_vm *vm, mrb_value v[], int argc)
+{
+  int n = mrbc_hash_size(v);
+
+  mrbc_release(v);
+  if( n ) {
+    SET_FALSE_RETURN();
+  } else {
+    SET_TRUE_RETURN();
+  }
+}
+
+
+//================================================================
+/*! (method) has_key?
+*/
+static void c_hash_has_key(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value *res = mrbc_hash_search(v, v+1);
+
+  mrbc_release(v);
+  if( res ) {
+    SET_TRUE_RETURN();
+  } else {
+    SET_FALSE_RETURN();
+  }
+}
+
+
+//================================================================
+/*! (method) has_value?
+*/
+static void c_hash_has_value(mrb_vm *vm, mrb_value v[], int argc)
+{
+  int ret = 0;
+  MrbcHashIterator ite = mrbc_hash_iterator(&v[0]);
+
+  while( mrbc_hash_i_has_next(&ite) ) {
+    mrb_value *val = mrbc_hash_i_next(&ite) + 1;	// skip key, get value
+    if( mrbc_eq(val, &v[1]) ) {
+      ret = 1;
+      break;
     }
   }
 
-  // key was not found
-  // add hash entry (key and val)
-  int new_size = (n+1)*2 + 1;
-
-  // use alloc instead of realloc, realloc has some bugs?
-  mrb_value *new_hash = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*new_size);
-  if( new_hash == NULL ) return;  // ENOMEM
-
-  mrb_value *src = &hash[1];
-  mrb_value *dst = &new_hash[1];
-  for( i=0 ; i<n ; i++ ){
-    *dst++ = *src++;  // copy key
-    *dst++ = *src++;  // copy value
+  mrbc_release(v);
+  if( ret ) {
+    SET_TRUE_RETURN();
+  } else {
+    SET_FALSE_RETURN();
   }
-  new_hash[0].tt = MRB_TT_FIXNUM;
-  new_hash[0].i = n+1;
-  *dst++ = key;
-  *dst   = val;
-  mrbc_free(vm, v->handle->hash);
-  v->handle->hash = new_hash;
 }
+
+
+//================================================================
+/*! (method) key
+*/
+static void c_hash_key(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value *ret = NULL;
+  MrbcHashIterator ite = mrbc_hash_iterator(&v[0]);
+
+  while( mrbc_hash_i_has_next(&ite) ) {
+    mrb_value *kv = mrbc_hash_i_next(&ite);
+    if( mrbc_eq( &kv[1], &v[1]) ) {
+      mrbc_dup( &kv[0] );
+      ret = &kv[0];
+      break;
+    }
+  }
+
+  mrbc_release(v);
+  if( ret ) {
+    SET_RETURN(*ret);
+  } else {
+    SET_NIL_RETURN();
+  }
+}
+
+
+//================================================================
+/*! (method) keys
+*/
+static void c_hash_keys(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_array_new( vm, mrbc_hash_size(v) );
+  MrbcHashIterator ite = mrbc_hash_iterator(v);
+
+  while( mrbc_hash_i_has_next(&ite) ) {
+    mrb_value *key = mrbc_hash_i_next(&ite);
+    mrbc_array_push(&ret, key);
+    mrbc_dup(key);
+  }
+
+  mrbc_release(v);
+  SET_RETURN(ret);
+}
+
+
+//================================================================
+/*! (method) size,length,count
+*/
+static void c_hash_size(mrb_vm *vm, mrb_value v[], int argc)
+{
+  int n = mrbc_hash_size(v);
+
+  mrbc_release(v);
+  SET_INT_RETURN(n);
+}
+
+
+//================================================================
+/*! (method) merge
+*/
+static void c_hash_merge(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_hash_dup( vm, &v[0] );
+  MrbcHashIterator ite = mrbc_hash_iterator(&v[1]);
+
+  while( mrbc_hash_i_has_next(&ite) ) {
+    mrb_value *kv = mrbc_hash_i_next(&ite);
+    mrbc_hash_set( &ret, &kv[0], &kv[1] );
+    mrbc_dup( &kv[0] );
+    mrbc_dup( &kv[1] );
+  }
+
+  mrbc_release(v);
+  SET_RETURN(ret);
+}
+
+
+//================================================================
+/*! (method) merge!
+*/
+static void c_hash_merge_self(mrb_vm *vm, mrb_value v[], int argc)
+{
+  MrbcHashIterator ite = mrbc_hash_iterator(&v[1]);
+
+  while( mrbc_hash_i_has_next(&ite) ) {
+    mrb_value *kv = mrbc_hash_i_next(&ite);
+    mrbc_hash_set( v, &kv[0], &kv[1] );
+    mrbc_dup( &kv[0] );
+    mrbc_dup( &kv[1] );
+  }
+}
+
+
+//================================================================
+/*! (method) values
+*/
+static void c_hash_values(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_array_new( vm, mrbc_hash_size(v) );
+  MrbcHashIterator ite = mrbc_hash_iterator(v);
+
+  while( mrbc_hash_i_has_next(&ite) ) {
+    mrb_value *val = mrbc_hash_i_next(&ite) + 1;
+    mrbc_array_push(&ret, val);
+    mrbc_dup(val);
+  }
+
+  mrbc_release(v);
+  SET_RETURN(ret);
+}
+
 
 
 void mrbc_init_class_hash(mrb_vm *vm)
 {
-  // Hash
   mrbc_class_hash = mrbc_define_class(vm, "Hash", mrbc_class_object);
 
-  mrbc_define_method(vm, mrbc_class_hash, "size", c_hash_size);
-  mrbc_define_method(vm, mrbc_class_hash, "[]", c_hash_get);
-  mrbc_define_method(vm, mrbc_class_hash, "[]=", c_hash_set);
-
+  mrbc_define_method(vm, mrbc_class_hash, "new",	c_hash_new);
+  mrbc_define_method(vm, mrbc_class_hash, "[]",		c_hash_get);
+  mrbc_define_method(vm, mrbc_class_hash, "[]=",	c_hash_set);
+  mrbc_define_method(vm, mrbc_class_hash, "clear",	c_hash_clear);
+  mrbc_define_method(vm, mrbc_class_hash, "dup",	c_hash_dup);
+  mrbc_define_method(vm, mrbc_class_hash, "delete",	c_hash_delete);
+  mrbc_define_method(vm, mrbc_class_hash, "empty?",	c_hash_empty);
+  mrbc_define_method(vm, mrbc_class_hash, "has_key?",	c_hash_has_key);
+  mrbc_define_method(vm, mrbc_class_hash, "has_value?",	c_hash_has_value);
+  mrbc_define_method(vm, mrbc_class_hash, "key",	c_hash_key);
+  mrbc_define_method(vm, mrbc_class_hash, "keys",	c_hash_keys);
+  mrbc_define_method(vm, mrbc_class_hash, "size",	c_hash_size);
+  mrbc_define_method(vm, mrbc_class_hash, "length",	c_hash_size);
+  mrbc_define_method(vm, mrbc_class_hash, "count",	c_hash_size);
+  mrbc_define_method(vm, mrbc_class_hash, "merge",	c_hash_merge);
+  mrbc_define_method(vm, mrbc_class_hash, "merge!",	c_hash_merge_self);
+  mrbc_define_method(vm, mrbc_class_hash, "to_h",	c_ineffect);
+  mrbc_define_method(vm, mrbc_class_hash, "values",	c_hash_values);
 }

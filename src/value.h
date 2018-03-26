@@ -88,13 +88,14 @@ typedef struct RObject {
     struct RClass *cls;    // MRB_TT_CLASS : link to class
     struct RProc *proc;    // MRB_TT_PROC : link to proc
     //    struct RObject *array; // MRB_TT_ARRAY : array of objects
-    struct RObject *hash;  // MRB_TT_HASH : link to range
+    // struct RObject *hash;  // MRB_TT_HASH : link to range
     double d;              // MRB_TT_FLOAT : float
     char *str;             // MRB_TT_STRING : C-string (only loader use.)
 
     struct MrbcHandleArray *h_array;
     struct MrbcHandleString *h_str;
     struct MrbcHandleRange *h_range;
+    struct MrbcHandleHash *h_hash;
   };
 } mrb_object;
 typedef struct RObject mrb_value;
