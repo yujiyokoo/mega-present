@@ -29,6 +29,8 @@
 #include "c_string.h"
 #include "c_range.h"
 #include "c_array.h"
+#include "c_hash.h"
+
 
 static uint32_t free_vm_bitmap[MAX_VM_COUNT / 32 + 1];
 #define FREE_BITMAP_WIDTH 32
@@ -470,6 +472,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int bidx = ra + rc + 1;
   if( GET_OPCODE(code) == OP_SEND ){
     // OP_SEND: set nil
+    mrbc_dec_ref_counter( &regs[bidx] );
     regs[bidx].tt = MRB_TT_NIL;
   } else {
     // OP_SENDB: set Proc objec
@@ -1081,7 +1084,7 @@ DONE:
 
 //================================================================
 /*!@brief
-  Make Array
+  Create Array object
 
   R(A) := ary_new(R(B),R(B+1)..R(B+C))
 
@@ -1145,7 +1148,7 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Create HASH object
+  Create Hash object
 
   R(A) := hash_new(R(B),R(B+1)..R(B+C))
 
@@ -1156,42 +1159,20 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int arg_a = GETARG_A(code);
-  int arg_b = GETARG_B(code);
-  int arg_c = GETARG_C(code);
+  int ra = GETARG_A(code);
+  int rb = GETARG_B(code);
+  int rc = GETARG_C(code);
 
-  mrb_value v; // return value
-  v.tt = MRB_TT_HASH;
+  mrb_value value = mrbc_hash_new(vm, rc);
+  if( value.h_hash == NULL ) return -1;	// ENOMEM
 
-  // make handle for hash pair
-  mrb_value *handle = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value));
-  if( handle == NULL ) return 0;  // ENOMEM
+  rc *= 2;
+  memcpy( value.h_hash->data, &regs[rb], sizeof(mrb_value) * rc );
+  memset( &regs[rb], 0, sizeof(mrb_value) * rc );
+  value.h_hash->n_stored = rc;
 
-  v.hash = handle;
-  handle->tt = MRB_TT_HANDLE;
-
-  // make hash
-  mrb_value *hash = (mrb_value *)mrbc_alloc(vm, sizeof(mrb_value)*(arg_c*2+1));
-  if( hash == NULL ) return 0;  // ENOMEM
-  handle->hash = hash;
-
-  hash[0].tt = MRB_TT_FIXNUM;
-  hash[0].i = arg_c;
-
-  mrb_value *src = &regs[arg_b];
-  mrb_value *dst = &hash[1];
-  while( arg_c > 0 ){
-    // copy key
-    *dst++ = *src++;
-
-    // copy value
-    *dst++ = *src++;
-
-    arg_c--;
-  }
-
-  mrbc_release(&regs[arg_a]);
-  regs[arg_a] = v;
+  mrbc_release(&regs[ra]);
+  regs[ra] = value;
 
   return 0;
 }

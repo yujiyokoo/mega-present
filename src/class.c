@@ -250,6 +250,20 @@ void c_puts(mrb_value *v)
     console_putchar(']');
   } break;
 
+  case MRB_TT_HASH:{
+    mrb_value *data = v->h_hash->data;
+    int i, n = v->h_hash->n_stored;
+    console_putchar('{');
+    for( i = 0 ; i < n ; i++ ) {
+      if( i > 0 ) console_print(", ");
+      c_puts(data + i);
+      i++;
+      console_printf("=>");
+      c_puts(data + i);
+    }
+    console_putchar('}');
+  } break;
+
   case MRB_TT_CLASS:
     console_print( symid_to_str( v->cls->sym_id ) );
     break;
