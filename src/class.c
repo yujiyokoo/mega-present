@@ -240,12 +240,12 @@ void c_puts(mrb_value *v)
     break;
 
   case MRB_TT_ARRAY:{
-    mrb_value *array = v->h_array->data;
-    int i, n = v->h_array->n_stored;
+    mrb_value *data = v->array->data;
     console_putchar('[');
-    for( i = 0 ; i < n ; i++ ) {
+    int i;
+    for( i = 0 ; i < mrbc_array_size(v); i++ ) {
       if( i > 0 ) console_print(", ");
-      c_puts(array + i);
+      c_puts(data + i);
     }
     console_putchar(']');
   } break;

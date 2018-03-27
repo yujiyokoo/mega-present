@@ -78,8 +78,7 @@ typedef enum {
   define the error code. (BETA TEST)
 */
 typedef enum {
-  E_NO_ERROR = 0,
-  E_NOMEMORY_ERROR,
+  E_NOMEMORY_ERROR = 1,
   E_RUNTIME_ERROR,
   E_TYPE_ERROR,
   E_ARGUMENT_ERROR,
@@ -116,7 +115,8 @@ typedef struct RObject {
     double d;              // MRB_TT_FLOAT : float
     char *str;             // MRB_TT_STRING : C-string (only loader use.)
 
-    struct MrbcHandleArray *h_array;
+    struct RArray *array;	// MRB_TT_ARRAY
+
     struct MrbcHandleString *h_str;
     struct MrbcHandleRange *h_range;
     struct MrbcHandleHash *h_hash;

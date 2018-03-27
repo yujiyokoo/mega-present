@@ -14,17 +14,15 @@
 #include "vm_config.h"
 #include <string.h>
 #include <assert.h>
+
+#include "value.h"
+#include "vm.h"
 #include "alloc.h"
 #include "static.h"
 #include "class.h"
-#include "value.h"
-#include "console.h"
 #include "c_array.h"
+#include "console.h"
 
-
-#ifndef ENOMEM
-#define ENOMEM 12
-#endif
 
 
 //================================================================
@@ -34,14 +32,14 @@
   @param  size	initial size
   @return 	array object
 */
-mrb_value mrbc_array_new(mrb_vm *vm, int size)
+mrb_value mrbc_array_new(struct VM *vm, int size)
 {
   mrb_value value = {.tt = MRB_TT_ARRAY};
 
   /*
     Allocate handle and data buffer.
   */
-  MrbcHandleArray *h = mrbc_alloc(vm, sizeof(MrbcHandleArray));
+  mrb_array *h = mrbc_alloc(vm, sizeof(mrb_array));
   if( !h ) return value;	// ENOMEM
 
   mrb_value *data = mrbc_alloc(vm, sizeof(mrb_value) * size);
@@ -56,7 +54,7 @@ mrb_value mrbc_array_new(mrb_vm *vm, int size)
   h->n_stored = 0;
   h->data = data;
 
-  value.h_array = h;
+  value.array = h;
   return value;
 }
 
@@ -68,7 +66,7 @@ mrb_value mrbc_array_new(mrb_vm *vm, int size)
 */
 void mrbc_array_delete(mrb_value *ary)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
   mrb_value *p1 = h->data;
   const mrb_value *p2 = p1 + h->n_stored;
@@ -81,13 +79,14 @@ void mrbc_array_delete(mrb_value *ary)
 }
 
 
-
 //================================================================
 /*! clear vm_id
+
+  @param  ary	pointer to target value
 */
 void mrbc_array_clear_vm_id(mrb_value *ary)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
   mrbc_set_vm_id( h, 0 );
 
@@ -101,13 +100,17 @@ void mrbc_array_clear_vm_id(mrb_value *ary)
 
 //================================================================
 /*! resize buffer
+
+  @param  ary	pointer to target value
+  @param  size	size
+  @return	mrb_error_code
 */
 int mrbc_array_resize(mrb_value *ary, int size)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
   mrb_value *data2 = mrbc_raw_realloc(h->data, sizeof(mrb_value) * size);
-  if( !data2 ) return ENOMEM;	// ENOMEM
+  if( !data2 ) return E_NOMEMORY_ERROR;	// ENOMEM
 
   h->data = data2;
   h->data_size = size;
@@ -118,22 +121,24 @@ int mrbc_array_resize(mrb_value *ary, int size)
 
 //================================================================
 /*! setter
+
+  @param  ary		pointer to target value
+  @param  idx		index
+  @param  set_val	set value
+  @return		mrb_error_code
 */
-void mrbc_array_set(mrb_value *ary, int idx, mrb_value *set_val)
+int mrbc_array_set(mrb_value *ary, int idx, const mrb_value *set_val)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
   if( idx < 0 ) {
     idx = h->n_stored + idx;
-    if( idx < 0 ) {
-      console_print("IndexError\n");	// raise?
-      return;
-    }
+    if( idx < 0 ) return E_INDEX_ERROR;		// raise?
   }
 
   // need resize?
-  if( idx >= h->data_size ) {
-    if( mrbc_array_resize(ary, idx + 1) != 0 ) return;	// ENOMEM
+  if( idx >= h->data_size && mrbc_array_resize(ary, idx + 1) != 0 ) {
+    return E_NOMEMORY_ERROR;			// ENOMEM
   }
 
   if( idx < h->n_stored ) {
@@ -149,44 +154,61 @@ void mrbc_array_set(mrb_value *ary, int idx, mrb_value *set_val)
   }
 
   h->data[idx] = *set_val;
+
+  return 0;
 }
 
 
 //================================================================
 /*! getter
+
+  @param  ary		pointer to target value
+  @param  idx		index
+  @return		pointer to indexd value or NULL.
 */
-mrb_value mrbc_array_get(mrb_value *ary, int idx)
+mrb_value * mrbc_array_get(mrb_value *ary, int idx)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
   if( idx < 0 ) idx = h->n_stored + idx;
-  if( 0 <= idx && idx < h->n_stored ) return h->data[idx];
-  return mrb_nil_value();
+  if( idx < 0 || idx >= h->n_stored ) return NULL;
+
+  return &h->data[idx];
 }
 
 
 //================================================================
 /*! push a data to tail
+
+  @param  ary		pointer to target value
+  @param  set_val	set value
+  @return		mrb_error_code
 */
-void mrbc_array_push(mrb_value *ary, mrb_value *set_val)
+int mrbc_array_push(mrb_value *ary, const mrb_value *set_val)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
   if( h->n_stored >= h->data_size ) {
     int size = h->data_size + 6;
-    if( mrbc_array_resize(ary, size) != 0 ) return;	// ENOMEM
+    if( mrbc_array_resize(ary, size) != 0 )
+      return E_NOMEMORY_ERROR;		// ENOMEM
   }
 
   h->data[h->n_stored++] = *set_val;
+
+  return 0;
 }
 
 
 //================================================================
 /*! pop a data from tail.
+
+  @param  ary		pointer to target value
+  @return		tail data or Nil
 */
 mrb_value mrbc_array_pop(mrb_value *ary)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
   if( h->n_stored <= 0 ) return mrb_nil_value();
   return h->data[--h->n_stored];
@@ -195,19 +217,26 @@ mrb_value mrbc_array_pop(mrb_value *ary)
 
 //================================================================
 /*! insert a data to the first.
+
+  @param  ary		pointer to target value
+  @param  set_val	set value
+  @return		mrb_error_code
 */
-void mrbc_array_unshift(mrb_value *ary, mrb_value *set_val)
+int mrbc_array_unshift(mrb_value *ary, const mrb_value *set_val)
 {
-  mrbc_array_insert(ary, 0, set_val);
+  return mrbc_array_insert(ary, 0, set_val);
 }
 
 
 //================================================================
 /*! removes the first data and returns it.
+
+  @param  ary		pointer to target value
+  @return		first data or Nil
 */
 mrb_value mrbc_array_shift(mrb_value *ary)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
   if( h->n_stored <= 0 ) return mrb_nil_value();
 
@@ -220,17 +249,19 @@ mrb_value mrbc_array_shift(mrb_value *ary)
 
 //================================================================
 /*! insert a data
+
+  @param  ary		pointer to target value
+  @param  idx		index
+  @param  set_val	set value
+  @return		mrb_error_code
 */
-void mrbc_array_insert(mrb_value *ary, int idx, mrb_value *set_val)
+int mrbc_array_insert(mrb_value *ary, int idx, const mrb_value *set_val)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
   if( idx < 0 ) {
     idx = h->n_stored + idx + 1;
-    if( idx < 0 ) {
-      console_print("IndexError\n");	// raise?
-      return;
-    }
+    if( idx < 0 ) return E_INDEX_ERROR;		// raise?
   }
 
   // need resize?
@@ -240,8 +271,8 @@ void mrbc_array_insert(mrb_value *ary, int idx, mrb_value *set_val)
   } else if( h->n_stored >= h->data_size ) {
     size = h->data_size + 1;
   }
-  if( size ) {
-    if( mrbc_array_resize(ary, size) != 0 ) return;	// ENOMEM
+  if( size && mrbc_array_resize(ary, size) != 0 ) {
+    return E_NOMEMORY_ERROR;			// ENOMEM
   }
 
   // move datas.
@@ -262,25 +293,27 @@ void mrbc_array_insert(mrb_value *ary, int idx, mrb_value *set_val)
     }
     h->n_stored = idx + 1;
   }
+
+  return 0;
 }
 
 
 //================================================================
 /*! remove a data
+
+  @param  ary		pointer to target value
+  @param  idx		index
+  @return		tail data or Nil
 */
 mrb_value mrbc_array_remove(mrb_value *ary, int idx)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
-  if( idx < 0 ) {
-    idx = h->n_stored + idx;
-  }
+  if( idx < 0 ) idx = h->n_stored + idx;
   if( idx < 0 || idx >= h->n_stored ) return mrb_nil_value();
 
   mrb_value val = h->data[idx];
-
   h->n_stored--;
-
   if( idx < h->n_stored ) {
     memmove(h->data + idx, h->data + idx + 1,
 	    sizeof(mrb_value) * (h->n_stored - idx));
@@ -292,10 +325,12 @@ mrb_value mrbc_array_remove(mrb_value *ary, int idx)
 
 //================================================================
 /*! clear all
+
+  @param  ary		pointer to target value
 */
 void mrbc_array_clear(mrb_value *ary)
 {
-  MrbcHandleArray *h = ary->h_array;
+  mrb_array *h = ary->array;
 
   mrb_value *p1 = h->data;
   const mrb_value *p2 = p1 + h->n_stored;
@@ -309,14 +344,17 @@ void mrbc_array_clear(mrb_value *ary)
 
 //================================================================
 /*! compare
+
+  @param  v1		pointer to target value 1
+  @param  v2		pointer to target value 2
 */
 int mrbc_array_compare(const mrb_value *v1, const mrb_value *v2)
 {
-  if( v1->h_array->n_stored != v2->h_array->n_stored ) return 0;
+  if( v1->array->n_stored != v2->array->n_stored ) return 0;
 
   int i;
-  for( i = 0; i < v1->h_array->n_stored; i++ ) {
-    if( !mrbc_eq( &v1->h_array->data[i], &v2->h_array->data[i] ) ) return 0;
+  for( i = 0; i < v1->array->n_stored; i++ ) {
+    if( !mrbc_eq( &v1->array->data[i], &v2->array->data[i] ) ) return 0;
   }
   return 1;
 }
@@ -326,27 +364,27 @@ int mrbc_array_compare(const mrb_value *v1, const mrb_value *v2)
 //================================================================
 /*! (operator) +
 */
-static void c_array_add(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_add(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( GET_TT_ARG(1) != MRB_TT_ARRAY ) {
     console_print( "TypeError\n" );	// raise?
     return;
   }
 
-  MrbcHandleArray *h1 = v[0].h_array;
-  MrbcHandleArray *h2 = v[1].h_array;
+  mrb_array *h1 = v[0].array;
+  mrb_array *h2 = v[1].array;
 
   mrb_value value = mrbc_array_new(vm, h1->n_stored + h2->n_stored);
-  if( value.h_array == NULL ) return;		// ENOMEM
+  if( value.array == NULL ) return;		// ENOMEM
 
-  memcpy( value.h_array->data,                h1->data,
+  memcpy( value.array->data,                h1->data,
 	  sizeof(mrb_value) * h1->n_stored );
-  memcpy( value.h_array->data + h1->n_stored, h2->data,
+  memcpy( value.array->data + h1->n_stored, h2->data,
 	  sizeof(mrb_value) * h2->n_stored );
-  value.h_array->n_stored = h1->n_stored + h2->n_stored;
+  value.array->n_stored = h1->n_stored + h2->n_stored;
 
-  mrb_value *p1 = value.h_array->data;
-  const mrb_value *p2 = p1 + value.h_array->n_stored;
+  mrb_value *p1 = value.array->data;
+  const mrb_value *p2 = p1 + value.array->n_stored;
   while( p1 < p2 ) {
     mrbc_dup(p1++);
   }
@@ -362,26 +400,27 @@ static void c_array_add(mrb_vm *vm, mrb_value *v, int argc)
 //================================================================
 /*! (operator) []
 */
-static void c_array_get(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_get(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value *v1 = &GET_ARG(1);
-  mrb_value *v2 = &GET_ARG(2);
-
   /*
     in case of self[nth] -> object | nil
   */
-  if( argc == 1 && v1->tt == MRB_TT_FIXNUM ) {
-    mrb_value val = mrbc_array_get(v, v1->i);
-    mrbc_dup(&val);
+  if( argc == 1 && v[1].tt == MRB_TT_FIXNUM ) {
+    mrb_value *val = mrbc_array_get(v, v[1].i);
     mrbc_release(v);
-    SET_RETURN(val);
+    if( val ) {
+      mrbc_dup(val);
+      SET_RETURN(*val);
+    } else {
+      SET_NIL_RETURN();
+    }
     return;
   }
 
   /*
     in case of self[start, length] -> Array | nil
   */
-  if( argc == 2 && v1->tt == MRB_TT_FIXNUM && v2->tt == MRB_TT_FIXNUM ) {
+  if( argc == 2 && v[1].tt == MRB_TT_FIXNUM && v[2].tt == MRB_TT_FIXNUM ) {
     // TODO: not implement yet.
   }
 
@@ -395,24 +434,21 @@ static void c_array_get(mrb_vm *vm, mrb_value *v, int argc)
 //================================================================
 /*! (operator) []=
 */
-static void c_array_set(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_set(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value *v1 = &GET_ARG(1);
-  mrb_value *v2 = &GET_ARG(2);
-
   /*
     in case of self[nth] = val
   */
-  if( argc == 2 && v1->tt == MRB_TT_FIXNUM ) {
-    mrbc_array_set(v, v1->i, v2);
-    v2->tt = MRB_TT_EMPTY;
+  if( argc == 2 && v[1].tt == MRB_TT_FIXNUM ) {
+    mrbc_array_set(v, v[1].i, &v[2]);
+    v[2].tt = MRB_TT_EMPTY;
     return;
   }
 
   /*
     in case of self[start, length] = val
   */
-  if( argc == 3 && v1->tt == MRB_TT_FIXNUM && v2->tt == MRB_TT_FIXNUM ) {
+  if( argc == 3 && v[1].tt == MRB_TT_FIXNUM && v[2].tt == MRB_TT_FIXNUM ) {
     // TODO: not implement yet.
   }
 
@@ -426,7 +462,7 @@ static void c_array_set(mrb_vm *vm, mrb_value *v, int argc)
 //================================================================
 /*! (method) clear
 */
-static void c_array_clear(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_clear(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrbc_array_clear(v);
 }
@@ -435,7 +471,7 @@ static void c_array_clear(mrb_vm *vm, mrb_value *v, int argc)
 //================================================================
 /*! (method) delete_at
 */
-static void c_array_delete_at(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_delete_at(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value val = mrbc_array_remove(v, GET_INT_ARG(1));
   mrbc_release(v);
@@ -446,9 +482,9 @@ static void c_array_delete_at(mrb_vm *vm, mrb_value *v, int argc)
 //================================================================
 /*! (method) empty?
 */
-static void c_array_empty(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_empty(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int n = v->h_array->n_stored;
+  int n = v->array->n_stored;
 
   mrbc_release(v);
   if( n ) {
@@ -462,9 +498,9 @@ static void c_array_empty(mrb_vm *vm, mrb_value *v, int argc)
 //================================================================
 /*! (method) size,length,count
 */
-static void c_array_size(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_size(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int n = v->h_array->n_stored;
+  int n = v->array->n_stored;
 
   mrbc_release(v);
   SET_INT_RETURN(n);
@@ -474,11 +510,11 @@ static void c_array_size(mrb_vm *vm, mrb_value *v, int argc)
 //================================================================
 /*! (method) index
 */
-static void c_array_index(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_index(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value *value = &GET_ARG(1);
-  mrb_value *data = v->h_array->data;
-  int n = v->h_array->n_stored;
+  mrb_value *data = v->array->data;
+  int n = v->array->n_stored;
   int i;
 
   for( i = 0; i < n; i++ ) {
@@ -497,45 +533,50 @@ static void c_array_index(mrb_vm *vm, mrb_value *v, int argc)
 //================================================================
 /*! (method) first
 */
-static void c_array_first(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_first(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value val = mrbc_array_get(v, 0);
+  mrb_value *val = mrbc_array_get(v, 0);
   mrbc_release(v);
-  mrbc_dup(&val);
-  SET_RETURN(val);
+  if( val ) {
+    mrbc_dup(val);
+    SET_RETURN(*val);
+  } else {
+    SET_NIL_RETURN();
+  }
 }
 
 
 //================================================================
 /*! (method) last
 */
-static void c_array_last(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_last(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value val = mrbc_array_get(v, -1);
+  mrb_value *val = mrbc_array_get(v, -1);
   mrbc_release(v);
-  mrbc_dup(&val);
-  SET_RETURN(val);
+  if( val ) {
+    mrbc_dup(val);
+    SET_RETURN(*val);
+  } else {
+    SET_NIL_RETURN();
+  }
 }
 
 
 //================================================================
 /*! (method) push
 */
-static void c_array_push(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_push(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value val = GET_ARG(1);
-  mrbc_dup(&val);
-  mrbc_array_push(v, &val);
+  mrbc_dup(&v[1]);
+  mrbc_array_push(&v[0], &v[1]);
 }
 
 
 //================================================================
 /*! (method) pop
 */
-static void c_array_pop(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_pop(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value *v1 = &GET_ARG(1);
-
   /*
     in case of pop() -> object | nil
   */
@@ -549,7 +590,7 @@ static void c_array_pop(mrb_vm *vm, mrb_value *v, int argc)
   /*
     in case of pop(n) -> Array
   */
-  if( argc == 1 && v1->tt == MRB_TT_FIXNUM ) {
+  if( argc == 1 && v[1].tt == MRB_TT_FIXNUM ) {
     // TODO: not implement yet.
   }
 
@@ -563,21 +604,18 @@ static void c_array_pop(mrb_vm *vm, mrb_value *v, int argc)
 //================================================================
 /*! (method) unshift
 */
-static void c_array_unshift(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_unshift(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value val = GET_ARG(1);
-  mrbc_dup(&val);
-  mrbc_array_unshift(v, &val);
+  mrbc_dup(&v[1]);
+  mrbc_array_unshift(&v[0], &v[1]);
 }
 
 
 //================================================================
 /*! (method) shift
 */
-static void c_array_shift(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_shift(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value *v1 = &GET_ARG(1);
-
   /*
     in case of pop() -> object | nil
   */
@@ -591,7 +629,7 @@ static void c_array_shift(mrb_vm *vm, mrb_value *v, int argc)
   /*
     in case of pop(n) -> Array
   */
-  if( argc == 1 && v1->tt == MRB_TT_FIXNUM ) {
+  if( argc == 1 && v[1].tt == MRB_TT_FIXNUM ) {
     // TODO: not implement yet.
   }
 
@@ -605,18 +643,18 @@ static void c_array_shift(mrb_vm *vm, mrb_value *v, int argc)
 //================================================================
 /*! (method) dup
 */
-static void c_array_dup(mrb_vm *vm, mrb_value *v, int argc)
+static void c_array_dup(mrb_vm *vm, mrb_value v[], int argc)
 {
-  MrbcHandleArray *h = GET_ARG(0).h_array;
+  mrb_array *h = v[0].array;
 
   mrb_value value = mrbc_array_new(vm, h->n_stored);
-  if( value.h_array == NULL ) return;		// ENOMEM
+  if( value.array == NULL ) return;		// ENOMEM
 
-  memcpy( value.h_array->data, h->data, sizeof(mrb_value) * h->n_stored );
-  value.h_array->n_stored = h->n_stored;
+  memcpy( value.array->data, h->data, sizeof(mrb_value) * h->n_stored );
+  value.array->n_stored = h->n_stored;
 
-  mrb_value *p1 = value.h_array->data;
-  const mrb_value *p2 = p1 + value.h_array->n_stored;
+  mrb_value *p1 = value.array->data;
+  const mrb_value *p2 = p1 + value.array->n_stored;
   while( p1 < p2 ) {
     mrbc_dup(p1++);
   }
@@ -627,6 +665,9 @@ static void c_array_dup(mrb_vm *vm, mrb_value *v, int argc)
 
 
 
+//================================================================
+/*! initialize
+*/
 void mrbc_init_class_array(mrb_vm *vm)
 {
   mrbc_class_array = mrbc_define_class(vm, "Array", mrbc_class_object);

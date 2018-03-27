@@ -1100,11 +1100,11 @@ inline static int op_array( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rc = GETARG_C(code);
 
   mrb_value value = mrbc_array_new(vm, rc);
-  if( value.h_array == NULL ) return -1;	// ENOMEM
+  if( value.array == NULL ) return -1;	// ENOMEM
 
-  memcpy( value.h_array->data, &regs[rb], sizeof(mrb_value) * rc );
+  memcpy( value.array->data, &regs[rb], sizeof(mrb_value) * rc );
   memset( &regs[rb], 0, sizeof(mrb_value) * rc );
-  value.h_array->n_stored = rc;
+  value.array->n_stored = rc;
 
   mrbc_release(&regs[ra]);
   regs[ra] = value;
