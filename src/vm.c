@@ -1134,7 +1134,7 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
   /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
   int len = bin_to_uint16(pool_obj->str - 2);
   mrb_value value = mrbc_string_new(vm, pool_obj->str, len);
-  if( value.h_str == NULL ) return -1;		// ENOMEM
+  if( value.string == NULL ) return -1;		// ENOMEM
 
   mrbc_release(&regs[ra]);
   regs[ra] = value;

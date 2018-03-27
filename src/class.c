@@ -229,7 +229,7 @@ void c_puts(mrb_value *v)
 #endif
 
   case MRB_TT_STRING:
-    console_print(MRBC_STRING_CSTR(v));
+    console_print(mrbc_string_cstr(v));
     break;
 
   case MRB_TT_RANGE:

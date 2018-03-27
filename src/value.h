@@ -116,8 +116,7 @@ typedef struct RObject {
     char *str;             // MRB_TT_STRING : C-string (only loader use.)
 
     struct RArray *array;	// MRB_TT_ARRAY
-
-    struct MrbcHandleString *h_str;
+    struct RString *string;	// MRB_TT_STRING
     struct RRange *range;	// MRB_TT_RANGE
     struct MrbcHandleHash *h_hash;
   };
