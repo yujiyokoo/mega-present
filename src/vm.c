@@ -1228,7 +1228,7 @@ inline static int op_range( mrb_vm *vm, uint32_t code, mrb_value *regs )
   mrbc_dup(&regs[rb+1]);
 
   mrb_value value = mrbc_range_new(vm, &regs[rb], &regs[rb+1], rc);
-  if( value.h_range == NULL ) return -1;		// ENOMEM
+  if( value.range == NULL ) return -1;		// ENOMEM
 
   mrbc_release(&regs[ra]);
   regs[ra] = value;

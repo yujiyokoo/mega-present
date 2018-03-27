@@ -25,29 +25,59 @@ extern "C" {
 /*!@brief
   Define Range object (same the handles of other objects)
 */
-typedef struct MrbcHandleRange {
+typedef struct RRange {
   MRBC_OBJECT_HEADER;
 
   uint8_t flag_exclude;	// true: exclude the end object, otherwise include.
   mrb_value first;
   mrb_value last;
 
-} MrbcHandleRange;
+} mrb_range;
+
 
 struct VM;
-mrb_value mrbc_range_new(struct VM *vm, mrb_value *v_first, mrb_value *v_last, int flag_exclude);
+
+mrb_value mrbc_range_new(struct VM *vm, mrb_value *first, mrb_value *last, int flag_exclude);
 void mrbc_range_delete(mrb_value *v);
 void mrbc_range_clear_vm_id(mrb_value *v);
+void mrbc_init_class_range(mrb_vm *vm);
 
-void mrbc_init_class_range(struct VM *vm);
 
-
+//================================================================
+/*! compare
+*/
 static inline int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2)
 {
-  return( mrbc_eq( &v1->h_range->first, &v2->h_range->first ) &&
-	  mrbc_eq( &v1->h_range->last, &v2->h_range->last ) &&
-	  v1->h_range->flag_exclude == v2->h_range->flag_exclude );
+  return( mrbc_eq( &v1->range->first, &v2->range->first ) &&
+	  mrbc_eq( &v1->range->last, &v2->range->last ) &&
+	  v1->range->flag_exclude == v2->range->flag_exclude );
 }
+
+//================================================================
+/*! get first value
+*/
+static inline mrb_value * mrbc_range_first(const mrb_value *v)
+{
+  return &v->range->first;
+}
+
+//================================================================
+/*! get last value
+*/
+static inline mrb_value * mrbc_range_last(const mrb_value *v)
+{
+  return &v->range->last;
+}
+
+//================================================================
+/*! get exclude_end?
+*/
+static inline int mrbc_range_exclude_end(const mrb_value *v)
+{
+  return v->range->flag_exclude;
+}
+
+
 
 #ifdef __cplusplus
 }

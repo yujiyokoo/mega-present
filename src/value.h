@@ -118,7 +118,7 @@ typedef struct RObject {
     struct RArray *array;	// MRB_TT_ARRAY
 
     struct MrbcHandleString *h_str;
-    struct MrbcHandleRange *h_range;
+    struct RRange *range;	// MRB_TT_RANGE
     struct MrbcHandleHash *h_hash;
   };
 } mrb_object;
