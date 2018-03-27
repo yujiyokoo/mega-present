@@ -73,6 +73,30 @@ typedef enum {
 } mrb_vtype;
 
 
+//================================================================
+/*!@brief
+  define the error code. (BETA TEST)
+*/
+typedef enum {
+  E_NO_ERROR = 0,
+  E_NOMEMORY_ERROR,
+  E_RUNTIME_ERROR,
+  E_TYPE_ERROR,
+  E_ARGUMENT_ERROR,
+  E_INDEX_ERROR,
+  E_RANGE_ERROR,
+  E_NAME_ERROR,
+  E_NOMETHOD_ERROR,
+  E_SCRIPT_ERROR,
+  E_SYNTAX_ERROR,
+  E_LOCALJUMP_ERROR,
+  E_REGEXP_ERROR,
+  E_NOTIMP_ERROR,
+  E_FLOATDOMAIN_ERROR,
+  E_KEY_ERROR,
+} mrb_error_code;
+
+
 
 //================================================================
 /*!@brief
