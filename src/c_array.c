@@ -440,7 +440,7 @@ static void c_array_set(mrb_vm *vm, mrb_value v[], int argc)
     in case of self[nth] = val
   */
   if( argc == 2 && v[1].tt == MRB_TT_FIXNUM ) {
-    mrbc_array_set(v, v[1].i, &v[2]);
+    mrbc_array_set(v, v[1].i, &v[2]);	// raise? IndexError or ENOMEM
     v[2].tt = MRB_TT_EMPTY;
     return;
   }
@@ -568,7 +568,7 @@ static void c_array_last(mrb_vm *vm, mrb_value v[], int argc)
 static void c_array_push(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrbc_dup(&v[1]);
-  mrbc_array_push(&v[0], &v[1]);
+  mrbc_array_push(&v[0], &v[1]);	// raise? ENOMEM
 }
 
 
@@ -607,7 +607,7 @@ static void c_array_pop(mrb_vm *vm, mrb_value v[], int argc)
 static void c_array_unshift(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrbc_dup(&v[1]);
-  mrbc_array_unshift(&v[0], &v[1]);
+  mrbc_array_unshift(&v[0], &v[1]);	// raise? IndexError or ENOMEM
 }
 
 
