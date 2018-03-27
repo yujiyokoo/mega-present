@@ -32,14 +32,14 @@
   @param  size	initial size
   @return 	hash object
 */
-mrb_value mrbc_hash_new(mrb_vm *vm, int size)
+mrb_value mrbc_hash_new(struct VM *vm, int size)
 {
   mrb_value value = {.tt = MRB_TT_HASH};
 
   /*
     Allocate handle and data buffer.
   */
-  MrbcHandleHash *h = mrbc_alloc(vm, sizeof(MrbcHandleHash));
+  mrb_hash *h = mrbc_alloc(vm, sizeof(mrb_hash));
   if( !h ) return value;	// ENOMEM
 
   mrb_value *data = mrbc_alloc(vm, sizeof(mrb_value) * size * 2);
@@ -54,7 +54,7 @@ mrb_value mrbc_hash_new(mrb_vm *vm, int size)
   h->n_stored = 0;
   h->data = data;
 
-  value.h_hash = h;
+  value.hash = h;
   return value;
 }
 
@@ -82,8 +82,8 @@ mrb_value * mrbc_hash_search(const mrb_value *hash, const mrb_value *key)
 #endif
 
 #ifdef MRBC_HASH_SEARCH_LINER
-  mrb_value *p1 = hash->h_hash->data;
-  const mrb_value *p2 = p1 + hash->h_hash->n_stored;
+  mrb_value *p1 = hash->hash->data;
+  const mrb_value *p2 = p1 + hash->hash->n_stored;
 
   while( p1 < p2 ) {
     if( mrbc_eq(p1, key) ) return p1;
@@ -145,7 +145,7 @@ mrb_value mrbc_hash_remove(mrb_value *hash, const mrb_value *key)
   mrbc_dec_ref_counter(v);	// key
   mrb_value val = v[1];		// value
 
-  MrbcHandleHash *h = hash->h_hash;
+  mrb_hash *h = hash->hash;
   h->n_stored -= 2;
 
   memmove(v, v+2, (char*)(h->data + h->n_stored) - (char*)v);
@@ -172,9 +172,9 @@ void mrbc_hash_clear(mrb_value *hash)
 */
 int mrbc_hash_compare(const mrb_value *v1, const mrb_value *v2)
 {
-  if( v1->h_hash->n_stored != v2->h_hash->n_stored ) return 0;
+  if( v1->hash->n_stored != v2->hash->n_stored ) return 0;
 
-  mrb_value *d1 = v1->h_hash->data;
+  mrb_value *d1 = v1->hash->data;
   int i;
   for( i = 0; i < mrbc_hash_size(v1); i++, d1++ ) {
     mrb_value *d2 = mrbc_hash_search(v2, d1);	// check key
@@ -189,14 +189,14 @@ int mrbc_hash_compare(const mrb_value *v1, const mrb_value *v2)
 //================================================================
 /*! duplicate
 */
-mrb_value mrbc_hash_dup( mrb_vm *vm, mrb_value *src )
+mrb_value mrbc_hash_dup( struct VM *vm, mrb_value *src )
 {
   mrb_value ret = mrbc_hash_new(vm, mrbc_hash_size(src));
-  if( ret.h_hash == NULL ) return ret;		// ENOMEM
+  if( ret.hash == NULL ) return ret;		// ENOMEM
 
-  MrbcHandleHash *h = src->h_hash;
-  memcpy( ret.h_hash->data, h->data, sizeof(mrb_value) * h->n_stored );
-  ret.h_hash->n_stored = h->n_stored;
+  mrb_hash *h = src->hash;
+  memcpy( ret.hash->data, h->data, sizeof(mrb_value) * h->n_stored );
+  ret.hash->n_stored = h->n_stored;
 
   mrb_value *p1 = h->data;
   const mrb_value *p2 = p1 + h->n_stored;
@@ -330,7 +330,7 @@ static void c_hash_has_key(mrb_vm *vm, mrb_value v[], int argc)
 static void c_hash_has_value(mrb_vm *vm, mrb_value v[], int argc)
 {
   int ret = 0;
-  MrbcHashIterator ite = mrbc_hash_iterator(&v[0]);
+  mrb_hash_iterator ite = mrbc_hash_iterator(&v[0]);
 
   while( mrbc_hash_i_has_next(&ite) ) {
     mrb_value *val = mrbc_hash_i_next(&ite) + 1;	// skip key, get value
@@ -355,7 +355,7 @@ static void c_hash_has_value(mrb_vm *vm, mrb_value v[], int argc)
 static void c_hash_key(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value *ret = NULL;
-  MrbcHashIterator ite = mrbc_hash_iterator(&v[0]);
+  mrb_hash_iterator ite = mrbc_hash_iterator(&v[0]);
 
   while( mrbc_hash_i_has_next(&ite) ) {
     mrb_value *kv = mrbc_hash_i_next(&ite);
@@ -381,7 +381,7 @@ static void c_hash_key(mrb_vm *vm, mrb_value v[], int argc)
 static void c_hash_keys(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_array_new( vm, mrbc_hash_size(v) );
-  MrbcHashIterator ite = mrbc_hash_iterator(v);
+  mrb_hash_iterator ite = mrbc_hash_iterator(v);
 
   while( mrbc_hash_i_has_next(&ite) ) {
     mrb_value *key = mrbc_hash_i_next(&ite);
@@ -412,7 +412,7 @@ static void c_hash_size(mrb_vm *vm, mrb_value v[], int argc)
 static void c_hash_merge(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_hash_dup( vm, &v[0] );
-  MrbcHashIterator ite = mrbc_hash_iterator(&v[1]);
+  mrb_hash_iterator ite = mrbc_hash_iterator(&v[1]);
 
   while( mrbc_hash_i_has_next(&ite) ) {
     mrb_value *kv = mrbc_hash_i_next(&ite);
@@ -431,7 +431,7 @@ static void c_hash_merge(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_hash_merge_self(mrb_vm *vm, mrb_value v[], int argc)
 {
-  MrbcHashIterator ite = mrbc_hash_iterator(&v[1]);
+  mrb_hash_iterator ite = mrbc_hash_iterator(&v[1]);
 
   while( mrbc_hash_i_has_next(&ite) ) {
     mrb_value *kv = mrbc_hash_i_next(&ite);
@@ -448,7 +448,7 @@ static void c_hash_merge_self(mrb_vm *vm, mrb_value v[], int argc)
 static void c_hash_values(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_array_new( vm, mrbc_hash_size(v) );
-  MrbcHashIterator ite = mrbc_hash_iterator(v);
+  mrb_hash_iterator ite = mrbc_hash_iterator(v);
 
   while( mrbc_hash_i_has_next(&ite) ) {
     mrb_value *val = mrbc_hash_i_next(&ite) + 1;

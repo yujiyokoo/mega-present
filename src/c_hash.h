@@ -25,7 +25,7 @@ extern "C" {
 /*!@brief
   Define Hash handle.
 */
-typedef struct MrbcHandleHash {
+typedef struct RHash {
   // (NOTE)
   //  Needs to be same members and order as MrbcHandleArray.
   MRBC_OBJECT_HEADER;
@@ -36,21 +36,22 @@ typedef struct MrbcHandleHash {
 
   // TODO: and other member for search.
 
-} MrbcHandleHash;
+} mrb_hash;
 
 
 //================================================================
 /*!@brief
   Define Hash iterator.
 */
-typedef struct MrbcHashIterator {
-  MrbcHandleHash *target;
+typedef struct RHashIterator {
+  mrb_hash *target;
   mrb_value *point;
   mrb_value *p_end;
-} MrbcHashIterator;
+} mrb_hash_iterator;
 
 
-mrb_value mrbc_hash_new(mrb_vm *vm, int size);
+
+mrb_value mrbc_hash_new(struct VM *vm, int size);
 void mrbc_hash_delete(mrb_value *hash);
 mrb_value *mrbc_hash_search(const mrb_value *hash, const mrb_value *key);
 void mrbc_hash_set(mrb_value *hash, mrb_value *key, mrb_value *val);
@@ -58,7 +59,7 @@ mrb_value mrbc_hash_get(const mrb_value *hash, const mrb_value *key);
 mrb_value mrbc_hash_remove(mrb_value *hash, const mrb_value *key);
 void mrbc_hash_clear(mrb_value *hash);
 int mrbc_hash_compare(const mrb_value *v1, const mrb_value *v2);
-mrb_value mrbc_hash_dup(mrb_vm *vm, mrb_value *src);
+mrb_value mrbc_hash_dup(struct VM *vm, mrb_value *src);
 void mrbc_init_class_hash(mrb_vm *vm);
 
 
@@ -66,7 +67,7 @@ void mrbc_init_class_hash(mrb_vm *vm);
 /*! get size
 */
 inline static int mrbc_hash_size(const mrb_value *hash) {
-  return hash->h_hash->n_stored / 2;
+  return hash->hash->n_stored / 2;
 }
 
 //================================================================
@@ -88,12 +89,12 @@ inline static int mrbc_hash_resize(mrb_value *hash, int size)
 //================================================================
 /*! iterator constructor
 */
-inline static MrbcHashIterator mrbc_hash_iterator( const mrb_value *v )
+inline static mrb_hash_iterator mrbc_hash_iterator( mrb_value *v )
 {
-  MrbcHashIterator ite;
-  ite.target = v->h_hash;
-  ite.point = v->h_hash->data;
-  ite.p_end = ite.point + v->h_hash->n_stored;
+  mrb_hash_iterator ite;
+  ite.target = v->hash;
+  ite.point = v->hash->data;
+  ite.p_end = ite.point + v->hash->n_stored;
 
   return ite;
 }
@@ -101,7 +102,7 @@ inline static MrbcHashIterator mrbc_hash_iterator( const mrb_value *v )
 //================================================================
 /*! iterator has_next?
 */
-inline static int mrbc_hash_i_has_next( MrbcHashIterator *ite )
+inline static int mrbc_hash_i_has_next( mrb_hash_iterator *ite )
 {
   return ite->point < ite->p_end;
 }
@@ -109,7 +110,7 @@ inline static int mrbc_hash_i_has_next( MrbcHashIterator *ite )
 //================================================================
 /*! iterator getter
 */
-inline static mrb_value *mrbc_hash_i_next( MrbcHashIterator *ite )
+inline static mrb_value *mrbc_hash_i_next( mrb_hash_iterator *ite )
 {
   mrb_value *ret = ite->point;
   ite->point += 2;

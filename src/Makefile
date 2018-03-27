@@ -41,17 +41,23 @@ rrt0.o: rrt0.c alloc.h vm.h value.h vm_config.h static.h global.h load.h \
   class.h rrt0.h hal/hal.h
 hal.o: hal/hal.c hal/hal.h
 
-c_array.o: c_array.c c_array.h vm.h value.h vm_config.h alloc.h class.h \
-  static.h global.h
+c_array.o: c_array.c vm_config.h value.h vm.h alloc.h static.h global.h \
+  class.h c_array.h console.h hal/hal.h
+
 c_ext.o: c_ext.c c_ext.h alloc.h class.h value.h console.h
+
 c_numeric.o: c_numeric.c vm_config.h c_numeric.h vm.h value.h alloc.h \
   class.h static.h global.h console.h
-c_string.o: c_string.c c_string.h vm.h value.h vm_config.h alloc.h \
-  class.h static.h global.h
-c_range.o: c_range.c c_range.h vm.h value.h vm_config.h alloc.h class.h \
-  static.h global.h
-c_hash.o: c_hash.c vm.h value.h vm_config.h alloc.h class.h \
-  static.h global.h
+
+c_string.o: c_string.c vm_config.h value.h alloc.h vm.h static.h global.h \
+  class.h c_string.h console.h hal/hal.h
+
+c_range.o: c_range.c vm_config.h value.h alloc.h vm.h static.h global.h \
+  class.h c_range.h console.h hal/hal.h
+
+c_hash.o: c_hash.c vm_config.h value.h vm.h alloc.h static.h global.h \
+  class.h c_array.h c_hash.h
+
 c_symbol.o: c_symbol.c vm.h value.h vm_config.h alloc.h class.h \
   static.h global.h
 

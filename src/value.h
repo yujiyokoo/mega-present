@@ -104,21 +104,19 @@ typedef enum {
 typedef struct RObject {
   mrb_vtype tt : 8;
   union {
-    int32_t i;             // MRB_TT_FIXNUM
-    struct RObject *handle;  // handle to objects
-    struct RInstance *instance;  // MRB_TT_OBJECT : link to instance
-    //    struct RObject *obj;   // MRB_TT_OBJECT : link to instance
-    struct RClass *cls;    // MRB_TT_CLASS : link to class
-    struct RProc *proc;    // MRB_TT_PROC : link to proc
-    //    struct RObject *array; // MRB_TT_ARRAY : array of objects
-    // struct RObject *hash;  // MRB_TT_HASH : link to range
-    double d;              // MRB_TT_FLOAT : float
-    char *str;             // MRB_TT_STRING : C-string (only loader use.)
-
+    int32_t i;			// MRB_TT_FIXNUM, SYMBOL
+#if MRBC_USE_FLOAT
+    double d;			// MRB_TT_FLOAT
+#endif
+    struct RClass *cls;		// MRB_TT_CLASS
+    struct RObject *handle;	// handle to objects
+    struct RInstance *instance;	// MRB_TT_OBJECT
+    struct RProc *proc;		// MRB_TT_PROC
     struct RArray *array;	// MRB_TT_ARRAY
     struct RString *string;	// MRB_TT_STRING
+    const char *str;		// C-string (only loader use.)
     struct RRange *range;	// MRB_TT_RANGE
-    struct MrbcHandleHash *h_hash;
+    struct RHash *hash;		// MRB_TT_HASH
   };
 } mrb_object;
 typedef struct RObject mrb_value;

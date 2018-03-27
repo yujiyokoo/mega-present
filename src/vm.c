@@ -1164,12 +1164,12 @@ inline static int op_hash( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rc = GETARG_C(code);
 
   mrb_value value = mrbc_hash_new(vm, rc);
-  if( value.h_hash == NULL ) return -1;	// ENOMEM
+  if( value.hash == NULL ) return -1;	// ENOMEM
 
   rc *= 2;
-  memcpy( value.h_hash->data, &regs[rb], sizeof(mrb_value) * rc );
+  memcpy( value.hash->data, &regs[rb], sizeof(mrb_value) * rc );
   memset( &regs[rb], 0, sizeof(mrb_value) * rc );
-  value.h_hash->n_stored = rc;
+  value.hash->n_stored = rc;
 
   mrbc_release(&regs[ra]);
   regs[ra] = value;
