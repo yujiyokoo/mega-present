@@ -59,7 +59,15 @@ mrb_proc *mrbc_rproc_alloc(mrb_vm *vm, const char *name)
 int mrbc_eq(const mrb_value *v1, const mrb_value *v2)
 {
   // TT_XXX is different
-  if( v1->tt != v2->tt ) return 0;
+  if( v1->tt != v2->tt ) {
+    if( v1->tt == MRB_TT_FIXNUM && v2->tt == MRB_TT_FLOAT )
+      return (double)v1->i == v2->d;
+
+    if( v1->tt == MRB_TT_FLOAT && v2->tt == MRB_TT_FIXNUM )
+      return v1->d == (double)v2->i;
+
+    return 0;
+  }
 
   // check value
   switch( v1->tt ){
