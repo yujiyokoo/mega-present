@@ -23,6 +23,29 @@
 #include "c_array.h"
 #include "console.h"
 
+/*
+  function summary
+
+ (constructor)
+    mrbc_array_new
+
+ (destructor)
+    mrbc_array_delete
+
+ (setter)
+  --[name]-------------[arg]---[ret]-------
+    mrbc_array_set	*T	int
+    mrbc_array_push	*T	int
+    mrbc_array_unshift	*T	int
+    mrbc_array_insert	*T	int
+
+ (getter)
+  --[name]-------------[arg]---[ret]---[note]------------------------
+    mrbc_array_get		T	Data remains in the container
+    mrbc_array_pop		T	Data does not remain in the container
+    mrbc_array_shift		T	Data does not remain in the container
+    mrbc_array_remove		T	Data does not remain in the container
+*/
 
 
 //================================================================
@@ -127,7 +150,7 @@ int mrbc_array_resize(mrb_value *ary, int size)
   @param  set_val	set value
   @return		mrb_error_code
 */
-int mrbc_array_set(mrb_value *ary, int idx, const mrb_value *set_val)
+int mrbc_array_set(mrb_value *ary, int idx, mrb_value *set_val)
 {
   mrb_array *h = ary->array;
 
@@ -164,16 +187,16 @@ int mrbc_array_set(mrb_value *ary, int idx, const mrb_value *set_val)
 
   @param  ary		pointer to target value
   @param  idx		index
-  @return		pointer to indexd value or NULL.
+  @return		mrb_value data at index position or Nil.
 */
-mrb_value * mrbc_array_get(mrb_value *ary, int idx)
+mrb_value mrbc_array_get(mrb_value *ary, int idx)
 {
   mrb_array *h = ary->array;
 
   if( idx < 0 ) idx = h->n_stored + idx;
-  if( idx < 0 || idx >= h->n_stored ) return NULL;
+  if( idx < 0 || idx >= h->n_stored ) return mrb_nil_value();
 
-  return &h->data[idx];
+  return h->data[idx];
 }
 
 
@@ -184,7 +207,7 @@ mrb_value * mrbc_array_get(mrb_value *ary, int idx)
   @param  set_val	set value
   @return		mrb_error_code
 */
-int mrbc_array_push(mrb_value *ary, const mrb_value *set_val)
+int mrbc_array_push(mrb_value *ary, mrb_value *set_val)
 {
   mrb_array *h = ary->array;
 
@@ -222,7 +245,7 @@ mrb_value mrbc_array_pop(mrb_value *ary)
   @param  set_val	set value
   @return		mrb_error_code
 */
-int mrbc_array_unshift(mrb_value *ary, const mrb_value *set_val)
+int mrbc_array_unshift(mrb_value *ary, mrb_value *set_val)
 {
   return mrbc_array_insert(ary, 0, set_val);
 }
@@ -255,7 +278,7 @@ mrb_value mrbc_array_shift(mrb_value *ary)
   @param  set_val	set value
   @return		mrb_error_code
 */
-int mrbc_array_insert(mrb_value *ary, int idx, const mrb_value *set_val)
+int mrbc_array_insert(mrb_value *ary, int idx, mrb_value *set_val)
 {
   mrb_array *h = ary->array;
 
@@ -303,7 +326,7 @@ int mrbc_array_insert(mrb_value *ary, int idx, const mrb_value *set_val)
 
   @param  ary		pointer to target value
   @param  idx		index
-  @return		tail data or Nil
+  @return		mrb_value data at index position or Nil.
 */
 mrb_value mrbc_array_remove(mrb_value *ary, int idx)
 {
@@ -406,14 +429,10 @@ static void c_array_get(mrb_vm *vm, mrb_value v[], int argc)
     in case of self[nth] -> object | nil
   */
   if( argc == 1 && v[1].tt == MRB_TT_FIXNUM ) {
-    mrb_value *val = mrbc_array_get(v, v[1].i);
+    mrb_value val = mrbc_array_get(v, v[1].i);
+    mrbc_dup(&val);
     mrbc_release(v);
-    if( val ) {
-      mrbc_dup(val);
-      SET_RETURN(*val);
-    } else {
-      SET_NIL_RETURN();
-    }
+    SET_RETURN(val);
     return;
   }
 
@@ -484,7 +503,7 @@ static void c_array_delete_at(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_array_empty(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int n = v->array->n_stored;
+  int n = mrbc_array_size(v);
 
   mrbc_release(v);
   if( n ) {
@@ -500,7 +519,7 @@ static void c_array_empty(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_array_size(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int n = v->array->n_stored;
+  int n = mrbc_array_size(v);
 
   mrbc_release(v);
   SET_INT_RETURN(n);
@@ -535,14 +554,10 @@ static void c_array_index(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_array_first(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value *val = mrbc_array_get(v, 0);
+  mrb_value val = mrbc_array_get(v, 0);
+  mrbc_dup(&val);
   mrbc_release(v);
-  if( val ) {
-    mrbc_dup(val);
-    SET_RETURN(*val);
-  } else {
-    SET_NIL_RETURN();
-  }
+  SET_RETURN(val);
 }
 
 
@@ -551,14 +566,10 @@ static void c_array_first(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_array_last(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value *val = mrbc_array_get(v, -1);
+  mrb_value val = mrbc_array_get(v, -1);
+  mrbc_dup(&val);
   mrbc_release(v);
-  if( val ) {
-    mrbc_dup(val);
-    SET_RETURN(*val);
-  } else {
-    SET_NIL_RETURN();
-  }
+  SET_RETURN(val);
 }
 
 
@@ -567,8 +578,8 @@ static void c_array_last(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_array_push(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrbc_dup(&v[1]);
   mrbc_array_push(&v[0], &v[1]);	// raise? ENOMEM
+  v[1].tt = MRB_TT_EMPTY;
 }
 
 
@@ -606,8 +617,8 @@ static void c_array_pop(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_array_unshift(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrbc_dup(&v[1]);
   mrbc_array_unshift(&v[0], &v[1]);	// raise? IndexError or ENOMEM
+  v[1].tt = MRB_TT_EMPTY;
 }
 
 
@@ -668,7 +679,7 @@ static void c_array_dup(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! initialize
 */
-void mrbc_init_class_array(mrb_vm *vm)
+void mrbc_init_class_array(struct VM *vm)
 {
   mrbc_class_array = mrbc_define_class(vm, "Array", mrbc_class_object);
 

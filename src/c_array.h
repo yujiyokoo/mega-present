@@ -40,17 +40,17 @@ mrb_value mrbc_array_new(struct VM *vm, int size);
 void mrbc_array_delete(mrb_value *ary);
 void mrbc_array_clear_vm_id(mrb_value *ary);
 int mrbc_array_resize(mrb_value *ary, int size);
-int mrbc_array_set(mrb_value *ary, int idx, const mrb_value *set_val);
-mrb_value *mrbc_array_get(mrb_value *ary, int idx);
-int mrbc_array_push(mrb_value *ary, const mrb_value *set_val);
+int mrbc_array_set(mrb_value *ary, int idx, mrb_value *set_val);
+mrb_value mrbc_array_get(mrb_value *ary, int idx);
+int mrbc_array_push(mrb_value *ary, mrb_value *set_val);
 mrb_value mrbc_array_pop(mrb_value *ary);
-int mrbc_array_unshift(mrb_value *ary, const mrb_value *set_val);
+int mrbc_array_unshift(mrb_value *ary, mrb_value *set_val);
 mrb_value mrbc_array_shift(mrb_value *ary);
-int mrbc_array_insert(mrb_value *ary, int idx, const mrb_value *set_val);
+int mrbc_array_insert(mrb_value *ary, int idx, mrb_value *set_val);
 mrb_value mrbc_array_remove(mrb_value *ary, int idx);
 void mrbc_array_clear(mrb_value *ary);
 int mrbc_array_compare(const mrb_value *v1, const mrb_value *v2);
-void mrbc_init_class_array(mrb_vm *vm);
+void mrbc_init_class_array(struct VM *vm);
 
 
 //================================================================
