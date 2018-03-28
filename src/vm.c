@@ -1357,7 +1357,9 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
     // add proc to class
     proc->c_func = 0;
     proc->sym_id = sym_id;
+#ifdef MRBC_DEBUG
     proc->names = sym;		// debug only.
+#endif
     proc->next = cls->procs;
     cls->procs = proc;
 
