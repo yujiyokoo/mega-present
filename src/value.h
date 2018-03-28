@@ -182,7 +182,7 @@ typedef struct RProc {
 #define GET_ARY_ARG(n)		(v[(n)])
 #define GET_ARG(n)		(v[(n)])
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
-#define GET_STRING_ARG(n)	(v[(n)].h_str->str)
+#define GET_STRING_ARG(n)	(v[(n)].string->data)
 
 
 
