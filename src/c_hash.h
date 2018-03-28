@@ -50,17 +50,16 @@ typedef struct RHashIterator {
 } mrb_hash_iterator;
 
 
-
 mrb_value mrbc_hash_new(struct VM *vm, int size);
 void mrbc_hash_delete(mrb_value *hash);
 mrb_value *mrbc_hash_search(const mrb_value *hash, const mrb_value *key);
-void mrbc_hash_set(mrb_value *hash, mrb_value *key, mrb_value *val);
-mrb_value mrbc_hash_get(const mrb_value *hash, const mrb_value *key);
-mrb_value mrbc_hash_remove(mrb_value *hash, const mrb_value *key);
+int mrbc_hash_set(mrb_value *hash, mrb_value *key, mrb_value *val);
+mrb_value mrbc_hash_get(mrb_value *hash, mrb_value *key);
+mrb_value mrbc_hash_remove(mrb_value *hash, mrb_value *key);
 void mrbc_hash_clear(mrb_value *hash);
 int mrbc_hash_compare(const mrb_value *v1, const mrb_value *v2);
 mrb_value mrbc_hash_dup(struct VM *vm, mrb_value *src);
-void mrbc_init_class_hash(mrb_vm *vm);
+void mrbc_init_class_hash(struct VM *vm);
 
 
 //================================================================

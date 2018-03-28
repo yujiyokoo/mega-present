@@ -23,6 +23,26 @@
 #include "c_array.h"
 #include "c_hash.h"
 
+/*
+  function summary
+
+ (constructor)
+    mrbc_hash_new
+
+ (destructor)
+    mrbc_hash_delete
+
+ (setter)
+  --[name]-------------[arg]---[ret]-------
+    mrbc_hash_set	*K,*V	int
+
+ (getter)
+  --[name]-------------[arg]---[ret]---[note]------------------------
+    mrbc_hash_get	*K	T	Data remains in the container
+    mrbc_hash_remove	*K	T	Data does not remain in the container
+    mrbc_hash_i_next		*T	Data remains in the container
+*/
+
 
 
 //================================================================
@@ -74,6 +94,10 @@ void mrbc_hash_delete(mrb_value *hash)
 
 //================================================================
 /*! search key
+
+  @param  hash	pointer to target hash
+  @param  key	pointer to key value
+  @return	pointer to found key or NULL(not found).
 */
 mrb_value * mrbc_hash_search(const mrb_value *hash, const mrb_value *key)
 {
@@ -105,14 +129,20 @@ mrb_value * mrbc_hash_search(const mrb_value *hash, const mrb_value *key)
 
 //================================================================
 /*! setter
+
+  @param  hash	pointer to target hash
+  @param  key	pointer to key value
+  @param  val	pointer to value
+  @return	mrb_error_code
 */
-void mrbc_hash_set(mrb_value *hash, mrb_value *key, mrb_value *val)
+int mrbc_hash_set(mrb_value *hash, mrb_value *key, mrb_value *val)
 {
   mrb_value *v = mrbc_hash_search(hash, key);
+  int ret = 0;
   if( v == NULL ) {
     // set a new value
-    mrbc_array_push(hash, key);
-    mrbc_array_push(hash, val);
+    if( (ret = mrbc_array_push(hash, key)) != 0 ) goto RETURN;
+    ret = mrbc_array_push(hash, val);
 
   } else {
     // replace a value
@@ -121,13 +151,20 @@ void mrbc_hash_set(mrb_value *hash, mrb_value *key, mrb_value *val)
     mrbc_dec_ref_counter(++v);
     *v = *val;
   }
+
+ RETURN:
+  return ret;
 }
 
 
 //================================================================
 /*! getter
+
+  @param  hash	pointer to target hash
+  @param  key	pointer to key value
+  @return	mrb_value data at key position or Nil.
 */
-mrb_value mrbc_hash_get(const mrb_value *hash, const mrb_value *key)
+mrb_value mrbc_hash_get(mrb_value *hash, mrb_value *key)
 {
   mrb_value *v = mrbc_hash_search(hash, key);
   return v ? *++v : mrb_nil_value();
@@ -136,8 +173,12 @@ mrb_value mrbc_hash_get(const mrb_value *hash, const mrb_value *key)
 
 //================================================================
 /*! remove a data
+
+  @param  hash	pointer to target hash
+  @param  key	pointer to key value
+  @return	removed data or Nil
 */
-mrb_value mrbc_hash_remove(mrb_value *hash, const mrb_value *key)
+mrb_value mrbc_hash_remove(mrb_value *hash, mrb_value *key)
 {
   mrb_value *v = mrbc_hash_search(hash, key);
   if( v == NULL ) return mrb_nil_value();
@@ -158,6 +199,8 @@ mrb_value mrbc_hash_remove(mrb_value *hash, const mrb_value *key)
 
 //================================================================
 /*! clear all
+
+  @param  hash	pointer to target hash
 */
 void mrbc_hash_clear(mrb_value *hash)
 {
@@ -169,6 +212,9 @@ void mrbc_hash_clear(mrb_value *hash)
 
 //================================================================
 /*! compare
+
+  @param  v1		pointer to target value 1
+  @param  v2		pointer to target value 2
 */
 int mrbc_hash_compare(const mrb_value *v1, const mrb_value *v2)
 {
@@ -188,6 +234,9 @@ int mrbc_hash_compare(const mrb_value *v1, const mrb_value *v2)
 
 //================================================================
 /*! duplicate
+
+  @param  vm	pointer to VM.
+  @param  src	pointer to target hash.
 */
 mrb_value mrbc_hash_dup( struct VM *vm, mrb_value *src )
 {
@@ -231,10 +280,10 @@ static void c_hash_get(mrb_vm *vm, mrb_value v[], int argc)
     return;	// raise ArgumentError.
   }
 
-  mrb_value ret = mrbc_hash_get(v, v+1);
-  mrbc_dup(&ret);
+  mrb_value val = mrbc_hash_get(&v[0], &v[1]);
+  mrbc_dup(&val);
   mrbc_release(v);
-  SET_RETURN(ret);
+  SET_RETURN(val);
 }
 
 
@@ -462,7 +511,7 @@ static void c_hash_values(mrb_vm *vm, mrb_value v[], int argc)
 
 
 
-void mrbc_init_class_hash(mrb_vm *vm)
+void mrbc_init_class_hash(struct VM *vm)
 {
   mrbc_class_hash = mrbc_define_class(vm, "Hash", mrbc_class_object);
 
