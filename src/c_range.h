@@ -56,17 +56,17 @@ static inline int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2)
 //================================================================
 /*! get first value
 */
-static inline mrb_value * mrbc_range_first(const mrb_value *v)
+static inline mrb_value mrbc_range_first(const mrb_value *v)
 {
-  return &v->range->first;
+  return v->range->first;
 }
 
 //================================================================
 /*! get last value
 */
-static inline mrb_value * mrbc_range_last(const mrb_value *v)
+static inline mrb_value mrbc_range_last(const mrb_value *v)
 {
-  return &v->range->last;
+  return v->range->last;
 }
 
 //================================================================

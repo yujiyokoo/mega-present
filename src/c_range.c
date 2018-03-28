@@ -104,6 +104,28 @@ static void c_range_equal3(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
+//================================================================
+/*! (method) first
+*/
+static void c_range_first(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_range_first(v);
+  mrbc_release(v);
+  SET_RETURN(ret);
+}
+
+
+//================================================================
+/*! (method) last
+*/
+static void c_range_last(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_range_last(v);
+  mrbc_release(v);
+  SET_RETURN(ret);
+}
+
+
 
 //================================================================
 /*! initialize
@@ -113,4 +135,7 @@ void mrbc_init_class_range(mrb_vm *vm)
   mrbc_class_range = mrbc_define_class(vm, "Range", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_range, "===", c_range_equal3);
+  mrbc_define_method(vm, mrbc_class_range, "first", c_range_first);
+  mrbc_define_method(vm, mrbc_class_range, "last", c_range_last);
+
 }
