@@ -36,7 +36,7 @@ void mrbc_set_vm_id(void *ptr, int vm_id);
 int mrbc_get_vm_id(void *ptr);
 
 // for statistics or debug. (need #define MRBC_DEBUG)
-void mrbc_alloc_statistics(int *total, int *used, int *free, int *flagmentation);
+void mrbc_alloc_statistics(int *total, int *used, int *free, int *fragmentation);
 int mrbc_alloc_vm_used( int vm_id );
 
 #ifdef __cplusplus

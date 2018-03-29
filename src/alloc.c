@@ -593,14 +593,14 @@ int mrbc_get_vm_id(void *ptr)
   @param  *total	returns total memory.
   @param  *used		returns used memory.
   @param  *free		returns free memory.
-  @param  *flagment	returns memory flagmentation
+  @param  *fragment	returns memory fragmentation
 */
-void mrbc_alloc_statistics(int *total, int *used, int *free, int *flagmentation)
+void mrbc_alloc_statistics(int *total, int *used, int *free, int *fragmentation)
 {
   *total = memory_pool_size;
   *used = 0;
   *free = 0;
-  *flagmentation = 0;
+  *fragmentation = 0;
 
   USED_BLOCK *ptr = (USED_BLOCK *)memory_pool;
   int flag_used_free = ptr->f;
@@ -611,7 +611,7 @@ void mrbc_alloc_statistics(int *total, int *used, int *free, int *flagmentation)
       *used += ptr->size;
     }
     if( flag_used_free != ptr->f ) {
-      (*flagmentation)++;
+      (*fragmentation)++;
       flag_used_free = ptr->f;
     }
 
