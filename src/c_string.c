@@ -537,7 +537,7 @@ static void c_sprintf(mrb_vm *vm, mrb_value v[], int argc)
   }
   mrbc_printf_end( &pf );
 
-  buflen = mrbc_printf_len( &pf ) + 1;
+  buflen = mrbc_printf_len( &pf );
   mrbc_realloc(vm, pf.buf, buflen);
 
   mrb_value value = mrbc_string_new_alloc( vm, pf.buf, buflen );
