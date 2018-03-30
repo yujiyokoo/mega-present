@@ -1403,7 +1403,7 @@ inline static int op_tclass( mrb_vm *vm, uint32_t code, mrb_value *regs )
   @param  vm    A pointer of VM.
   @param  code  bytecode
   @param  regs  vm->regs + vm->reg_top
-  @retval 0  No error.
+  @retval -1  No error and exit from vm. 
 */
 inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
