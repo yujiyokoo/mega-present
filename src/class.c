@@ -70,9 +70,19 @@ void mrbc_p_sub(mrb_value *v)
     console_putchar(']');
   } break;
 
-  case MRB_TT_STRING:
-    console_printf("\"%s\"", mrbc_string_cstr(v));
-    break;
+  case MRB_TT_STRING:{
+    console_putchar('"');
+    const char *s = mrbc_string_cstr(v);
+    int i;
+    for( i = 0; i < mrbc_string_size(v); i++ ) {
+      if( s[i] < ' ' || 0x7f <= s[i] ) {	// tiny isprint()
+	console_printf("\\x%02x", s[i]);
+      } else {
+	console_putchar(s[i]);
+      }
+    }
+    console_putchar('"');
+  } break;
 
   case MRB_TT_RANGE:{
     mrb_value v1 = mrbc_range_first(v);
