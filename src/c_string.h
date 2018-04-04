@@ -42,9 +42,13 @@ mrb_value mrbc_string_new_cstr(struct VM *vm, const char *src);
 mrb_value mrbc_string_new_alloc(struct VM *vm, void *buf, int len);
 void mrbc_string_delete(mrb_value *str);
 void mrbc_string_clear_vm_id(mrb_value *str);
+mrb_value mrbc_string_dup(struct VM *vm, mrb_value *s1);
 mrb_value mrbc_string_add(struct VM *vm, mrb_value *s1, mrb_value *s2);
-int mrbc_string_append(struct VM *vm, mrb_value *s1, mrb_value *s2);
-void mrbc_init_class_string(mrb_vm *vm);
+int mrbc_string_append(mrb_value *s1, mrb_value *s2);
+int mrbc_string_index(mrb_value *src, mrb_value *pattern, int offset);
+int mrbc_string_strip(mrb_value *src, int mode);
+int mrbc_string_chomp(mrb_value *src);
+void mrbc_init_class_string(struct VM *vm);
 
 
 //================================================================
