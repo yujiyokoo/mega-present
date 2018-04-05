@@ -17,6 +17,7 @@
 #include <assert.h>
 
 #include "value.h"
+#include "vm.h"
 #include "alloc.h"
 #include "static.h"
 #include "class.h"
@@ -316,7 +317,7 @@ int mrbc_string_chomp(mrb_value *src)
 */
 static void c_string_add(mrb_vm *vm, mrb_value v[], int argc)
 {
-  if( GET_TT_ARG(1) != MRB_TT_STRING ) {
+  if( v[1].tt != MRB_TT_STRING ) {
     console_print( "Not support STRING + Other\n" );
     return;
   }
@@ -334,10 +335,10 @@ static void c_string_add(mrb_vm *vm, mrb_value v[], int argc)
 static void c_string_eql(mrb_vm *vm, mrb_value v[], int argc)
 {
   int result = 0;
-  if( GET_TT_ARG(1) != MRB_TT_STRING ) goto DONE;
+  if( v[1].tt != MRB_TT_STRING ) goto DONE;
 
-  mrb_string *h1 = GET_ARG(0).string;
-  mrb_string *h2 = GET_ARG(1).string;
+  mrb_string *h1 = v[0].string;
+  mrb_string *h2 = v[1].string;
 
   if( h1->size != h2->size ) goto DONE;	// false
   result = !memcmp(h1->data, h2->data, h1->size);
@@ -373,7 +374,7 @@ static void c_string_to_i(mrb_vm *vm, mrb_value v[], int argc)
 {
   int base = 10;
   if( argc ) {
-    base = GET_INT_ARG(1);
+    base = v[1].i;
     if( base < 2 || base > 36 ) {
       return;	// raise ? ArgumentError
     }
@@ -416,8 +417,8 @@ static void c_string_append(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_string_slice(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value *v1 = &GET_ARG(1);
-  mrb_value *v2 = &GET_ARG(2);
+  mrb_value *v1 = &v[1];
+  mrb_value *v2 = &v[2];
 
   /*
     in case of slice(nth) -> String | nil
@@ -495,22 +496,22 @@ static void c_string_insert(mrb_vm *vm, mrb_value v[], int argc)
     in case of self[nth] = val
   */
   if( argc == 2 &&
-      GET_TT_ARG(1) == MRB_TT_FIXNUM &&
-      GET_TT_ARG(2) == MRB_TT_STRING ) {
-    nth = GET_INT_ARG(1);
+      v[1].tt == MRB_TT_FIXNUM &&
+      v[2].tt == MRB_TT_STRING ) {
+    nth = v[1].i;
     len = 1;
-    val = &GET_ARG(2);
+    val = &v[2];
   }
   /*
     in case of self[nth, len] = val
   */
   else if( argc == 3 &&
-	   GET_TT_ARG(1) == MRB_TT_FIXNUM &&
-	   GET_TT_ARG(2) == MRB_TT_FIXNUM &&
-	   GET_TT_ARG(3) == MRB_TT_STRING ) {
-    nth = GET_INT_ARG(1);
-    len = GET_INT_ARG(2);
-    val = &GET_ARG(3);
+	   v[1].tt == MRB_TT_FIXNUM &&
+	   v[2].tt == MRB_TT_FIXNUM &&
+	   v[3].tt == MRB_TT_STRING ) {
+    nth = v[1].i;
+    len = v[2].i;
+    val = &v[3];
   }
   /*
     other cases
@@ -630,7 +631,7 @@ static void c_sprintf(mrb_vm *vm, mrb_value v[], int argc)
 {
   static const int BUF_INC_STEP = 32;	// bytes.
 
-  mrb_value *format = &GET_ARG(1);
+  mrb_value *format = &v[1];
   if( format->tt != MRB_TT_STRING ) {
     console_printf( "TypeError\n" );	// raise?
     return;
@@ -656,43 +657,43 @@ static void c_sprintf(mrb_vm *vm, mrb_value v[], int argc)
     // maybe ret == 1
     switch(pf.fmt.type) {
     case 'c':
-      if( GET_ARG(i).tt == MRB_TT_FIXNUM ) {
-	ret = mrbc_printf_char( &pf, GET_ARG(i).i );
+      if( v[i].tt == MRB_TT_FIXNUM ) {
+	ret = mrbc_printf_char( &pf, v[i].i );
       }
       break;
 
     case 's':
-      if( GET_ARG(i).tt == MRB_TT_STRING ) {
-	ret = mrbc_printf_str( &pf, mrbc_string_cstr( &GET_ARG(i) ), ' ');
+      if( v[i].tt == MRB_TT_STRING ) {
+	ret = mrbc_printf_str( &pf, mrbc_string_cstr( &v[i] ), ' ');
       }
       break;
 
     case 'd':
     case 'i':
     case 'u':
-      if( GET_ARG(i).tt == MRB_TT_FIXNUM ) {
-	ret = mrbc_printf_int( &pf, GET_ARG(i).i, 10);
+      if( v[i].tt == MRB_TT_FIXNUM ) {
+	ret = mrbc_printf_int( &pf, v[i].i, 10);
       } else
-	if( GET_ARG(i).tt == MRB_TT_FLOAT ) {
-	  ret = mrbc_printf_int( &pf, (int32_t)GET_ARG(i).d, 10);
+	if( v[i].tt == MRB_TT_FLOAT ) {
+	  ret = mrbc_printf_int( &pf, (int32_t)v[i].d, 10);
 	} else
-	  if( GET_ARG(i).tt == MRB_TT_STRING ) {
-	    int32_t ival = atol(mrbc_string_cstr(&GET_ARG(i)));
+	  if( v[i].tt == MRB_TT_STRING ) {
+	    int32_t ival = atol(mrbc_string_cstr(&v[i]));
 	    ret = mrbc_printf_int( &pf, ival, 10 );
 	  }
       break;
 
     case 'b':
     case 'B':
-      if( GET_ARG(i).tt == MRB_TT_FIXNUM ) {
-	ret = mrbc_printf_int( &pf, GET_ARG(i).i, 2);
+      if( v[i].tt == MRB_TT_FIXNUM ) {
+	ret = mrbc_printf_int( &pf, v[i].i, 2);
       }
       break;
 
     case 'x':
     case 'X':
-      if( GET_ARG(i).tt == MRB_TT_FIXNUM ) {
-	ret = mrbc_printf_int( &pf, GET_ARG(i).i, 16);
+      if( v[i].tt == MRB_TT_FIXNUM ) {
+	ret = mrbc_printf_int( &pf, v[i].i, 16);
       }
       break;
 
@@ -702,11 +703,11 @@ static void c_sprintf(mrb_vm *vm, mrb_value v[], int argc)
     case 'E':
     case 'g':
     case 'G':
-      if( GET_ARG(i).tt == MRB_TT_FLOAT ) {
-	ret = mrbc_printf_float( &pf, GET_ARG(i).d );
+      if( v[i].tt == MRB_TT_FLOAT ) {
+	ret = mrbc_printf_float( &pf, v[i].d );
       } else
-	if( GET_ARG(i).tt == MRB_TT_FIXNUM ) {
-	  ret = mrbc_printf_float( &pf, (double)GET_ARG(i).i );
+	if( v[i].tt == MRB_TT_FIXNUM ) {
+	  ret = mrbc_printf_float( &pf, (double)v[i].i );
 	}
       break;
 #endif
