@@ -196,7 +196,7 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_Bx(code);
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
 
-  mrb_sym sym_id = add_sym(sym);
+  mrb_sym sym_id = str_to_symid(sym);
 
   mrbc_release(&regs[ra]);
   regs[ra].tt = MRB_TT_SYMBOL;
@@ -311,7 +311,7 @@ inline static int op_getglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = add_sym(sym);
+  mrb_sym sym_id = str_to_symid(sym);
 
   mrbc_release(&regs[ra]);
   regs[ra] = global_object_get(sym_id);
@@ -336,7 +336,7 @@ inline static int op_setglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = add_sym(sym);
+  mrb_sym sym_id = str_to_symid(sym);
   global_object_add(sym_id, regs[ra]);
 
   return 0;
@@ -359,7 +359,7 @@ inline static int op_getconst( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = add_sym(sym);
+  mrb_sym sym_id = str_to_symid(sym);
 
   mrbc_release(&regs[ra]);
   regs[ra] = const_object_get(sym_id);
@@ -384,7 +384,7 @@ inline static int op_setconst( mrb_vm *vm, uint32_t code, mrb_value *regs ) {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = add_sym(sym);
+  mrb_sym sym_id = str_to_symid(sym);
   const_object_add(sym_id, &regs[ra]);
 
   return 0;
@@ -1334,7 +1334,7 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
     // sym_id : method name
     mrb_irep *cur_irep = vm->pc_irep;
     char *sym = find_irep_symbol(cur_irep->ptr_to_sym, rb);
-    int sym_id = add_sym( sym );
+    int sym_id = str_to_symid( sym );
 
     // check same name method
     mrb_proc *p = cls->procs;
@@ -1403,7 +1403,7 @@ inline static int op_tclass( mrb_vm *vm, uint32_t code, mrb_value *regs )
   @param  vm    A pointer of VM.
   @param  code  bytecode
   @param  regs  vm->regs + vm->reg_top
-  @retval -1  No error and exit from vm. 
+  @retval -1  No error and exit from vm.
 */
 inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {

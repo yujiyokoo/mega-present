@@ -40,11 +40,6 @@
 #define MAX_CLASS_COUNT 20
 #endif
 
-/* maximum size of symbol table */
-#ifndef MAX_SYMBOLS_SIZE
-#define MAX_SYMBOLS_SIZE 1024
-#endif
-
 /* maximum number of symbols */
 #ifndef MAX_SYMBOLS_COUNT
 #define MAX_SYMBOLS_COUNT 200

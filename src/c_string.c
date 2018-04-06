@@ -21,6 +21,7 @@
 #include "alloc.h"
 #include "static.h"
 #include "class.h"
+#include "symbol.h"
 #include "c_string.h"
 #include "console.h"
 
@@ -821,6 +822,19 @@ static void c_strip_self(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
+/*! (method) to_sym
+*/
+static void c_to_sym(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_symbol_new(vm, mrbc_string_cstr(&v[0]));
+
+  mrbc_release(v);
+  SET_RETURN(ret);
+}
+
+
+
+//================================================================
 /*! initialize
 */
 void mrbc_init_class_string(struct VM *vm)
@@ -848,6 +862,7 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "rstrip!",	c_rstrip_self);
   mrbc_define_method(vm, mrbc_class_object, "strip",	c_strip);
   mrbc_define_method(vm, mrbc_class_object, "strip!",	c_strip_self);
+  mrbc_define_method(vm, mrbc_class_object, "to_sym",	c_to_sym);
 
 #if MRBC_USE_FLOAT
   mrbc_define_method(vm, mrbc_class_string, "to_f",	c_string_to_f);

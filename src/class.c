@@ -26,7 +26,6 @@
 #include "c_hash.h"
 #include "c_numeric.h"
 #include "c_string.h"
-#include "c_symbol.h"
 #include "c_range.h"
 
 #include "c_ext.h"
@@ -253,7 +252,7 @@ mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrb_sym sym_id)
 mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
 {
   mrb_class *cls;
-  mrb_sym sym_id = add_sym(name);
+  mrb_sym sym_id = str_to_symid(name);
   mrb_object obj = const_object_get(sym_id);
 
   // create a new class?
@@ -419,12 +418,6 @@ static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
 
 // Object.debug
 #ifdef MRBC_DEBUG
-static void c_object_debug(mrb_vm *vm, mrb_value *v, int argc)
-{
-  debug_all_symbols();
-}
-
-
 static void c_object_instance_methods(mrb_vm *vm, mrb_value *v, int argc)
 {
   // TODO: check argument.
@@ -462,7 +455,6 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_object, "new", c_object_new);
 
 #ifdef MRBC_DEBUG
-  mrbc_define_method(vm, mrbc_class_object, "debug", c_object_debug);
   mrbc_define_method(vm, mrbc_class_object, "instance_methods", c_object_instance_methods);
   mrbc_define_method(vm, mrbc_class_object, "p", c_p);
 #endif
