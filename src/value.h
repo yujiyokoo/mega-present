@@ -216,6 +216,7 @@ static inline mrb_value mrb_fixnum_value( int32_t n )
 }
 
 
+#if MRBC_USE_FLOAT
 //================================================================
 /*!@brief
   Returns a float in mruby/c.
@@ -229,6 +230,7 @@ static inline mrb_value mrb_float_value( double n )
   value.d = n;
   return value;
 }
+#endif
 
 
 //================================================================
