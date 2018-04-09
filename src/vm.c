@@ -472,7 +472,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int bidx = ra + rc + 1;
   if( GET_OPCODE(code) == OP_SEND ){
     // OP_SEND: set nil
-    mrbc_dec_ref_counter( &regs[bidx] );
+    mrbc_release( &regs[bidx] );
     regs[bidx].tt = MRB_TT_NIL;
   } else {
     // OP_SENDB: set Proc objec
