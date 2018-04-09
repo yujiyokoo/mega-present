@@ -118,10 +118,10 @@ static inline void mrbc_printf_end( MrbcPrintf *pf )
 
 
 //================================================================
-/*! return buffer length
+/*! return string length in buffer
 
   @param  pf	pointer to MrbcPrintf
-  @return	buffer length
+  @return	length
 */
 static inline int mrbc_printf_len( MrbcPrintf *pf )
 {

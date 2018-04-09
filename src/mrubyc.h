@@ -30,7 +30,6 @@
 #include "c_numeric.h"
 #include "c_range.h"
 #include "c_string.h"
-#include "c_symbol.h"
 
 #include "load.h"
 #include "console.h"

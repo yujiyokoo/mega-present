@@ -43,7 +43,7 @@ mrb_proc *mrbc_rproc_alloc(mrb_vm *vm, const char *name)
   mrb_proc *ptr = (mrb_proc *)mrbc_alloc(vm, sizeof(mrb_proc));
   if( ptr ) {
     ptr->ref_count = 1;
-    ptr->sym_id = add_sym(name);
+    ptr->sym_id = str_to_symid(name);
 #ifdef MRBC_DEBUG
     ptr->names = name;	// for debug; delete soon.
 #endif
