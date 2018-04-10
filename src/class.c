@@ -33,6 +33,8 @@
 
 
 #ifdef MRBC_DEBUG
+int mrbc_puts_sub(mrb_value *v);
+
 //================================================================
 /*! p - sub function
  */
@@ -53,7 +55,7 @@ void mrbc_p_sub(mrb_value *v)
     break;
 
   case MRB_TT_SYMBOL:{
-    const char *s = symid_to_str( v->i );
+    const char *s = mrbc_symbol_cstr( v );
     char *fmt = strchr(s, ':') ? "\":%s\"" : ":%s";
     console_printf(fmt, s);
   } break;
@@ -114,9 +116,15 @@ void mrbc_p_sub(mrb_value *v)
 
 //================================================================
 /*! puts - sub function
+
+  @param  v	pointer to target value.
+  @retval 0	normal return.
+  @retval 1	already output LF.
  */
-void mrbc_puts_sub(mrb_value *v)
+int mrbc_puts_sub(mrb_value *v)
 {
+  int ret = 0;
+
   switch( v->tt ){
   case MRB_TT_NIL:					break;
   case MRB_TT_FALSE:	console_print("false");		break;
@@ -125,7 +133,7 @@ void mrbc_puts_sub(mrb_value *v)
   case MRB_TT_FLOAT:    console_printf("%g", v->d);	break;
 
   case MRB_TT_SYMBOL:
-    console_print(symid_to_str( v->i ));
+    console_print( mrbc_symbol_cstr( v ) );
     break;
 
   case MRB_TT_CLASS:
@@ -134,7 +142,7 @@ void mrbc_puts_sub(mrb_value *v)
 
   case MRB_TT_OBJECT:
     console_printf( "#<%s:%08x>",
-	symid_to_str( find_class_by_object(0,v)->sym_id ), v->instance);
+	symid_to_str( find_class_by_object(0,v)->sym_id ), v->instance );
     break;
 
   case MRB_TT_PROC:
@@ -150,9 +158,11 @@ void mrbc_puts_sub(mrb_value *v)
     }
   } break;
 
-  case MRB_TT_STRING:
-    console_print(mrbc_string_cstr(v));
-    break;
+  case MRB_TT_STRING: {
+    const char *s = mrbc_string_cstr(v);
+    console_print(s);
+    if( strlen(s) != 0 && s[strlen(s)-1] == '\n' ) ret = 1;
+  } break;
 
   case MRB_TT_RANGE:{
     mrb_value v1 = mrbc_range_first(v);
@@ -174,6 +184,8 @@ void mrbc_puts_sub(mrb_value *v)
     console_printf("MRB_TT_XX(%d)", v->tt);
     break;
   }
+
+  return ret;
 }
 
 
@@ -370,8 +382,7 @@ static void c_puts(mrb_vm *vm, mrb_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
-    mrbc_puts_sub( &v[i] );
-    console_putchar('\n');
+    if( mrbc_puts_sub( &v[i] ) == 0 ) console_putchar('\n');
   }
 }
 
