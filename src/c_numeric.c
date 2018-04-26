@@ -40,6 +40,16 @@ static void c_fixnum_bitref(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
+/*! (operator) unary -
+*/
+static void c_fixnum_negative(mrb_vm *vm, mrb_value v[], int argc)
+{
+  int32_t num = GET_INT_ARG(0);
+  SET_INT_RETURN( -num );
+}
+
+
+//================================================================
 /*! (operator) ** power
  */
 static void c_fixnum_power(mrb_vm *vm, mrb_value v[], int argc)
@@ -168,6 +178,16 @@ static void c_fixnum_rshift(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
+/*! (method) abs
+*/
+static void c_fixnum_abs(mrb_vm *vm, mrb_value v[], int argc)
+{
+  int32_t num = GET_INT_ARG(0);
+  SET_INT_RETURN( num < 0 ? -num : num );
+}
+
+
+//================================================================
 /*! (method) to_f
 */
 static void c_fixnum_to_f(mrb_vm *vm, mrb_value v[], int argc)
@@ -224,6 +244,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
   mrbc_class_fixnum = mrbc_define_class(vm, "Fixnum", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_fixnum, "[]", c_fixnum_bitref);
+  mrbc_define_method(vm, mrbc_class_fixnum, "-@", c_fixnum_negative);
   mrbc_define_method(vm, mrbc_class_fixnum, "**", c_fixnum_power);
   mrbc_define_method(vm, mrbc_class_fixnum, "%", c_fixnum_mod);
   mrbc_define_method(vm, mrbc_class_fixnum, "<=>", c_fixnum_comp);
@@ -233,6 +254,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_fixnum, "~", c_fixnum_not);
   mrbc_define_method(vm, mrbc_class_fixnum, "<<", c_fixnum_lshift);
   mrbc_define_method(vm, mrbc_class_fixnum, ">>", c_fixnum_rshift);
+  mrbc_define_method(vm, mrbc_class_fixnum, "abs", c_fixnum_abs);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_i", c_ineffect);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_f", c_fixnum_to_f);
 #if MRBC_USE_STRING
