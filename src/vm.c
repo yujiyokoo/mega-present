@@ -472,12 +472,15 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int bidx = ra + rc + 1;
   if( GET_OPCODE(code) == OP_SEND ){
     // OP_SEND: set nil
-    mrbc_dec_ref_counter( &regs[bidx] );
+    mrbc_release( &regs[bidx] );
     regs[bidx].tt = MRB_TT_NIL;
   } else {
     // OP_SENDB: set Proc objec
     if( regs[bidx].tt != MRB_TT_NIL && regs[bidx].tt != MRB_TT_PROC ){
-      // convert to Proc
+      // TODO: fix the following behavior
+      // convert to Proc ? 
+      // raise exceprion in mruby/c ? 
+      return 0;
     }
   }
 
@@ -490,14 +493,38 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
     return 0;
   }
 
+  // "call" method for block
+  // TODO: refactoring, because "call" and Ruby method calling are almost same
+  if( !strcmp(sym, "call") ){
+    // prepare call info
+    mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+    callinfo->reg_top = vm->reg_top;
+    callinfo->pc_irep = vm->pc_irep;
+    callinfo->pc = vm->pc;
+    callinfo->target_class = vm->target_class;
+    callinfo->n_args = rc;
+    callinfo->acc = ra;
+    vm->callinfo_top++;
+    
+    // target irep is PROC
+    vm->pc = 0;
+    vm->pc_irep = regs[ra].proc->irep;
+    
+    // new regs
+    vm->reg_top += ra;
+   
+    return 0;
+  }
+
+
   // m is C func
   if( m->c_func ) {
     m->func(vm, regs + ra, rc);
 
-    int r = ra + rc;
-    while( ra < r ) {
-      mrbc_release(&regs[r]);
-      r--;
+    int release_reg = ra+1;
+    while( release_reg <= bidx ) {
+      mrbc_release(&regs[release_reg]);
+      release_reg++;
     }
     return 0;
   }
@@ -510,6 +537,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->pc = vm->pc;
   callinfo->target_class = vm->target_class;
   callinfo->n_args = rc;
+  callinfo->acc = ra;
   vm->callinfo_top++;
 
   // target irep
@@ -538,8 +566,8 @@ inline static int op_enter( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 1;
   uint32_t enter_param = GETARG_Ax(code);
-  int def_args = (enter_param >> 13) & 0x1f;
-  int args = (enter_param >> 18) & 0x1f;
+  int def_args = (enter_param >> 13) & 0x1f;  // default args
+  int args = (enter_param >> 18) & 0x1f;      // given args
   if( def_args > 0 ){
     vm->pc += callinfo->n_args - args;
   }
@@ -562,12 +590,12 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   // return value
   int ra = GETARG_A(code);
-  if( ra != 0 ){
-    mrb_value v = regs[ra];
-    mrbc_dup(&v);
-    mrbc_release(&regs[0]);
-    regs[0] = v;
-  }
+  //  if( ra != 0 ){
+  mrb_value v = regs[ra];
+  mrbc_dup(&v);
+  mrbc_release(&regs[0]);
+  regs[0] = v;
+  //  }
   // restore irep,pc,regs
   vm->callinfo_top--;
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
@@ -602,9 +630,15 @@ inline static int op_blkpush( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
 
+  mrb_value *stack = regs + 1;
+
+  if( stack[0].tt == MRB_TT_NIL ){
+    return -1;  // EYIELD
+  }
+
   mrbc_release(&regs[ra]);
-  mrbc_dup(&regs[ra-1] );
-  regs[ra] = regs[ra-1];
+  mrbc_dup( stack );
+  regs[ra] = stack[0];
 
   return 0;
 }
