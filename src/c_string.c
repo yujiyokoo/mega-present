@@ -865,6 +865,7 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "strip",	c_strip);
   mrbc_define_method(vm, mrbc_class_object, "strip!",	c_strip_self);
   mrbc_define_method(vm, mrbc_class_object, "to_sym",	c_to_sym);
+  mrbc_define_method(vm, mrbc_class_object, "intern",	c_to_sym);
 
 #if MRBC_USE_FLOAT
   mrbc_define_method(vm, mrbc_class_string, "to_f",	c_string_to_f);
