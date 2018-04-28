@@ -383,6 +383,59 @@ int mrbc_array_compare(const mrb_value *v1, const mrb_value *v2)
 }
 
 
+//================================================================
+/*! method new
+*/
+static void c_array_new(mrb_vm *vm, mrb_value v[], int argc)
+{
+  /*
+    in case of new()
+  */
+  if( argc == 0 ) {
+    mrb_value ret = mrbc_array_new(vm, 0);
+    if( ret.array == NULL ) return;		// ENOMEM
+
+    SET_RETURN(ret);
+    return;
+  }
+
+  /*
+    in case of new(num)
+  */
+  if( argc == 1 && v[1].tt == MRB_TT_FIXNUM && v[1].i >= 0 ) {
+    mrb_value ret = mrbc_array_new(vm, v[1].i);
+    if( ret.array == NULL ) return;		// ENOMEM
+
+    mrb_value nil = mrb_nil_value();
+    if( v[1].i > 0 ) {
+      mrbc_array_set(&ret, v[1].i - 1, &nil);
+    }
+    SET_RETURN(ret);
+    return;
+  }
+
+  /*
+    in case of new(num, value)
+  */
+  if( argc == 2 && v[1].tt == MRB_TT_FIXNUM && v[1].i >= 0 ) {
+    mrb_value ret = mrbc_array_new(vm, v[1].i);
+    if( ret.array == NULL ) return;		// ENOMEM
+
+    int i;
+    for( i = 0; i < v[1].i; i++ ) {
+      mrbc_dup(&v[2]);
+      mrbc_array_set(&ret, i, &v[2]);
+    }
+    SET_RETURN(ret);
+    return;
+  }
+
+  /*
+    other case
+  */
+  console_print( "ArgumentError\n" );	// raise?
+}
+
 
 //================================================================
 /*! (operator) +
@@ -429,10 +482,10 @@ static void c_array_get(mrb_vm *vm, mrb_value v[], int argc)
     in case of self[nth] -> object | nil
   */
   if( argc == 1 && v[1].tt == MRB_TT_FIXNUM ) {
-    mrb_value val = mrbc_array_get(v, v[1].i);
-    mrbc_dup(&val);
+    mrb_value ret = mrbc_array_get(v, v[1].i);
+    mrbc_dup(&ret);
     mrbc_release(v);
-    SET_RETURN(val);
+    SET_RETURN(ret);
     return;
   }
 
@@ -440,13 +493,39 @@ static void c_array_get(mrb_vm *vm, mrb_value v[], int argc)
     in case of self[start, length] -> Array | nil
   */
   if( argc == 2 && v[1].tt == MRB_TT_FIXNUM && v[2].tt == MRB_TT_FIXNUM ) {
-    // TODO: not implement yet.
+    int len = mrbc_array_size(&v[0]);
+    int idx = v[1].i;
+    if( idx < 0 ) idx += len;
+    if( idx < 0 ) goto RETURN_NIL;
+
+    int size = (v[2].i < (len - idx)) ? v[2].i : (len - idx);
+					// min( v[2].i, (len - idx) )
+    if( size < 0 ) goto RETURN_NIL;
+
+    mrb_value ret = mrbc_array_new(vm, size);
+    if( ret.array == NULL ) return;		// ENOMEM
+
+    int i;
+    for( i = 0; i < size; i++ ) {
+      mrb_value val = mrbc_array_get(v, v[1].i + i);
+      mrbc_dup(&val);
+      mrbc_array_push(&ret, &val);
+    }
+
+    mrbc_release(v);
+    SET_RETURN(ret);
+    return;
   }
 
   /*
     other case
   */
   console_print( "Not support such case in Array#[].\n" );
+  return;
+
+ RETURN_NIL:
+  mrbc_release(v);
+  SET_NIL_RETURN();
 }
 
 
@@ -683,6 +762,7 @@ void mrbc_init_class_array(struct VM *vm)
 {
   mrbc_class_array = mrbc_define_class(vm, "Array", mrbc_class_object);
 
+  mrbc_define_method(vm, mrbc_class_array, "new", c_array_new);
   mrbc_define_method(vm, mrbc_class_array, "+", c_array_add);
   mrbc_define_method(vm, mrbc_class_array, "[]", c_array_get);
   mrbc_define_method(vm, mrbc_class_array, "at", c_array_get);
