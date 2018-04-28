@@ -198,6 +198,16 @@ static void c_fixnum_to_f(mrb_vm *vm, mrb_value v[], int argc)
 
 
 
+//================================================================
+/*! (method) times
+*/
+static void c_fixnum_times(mrb_vm *vm, mrb_value v[], int argc)
+{
+  
+}
+
+
+
 #if MRBC_USE_STRING
 //================================================================
 /*! (method) chr
@@ -257,6 +267,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_fixnum, "abs", c_fixnum_abs);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_i", c_ineffect);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_f", c_fixnum_to_f);
+  mrbc_define_method(vm, mrbc_class_fixnum, "times", c_fixnum_times);
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_fixnum, "chr", c_fixnum_chr);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_s", c_fixnum_to_s);

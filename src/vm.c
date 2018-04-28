@@ -88,6 +88,24 @@ static void not_supported(void)
 }
 
 
+
+//================================================================
+/*!@brief
+  
+
+*/
+static void mrbc_push_callinfo(mrb_vm *vm)
+{
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  callinfo->reg_top = vm->reg_top;
+  callinfo->pc_irep = vm->pc_irep;
+  callinfo->pc = vm->pc;
+  callinfo->target_class = vm->target_class;
+  vm->callinfo_top++;
+}
+
+
+
 //================================================================
 /*!@brief
   Execute OP_NOP
@@ -510,7 +528,6 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
     callinfo->pc = vm->pc;
     callinfo->target_class = vm->target_class;
     callinfo->n_args = rc;
-    callinfo->acc = ra;
     vm->callinfo_top++;
 
     // target irep is PROC
@@ -544,7 +561,6 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   callinfo->pc = vm->pc;
   callinfo->target_class = vm->target_class;
   callinfo->n_args = rc;
-  callinfo->acc = ra;
   vm->callinfo_top++;
 
   // target irep

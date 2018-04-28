@@ -54,7 +54,6 @@ typedef struct CALLINFO {
   uint16_t  reg_top;
   mrb_class *target_class;
   uint8_t   n_args;     // num of args
-  uint8_t   acc;        // ra
 } mrb_callinfo;
 
 
