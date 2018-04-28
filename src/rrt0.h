@@ -47,27 +47,26 @@ enum MrbcTaskReason {
 /***** Macros ***************************************************************/
 /***** Typedefs *************************************************************/
 
-struct MrbcMutex;
+struct RMutex;
 
 //================================================
 /*!@brief
   Task control block
 */
-typedef struct MrbcTcb {
-  struct MrbcTcb *next;
-  uint8_t         priority;
-  uint8_t         priority_preemption;
-  uint8_t         timeslice;
-  uint8_t         state;   //!< enum MrbcTaskState
-  uint8_t         reason;  //!< SLEEP, MUTEX
-                           // TODO: readonは、stateの上位4bitにアサインするか
-			   //	    もしくはstateへ展開したい。
+typedef struct RTcb {
+  struct RTcb *next;
+  uint8_t priority;
+  uint8_t priority_preemption;
+  uint8_t timeslice;
+  uint8_t state;	//!< enum MrbcTaskState
+  uint8_t reason;	//!< SLEEP, MUTEX
+
   union {
     uint32_t wakeup_tick;
-    struct MrbcMutex *mutex;
+    struct RMutex *mutex;
   };
   struct VM vm;
-} MrbcTcb;
+} mrb_tcb;
 
 
 
@@ -75,10 +74,10 @@ typedef struct MrbcTcb {
 /*!@brief
   Mutex
 */
-typedef struct MrbcMutex {
+typedef struct RMutex {
   volatile int lock;
-  struct MrbcTcb *tcb;
-} MrbcMutex;
+  struct RTcb *tcb;
+} mrb_mutex;
 
 #define MRBC_MUTEX_INITIALIZER { 0 }
 
@@ -87,19 +86,19 @@ typedef struct MrbcMutex {
 /***** Function prototypes **************************************************/
 void mrbc_tick(void);
 void mrbc_init(uint8_t *ptr, unsigned int size);
-void mrbc_init_tcb(MrbcTcb *tcb);
-MrbcTcb *mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb);
-int mrbc_start_task(MrbcTcb *tcb);
+void mrbc_init_tcb(mrb_tcb *tcb);
+mrb_tcb *mrbc_create_task(const uint8_t *vm_code, mrb_tcb *tcb);
+int mrbc_start_task(mrb_tcb *tcb);
 int mrbc_run(void);
-void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms);
-void mrbc_relinquish(MrbcTcb *tcb);
-void mrbc_change_priority(MrbcTcb *tcb, int priority);
-void mrbc_suspend_task(MrbcTcb *tcb);
-void mrbc_resume_task(MrbcTcb *tcb);
-MrbcMutex *mrbc_mutex_init(MrbcMutex *mutex);
-int mrbc_mutex_lock(MrbcMutex *mutex, MrbcTcb *tcb);
-int mrbc_mutex_unlock(MrbcMutex *mutex, MrbcTcb *tcb);
-int mrbc_mutex_trylock(MrbcMutex *mutex, MrbcTcb *tcb);
+void mrbc_sleep_ms(mrb_tcb *tcb, uint32_t ms);
+void mrbc_relinquish(mrb_tcb *tcb);
+void mrbc_change_priority(mrb_tcb *tcb, int priority);
+void mrbc_suspend_task(mrb_tcb *tcb);
+void mrbc_resume_task(mrb_tcb *tcb);
+mrb_mutex *mrbc_mutex_init(mrb_mutex *mutex);
+int mrbc_mutex_lock(mrb_mutex *mutex, mrb_tcb *tcb);
+int mrbc_mutex_unlock(mrb_mutex *mutex, mrb_tcb *tcb);
+int mrbc_mutex_trylock(mrb_mutex *mutex, mrb_tcb *tcb);
 
 /***** Inline functions *****************************************************/
 

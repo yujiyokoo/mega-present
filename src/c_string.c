@@ -642,13 +642,13 @@ static void c_sprintf(mrb_vm *vm, mrb_value v[], int argc)
   char *buf = mrbc_alloc(vm, buflen);
   if( !buf ) { return; }	// ENOMEM raise?
 
-  MrbcPrintf pf;
+  mrb_printf pf;
   mrbc_printf_init( &pf, buf, buflen, mrbc_string_cstr(format) );
 
   int i = 2;
   int ret;
   while( 1 ) {
-    MrbcPrintf pf_bak = pf;
+    mrb_printf pf_bak = pf;
     ret = mrbc_printf_main( &pf );
     if( ret == 0 ) break;	// normal break loop.
     if( ret < 0 ) goto INCREASE_BUFFER;

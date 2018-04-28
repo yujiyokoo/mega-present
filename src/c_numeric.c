@@ -224,7 +224,7 @@ static void c_fixnum_to_s(mrb_vm *vm, mrb_value v[], int argc)
     }
   }
 
-  MrbcPrintf pf;
+  mrb_printf pf;
   char buf[16];
   mrbc_printf_init( &pf, buf, sizeof(buf), NULL );
   pf.fmt.type = 'd';

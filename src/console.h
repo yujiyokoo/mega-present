@@ -27,13 +27,13 @@ extern "C" {
 //================================================================
 /*! printf tiny (mruby/c) version data container.
 */
-typedef struct MrbcPrintf {
+typedef struct RPrintf {
   char *buf;		//!< output buffer.
   const char *buf_end;	//!< output buffer end point.
   char *p;		//!< output buffer write point.
   const char *fstr;	//!< format string. (e.g. "%d %03x")
 
-  struct MrbcPrintfFormat {
+  struct RPrintfFormat {
     char type;				//!< format char. (e.g. 'd','f','x'...)
     unsigned int flag_plus : 1;
     unsigned int flag_minus : 1;
@@ -42,17 +42,17 @@ typedef struct MrbcPrintf {
     int width;				//!< display width. (e.g. %10d as 10)
     int precision;			//!< precision (e.g. %5.2f as 2)
   } fmt;
-} MrbcPrintf;
+} mrb_printf;
 
 
 
 void console_printf(const char *fstr, ...);
-int mrbc_printf_main(MrbcPrintf *pf);
-int mrbc_printf_char(MrbcPrintf *pf, int ch);
-int mrbc_printf_str(MrbcPrintf *pf, const char *str, int pad);
-int mrbc_printf_int(MrbcPrintf *pf, int32_t value, int base);
-int mrbc_printf_float( MrbcPrintf *pf, double value );
-void mrbc_printf_replace_buffer(MrbcPrintf *pf, char *buf, int size);
+int mrbc_printf_main(mrb_printf *pf);
+int mrbc_printf_char(mrb_printf *pf, int ch);
+int mrbc_printf_str(mrb_printf *pf, const char *str, int pad);
+int mrbc_printf_int(mrb_printf *pf, int32_t value, int base);
+int mrbc_printf_float( mrb_printf *pf, double value );
+void mrbc_printf_replace_buffer(mrb_printf *pf, char *buf, int size);
 
 
 //================================================================
@@ -80,27 +80,27 @@ static inline void console_print(const char *str)
 //================================================================
 /*! initialize data container.
 
-  @param  pf	pointer to MrbcPrintf
+  @param  pf	pointer to mrb_printf
   @param  buf	pointer to output buffer.
   @param  size	buffer size.
   @param  fstr	format string.
 */
-static inline void mrbc_printf_init( MrbcPrintf *pf, char *buf, int size,
+static inline void mrbc_printf_init( mrb_printf *pf, char *buf, int size,
 				     const char *fstr )
 {
   pf->p = pf->buf = buf;
   pf->buf_end = buf + size - 1;
   pf->fstr = fstr;
-  pf->fmt = (struct MrbcPrintfFormat){0};
+  pf->fmt = (struct RPrintfFormat){0};
 }
 
 
 //================================================================
 /*! clear output buffer in container.
 
-  @param  pf	pointer to MrbcPrintf
+  @param  pf	pointer to mrb_printf
 */
-static inline void mrbc_printf_clear( MrbcPrintf *pf )
+static inline void mrbc_printf_clear( mrb_printf *pf )
 {
   pf->p = pf->buf;
 }
@@ -109,9 +109,9 @@ static inline void mrbc_printf_clear( MrbcPrintf *pf )
 //================================================================
 /*! terminate ('\0') output buffer.
 
-  @param  pf	pointer to MrbcPrintf
+  @param  pf	pointer to mrb_printf
 */
-static inline void mrbc_printf_end( MrbcPrintf *pf )
+static inline void mrbc_printf_end( mrb_printf *pf )
 {
   *pf->p = '\0';
 }
@@ -120,10 +120,10 @@ static inline void mrbc_printf_end( MrbcPrintf *pf )
 //================================================================
 /*! return string length in buffer
 
-  @param  pf	pointer to MrbcPrintf
+  @param  pf	pointer to mrb_printf
   @return	length
 */
-static inline int mrbc_printf_len( MrbcPrintf *pf )
+static inline int mrbc_printf_len( mrb_printf *pf )
 {
   return pf->p - pf->buf;
 }

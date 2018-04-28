@@ -39,17 +39,17 @@ const int TIMESLICE_TICK = 10; // 10 * 1ms(HardwareTimer)  255 max
 #define MRBC_SCHEDULER_EXIT 0
 #endif
 
-#define VM2TCB(p) ((MrbcTcb *)((uint8_t *)p - offsetof(MrbcTcb, vm)))
+#define VM2TCB(p) ((mrb_tcb *)((uint8_t *)p - offsetof(mrb_tcb, vm)))
 #define MRBC_MUTEX_TRACE(...) ((void)0)
 
 
 /***** Typedefs *************************************************************/
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
-static MrbcTcb *q_dormant_;
-static MrbcTcb *q_ready_;
-static MrbcTcb *q_waiting_;
-static MrbcTcb *q_suspended_;
+static mrb_tcb *q_dormant_;
+static mrb_tcb *q_ready_;
+static mrb_tcb *q_waiting_;
+static mrb_tcb *q_suspended_;
 static volatile uint32_t tick_;
 
 
@@ -68,9 +68,9 @@ static volatile uint32_t tick_;
   挿入するTCBとQueueに同じpriority_preemption値がある場合は、同値の最後に挿入される。
 
  */
-static void q_insert_task(MrbcTcb *p_tcb)
+static void q_insert_task(mrb_tcb *p_tcb)
 {
-  MrbcTcb **pp_q;
+  mrb_tcb **pp_q;
 
   switch( p_tcb->state ) {
   case TASKSTATE_DORMANT: pp_q   = &q_dormant_; break;
@@ -93,7 +93,7 @@ static void q_insert_task(MrbcTcb *p_tcb)
   }
 
   // find insert point in sorted linked list.
-  MrbcTcb *p = *pp_q;
+  mrb_tcb *p = *pp_q;
   while( 1 ) {
     if((p->next == NULL) ||
        (p_tcb->priority_preemption < p->next->priority_preemption)) {
@@ -116,9 +116,9 @@ static void q_insert_task(MrbcTcb *p_tcb)
   Queueからタスク(TCB)を取り除く。
 
  */
-static void q_delete_task(MrbcTcb *p_tcb)
+static void q_delete_task(mrb_tcb *p_tcb)
 {
-  MrbcTcb **pp_q;
+  mrb_tcb **pp_q;
 
   switch( p_tcb->state ) {
   case TASKSTATE_DORMANT: pp_q   = &q_dormant_; break;
@@ -138,7 +138,7 @@ static void q_delete_task(MrbcTcb *p_tcb)
     return;
   }
 
-  MrbcTcb *p = *pp_q;
+  mrb_tcb *p = *pp_q;
   while( p ) {
     if( p->next == p_tcb ) {
       p->next     = p_tcb->next;
@@ -157,7 +157,7 @@ static void q_delete_task(MrbcTcb *p_tcb)
 */
 static void c_sleep(mrb_vm *vm, mrb_value *v, int argc)
 {
-  MrbcTcb *tcb = VM2TCB(vm);
+  mrb_tcb *tcb = VM2TCB(vm);
 
   if( argc == 0 ) {
     mrbc_suspend_task(tcb);
@@ -185,7 +185,7 @@ static void c_sleep(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_sleep_ms(mrb_vm *vm, mrb_value *v, int argc)
 {
-  MrbcTcb *tcb = VM2TCB(vm);
+  mrb_tcb *tcb = VM2TCB(vm);
 
   mrbc_sleep_ms(tcb, GET_INT_ARG(1));
 }
@@ -197,7 +197,7 @@ static void c_sleep_ms(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_relinquish(mrb_vm *vm, mrb_value *v, int argc)
 {
-  MrbcTcb *tcb = VM2TCB(vm);
+  mrb_tcb *tcb = VM2TCB(vm);
 
   mrbc_relinquish(tcb);
 }
@@ -209,7 +209,7 @@ static void c_relinquish(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_change_priority(mrb_vm *vm, mrb_value *v, int argc)
 {
-  MrbcTcb *tcb = VM2TCB(vm);
+  mrb_tcb *tcb = VM2TCB(vm);
 
   mrbc_change_priority(tcb, GET_INT_ARG(1));
 }
@@ -222,13 +222,13 @@ static void c_change_priority(mrb_vm *vm, mrb_value *v, int argc)
 static void c_suspend_task(mrb_vm *vm, mrb_value *v, int argc)
 {
   if( argc == 0 ) {
-    MrbcTcb *tcb = VM2TCB(vm);
+    mrb_tcb *tcb = VM2TCB(vm);
     mrbc_suspend_task(tcb);	// suspend self.
     return;
   }
 
   if( v[1].tt != MRB_TT_HANDLE ) return;	// error.
-  mrbc_suspend_task( (MrbcTcb *)(v[1].handle) );
+  mrbc_suspend_task( (mrb_tcb *)(v[1].handle) );
 }
 
 
@@ -239,7 +239,7 @@ static void c_suspend_task(mrb_vm *vm, mrb_value *v, int argc)
 static void c_resume_task(mrb_vm *vm, mrb_value *v, int argc)
 {
   if( v[1].tt != MRB_TT_HANDLE ) return;	// error.
-  mrbc_resume_task( (MrbcTcb *)(v[1].handle) );
+  mrbc_resume_task( (mrb_tcb *)(v[1].handle) );
 }
 
 
@@ -249,7 +249,7 @@ static void c_resume_task(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_get_tcb(mrb_vm *vm, mrb_value *v, int argc)
 {
-  MrbcTcb *tcb = VM2TCB(vm);
+  mrb_tcb *tcb = VM2TCB(vm);
 
   mrb_value value = {.tt = MRB_TT_HANDLE};
   value.handle = (void*)tcb;
@@ -264,10 +264,10 @@ static void c_get_tcb(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_mutex_new(mrb_vm *vm, mrb_value *v, int argc)
 {
-  *v = mrbc_instance_new(vm, v->cls, sizeof(MrbcMutex));
+  *v = mrbc_instance_new(vm, v->cls, sizeof(mrb_mutex));
   if( !v->instance ) return;
 
-  mrbc_mutex_init( (MrbcMutex *)(v->instance->data) );
+  mrbc_mutex_init( (mrb_mutex *)(v->instance->data) );
 }
 
 
@@ -277,7 +277,7 @@ static void c_mutex_new(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_mutex_lock(mrb_vm *vm, mrb_value *v, int argc)
 {
-  int r = mrbc_mutex_lock( (MrbcMutex *)v->instance->data, VM2TCB(vm) );
+  int r = mrbc_mutex_lock( (mrb_mutex *)v->instance->data, VM2TCB(vm) );
   if( r == 0 ) return;  // return self
 
   // raise ThreadError
@@ -291,7 +291,7 @@ static void c_mutex_lock(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_mutex_unlock(mrb_vm *vm, mrb_value *v, int argc)
 {
-  int r = mrbc_mutex_unlock( (MrbcMutex *)v->instance->data, VM2TCB(vm) );
+  int r = mrbc_mutex_unlock( (mrb_mutex *)v->instance->data, VM2TCB(vm) );
   if( r == 0 ) return;  // return self
 
   // raise ThreadError
@@ -305,7 +305,7 @@ static void c_mutex_unlock(mrb_vm *vm, mrb_value *v, int argc)
 */
 static void c_mutex_trylock(mrb_vm *vm, mrb_value *v, int argc)
 {
-  int r = mrbc_mutex_trylock( (MrbcMutex *)v->instance->data, VM2TCB(vm) );
+  int r = mrbc_mutex_trylock( (mrb_mutex *)v->instance->data, VM2TCB(vm) );
   if( r == 0 ) {
     SET_TRUE_RETURN();
   } else {
@@ -323,7 +323,7 @@ static void c_mutex_trylock(mrb_vm *vm, mrb_value *v, int argc)
 */
 void mrbc_tick(void)
 {
-  MrbcTcb *tcb;
+  mrb_tcb *tcb;
   int flag_preemption = 0;
 
   tick_++;
@@ -340,7 +340,7 @@ void mrbc_tick(void)
   // 待ちタスクキューから、ウェイクアップすべきタスクを探す
   tcb = q_waiting_;
   while( tcb != NULL ) {
-    MrbcTcb *t = tcb;
+    mrb_tcb *t = tcb;
     tcb = tcb->next;
 
     if( t->reason == TASKREASON_SLEEP && t->wakeup_tick == tick_ ) {
@@ -395,12 +395,12 @@ void mrbc_init(uint8_t *ptr, unsigned int size )
 
 
 //================================================================
-/*! dinamic initializer of MrbcTcb
+/*! dinamic initializer of mrb_tcb
 
 */
-void mrbc_init_tcb(MrbcTcb *tcb)
+void mrbc_init_tcb(mrb_tcb *tcb)
 {
-  memset(tcb, 0, sizeof(MrbcTcb));
+  memset(tcb, 0, sizeof(mrb_tcb));
   tcb->priority = 128;
   tcb->priority_preemption = 128;
   tcb->state = TASKSTATE_READY;
@@ -412,15 +412,15 @@ void mrbc_init_tcb(MrbcTcb *tcb)
 
   @param        vm_code pointer of VM byte code.
   @param        tcb	Task control block with parameter, or NULL.
-  @retval       Pointer of MrbcTcb.
+  @retval       Pointer of mrb_tcb.
   @retval       NULL is error.
 
 */
-MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
+mrb_tcb* mrbc_create_task(const uint8_t *vm_code, mrb_tcb *tcb)
 {
   // allocate Task Control Block
   if( tcb == NULL ) {
-    tcb = (MrbcTcb*)mrbc_raw_alloc( sizeof(MrbcTcb) );
+    tcb = (mrb_tcb*)mrbc_raw_alloc( sizeof(mrb_tcb) );
     if( tcb == NULL ) return NULL;	// ENOMEM
 
     mrbc_init_tcb( tcb );
@@ -457,7 +457,7 @@ MrbcTcb* mrbc_create_task(const uint8_t *vm_code, MrbcTcb *tcb)
   @param	tcb	Task control block with parameter, or NULL.
   @retval	int	zero / no error.
 */
-int mrbc_start_task(MrbcTcb *tcb)
+int mrbc_start_task(mrb_tcb *tcb)
 {
   if( tcb->state != TASKSTATE_DORMANT ) return -1;
   tcb->timeslice           = TIMESLICE_TICK;
@@ -466,7 +466,7 @@ int mrbc_start_task(MrbcTcb *tcb)
 
   hal_disable_irq();
 
-  MrbcTcb *t = q_ready_;
+  mrb_tcb *t = q_ready_;
   while( t != NULL ) {
     if( t->state == TASKSTATE_RUNNING ) t->vm.flag_preemption = 1;
     t = t->next;
@@ -488,7 +488,7 @@ int mrbc_start_task(MrbcTcb *tcb)
 int mrbc_run(void)
 {
   while( 1 ) {
-    MrbcTcb *tcb = q_ready_;
+    mrb_tcb *tcb = q_ready_;
     if( tcb == NULL ) {
       // 実行すべきタスクなし
       hal_idle_cpu();
@@ -552,7 +552,7 @@ int mrbc_run(void)
 /*! 実行一時停止
 
 */
-void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms)
+void mrbc_sleep_ms(mrb_tcb *tcb, uint32_t ms)
 {
   hal_disable_irq();
   q_delete_task(tcb);
@@ -571,7 +571,7 @@ void mrbc_sleep_ms(MrbcTcb *tcb, uint32_t ms)
 /*! 実行権を手放す
 
 */
-void mrbc_relinquish(MrbcTcb *tcb)
+void mrbc_relinquish(mrb_tcb *tcb)
 {
   tcb->timeslice           = 0;
   tcb->vm.flag_preemption = 1;
@@ -582,7 +582,7 @@ void mrbc_relinquish(MrbcTcb *tcb)
 /*! プライオリティーの変更
   TODO: No check, yet.
 */
-void mrbc_change_priority(MrbcTcb *tcb, int priority)
+void mrbc_change_priority(mrb_tcb *tcb, int priority)
 {
   tcb->priority            = (uint8_t)priority;
   tcb->priority_preemption = (uint8_t)priority;
@@ -595,7 +595,7 @@ void mrbc_change_priority(MrbcTcb *tcb, int priority)
 /*! 実行停止
 
 */
-void mrbc_suspend_task(MrbcTcb *tcb)
+void mrbc_suspend_task(mrb_tcb *tcb)
 {
   hal_disable_irq();
   q_delete_task(tcb);
@@ -611,11 +611,11 @@ void mrbc_suspend_task(MrbcTcb *tcb)
 /*! 実行再開
 
 */
-void mrbc_resume_task(MrbcTcb *tcb)
+void mrbc_resume_task(mrb_tcb *tcb)
 {
   hal_disable_irq();
 
-  MrbcTcb *t = q_ready_;
+  mrb_tcb *t = q_ready_;
   while( t != NULL ) {
     if( t->state == TASKSTATE_RUNNING ) t->vm.flag_preemption = 1;
     t = t->next;
@@ -632,14 +632,14 @@ void mrbc_resume_task(MrbcTcb *tcb)
 /*! mutex initialize
 
 */
-MrbcMutex * mrbc_mutex_init( MrbcMutex *mutex )
+mrb_mutex * mrbc_mutex_init( mrb_mutex *mutex )
 {
   if( mutex == NULL ) {
-    mutex = (MrbcMutex*)mrbc_raw_alloc( sizeof(MrbcMutex) );
+    mutex = (mrb_mutex*)mrbc_raw_alloc( sizeof(mrb_mutex) );
     if( mutex == NULL ) return NULL;	// ENOMEM
   }
 
-  static const MrbcMutex init_val = MRBC_MUTEX_INITIALIZER;
+  static const mrb_mutex init_val = MRBC_MUTEX_INITIALIZER;
   *mutex = init_val;
 
   return mutex;
@@ -650,7 +650,7 @@ MrbcMutex * mrbc_mutex_init( MrbcMutex *mutex )
 /*! mutex lock
 
 */
-int mrbc_mutex_lock( MrbcMutex *mutex, MrbcTcb *tcb )
+int mrbc_mutex_lock( mrb_mutex *mutex, mrb_tcb *tcb )
 {
   MRBC_MUTEX_TRACE("mutex lock / MUTEX: %p TCB: %p",  mutex, tcb );
 
@@ -692,7 +692,7 @@ int mrbc_mutex_lock( MrbcMutex *mutex, MrbcTcb *tcb )
 /*! mutex unlock
 
 */
-int mrbc_mutex_unlock( MrbcMutex *mutex, MrbcTcb *tcb )
+int mrbc_mutex_unlock( mrb_mutex *mutex, mrb_tcb *tcb )
 {
   MRBC_MUTEX_TRACE("mutex unlock / MUTEX: %p TCB: %p\n",  mutex, tcb );
 
@@ -740,7 +740,7 @@ int mrbc_mutex_unlock( MrbcMutex *mutex, MrbcTcb *tcb )
 /*! mutex trylock
 
 */
-int mrbc_mutex_trylock( MrbcMutex *mutex, MrbcTcb *tcb )
+int mrbc_mutex_trylock( mrb_mutex *mutex, mrb_tcb *tcb )
 {
   MRBC_MUTEX_TRACE("mutex try lock / MUTEX: %p TCB: %p",  mutex, tcb );
 
@@ -771,9 +771,9 @@ int mrbc_mutex_trylock( MrbcMutex *mutex, MrbcTcb *tcb )
 /*! DEBUG print queue
 
  */
-void pq(MrbcTcb *p_tcb)
+void pq(mrb_tcb *p_tcb)
 {
-  MrbcTcb *p;
+  mrb_tcb *p;
 
   p = p_tcb;
   while( p != NULL ) {

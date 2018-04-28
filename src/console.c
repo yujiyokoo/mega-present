@@ -32,7 +32,7 @@ void console_printf(const char *fstr, ...)
   va_list ap;
   va_start(ap, fstr);
 
-  MrbcPrintf pf;
+  mrb_printf pf;
   char buf[82];
   mrbc_printf_init( &pf, buf, sizeof(buf), fstr );
 
@@ -98,16 +98,16 @@ void console_printf(const char *fstr, ...)
 //================================================================
 /*! sprintf subcontract function
 
-  @param  pf	pointer to MrbcPrintf
+  @param  pf	pointer to mrb_printf
   @retval 0	(format string) done.
   @retval 1	found a format identifier.
   @retval -1	buffer full.
   @note		not terminate ('\0') buffer tail.
 */
-int mrbc_printf_main( MrbcPrintf *pf )
+int mrbc_printf_main( mrb_printf *pf )
 {
   int ch = -1;
-  pf->fmt = (struct MrbcPrintfFormat){0};
+  pf->fmt = (struct RPrintfFormat){0};
 
   while( pf->p < pf->buf_end && (ch = *pf->fstr) != '\0' ) {
     pf->fstr++;
@@ -159,13 +159,13 @@ int mrbc_printf_main( MrbcPrintf *pf )
 //================================================================
 /*! sprintf subcontract function for char '%c'
 
-  @param  pf	pointer to MrbcPrintf
+  @param  pf	pointer to mrb_printf
   @param  ch	output character (ASCII)
   @retval 0	done.
   @retval -1	buffer full.
   @note		not terminate ('\0') buffer tail.
 */
-int mrbc_printf_char( MrbcPrintf *pf, int ch )
+int mrbc_printf_char( mrb_printf *pf, int ch )
 {
   if( pf->fmt.flag_minus ) {
     if( pf->p == pf->buf_end ) return -1;
@@ -191,14 +191,14 @@ int mrbc_printf_char( MrbcPrintf *pf, int ch )
 //================================================================
 /*! sprintf subcontract function for char '%s'
 
-  @param  pf	pointer to MrbcPrintf.
+  @param  pf	pointer to mrb_printf.
   @param  str	output string.
   @param  pad	padding character.
   @retval 0	done.
   @retval -1	buffer full.
   @note		not terminate ('\0') buffer tail.
 */
-int mrbc_printf_str( MrbcPrintf *pf, const char *str, int pad )
+int mrbc_printf_str( mrb_printf *pf, const char *str, int pad )
 {
   int ret = 0;
 
@@ -241,14 +241,14 @@ int mrbc_printf_str( MrbcPrintf *pf, const char *str, int pad )
 //================================================================
 /*! sprintf subcontract function for integer '%d' '%x' '%b'
 
-  @param  pf	pointer to MrbcPrintf.
+  @param  pf	pointer to mrb_printf.
   @param  value	output value.
   @param  base	n base.
   @retval 0	done.
   @retval -1	buffer full.
   @note		not terminate ('\0') buffer tail.
 */
-int mrbc_printf_int( MrbcPrintf *pf, int32_t value, int base )
+int mrbc_printf_int( mrb_printf *pf, int32_t value, int base )
 {
   int sign = 0;
   uint32_t v = (uint32_t)value;
@@ -303,12 +303,12 @@ int mrbc_printf_int( MrbcPrintf *pf, int32_t value, int base )
 //================================================================
 /*! sprintf subcontract function for float(double) '%f'
 
-  @param  pf	pointer to MrbcPrintf.
+  @param  pf	pointer to mrb_printf.
   @param  value	output value.
   @retval 0	done.
   @retval -1	buffer full.
 */
-int mrbc_printf_float( MrbcPrintf *pf, double value )
+int mrbc_printf_float( mrb_printf *pf, double value )
 {
   char fstr[16];
   const char *p1 = pf->fstr;
@@ -332,11 +332,11 @@ int mrbc_printf_float( MrbcPrintf *pf, double value )
 //================================================================
 /*! replace output buffer
 
-  @param  pf	pointer to MrbcPrintf
+  @param  pf	pointer to mrb_printf
   @param  buf	pointer to output buffer.
   @param  size	buffer size.
 */
-void mrbc_printf_replace_buffer(MrbcPrintf *pf, char *buf, int size)
+void mrbc_printf_replace_buffer(mrb_printf *pf, char *buf, int size)
 {
   int p_ofs = pf->p - pf->buf;
   pf->buf = buf;

@@ -117,7 +117,7 @@ mrb_value * mrbc_hash_search(const mrb_value *hash, const mrb_value *key)
 #endif
 
 #ifdef MRBC_HASH_SEARCH_LINER_ITERATOR
-  MrbcHashIterator ite = mrbc_hash_iterator(hash);
+  mrb_hash_iterator ite = mrbc_hash_iterator(hash);
   while( mrbc_hash_i_has_next(&ite) ) {
     mrb_value *v = mrbc_hash_i_next(&ite);
     if( mrbc_eq( v, key ) ) return v;
