@@ -470,18 +470,25 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // Block param
   int bidx = ra + rc + 1;
-  if( GET_OPCODE(code) == OP_SEND ){
-    // OP_SEND: set nil
+  switch( GET_OPCODE(code) ) {
+  case OP_SEND:
+    // set nil
     mrbc_release( &regs[bidx] );
     regs[bidx].tt = MRB_TT_NIL;
-  } else {
-    // OP_SENDB: set Proc objec
+    break;
+
+  case OP_SENDB:
+    // set Proc object
     if( regs[bidx].tt != MRB_TT_NIL && regs[bidx].tt != MRB_TT_PROC ){
       // TODO: fix the following behavior
-      // convert to Proc ? 
-      // raise exceprion in mruby/c ? 
+      // convert to Proc ?
+      // raise exceprion in mruby/c ?
       return 0;
     }
+    break;
+
+  default:
+    break;
   }
 
   char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
@@ -505,14 +512,14 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
     callinfo->n_args = rc;
     callinfo->acc = ra;
     vm->callinfo_top++;
-    
+
     // target irep is PROC
     vm->pc = 0;
     vm->pc_irep = regs[ra].proc->irep;
-    
+
     // new regs
     vm->reg_top += ra;
-   
+
     return 0;
   }
 
