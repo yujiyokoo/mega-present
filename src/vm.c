@@ -91,15 +91,16 @@ static void not_supported(void)
 
 //================================================================
 /*!@brief
-  
+  Push current status to callinfo stack
 
 */
-static void mrbc_push_callinfo(mrb_vm *vm)
+void mrbc_push_callinfo(mrb_vm *vm, int n_args)
 {
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
   callinfo->reg_top = vm->reg_top;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
+  callinfo->n_args = n_args;
   callinfo->target_class = vm->target_class;
   vm->callinfo_top++;
 }
@@ -520,15 +521,9 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // "call" method for block
   // TODO: refactoring, because "call" and Ruby method calling are almost same
-  if( !strcmp(sym, "call") ){
+  if( !strcmp(sym, "_call") ){
     // prepare call info
-    mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-    callinfo->reg_top = vm->reg_top;
-    callinfo->pc_irep = vm->pc_irep;
-    callinfo->pc = vm->pc;
-    callinfo->target_class = vm->target_class;
-    callinfo->n_args = rc;
-    vm->callinfo_top++;
+    mrbc_push_callinfo(vm, rc);
 
     // target irep is PROC
     vm->pc = 0;
@@ -545,7 +540,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   if( m->c_func ) {
     m->func(vm, regs + ra, rc);
 
-    int release_reg = ra+1;
+    int release_reg = ra+rc+1;
     while( release_reg <= bidx ) {
       mrbc_release(&regs[release_reg]);
       release_reg++;
@@ -555,13 +550,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // m is Ruby method.
   // callinfo
-  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-  callinfo->reg_top = vm->reg_top;
-  callinfo->pc_irep = vm->pc_irep;
-  callinfo->pc = vm->pc;
-  callinfo->target_class = vm->target_class;
-  callinfo->n_args = rc;
-  vm->callinfo_top++;
+  mrbc_push_callinfo(vm, rc);
 
   // target irep
   vm->pc = 0;

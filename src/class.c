@@ -475,21 +475,14 @@ static void mrbc_init_class_object(mrb_vm *vm)
 
 static void c_proc_call(mrb_vm *vm, mrb_value *v, int argc)
 {
-  // similar to OP_SEND
-
-  // callinfo
-  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-  callinfo->reg_top = vm->reg_top;
-  callinfo->pc_irep = vm->pc_irep;
-  callinfo->pc = vm->pc;
-  callinfo->n_args = 2;
-  vm->callinfo_top++;
+  // push callinfo, but not release regs
+  mrbc_push_callinfo(vm, argc);
 
   // target irep
   vm->pc = 0;
-  vm->pc_irep = v->proc->irep;
+  vm->pc_irep = v[0].proc->irep;
 
-  vm->reg_top += argc + 1;
+  vm->reg_top = v - vm->regs;
 }
 
 
