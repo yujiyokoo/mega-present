@@ -187,6 +187,7 @@ static void c_fixnum_abs(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
+#if MRBC_USE_FLOAT
 //================================================================
 /*! (method) to_f
 */
@@ -195,7 +196,7 @@ static void c_fixnum_to_f(mrb_vm *vm, mrb_value v[], int argc)
   double f = GET_INT_ARG(0);
   SET_FLOAT_RETURN( f );
 }
-
+#endif
 
 
 #if MRBC_USE_STRING
@@ -256,7 +257,9 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_fixnum, ">>", c_fixnum_rshift);
   mrbc_define_method(vm, mrbc_class_fixnum, "abs", c_fixnum_abs);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_i", c_ineffect);
+#if MRBC_USE_FLOAT
   mrbc_define_method(vm, mrbc_class_fixnum, "to_f", c_fixnum_to_f);
+#endif
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_fixnum, "chr", c_fixnum_chr);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_s", c_fixnum_to_s);
