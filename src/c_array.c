@@ -368,18 +368,23 @@ void mrbc_array_clear(mrb_value *ary)
 //================================================================
 /*! compare
 
-  @param  v1		pointer to target value 1
-  @param  v2		pointer to target value 2
+  @param  v1	Pointer to mrb_value
+  @param  v2	Pointer to another mrb_value
+  @retval 0	v1 == v2
+  @retval plus	v1 >  v2
+  @retval minus	v1 <  v2
 */
 int mrbc_array_compare(const mrb_value *v1, const mrb_value *v2)
 {
-  if( v1->array->n_stored != v2->array->n_stored ) return 0;
-
   int i;
-  for( i = 0; i < v1->array->n_stored; i++ ) {
-    if( !mrbc_eq( &v1->array->data[i], &v2->array->data[i] ) ) return 0;
+  for( i = 0; ; i++ ) {
+    if( i >= mrbc_array_size(v1) || i >= mrbc_array_size(v2) ) {
+      return mrbc_array_size(v1) - mrbc_array_size(v2);
+    }
+
+    int res = mrbc_compare( &v1->array->data[i], &v2->array->data[i] );
+    if( res != 0 ) return res;
   }
-  return 1;
 }
 
 

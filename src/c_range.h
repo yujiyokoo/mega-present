@@ -40,18 +40,10 @@ struct VM;
 mrb_value mrbc_range_new(struct VM *vm, mrb_value *first, mrb_value *last, int flag_exclude);
 void mrbc_range_delete(mrb_value *v);
 void mrbc_range_clear_vm_id(mrb_value *v);
+int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2);
 void mrbc_init_class_range(mrb_vm *vm);
 
 
-//================================================================
-/*! compare
-*/
-static inline int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2)
-{
-  return( mrbc_eq( &v1->range->first, &v2->range->first ) &&
-	  mrbc_eq( &v1->range->last, &v2->range->last ) &&
-	  v1->range->flag_exclude == v2->range->flag_exclude );
-}
 
 //================================================================
 /*! get first value
