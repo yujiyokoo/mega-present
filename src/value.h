@@ -144,6 +144,7 @@ typedef struct RInstance {
   MRBC_OBJECT_HEADER;
 
   struct RClass *cls;
+  struct RKeyValueHandle *ivar;
   uint8_t data[];
 } mrb_instance;
 
@@ -199,6 +200,8 @@ struct IREP *mrbc_irep_alloc(struct VM *vm);
 void mrbc_irep_free(struct IREP *irep);
 mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
 void mrbc_instance_delete(mrb_value *v);
+void mrbc_instance_setiv(mrb_object *obj, mrb_sym sym_id, mrb_value *v);
+mrb_value mrbc_instance_getiv(mrb_object *obj, mrb_sym sym_id);
 
 
 

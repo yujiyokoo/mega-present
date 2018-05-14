@@ -16,19 +16,21 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
+
 #include "value.h"
+#include "alloc.h"
+#include "keyvalue.h"
 #include "class.h"
 #include "static.h"
 #include "symbol.h"
-#include "alloc.h"
 #include "c_string.h"
 #include "c_range.h"
 #include "c_array.h"
 #include "c_hash.h"
-#include "vm.h"
 
 
-mrb_object *mrbc_obj_alloc(mrb_vm *vm, mrb_vtype tt)
+
+mrb_object *mrbc_obj_alloc(struct VM *vm, mrb_vtype tt)
 {
   mrb_object *ptr = (mrb_object *)mrbc_alloc(vm, sizeof(mrb_object));
   if( ptr ){
@@ -38,7 +40,7 @@ mrb_object *mrbc_obj_alloc(mrb_vm *vm, mrb_vtype tt)
 }
 
 
-mrb_proc *mrbc_rproc_alloc(mrb_vm *vm, const char *name)
+mrb_proc *mrbc_rproc_alloc(struct VM *vm, const char *name)
 {
   mrb_proc *ptr = (mrb_proc *)mrbc_alloc(vm, sizeof(mrb_proc));
   if( ptr ) {
@@ -309,7 +311,7 @@ int32_t mrbc_atoi( const char *s, int base )
   @param  vm	Pointer of VM.
   @return	Pointer of allocated mrb_irep
 */
-mrb_irep *mrbc_irep_alloc(mrb_vm *vm)
+mrb_irep *mrbc_irep_alloc(struct VM *vm)
 {
   mrb_irep *p = (mrb_irep *)mrbc_alloc(vm, sizeof(mrb_irep));
   if( p )
@@ -343,8 +345,7 @@ void mrbc_irep_free(mrb_irep *irep)
 
 
 //================================================================
-/*!@brief
-  mrb_instance constructor
+/*! mrb_instance constructor
 
   @param  vm    Pointer to VM.
   @param  cls	Pointer to Class (mrb_class).
@@ -357,6 +358,13 @@ mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size)
   v.instance = (mrb_instance *)mrbc_alloc(vm, sizeof(mrb_instance) + size);
   if( v.instance == NULL ) return v;	// ENOMEM
 
+  v.instance->ivar = mrbc_kv_new(vm, 0);
+  if( v.instance->ivar == NULL ) {	// ENOMEM
+    mrbc_raw_free(v.instance);
+    v.instance = NULL;
+    return v;
+  }
+
   v.instance->ref_count = 1;
   v.instance->tt = MRB_TT_OBJECT;	// for debug only.
   v.instance->cls = cls;
@@ -367,12 +375,43 @@ mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size)
 
 
 //================================================================
-/*!@brief
-  mrb_instance destructor
+/*! mrb_instance destructor
 
   @param  v	pointer to target value
 */
 void mrbc_instance_delete(mrb_value *v)
 {
+  mrbc_kv_delete( v->instance->ivar );
   mrbc_raw_free( v->instance );
+}
+
+
+//================================================================
+/*! instance variable setter
+
+  @param  obj		pointer to target.
+  @param  sym_id	key symbol ID.
+  @param  v		pointer to value.
+*/
+void mrbc_instance_setiv(mrb_object *obj, mrb_sym sym_id, mrb_value *v)
+{
+  mrbc_dup(v);
+  mrbc_kv_set( obj->instance->ivar, sym_id, v );
+}
+
+
+//================================================================
+/*! instance variable getter
+
+  @param  obj		pointer to target.
+  @param  sym_id	key symbol ID.
+  @return		value.
+*/
+mrb_value mrbc_instance_getiv(mrb_object *obj, mrb_sym sym_id)
+{
+  mrb_value *v = mrbc_kv_get( obj->instance->ivar, sym_id );
+  if( !v ) return mrb_nil_value();
+
+  mrbc_dup(v);
+  return *v;
 }

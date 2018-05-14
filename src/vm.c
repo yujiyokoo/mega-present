@@ -345,6 +345,59 @@ inline static int op_setglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_GETIV
+
+  R(A) := ivget(Syms(Bx))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_getiv( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int ra = GETARG_A(code);
+  int rb = GETARG_Bx(code);
+
+  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym+1);		// skip '@'
+
+  mrb_value val = mrbc_instance_getiv(&regs[0], sym_id);
+
+  mrbc_release(&regs[ra]);
+  regs[ra] = val;
+
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
+  Execute OP_SETIV
+
+  ivset(Syms(Bx),R(A))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_setiv( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int ra = GETARG_A(code);
+  int rb = GETARG_Bx(code);
+
+  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym+1);		// skip '@'
+
+  mrbc_instance_setiv(&regs[0], sym_id, &regs[ra]);
+
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
   Execute OP_GETCONST
 
   R(A) := constget(Syms(Bx))
@@ -1596,6 +1649,8 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_LOADF:      ret = op_loadf     (vm, code, regs); break;
     case OP_GETGLOBAL:  ret = op_getglobal (vm, code, regs); break;
     case OP_SETGLOBAL:  ret = op_setglobal (vm, code, regs); break;
+    case OP_GETIV:      ret = op_getiv     (vm, code, regs); break;
+    case OP_SETIV:      ret = op_setiv     (vm, code, regs); break;
     case OP_GETCONST:   ret = op_getconst  (vm, code, regs); break;
     case OP_SETCONST:   ret = op_setconst  (vm, code, regs); break;
     case OP_JMP:        ret = op_jmp       (vm, code, regs); break;
