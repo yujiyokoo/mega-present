@@ -51,7 +51,6 @@ int mrbc_kv_append(mrb_kv_handle *kvh, mrb_sym sym_id, mrb_value *set_val);
 int mrbc_kv_reorder(mrb_kv_handle *kvh);
 int mrbc_kv_remove(mrb_kv_handle *kvh, mrb_sym sym_id);
 void mrbc_kv_clear(mrb_kv_handle *kvh);
-void mrbc_kv_p(mrb_kv_handle *kvh);
 
 
 
