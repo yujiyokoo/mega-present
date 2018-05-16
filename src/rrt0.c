@@ -155,7 +155,7 @@ static void q_delete_task(mrb_tcb *p_tcb)
 /*! 一定時間停止（cruby互換）
 
 */
-static void c_sleep(mrb_vm *vm, mrb_value *v, int argc)
+static void c_sleep(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_tcb *tcb = VM2TCB(vm);
 
@@ -185,7 +185,7 @@ static void c_sleep(mrb_vm *vm, mrb_value *v, int argc)
 /*! 一定時間停止（ms単位）
 
 */
-static void c_sleep_ms(mrb_vm *vm, mrb_value *v, int argc)
+static void c_sleep_ms(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_tcb *tcb = VM2TCB(vm);
 
@@ -197,7 +197,7 @@ static void c_sleep_ms(mrb_vm *vm, mrb_value *v, int argc)
 /*! 実行権を手放す (BETA)
 
 */
-static void c_relinquish(mrb_vm *vm, mrb_value *v, int argc)
+static void c_relinquish(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_tcb *tcb = VM2TCB(vm);
 
@@ -209,7 +209,7 @@ static void c_relinquish(mrb_vm *vm, mrb_value *v, int argc)
 /*! プライオリティー変更
 
 */
-static void c_change_priority(mrb_vm *vm, mrb_value *v, int argc)
+static void c_change_priority(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_tcb *tcb = VM2TCB(vm);
 
@@ -221,7 +221,7 @@ static void c_change_priority(mrb_vm *vm, mrb_value *v, int argc)
 /*! 実行停止 (BETA)
 
 */
-static void c_suspend_task(mrb_vm *vm, mrb_value *v, int argc)
+static void c_suspend_task(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( argc == 0 ) {
     mrb_tcb *tcb = VM2TCB(vm);
@@ -238,7 +238,7 @@ static void c_suspend_task(mrb_vm *vm, mrb_value *v, int argc)
 /*! 実行再開 (BETA)
 
 */
-static void c_resume_task(mrb_vm *vm, mrb_value *v, int argc)
+static void c_resume_task(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( v[1].tt != MRB_TT_HANDLE ) return;	// error.
   mrbc_resume_task( (mrb_tcb *)(v[1].handle) );
@@ -249,7 +249,7 @@ static void c_resume_task(mrb_vm *vm, mrb_value *v, int argc)
 /*! TCBを得る (BETA)
 
 */
-static void c_get_tcb(mrb_vm *vm, mrb_value *v, int argc)
+static void c_get_tcb(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_tcb *tcb = VM2TCB(vm);
 
@@ -264,7 +264,7 @@ static void c_get_tcb(mrb_vm *vm, mrb_value *v, int argc)
 /*! mutex constructor method
 
 */
-static void c_mutex_new(mrb_vm *vm, mrb_value *v, int argc)
+static void c_mutex_new(mrb_vm *vm, mrb_value v[], int argc)
 {
   *v = mrbc_instance_new(vm, v->cls, sizeof(mrb_mutex));
   if( !v->instance ) return;
@@ -277,7 +277,7 @@ static void c_mutex_new(mrb_vm *vm, mrb_value *v, int argc)
 /*! mutex lock method
 
 */
-static void c_mutex_lock(mrb_vm *vm, mrb_value *v, int argc)
+static void c_mutex_lock(mrb_vm *vm, mrb_value v[], int argc)
 {
   int r = mrbc_mutex_lock( (mrb_mutex *)v->instance->data, VM2TCB(vm) );
   if( r == 0 ) return;  // return self
@@ -291,7 +291,7 @@ static void c_mutex_lock(mrb_vm *vm, mrb_value *v, int argc)
 /*! mutex unlock method
 
 */
-static void c_mutex_unlock(mrb_vm *vm, mrb_value *v, int argc)
+static void c_mutex_unlock(mrb_vm *vm, mrb_value v[], int argc)
 {
   int r = mrbc_mutex_unlock( (mrb_mutex *)v->instance->data, VM2TCB(vm) );
   if( r == 0 ) return;  // return self
@@ -305,7 +305,7 @@ static void c_mutex_unlock(mrb_vm *vm, mrb_value *v, int argc)
 /*! mutex trylock method
 
 */
-static void c_mutex_trylock(mrb_vm *vm, mrb_value *v, int argc)
+static void c_mutex_trylock(mrb_vm *vm, mrb_value v[], int argc)
 {
   int r = mrbc_mutex_trylock( (mrb_mutex *)v->instance->data, VM2TCB(vm) );
   if( r == 0 ) {
@@ -313,6 +313,15 @@ static void c_mutex_trylock(mrb_vm *vm, mrb_value *v, int argc)
   } else {
     SET_FALSE_RETURN();
   }
+}
+
+
+//================================================================
+/*! vm tick
+*/
+static void c_vm_tick(mrb_vm *vm, mrb_value v[], int argc)
+{
+  SET_INT_RETURN(tick_);
 }
 
 
@@ -393,6 +402,10 @@ void mrbc_init(uint8_t *ptr, unsigned int size )
   mrbc_define_method(0, c_mutex, "lock", c_mutex_lock);
   mrbc_define_method(0, c_mutex, "unlock", c_mutex_unlock);
   mrbc_define_method(0, c_mutex, "try_lock", c_mutex_trylock);
+
+  mrb_class *c_vm;
+  c_vm = mrbc_define_class(0, "VM", mrbc_class_object);
+  mrbc_define_method(0, c_vm, "tick", c_vm_tick);
 }
 
 
