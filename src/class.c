@@ -335,8 +335,7 @@ void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
   mrb_sym sym_id = str_to_symid(name);
   mrb_proc *m = find_method(vm, v[0], sym_id);
 
-  if( m==0 ) return;   // no initialize method
-  // call initialize method
+  if( m==0 ) return;   // no method
 
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
   callinfo->reg_top = vm->reg_top;

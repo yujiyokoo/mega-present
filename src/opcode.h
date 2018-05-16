@@ -30,6 +30,9 @@ extern "C" {
 
 #define GETARG_UNPACK_b(i,n1,n2)    ((((code)) >> (7+(n2))) & (((1<<(n1))-1)))
 
+#define MKOPCODE(op)                ((op & 0x7f)<<24)
+#define MKARG_A(c)                  ((c & 0xff)<<1 | (c & 0x01)>>8)
+
 
 #define MAXARG_Bx                   (0xffff)
 #define MAXARG_sBx                  (MAXARG_Bx>>1)
@@ -63,6 +66,8 @@ enum OPCODE {
   OP_JMPNOT    = 0x19,
   OP_SEND      = 0x20,
   OP_SENDB     = 0x21,
+
+  OP_CALL      = 0x23,
 
   OP_ENTER     = 0x26,
 

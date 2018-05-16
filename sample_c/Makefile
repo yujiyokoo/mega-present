@@ -9,7 +9,7 @@
 
 TARGETS = mrubyc mrubyc_sample mrubyc_concurrent mrubyc_myclass
 CFLAGS = -g -I ../src -Wall -Wpointer-arith
-LDFLAGS = -L ../src -lm
+LDFLAGS = -L ../src -lm 
 LIBMRUBYC = ../src/libmrubyc.a
 
 all: $(TARGETS)

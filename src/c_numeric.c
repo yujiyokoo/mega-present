@@ -13,6 +13,7 @@
 
 
 #include "vm_config.h"
+#include "opcode.h"
 #include <stdio.h>
 #if MRBC_USE_FLOAT
 #include <math.h>
@@ -203,7 +204,39 @@ static void c_fixnum_to_f(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_fixnum_times(mrb_vm *vm, mrb_value v[], int argc)
 {
+  uint32_t code = MKOPCODE(OP_CALL) | MKARG_A(argc);
+  mrb_irep irep = {
+    0,     // nlocals
+    0,     // nregs
+    0,     // rlen
+    2,     // ilen
+    0,     // plen
+    (uint8_t *)&code,   // iseq
+    NULL,  // pools
+    NULL,  // ptr_to_sym
+    NULL,  // reps
+  };
+
+  // count of times
+  int cnt = v[0].i;
+
+  // adjust reg_top for reg[0]==Proc
+  vm->reg_top += v - vm->regs + 1;
   
+  int i;
+  for( i=0 ; i<cnt ; i++ ){
+    // set index
+    mrbc_release( &v[2] );
+    v[2].tt = MRB_TT_FIXNUM;
+    v[2].i = i;
+
+    // set OP_CALL irep
+    vm->pc = 0;
+    vm->pc_irep = &irep;
+
+    // execute OP_CALL
+    mrbc_vm_run(vm);
+  }
 }
 
 
