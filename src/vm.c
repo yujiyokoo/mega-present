@@ -60,11 +60,11 @@ static inline int nlz32(uint32_t x)
 /*!@brief
   find sym[n] from symbol table in irep
 
-  @param  p
-  @param  n
-  @return  symbol string
+  @param  p	Pointer to IREP SYMS section.
+  @param  n	n th
+  @return	symbol name string
 */
-static char *find_irep_symbol( uint8_t *p, int n )
+const char * mrbc_find_irep_symbol( const uint8_t *p, int n )
 {
   int cnt = bin_to_uint32(p);
   if( n >= cnt ) return 0;
@@ -194,9 +194,8 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
   regs[ra].tt = MRB_TT_SYMBOL;
@@ -310,8 +309,8 @@ inline static int op_getglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
   regs[ra] = global_object_get(sym_id);
@@ -335,8 +334,8 @@ inline static int op_setglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
   global_object_add(sym_id, regs[ra]);
 
   return 0;
@@ -359,8 +358,8 @@ inline static int op_getiv( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
 
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym+1);		// skip '@'
+  const char *sym_name = mrbc_find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name+1);	// skip '@'
 
   mrb_value val = mrbc_instance_getiv(&regs[0], sym_id);
 
@@ -387,8 +386,8 @@ inline static int op_setiv( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
 
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym+1);		// skip '@'
+  const char *sym_name = mrbc_find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name+1);	// skip '@'
 
   mrbc_instance_setiv(&regs[0], sym_id, &regs[ra]);
 
@@ -411,8 +410,8 @@ inline static int op_getconst( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
   regs[ra] = const_object_get(sym_id);
@@ -436,8 +435,8 @@ inline static int op_getconst( mrb_vm *vm, uint32_t code, mrb_value *regs )
 inline static int op_setconst( mrb_vm *vm, uint32_t code, mrb_value *regs ) {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
   const_object_add(sym_id, &regs[ra]);
 
   return 0;
@@ -544,18 +543,18 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
     break;
   }
 
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
   mrb_proc *m = find_method(vm, recv, sym_id);
 
   if( m == 0 ) {
-    console_printf("No method. vtype=%d method='%s'\n", recv.tt, sym);
+    console_printf("No method. vtype=%d method='%s'\n", recv.tt, sym_name);
     return 0;
   }
 
   // "call" method for block
   // TODO: refactoring, because "call" and Ruby method calling are almost same
-  if( !strcmp(sym, "call") ){
+  if( !strcmp(sym_name, "call") ){
     // prepare call info
     mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
     callinfo->reg_top = vm->reg_top;
@@ -1350,10 +1349,10 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_B(code);
 
   mrb_irep *cur_irep = vm->pc_irep;
-  char *name = find_irep_symbol(cur_irep->ptr_to_sym, rb);
+  const char *sym_name = mrbc_find_irep_symbol(cur_irep->ptr_to_sym, rb);
   mrb_class *super = (regs[ra+1].tt == MRB_TT_CLASS) ? regs[ra+1].cls : mrbc_class_object;
 
-  mrb_class *cls = mrbc_define_class(vm, name, super);
+  mrb_class *cls = mrbc_define_class(vm, sym_name, super);
 
   mrb_value ret = {.tt = MRB_TT_CLASS};
   ret.cls = cls;
@@ -1427,8 +1426,8 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
     // sym_id : method name
     mrb_irep *cur_irep = vm->pc_irep;
-    char *sym = find_irep_symbol(cur_irep->ptr_to_sym, rb);
-    int sym_id = str_to_symid( sym );
+    const char *sym_name = mrbc_find_irep_symbol(cur_irep->ptr_to_sym, rb);
+    int sym_id = str_to_symid(sym_name);
 
     // check same name method
     mrb_proc *p = cls->procs;
@@ -1452,7 +1451,7 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
     proc->c_func = 0;
     proc->sym_id = sym_id;
 #ifdef MRBC_DEBUG
-    proc->names = sym;		// debug only.
+    proc->names = sym_name;		// debug only.
 #endif
     proc->next = cls->procs;
     cls->procs = proc;

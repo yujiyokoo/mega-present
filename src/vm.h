@@ -85,7 +85,8 @@ typedef struct VM {
 } mrb_vm;
 
 
-mrb_vm *mrbc_vm_open(mrb_vm *vm);
+const char *mrbc_find_irep_symbol(const uint8_t *p, int n);
+mrb_vm *mrbc_vm_open(mrb_vm *vm_arg);
 void mrbc_vm_close(mrb_vm *vm);
 void mrbc_vm_begin(mrb_vm *vm);
 void mrbc_vm_end(mrb_vm *vm);
