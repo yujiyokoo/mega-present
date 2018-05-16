@@ -277,20 +277,3 @@ void mrbc_kv_clear(mrb_kv_handle *kvh)
 
   kvh->n_stored = 0;
 }
-
-
-
-#if 1
-#include "class.h"
-#include "console.h"
-#include "symbol.h"
-void mrbc_kv_p(mrb_kv_handle *kvh)
-{
-  for( int i = 0; i < kvh->n_stored; i++ ) {
-    const char *name = symid_to_str(kvh->data[i].sym_id);
-    console_printf("ID:%2d Sym:%s  Val:", kvh->data[i].sym_id, name);
-    mrbc_p_sub(&kvh->data[i].value);
-    console_printf("\n");
-  }
-}
-#endif
