@@ -55,11 +55,6 @@ mrb_proc *mrbc_rproc_alloc(struct VM *vm, const char *name)
 }
 
 
-int mrbc_eq(const mrb_value *v1, const mrb_value *v2)
-{
-  return !mrbc_compare( v1, v2 );
-}
-
 
 //================================================================
 /*! compare two mrb_values

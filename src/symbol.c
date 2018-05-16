@@ -239,7 +239,7 @@ static void c_to_s(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_equal3(mrb_vm *vm, mrb_value v[], int argc)
 {
-  if( mrbc_eq(&v[0], &v[1]) ) {
+  if( mrbc_compare(&v[0], &v[1]) == 0 ) {
     SET_TRUE_RETURN();
   } else {
     SET_FALSE_RETURN();

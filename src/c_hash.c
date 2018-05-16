@@ -110,7 +110,7 @@ mrb_value * mrbc_hash_search(const mrb_value *hash, const mrb_value *key)
   const mrb_value *p2 = p1 + hash->hash->n_stored;
 
   while( p1 < p2 ) {
-    if( mrbc_eq(p1, key) ) return p1;
+    if( mrbc_compare(p1, key) == 0 ) return p1;
     p1 += 2;
   }
   return NULL;
@@ -120,7 +120,7 @@ mrb_value * mrbc_hash_search(const mrb_value *hash, const mrb_value *key)
   mrb_hash_iterator ite = mrbc_hash_iterator(hash);
   while( mrbc_hash_i_has_next(&ite) ) {
     mrb_value *v = mrbc_hash_i_next(&ite);
-    if( mrbc_eq( v, key ) ) return v;
+    if( mrbc_compare( v, key ) == 0 ) return v;
   }
   return NULL;
 #endif
@@ -385,7 +385,7 @@ static void c_hash_has_value(mrb_vm *vm, mrb_value v[], int argc)
 
   while( mrbc_hash_i_has_next(&ite) ) {
     mrb_value *val = mrbc_hash_i_next(&ite) + 1;	// skip key, get value
-    if( mrbc_eq(val, &v[1]) ) {
+    if( mrbc_compare(val, &v[1]) == 0 ) {
       ret = 1;
       break;
     }
@@ -410,7 +410,7 @@ static void c_hash_key(mrb_vm *vm, mrb_value v[], int argc)
 
   while( mrbc_hash_i_has_next(&ite) ) {
     mrb_value *kv = mrbc_hash_i_next(&ite);
-    if( mrbc_eq( &kv[1], &v[1]) ) {
+    if( mrbc_compare( &kv[1], &v[1]) == 0 ) {
       mrbc_dup( &kv[0] );
       ret = &kv[0];
       break;

@@ -621,7 +621,7 @@ static void c_array_index(mrb_vm *vm, mrb_value v[], int argc)
   int i;
 
   for( i = 0; i < n; i++ ) {
-    if( mrbc_eq(&data[i], value) ) break;
+    if( mrbc_compare(&data[i], value) == 0 ) break;
   }
 
   mrbc_release(v);

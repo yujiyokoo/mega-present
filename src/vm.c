@@ -990,11 +990,11 @@ inline static int op_div( mrb_vm *vm, uint32_t code, mrb_value *regs )
 inline static int op_eq( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
-  int result = mrbc_eq(&regs[ra], &regs[ra+1]);
+  int result = mrbc_compare(&regs[ra], &regs[ra+1]);
 
   mrbc_release(&regs[ra+1]);
   mrbc_release(&regs[ra]);
-  regs[ra].tt = result ? MRB_TT_TRUE : MRB_TT_FALSE;
+  regs[ra].tt = result ? MRB_TT_FALSE : MRB_TT_TRUE;
 
   return 0;
 }
