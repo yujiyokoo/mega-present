@@ -426,9 +426,9 @@ static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
 
 
 //================================================================
-/*! (method) instance variable reader (getter)
+/*! (method) instance variable getter
  */
-static void c_object_attr_reader(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_getiv(mrb_vm *vm, mrb_value v[], int argc)
 {
   const char *name = mrbc_get_callee_name(vm);
   mrb_sym sym_id = str_to_symid( name );
@@ -440,9 +440,9 @@ static void c_object_attr_reader(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
-/*! (method) instance variable writer (setter)
+/*! (method) instance variable setter
  */
-static void c_object_attr_writer(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_setiv(mrb_vm *vm, mrb_value v[], int argc)
 {
   const char *name = mrbc_get_callee_name(vm);
 
@@ -461,7 +461,7 @@ static void c_object_attr_writer(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (class method) access method 'attr_reader'
  */
-static void c_class_attr_reader(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_attr_reader(mrb_vm *vm, mrb_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
@@ -469,7 +469,7 @@ static void c_class_attr_reader(mrb_vm *vm, mrb_value v[], int argc)
 
     // define reader method
     const char *name = mrbc_symbol_cstr(&v[i]);
-    mrbc_define_method(vm, v[0].cls, name, c_object_attr_reader);
+    mrbc_define_method(vm, v[0].cls, name, c_object_getiv);
   }
 }
 
@@ -477,7 +477,7 @@ static void c_class_attr_reader(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (class method) access method 'attr_accessor'
  */
-static void c_class_attr_accessor(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_attr_accessor(mrb_vm *vm, mrb_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
@@ -485,7 +485,7 @@ static void c_class_attr_accessor(mrb_vm *vm, mrb_value v[], int argc)
 
     // define reader method
     const char *name = mrbc_symbol_cstr(&v[i]);
-    mrbc_define_method(vm, v[0].cls, name, c_object_attr_reader);
+    mrbc_define_method(vm, v[0].cls, name, c_object_getiv);
 
     // make string "....=" and define writer method.
     char *namebuf = mrbc_alloc(vm, strlen(name)+2);
@@ -493,7 +493,7 @@ static void c_class_attr_accessor(mrb_vm *vm, mrb_value v[], int argc)
     strcpy(namebuf, name);
     strcat(namebuf, "=");
     mrbc_symbol_new(vm, namebuf);
-    mrbc_define_method(vm, v[0].cls, namebuf, c_object_attr_writer);
+    mrbc_define_method(vm, v[0].cls, namebuf, c_object_setiv);
     mrbc_raw_free(namebuf);
   }
 }
@@ -536,8 +536,8 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
   mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
   mrbc_define_method(vm, mrbc_class_object, "new", c_object_new);
-  mrbc_define_method(vm, mrbc_class_object, "attr_reader", c_class_attr_reader);
-  mrbc_define_method(vm, mrbc_class_object, "attr_accessor", c_class_attr_accessor);
+  mrbc_define_method(vm, mrbc_class_object, "attr_reader", c_object_attr_reader);
+  mrbc_define_method(vm, mrbc_class_object, "attr_accessor", c_object_attr_accessor);
 
 #ifdef MRBC_DEBUG
   mrbc_define_method(vm, mrbc_class_object, "instance_methods", c_object_instance_methods);
