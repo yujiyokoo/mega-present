@@ -28,9 +28,6 @@
 #include "c_string.h"
 #include "c_range.h"
 
-#include "c_ext.h"
-
-
 
 #ifdef MRBC_DEBUG
 int mrbc_puts_sub(mrb_value *v);

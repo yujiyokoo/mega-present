@@ -10,7 +10,7 @@
 CFLAGS = -Wall -Wpointer-arith -g -DMRBC_DEBUG  # -std=c99 -pedantic -pedantic-errors
 
 COMMON_SRCS = alloc.c class.c console.c global.c load.c rrt0.c static.c symbol.c value.c vm.c hal/hal.c
-RUBY_LIB_SRCS = c_array.c c_hash.c c_ext.c c_numeric.c c_range.c c_string.c
+RUBY_LIB_SRCS = c_array.c c_hash.c c_numeric.c c_range.c c_string.c
 TARGET = libmrubyc.a 
 OBJS = $(COMMON_SRCS:.c=.o) $(RUBY_LIB_SRCS:.c=.o)
 
@@ -38,13 +38,13 @@ static.o: static.c vm_config.h static.h vm.h value.h global.h class.h \
   symbol.h
 
 global.o: global.c vm_config.h value.h static.h vm.h global.h mrubyc.h \
-  errorcode.h alloc.h symbol.h class.h c_array.h c_ext.h c_hash.h \
+  errorcode.h alloc.h symbol.h class.h c_array.h c_hash.h \
   c_numeric.h c_range.h c_string.h load.h console.h hal/hal.h \
   rrt0.h
 
 class.o: class.c vm_config.h value.h class.h vm.h alloc.h static.h \
   global.h symbol.h console.h hal/hal.h c_array.h c_hash.h c_numeric.h \
-  c_string.h c_range.h c_ext.h
+  c_string.h c_range.h
 
 symbol.o: symbol.c vm_config.h value.h vm.h alloc.h static.h global.h \
   class.h symbol.h console.h hal/hal.h
@@ -55,8 +55,6 @@ console.o: console.c vm_config.h console.h hal/hal.h
 
 c_array.o: c_array.c vm_config.h value.h vm.h alloc.h static.h global.h \
   class.h c_array.h console.h hal/hal.h
-
-c_ext.o: c_ext.c c_ext.h alloc.h class.h value.h console.h
 
 c_numeric.o: c_numeric.c vm_config.h c_numeric.h vm.h value.h alloc.h \
   class.h static.h global.h console.h

@@ -7,11 +7,14 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
-all: mrubyc_lib mrubyc_bin
+all: mrubyc_lib mrubyc_ext mrubyc_bin
 
 
 mrubyc_lib:
 	cd src ; make all
+
+mrubyc_ext:
+	cd ext ; make all
 
 mrubyc_bin:
 	cd sample_c ; make all

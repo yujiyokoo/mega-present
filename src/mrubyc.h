@@ -25,7 +25,6 @@
 #include "symbol.h"
 #include "class.h"
 #include "c_array.h"
-#include "c_ext.h"
 #include "c_hash.h"
 #include "c_numeric.h"
 #include "c_range.h"
@@ -34,5 +33,8 @@
 #include "load.h"
 #include "console.h"
 #include "rrt0.h"
+
+// c extension; device dependent libraries
+void mrbc_init_class_extension(mrb_vm *vm);
 
 #endif
