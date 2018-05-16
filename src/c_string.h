@@ -56,8 +56,13 @@ void mrbc_init_class_string(struct VM *vm);
 */
 static inline int mrbc_string_compare(const mrb_value *v1, const mrb_value *v2)
 {
-  if( v1->string->size != v2->string->size ) return 0;
-  return !memcmp(v1->string->data, v2->string->data, v1->string->size);
+  int len = (v1->string->size < v2->string->size) ?
+    v1->string->size : v2->string->size;
+
+  int res = memcmp(v1->string->data, v2->string->data, len);
+  if( res != 0 ) return res;
+
+  return v1->string->size - v2->string->size;
 }
 
 //================================================================

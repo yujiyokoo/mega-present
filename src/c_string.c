@@ -676,14 +676,14 @@ static void c_sprintf(mrb_vm *vm, mrb_value v[], int argc)
     case 'u':
       if( v[i].tt == MRB_TT_FIXNUM ) {
 	ret = mrbc_printf_int( &pf, v[i].i, 10);
-      } else
-	if( v[i].tt == MRB_TT_FLOAT ) {
-	  ret = mrbc_printf_int( &pf, (int32_t)v[i].d, 10);
-	} else
-	  if( v[i].tt == MRB_TT_STRING ) {
-	    int32_t ival = atol(mrbc_string_cstr(&v[i]));
-	    ret = mrbc_printf_int( &pf, ival, 10 );
-	  }
+#if MRBC_USE_FLOAT
+      } else if( v[i].tt == MRB_TT_FLOAT ) {
+	ret = mrbc_printf_int( &pf, (int32_t)v[i].d, 10);
+#endif
+      } else if( v[i].tt == MRB_TT_STRING ) {
+	int32_t ival = atol(mrbc_string_cstr(&v[i]));
+	ret = mrbc_printf_int( &pf, ival, 10 );
+      }
       break;
 
     case 'b':

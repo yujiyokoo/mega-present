@@ -53,41 +53,77 @@ mrb_proc *mrbc_rproc_alloc(mrb_vm *vm, const char *name)
 }
 
 
-// EQ? two objects
-// EQ: return true
-// NEQ: return false
 int mrbc_eq(const mrb_value *v1, const mrb_value *v2)
 {
-  // TT_XXX is different
+  return !mrbc_compare( v1, v2 );
+}
+
+
+//================================================================
+/*! compare two mrb_values
+
+  @param  v1	Pointer to mrb_value
+  @param  v2	Pointer to another mrb_value
+  @retval 0	v1 == v2
+  @retval plus	v1 >  v2
+  @retval minus	v1 <  v2
+*/
+int mrbc_compare(const mrb_value *v1, const mrb_value *v2)
+{
+  double d1, d2;
+
+  // if TT_XXX is different
   if( v1->tt != v2->tt ) {
-    if( v1->tt == MRB_TT_FIXNUM && v2->tt == MRB_TT_FLOAT )
-      return (double)v1->i == v2->d;
+#if MRBC_USE_FLOAT
+    // but Numeric?
+    if( v1->tt == MRB_TT_FIXNUM && v2->tt == MRB_TT_FLOAT ) {
+      d1 = v1->i;
+      d2 = v2->d;
+      goto CMP_FLOAT;
+    }
+    if( v1->tt == MRB_TT_FLOAT && v2->tt == MRB_TT_FIXNUM ) {
+      d1 = v1->d;
+      d2 = v2->i;
+      goto CMP_FLOAT;
+    }
+#endif
 
-    if( v1->tt == MRB_TT_FLOAT && v2->tt == MRB_TT_FIXNUM )
-      return v1->d == (double)v2->i;
+    // leak Empty?
+    if((v1->tt == MRB_TT_EMPTY && v2->tt == MRB_TT_NIL) ||
+       (v1->tt == MRB_TT_NIL   && v2->tt == MRB_TT_EMPTY)) return 0;
 
-    return 0;
+    // other case
+    return v1->tt - v2->tt;
   }
 
   // check value
-  switch( v1->tt ){
-  case MRB_TT_TRUE:
-  case MRB_TT_FALSE:
+  switch( v1->tt ) {
   case MRB_TT_NIL:
-    return 1;
+  case MRB_TT_FALSE:
+  case MRB_TT_TRUE:
+    return 0;
 
   case MRB_TT_FIXNUM:
   case MRB_TT_SYMBOL:
-    return v1->i == v2->i;
+    return v1->i - v2->i;
 
+#if MRBC_USE_FLOAT
   case MRB_TT_FLOAT:
-    return v1->d == v2->d;
+    d1 = v1->d;
+    d2 = v2->d;
+    goto CMP_FLOAT;
+#endif
 
-  case MRB_TT_STRING:
-    return mrbc_string_compare( v1, v2 );
+  case MRB_TT_CLASS:
+  case MRB_TT_OBJECT:
+  case MRB_TT_PROC:
+    return -1 + (v1->handle == v2->handle) + (v1->handle > v2->handle)*2;
 
   case MRB_TT_ARRAY:
     return mrbc_array_compare( v1, v2 );
+
+  case MRB_TT_STRING:
+    return mrbc_string_compare( v1, v2 );
 
   case MRB_TT_RANGE:
     return mrbc_range_compare( v1, v2 );
@@ -96,8 +132,13 @@ int mrbc_eq(const mrb_value *v1, const mrb_value *v2)
     return mrbc_hash_compare( v1, v2 );
 
   default:
-    return 0;
+    return 1;
   }
+
+#if MRBC_USE_FLOAT
+ CMP_FLOAT:
+  return -1 + (d1 == d2) + (d1 > d2)*2;	// caution: NaN == NaN is false
+#endif
 }
 
 

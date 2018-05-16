@@ -73,6 +73,24 @@ void mrbc_range_clear_vm_id(mrb_value *v)
 
 
 //================================================================
+/*! compare
+*/
+int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2)
+{
+  int res;
+
+  res = mrbc_compare( &v1->range->first, &v2->range->first );
+  if( res != 0 ) return res;
+
+  res = mrbc_compare( &v1->range->last, &v2->range->last );
+  if( res != 0 ) return res;
+
+  return (int)v2->range->flag_exclude - (int)v1->range->flag_exclude;
+}
+
+
+
+//================================================================
 /*! (method) ===
 */
 static void c_range_equal3(mrb_vm *vm, mrb_value v[], int argc)

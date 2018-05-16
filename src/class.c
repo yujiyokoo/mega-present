@@ -130,8 +130,9 @@ int mrbc_puts_sub(mrb_value *v)
   case MRB_TT_FALSE:	console_print("false");		break;
   case MRB_TT_TRUE:	console_print("true");		break;
   case MRB_TT_FIXNUM:	console_printf("%d", v->i);	break;
+#if MRBC_USE_FLOAT
   case MRB_TT_FLOAT:    console_printf("%g", v->d);	break;
-
+#endif
   case MRB_TT_SYMBOL:
     console_print( mrbc_symbol_cstr( v ) );
     break;
