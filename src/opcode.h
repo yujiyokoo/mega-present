@@ -58,6 +58,9 @@ enum OPCODE {
   OP_GETGLOBAL = 0x09,
   OP_SETGLOBAL = 0x0a,
 
+  OP_GETIV     = 0x0d,
+  OP_SETIV     = 0x0e,
+
   OP_GETCONST  = 0x11,
   OP_SETCONST  = 0x12,
 

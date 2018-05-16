@@ -57,14 +57,13 @@ static inline int nlz32(uint32_t x)
 
 
 //================================================================
-/*!@brief
-  find sym[n] from symbol table in irep
+/*! get sym[n] from symbol table in irep
 
-  @param  p
-  @param  n
-  @return  symbol string
+  @param  p	Pointer to IREP SYMS section.
+  @param  n	n th
+  @return	symbol name string
 */
-static char *find_irep_symbol( uint8_t *p, int n )
+const char * mrbc_get_irep_symbol( const uint8_t *p, int n )
 {
   int cnt = bin_to_uint32(p);
   if( n >= cnt ) return 0;
@@ -75,6 +74,20 @@ static char *find_irep_symbol( uint8_t *p, int n )
     n--;
   }
   return (char *)p+2;  // skip size(2 bytes)
+}
+
+
+//================================================================
+/*! get callee name
+
+  @param  vm	Pointer to VM
+  @return	string
+*/
+const char *mrbc_get_callee_name( mrb_vm *vm )
+{
+  uint32_t code = bin_to_uint32(vm->pc_irep->code + (vm->pc - 1) * 4);
+  int rb = GETARG_B(code);  // index of method sym
+  return mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
 }
 
 
@@ -213,9 +226,8 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
   regs[ra].tt = MRB_TT_SYMBOL;
@@ -329,8 +341,8 @@ inline static int op_getglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
   regs[ra] = global_object_get(sym_id);
@@ -354,9 +366,62 @@ inline static int op_setglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
   global_object_add(sym_id, regs[ra]);
+
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
+  Execute OP_GETIV
+
+  R(A) := ivget(Syms(Bx))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_getiv( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int ra = GETARG_A(code);
+  int rb = GETARG_Bx(code);
+
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name+1);	// skip '@'
+
+  mrb_value val = mrbc_instance_getiv(&regs[0], sym_id);
+
+  mrbc_release(&regs[ra]);
+  regs[ra] = val;
+
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
+  Execute OP_SETIV
+
+  ivset(Syms(Bx),R(A))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_setiv( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int ra = GETARG_A(code);
+  int rb = GETARG_Bx(code);
+
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name+1);	// skip '@'
+
+  mrbc_instance_setiv(&regs[0], sym_id, &regs[ra]);
 
   return 0;
 }
@@ -377,8 +442,8 @@ inline static int op_getconst( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
   regs[ra] = const_object_get(sym_id);
@@ -402,8 +467,8 @@ inline static int op_getconst( mrb_vm *vm, uint32_t code, mrb_value *regs )
 inline static int op_setconst( mrb_vm *vm, uint32_t code, mrb_value *regs ) {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
   const_object_add(sym_id, &regs[ra]);
 
   return 0;
@@ -510,12 +575,12 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
     break;
   }
 
-  char *sym = find_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym);
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  mrb_sym sym_id = str_to_symid(sym_name);
   mrb_proc *m = find_method(vm, recv, sym_id);
 
   if( m == 0 ) {
-    console_printf("No method. vtype=%d method='%s'\n", recv.tt, sym);
+    console_printf("No method. vtype=%d method='%s'\n", recv.tt, sym_name);
     return 0;
   }
 
@@ -1309,10 +1374,10 @@ inline static int op_class( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_B(code);
 
   mrb_irep *cur_irep = vm->pc_irep;
-  char *name = find_irep_symbol(cur_irep->ptr_to_sym, rb);
+  const char *sym_name = mrbc_get_irep_symbol(cur_irep->ptr_to_sym, rb);
   mrb_class *super = (regs[ra+1].tt == MRB_TT_CLASS) ? regs[ra+1].cls : mrbc_class_object;
 
-  mrb_class *cls = mrbc_define_class(vm, name, super);
+  mrb_class *cls = mrbc_define_class(vm, sym_name, super);
 
   mrb_value ret = {.tt = MRB_TT_CLASS};
   ret.cls = cls;
@@ -1386,8 +1451,8 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
     // sym_id : method name
     mrb_irep *cur_irep = vm->pc_irep;
-    char *sym = find_irep_symbol(cur_irep->ptr_to_sym, rb);
-    int sym_id = str_to_symid( sym );
+    const char *sym_name = mrbc_get_irep_symbol(cur_irep->ptr_to_sym, rb);
+    int sym_id = str_to_symid(sym_name);
 
     // check same name method
     mrb_proc *p = cls->procs;
@@ -1411,7 +1476,7 @@ inline static int op_method( mrb_vm *vm, uint32_t code, mrb_value *regs )
     proc->c_func = 0;
     proc->sym_id = sym_id;
 #ifdef MRBC_DEBUG
-    proc->names = sym;		// debug only.
+    proc->names = sym_name;		// debug only.
 #endif
     proc->next = cls->procs;
     cls->procs = proc;
@@ -1611,6 +1676,8 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_LOADF:      ret = op_loadf     (vm, code, regs); break;
     case OP_GETGLOBAL:  ret = op_getglobal (vm, code, regs); break;
     case OP_SETGLOBAL:  ret = op_setglobal (vm, code, regs); break;
+    case OP_GETIV:      ret = op_getiv     (vm, code, regs); break;
+    case OP_SETIV:      ret = op_setiv     (vm, code, regs); break;
     case OP_GETCONST:   ret = op_getconst  (vm, code, regs); break;
     case OP_SETCONST:   ret = op_setconst  (vm, code, regs); break;
     case OP_JMP:        ret = op_jmp       (vm, code, regs); break;

@@ -9,9 +9,9 @@
 
 CFLAGS = -Wall -Wpointer-arith -g -DMRBC_DEBUG  # -std=c99 -pedantic -pedantic-errors
 
-COMMON_SRCS = alloc.c class.c console.c global.c load.c rrt0.c static.c symbol.c value.c vm.c hal/hal.c
+COMMON_SRCS = alloc.c class.c console.c global.c keyvalue.c load.c rrt0.c static.c symbol.c value.c vm.c hal/hal.c
 RUBY_LIB_SRCS = c_array.c c_hash.c c_numeric.c c_range.c c_string.c
-TARGET = libmrubyc.a 
+TARGET = libmrubyc.a
 OBJS = $(COMMON_SRCS:.c=.o) $(RUBY_LIB_SRCS:.c=.o)
 
 
@@ -33,6 +33,8 @@ value.o: value.c vm_config.h value.h class.h vm.h static.h global.h \
   symbol.h alloc.h c_string.h c_range.h c_array.h c_hash.h
 
 alloc.o: alloc.c vm_config.h alloc.h vm.h value.h console.h hal/hal.h
+
+keyvalue.o: keyvalue.c vm_config.h value.h alloc.h vm.h keyvalue.h
 
 static.o: static.c vm_config.h static.h vm.h value.h global.h class.h \
   symbol.h
