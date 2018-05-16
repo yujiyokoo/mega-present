@@ -405,6 +405,19 @@ static void c_object_neq(mrb_vm *vm, mrb_value *v, int argc)
   }
 }
 
+
+//================================================================
+/*! (operator) <=>
+ */
+static void c_object_compare(mrb_vm *vm, mrb_value v[], int argc)
+{
+  int result = mrbc_compare( &v[0], &v[1] );
+
+  mrbc_release(v);
+  SET_INT_RETURN(result);
+}
+
+
 // Object#class
 static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 {
@@ -534,6 +547,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_object, "puts", c_puts);
   mrbc_define_method(vm, mrbc_class_object, "!", c_object_not);
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
+  mrbc_define_method(vm, mrbc_class_object, "<=>", c_object_compare);
   mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
   mrbc_define_method(vm, mrbc_class_object, "new", c_object_new);
   mrbc_define_method(vm, mrbc_class_object, "attr_reader", c_object_attr_reader);

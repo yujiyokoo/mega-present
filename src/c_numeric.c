@@ -85,22 +85,6 @@ static void c_fixnum_mod(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
-/*! (operator) <=>
- */
-static void c_fixnum_comp(mrb_vm *vm, mrb_value v[], int argc)
-{
-  int32_t num = GET_INT_ARG(1);
-  if(v->i > num){
-    SET_INT_RETURN(1);
-  }else if(v->i == num){
-    SET_INT_RETURN(0);
-  }else{
-    SET_INT_RETURN(-1);
-  }
-}
-
-
-//================================================================
 /*! (operator) &; bit operation AND
  */
 static void c_fixnum_and(mrb_vm *vm, mrb_value v[], int argc)
@@ -223,7 +207,7 @@ static void c_fixnum_times(mrb_vm *vm, mrb_value v[], int argc)
 
   // adjust reg_top for reg[0]==Proc
   vm->reg_top += v - vm->regs + 1;
-  
+
   int i;
   for( i=0 ; i<cnt ; i++ ){
     // set index
@@ -291,7 +275,6 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_fixnum, "-@", c_fixnum_negative);
   mrbc_define_method(vm, mrbc_class_fixnum, "**", c_fixnum_power);
   mrbc_define_method(vm, mrbc_class_fixnum, "%", c_fixnum_mod);
-  mrbc_define_method(vm, mrbc_class_fixnum, "<=>", c_fixnum_comp);
   mrbc_define_method(vm, mrbc_class_fixnum, "&", c_fixnum_and);
   mrbc_define_method(vm, mrbc_class_fixnum, "|", c_fixnum_or);
   mrbc_define_method(vm, mrbc_class_fixnum, "^", c_fixnum_xor);
