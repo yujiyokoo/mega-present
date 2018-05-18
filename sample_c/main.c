@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mrubyc.h"
+#include "c_ext.h"
 
 #define MEMORY_SIZE (1024*30)
 static uint8_t memory_pool[MEMORY_SIZE];
@@ -42,6 +43,7 @@ void mrubyc(uint8_t *mrbbuf)
 
   mrbc_init_alloc(memory_pool, MEMORY_SIZE);
   init_static();
+  mrbc_init_class_extension(0);
 
   vm = mrbc_vm_open(NULL);
   if( vm == 0 ) {

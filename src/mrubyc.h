@@ -34,7 +34,4 @@
 #include "console.h"
 #include "rrt0.h"
 
-// c extension; device dependent libraries
-void mrbc_init_class_extension(mrb_vm *vm);
-
 #endif

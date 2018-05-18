@@ -19,7 +19,7 @@
 #include "class.h"
 #include "value.h"
 #include "console.h"
-
+#include "c_ext.h"
 
 
 void mrbc_init_class_extension(mrb_vm *vm)
