@@ -545,7 +545,7 @@ static void c_string_insert(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) chomp
 */
-static void c_chomp(mrb_vm *vm, mrb_value v[], int argc)
+static void c_string_chomp(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_string_dup(vm, &v[0]);
 
@@ -559,7 +559,7 @@ static void c_chomp(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) chomp!
 */
-static void c_chomp_self(mrb_vm *vm, mrb_value v[], int argc)
+static void c_string_chomp_self(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( mrbc_string_chomp(&v[0]) == 0 ) {
     mrbc_release(v);
@@ -628,7 +628,7 @@ static void c_string_ord(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) sprintf
 */
-static void c_sprintf(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_sprintf(mrb_vm *vm, mrb_value v[], int argc)
 {
   static const int BUF_INC_STEP = 32;	// bytes.
 
@@ -748,7 +748,7 @@ static void c_sprintf(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) lstrip
 */
-static void c_lstrip(mrb_vm *vm, mrb_value v[], int argc)
+static void c_string_lstrip(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_string_dup(vm, &v[0]);
 
@@ -762,7 +762,7 @@ static void c_lstrip(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) lstrip!
 */
-static void c_lstrip_self(mrb_vm *vm, mrb_value v[], int argc)
+static void c_string_lstrip_self(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( mrbc_string_strip(&v[0], 0x01) == 0 ) {	// 1: left side only
     mrbc_release(v);
@@ -774,7 +774,7 @@ static void c_lstrip_self(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) rstrip
 */
-static void c_rstrip(mrb_vm *vm, mrb_value v[], int argc)
+static void c_string_rstrip(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_string_dup(vm, &v[0]);
 
@@ -788,7 +788,7 @@ static void c_rstrip(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) rstrip!
 */
-static void c_rstrip_self(mrb_vm *vm, mrb_value v[], int argc)
+static void c_string_rstrip_self(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( mrbc_string_strip(&v[0], 0x02) == 0 ) {	// 2: right side only
     mrbc_release(v);
@@ -800,7 +800,7 @@ static void c_rstrip_self(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) strip
 */
-static void c_strip(mrb_vm *vm, mrb_value v[], int argc)
+static void c_string_strip(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_string_dup(vm, &v[0]);
 
@@ -814,7 +814,7 @@ static void c_strip(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) strip!
 */
-static void c_strip_self(mrb_vm *vm, mrb_value v[], int argc)
+static void c_string_strip_self(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( mrbc_string_strip(&v[0], 0x03) == 0 ) {	// 3: left and right
     mrbc_release(v);
@@ -826,7 +826,7 @@ static void c_strip_self(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) to_sym
 */
-static void c_to_sym(mrb_vm *vm, mrb_value v[], int argc)
+static void c_string_to_sym(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_symbol_new(vm, mrbc_string_cstr(&v[0]));
 
@@ -852,24 +852,25 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_string, "<<",	c_string_append);
   mrbc_define_method(vm, mrbc_class_string, "[]",	c_string_slice);
   mrbc_define_method(vm, mrbc_class_string, "[]=",	c_string_insert);
-  mrbc_define_method(vm, mrbc_class_object, "chomp",	c_chomp);
-  mrbc_define_method(vm, mrbc_class_object, "chomp!",	c_chomp_self);
+  mrbc_define_method(vm, mrbc_class_string, "chomp",	c_string_chomp);
+  mrbc_define_method(vm, mrbc_class_string, "chomp!",	c_string_chomp_self);
   mrbc_define_method(vm, mrbc_class_string, "dup",	c_string_dup);
   mrbc_define_method(vm, mrbc_class_string, "index",	c_string_index);
   mrbc_define_method(vm, mrbc_class_string, "ord",	c_string_ord);
-  mrbc_define_method(vm, mrbc_class_object, "sprintf",	c_sprintf);
-  mrbc_define_method(vm, mrbc_class_object, "lstrip",	c_lstrip);
-  mrbc_define_method(vm, mrbc_class_object, "lstrip!",	c_lstrip_self);
-  mrbc_define_method(vm, mrbc_class_object, "rstrip",	c_rstrip);
-  mrbc_define_method(vm, mrbc_class_object, "rstrip!",	c_rstrip_self);
-  mrbc_define_method(vm, mrbc_class_object, "strip",	c_strip);
-  mrbc_define_method(vm, mrbc_class_object, "strip!",	c_strip_self);
-  mrbc_define_method(vm, mrbc_class_object, "to_sym",	c_to_sym);
-  mrbc_define_method(vm, mrbc_class_object, "intern",	c_to_sym);
+  mrbc_define_method(vm, mrbc_class_string, "lstrip",	c_string_lstrip);
+  mrbc_define_method(vm, mrbc_class_string, "lstrip!",	c_string_lstrip_self);
+  mrbc_define_method(vm, mrbc_class_string, "rstrip",	c_string_rstrip);
+  mrbc_define_method(vm, mrbc_class_string, "rstrip!",	c_string_rstrip_self);
+  mrbc_define_method(vm, mrbc_class_string, "strip",	c_string_strip);
+  mrbc_define_method(vm, mrbc_class_string, "strip!",	c_string_strip_self);
+  mrbc_define_method(vm, mrbc_class_string, "to_sym",	c_string_to_sym);
+  mrbc_define_method(vm, mrbc_class_string, "intern",	c_string_to_sym);
 
 #if MRBC_USE_FLOAT
   mrbc_define_method(vm, mrbc_class_string, "to_f",	c_string_to_f);
 #endif
+
+  mrbc_define_method(vm, mrbc_class_object, "sprintf",	c_object_sprintf);
 }
 
 
