@@ -20,7 +20,7 @@ all:
 $(TARGET): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 
-c_ext.o: c_ext.o c_ext.h
+c_ext.o: c_ext.c c_ext.h
 
 
 clean:

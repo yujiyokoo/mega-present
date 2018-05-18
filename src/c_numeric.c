@@ -194,7 +194,7 @@ static void c_fixnum_times(mrb_vm *vm, mrb_value v[], int argc)
     0,     // nlocals
     0,     // nregs
     0,     // rlen
-    2,     // ilen
+    1,     // ilen
     0,     // plen
     (uint8_t *)&code,   // iseq
     NULL,  // pools
@@ -204,6 +204,8 @@ static void c_fixnum_times(mrb_vm *vm, mrb_value v[], int argc)
 
   // count of times
   int cnt = v[0].i;
+
+  mrbc_push_callinfo(vm, 0);
 
   // adjust reg_top for reg[0]==Proc
   vm->reg_top += v - vm->regs + 1;
@@ -222,6 +224,8 @@ static void c_fixnum_times(mrb_vm *vm, mrb_value v[], int argc)
     // execute OP_CALL
     mrbc_vm_run(vm);
   }
+
+  mrbc_pop_callinfo(vm);
 }
 
 

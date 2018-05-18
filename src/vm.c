@@ -122,6 +122,23 @@ void mrbc_push_callinfo(mrb_vm *vm, int n_args)
 
 //================================================================
 /*!@brief
+  Push current status to callinfo stack
+
+*/
+void mrbc_pop_callinfo(mrb_vm *vm)
+{
+  vm->callinfo_top--;
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  vm->reg_top = callinfo->reg_top;
+  vm->pc_irep = callinfo->pc_irep;
+  vm->pc = callinfo->pc;
+  vm->target_class = callinfo->target_class;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_NOP
 
   No operation
@@ -624,7 +641,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_call( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  mrbc_push_callinfo(vm, 2);
+  mrbc_push_callinfo(vm, 0);
 
   // jump to proc
   vm->pc = 0;
@@ -1653,7 +1670,9 @@ int mrbc_vm_run( mrb_vm *vm )
 
   do {
     // check irep length
-    if( vm->pc > vm->pc_irep->ilen ) return 0;
+    if( vm->pc >= vm->pc_irep->ilen ){
+      return 0;
+    }
 
     // get one bytecode
     uint32_t code = bin_to_uint32(vm->pc_irep->code + vm->pc * 4);

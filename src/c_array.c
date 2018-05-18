@@ -22,6 +22,7 @@
 #include "class.h"
 #include "c_array.h"
 #include "console.h"
+#include "opcode.h"
 
 /*
   function summary
@@ -761,6 +762,52 @@ static void c_array_dup(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
+/*! (method) each
+*/
+static void c_array_each(mrb_vm *vm, mrb_value v[], int argc)
+{
+    uint32_t code = MKOPCODE(OP_CALL) | MKARG_A(argc);
+  mrb_irep irep = {
+    0,     // nlocals
+    0,     // nregs
+    0,     // rlen
+    1,     // ilen
+    0,     // plen
+    (uint8_t *)&code,   // iseq
+    NULL,  // pools
+    NULL,  // ptr_to_sym
+    NULL,  // reps
+  };
+
+  // array size
+  int n = v[0].array->n_stored;
+
+  mrbc_push_callinfo(vm, 0);
+
+  // adjust reg_top for reg[0]==Proc
+  vm->reg_top += v - vm->regs + 1;
+
+  int i;
+  for( i=0 ; i<n ; i++ ){
+    // set index
+    mrbc_release( &v[2] );
+    v[2] = mrbc_array_get(v, i);
+    mrbc_dup( &v[2] );
+
+    // set OP_CALL irep
+    vm->pc = 0;
+    vm->pc_irep = &irep;
+
+    // execute OP_CALL
+    mrbc_vm_run(vm);
+  }
+
+  mrbc_pop_callinfo(vm);
+}
+
+
+
+//================================================================
 /*! initialize
 */
 void mrbc_init_class_array(struct VM *vm)
@@ -787,4 +834,5 @@ void mrbc_init_class_array(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_array, "shift", c_array_shift);
   mrbc_define_method(vm, mrbc_class_array, "unshift", c_array_unshift);
   mrbc_define_method(vm, mrbc_class_array, "dup", c_array_dup);
+  mrbc_define_method(vm, mrbc_class_array, "each", c_array_each);
 }

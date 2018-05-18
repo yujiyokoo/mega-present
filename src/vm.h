@@ -93,6 +93,7 @@ void mrbc_vm_end(mrb_vm *vm);
 int mrbc_vm_run(mrb_vm *vm);
 
 void mrbc_push_callinfo(mrb_vm *vm, int n_args);
+void mrbc_pop_callinfo(mrb_vm *vm);
 
 //================================================================
 /*!@brief
