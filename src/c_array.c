@@ -766,7 +766,7 @@ static void c_array_dup(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_array_each(mrb_vm *vm, mrb_value v[], int argc)
 {
-    uint32_t code = MKOPCODE(OP_CALL) | MKARG_A(argc);
+  uint32_t code = MKOPCODE(OP_CALL) | MKARG_A(argc);
   mrb_irep irep = {
     0,     // nlocals
     0,     // nregs
