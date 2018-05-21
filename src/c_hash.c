@@ -284,7 +284,6 @@ static void c_hash_get(mrb_vm *vm, mrb_value v[], int argc)
 
   mrb_value val = mrbc_hash_get(&v[0], &v[1]);
   mrbc_dup(&val);
-  mrbc_release(v);
   SET_RETURN(val);
 }
 
@@ -322,7 +321,6 @@ static void c_hash_dup(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_hash_dup( vm, &v[0] );
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -338,7 +336,6 @@ static void c_hash_delete(mrb_vm *vm, mrb_value v[], int argc)
 
   // TODO: re-index hash table if need.
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -350,7 +347,6 @@ static void c_hash_empty(mrb_vm *vm, mrb_value v[], int argc)
 {
   int n = mrbc_hash_size(v);
 
-  mrbc_release(v);
   if( n ) {
     SET_FALSE_RETURN();
   } else {
@@ -366,7 +362,6 @@ static void c_hash_has_key(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value *res = mrbc_hash_search(v, v+1);
 
-  mrbc_release(v);
   if( res ) {
     SET_TRUE_RETURN();
   } else {
@@ -391,7 +386,6 @@ static void c_hash_has_value(mrb_vm *vm, mrb_value v[], int argc)
     }
   }
 
-  mrbc_release(v);
   if( ret ) {
     SET_TRUE_RETURN();
   } else {
@@ -417,7 +411,6 @@ static void c_hash_key(mrb_vm *vm, mrb_value v[], int argc)
     }
   }
 
-  mrbc_release(v);
   if( ret ) {
     SET_RETURN(*ret);
   } else {
@@ -440,7 +433,6 @@ static void c_hash_keys(mrb_vm *vm, mrb_value v[], int argc)
     mrbc_dup(key);
   }
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -452,7 +444,6 @@ static void c_hash_size(mrb_vm *vm, mrb_value v[], int argc)
 {
   int n = mrbc_hash_size(v);
 
-  mrbc_release(v);
   SET_INT_RETURN(n);
 }
 
@@ -472,7 +463,6 @@ static void c_hash_merge(mrb_vm *vm, mrb_value v[], int argc)
     mrbc_dup( &kv[1] );
   }
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -507,7 +497,6 @@ static void c_hash_values(mrb_vm *vm, mrb_value v[], int argc)
     mrbc_dup(val);
   }
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 

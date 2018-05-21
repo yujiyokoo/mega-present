@@ -388,7 +388,6 @@ static void c_puts(mrb_vm *vm, mrb_value v[], int argc)
 
 static void c_object_not(mrb_vm *vm, mrb_value *v, int argc)
 {
-  mrbc_release(v);
   SET_FALSE_RETURN();
 }
 
@@ -397,7 +396,6 @@ static void c_object_neq(mrb_vm *vm, mrb_value *v, int argc)
 {
   int result = mrbc_compare(v, v+1);
 
-  mrbc_release(v);
   if( result ) {
     SET_TRUE_RETURN();
   } else {
@@ -413,7 +411,6 @@ static void c_object_compare(mrb_vm *vm, mrb_value v[], int argc)
 {
   int result = mrbc_compare( &v[0], &v[1] );
 
-  mrbc_release(v);
   SET_INT_RETURN(result);
 }
 
@@ -424,7 +421,6 @@ static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 #if MRBC_USE_STRING
   mrb_class *cls = find_class_by_object( vm, v );
   mrb_value value = mrbc_string_new_cstr(vm, symid_to_str(cls->sym_id) );
-  mrbc_release(v);
   SET_RETURN(value);
 #endif
 }
@@ -447,7 +443,6 @@ static void c_object_getiv(mrb_vm *vm, mrb_value v[], int argc)
   mrb_sym sym_id = str_to_symid( name );
   mrb_value ret = mrbc_instance_getiv(&v[0], sym_id);
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -533,7 +528,6 @@ static void c_object_instance_methods(mrb_vm *vm, mrb_value *v, int argc)
 
   console_printf( "]" );
 
-  mrbc_release(v);
   SET_NIL_RETURN();
 }
 #endif

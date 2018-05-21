@@ -324,7 +324,6 @@ static void c_string_add(mrb_vm *vm, mrb_value v[], int argc)
   }
 
   mrb_value value = mrbc_string_add(vm, &v[0], &v[1]);
-  mrbc_release(v);
   SET_RETURN(value);
 }
 
@@ -345,7 +344,6 @@ static void c_string_eql(mrb_vm *vm, mrb_value v[], int argc)
   result = !memcmp(h1->data, h2->data, h1->size);
 
  DONE:
-  mrbc_release(v);
   if( result ) {
     SET_TRUE_RETURN();
   } else {
@@ -362,7 +360,6 @@ static void c_string_size(mrb_vm *vm, mrb_value v[], int argc)
 {
   int32_t size = mrbc_string_size(&v[0]);
 
-  mrbc_release(v);
   SET_INT_RETURN( size );
 }
 
@@ -383,7 +380,6 @@ static void c_string_to_i(mrb_vm *vm, mrb_value v[], int argc)
 
   int32_t i = mrbc_atoi( mrbc_string_cstr(v), base );
 
-  mrbc_release(v);
   SET_INT_RETURN( i );
 }
 
@@ -396,7 +392,6 @@ static void c_string_to_f(mrb_vm *vm, mrb_value v[], int argc)
 {
   double d = atof(mrbc_string_cstr(v));
 
-  mrbc_release(v);
   SET_FLOAT_RETURN( d );
 }
 #endif
@@ -445,7 +440,6 @@ static void c_string_slice(mrb_vm *vm, mrb_value v[], int argc)
 
     value.string->data[0] = ch;
     value.string->data[1] = '\0';
-    mrbc_release(v);
     SET_RETURN(value);
     return;		// normal return
   }
@@ -466,7 +460,6 @@ static void c_string_slice(mrb_vm *vm, mrb_value v[], int argc)
     mrb_value value = mrbc_string_new(vm, v->string->data + idx, rlen);
     if( !value.string ) goto RETURN_NIL;		// ENOMEM
 
-    mrbc_release(v);
     SET_RETURN(value);
     return;		// normal return
   }
@@ -479,7 +472,6 @@ static void c_string_slice(mrb_vm *vm, mrb_value v[], int argc)
 
 
  RETURN_NIL:
-  mrbc_release(v);
   SET_NIL_RETURN();
 }
 
@@ -551,7 +543,6 @@ static void c_string_chomp(mrb_vm *vm, mrb_value v[], int argc)
 
   mrbc_string_chomp(&ret);
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -562,7 +553,6 @@ static void c_string_chomp(mrb_vm *vm, mrb_value v[], int argc)
 static void c_string_chomp_self(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( mrbc_string_chomp(&v[0]) == 0 ) {
-    mrbc_release(v);
     SET_RETURN( mrb_nil_value() );
   }
 }
@@ -575,7 +565,6 @@ static void c_string_dup(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_string_dup(vm, &v[0]);
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -603,12 +592,10 @@ static void c_string_index(mrb_vm *vm, mrb_value v[], int argc)
   index = mrbc_string_index(&v[0], &v[1], offset);
   if( index < 0 ) goto NIL_RETURN;
 
-  mrbc_release(v);
   SET_INT_RETURN(index);
   return;
 
  NIL_RETURN:
-  mrbc_release(v);
   SET_NIL_RETURN();
 }
 
@@ -620,7 +607,6 @@ static void c_string_ord(mrb_vm *vm, mrb_value v[], int argc)
 {
   int i = mrbc_string_cstr(v)[0];
 
-  mrbc_release(v);
   SET_INT_RETURN( i );
 }
 
@@ -740,7 +726,6 @@ static void c_object_sprintf(mrb_vm *vm, mrb_value v[], int argc)
 
   mrb_value value = mrbc_string_new_alloc( vm, pf.buf, buflen );
 
-  mrbc_release(v);
   SET_RETURN(value);
 }
 
@@ -754,7 +739,6 @@ static void c_string_lstrip(mrb_vm *vm, mrb_value v[], int argc)
 
   mrbc_string_strip(&ret, 0x01);	// 1: left side only
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -765,7 +749,6 @@ static void c_string_lstrip(mrb_vm *vm, mrb_value v[], int argc)
 static void c_string_lstrip_self(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( mrbc_string_strip(&v[0], 0x01) == 0 ) {	// 1: left side only
-    mrbc_release(v);
     SET_RETURN( mrb_nil_value() );
   }
 }
@@ -780,7 +763,6 @@ static void c_string_rstrip(mrb_vm *vm, mrb_value v[], int argc)
 
   mrbc_string_strip(&ret, 0x02);	// 2: right side only
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -791,7 +773,6 @@ static void c_string_rstrip(mrb_vm *vm, mrb_value v[], int argc)
 static void c_string_rstrip_self(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( mrbc_string_strip(&v[0], 0x02) == 0 ) {	// 2: right side only
-    mrbc_release(v);
     SET_RETURN( mrb_nil_value() );
   }
 }
@@ -806,7 +787,6 @@ static void c_string_strip(mrb_vm *vm, mrb_value v[], int argc)
 
   mrbc_string_strip(&ret, 0x03);	// 3: left and right
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -817,7 +797,6 @@ static void c_string_strip(mrb_vm *vm, mrb_value v[], int argc)
 static void c_string_strip_self(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( mrbc_string_strip(&v[0], 0x03) == 0 ) {	// 3: left and right
-    mrbc_release(v);
     SET_RETURN( mrb_nil_value() );
   }
 }
@@ -830,7 +809,6 @@ static void c_string_to_sym(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_symbol_new(vm, mrbc_string_cstr(&v[0]));
 
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 

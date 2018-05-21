@@ -471,10 +471,7 @@ static void c_array_add(mrb_vm *vm, mrb_value v[], int argc)
     mrbc_dup(p1++);
   }
 
-  if( --h1->ref_count == 0 ) mrbc_array_delete(v);
-  if( --h2->ref_count == 0 ) mrbc_array_delete(v+1);
-
-  v[1].tt = MRB_TT_EMPTY;
+  mrbc_release(v+1);
   SET_RETURN(value);
 }
 
@@ -490,7 +487,6 @@ static void c_array_get(mrb_vm *vm, mrb_value v[], int argc)
   if( argc == 1 && v[1].tt == MRB_TT_FIXNUM ) {
     mrb_value ret = mrbc_array_get(v, v[1].i);
     mrbc_dup(&ret);
-    mrbc_release(v);
     SET_RETURN(ret);
     return;
   }
@@ -518,7 +514,6 @@ static void c_array_get(mrb_vm *vm, mrb_value v[], int argc)
       mrbc_array_push(&ret, &val);
     }
 
-    mrbc_release(v);
     SET_RETURN(ret);
     return;
   }
@@ -530,7 +525,6 @@ static void c_array_get(mrb_vm *vm, mrb_value v[], int argc)
   return;
 
  RETURN_NIL:
-  mrbc_release(v);
   SET_NIL_RETURN();
 }
 
@@ -578,7 +572,6 @@ static void c_array_clear(mrb_vm *vm, mrb_value v[], int argc)
 static void c_array_delete_at(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value val = mrbc_array_remove(v, GET_INT_ARG(1));
-  mrbc_release(v);
   SET_RETURN(val);
 }
 
@@ -590,7 +583,6 @@ static void c_array_empty(mrb_vm *vm, mrb_value v[], int argc)
 {
   int n = mrbc_array_size(v);
 
-  mrbc_release(v);
   if( n ) {
     SET_FALSE_RETURN();
   } else {
@@ -606,7 +598,6 @@ static void c_array_size(mrb_vm *vm, mrb_value v[], int argc)
 {
   int n = mrbc_array_size(v);
 
-  mrbc_release(v);
   SET_INT_RETURN(n);
 }
 
@@ -625,7 +616,6 @@ static void c_array_index(mrb_vm *vm, mrb_value v[], int argc)
     if( mrbc_compare(&data[i], value) == 0 ) break;
   }
 
-  mrbc_release(v);
   if( i < n ) {
     SET_INT_RETURN(i);
   } else {
@@ -641,7 +631,6 @@ static void c_array_first(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value val = mrbc_array_get(v, 0);
   mrbc_dup(&val);
-  mrbc_release(v);
   SET_RETURN(val);
 }
 
@@ -653,7 +642,6 @@ static void c_array_last(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value val = mrbc_array_get(v, -1);
   mrbc_dup(&val);
-  mrbc_release(v);
   SET_RETURN(val);
 }
 
@@ -678,7 +666,6 @@ static void c_array_pop(mrb_vm *vm, mrb_value v[], int argc)
   */
   if( argc == 0 ) {
     mrb_value val = mrbc_array_pop(v);
-    mrbc_release(v);
     SET_RETURN(val);
     return;
   }
@@ -717,7 +704,6 @@ static void c_array_shift(mrb_vm *vm, mrb_value v[], int argc)
   */
   if( argc == 0 ) {
     mrb_value val = mrbc_array_shift(v);
-    mrbc_release(v);
     SET_RETURN(val);
     return;
   }
@@ -755,7 +741,6 @@ static void c_array_dup(mrb_vm *vm, mrb_value v[], int argc)
     mrbc_dup(p1++);
   }
 
-  mrbc_release(v);
   SET_RETURN(value);
 }
 

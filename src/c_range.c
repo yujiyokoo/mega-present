@@ -113,7 +113,6 @@ static void c_range_equal3(mrb_vm *vm, mrb_value v[], int argc)
   return;
 
  DONE:
-  mrbc_release(v);
   if( result ) {
     SET_TRUE_RETURN();
   } else {
@@ -128,7 +127,6 @@ static void c_range_equal3(mrb_vm *vm, mrb_value v[], int argc)
 static void c_range_first(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_range_first(v);
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
@@ -139,7 +137,6 @@ static void c_range_first(mrb_vm *vm, mrb_value v[], int argc)
 static void c_range_last(mrb_vm *vm, mrb_value v[], int argc)
 {
   mrb_value ret = mrbc_range_last(v);
-  mrbc_release(v);
   SET_RETURN(ret);
 }
 
