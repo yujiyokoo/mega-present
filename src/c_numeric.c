@@ -337,6 +337,7 @@ static void c_float_to_i(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
+#if MRBC_USE_STRING
 //================================================================
 /*! (method) to_s
 */
@@ -348,6 +349,7 @@ static void c_float_to_s(mrb_vm *vm, mrb_value v[], int argc)
   mrb_value value = mrbc_string_new_cstr(vm, buf);
   SET_RETURN(value);
 }
+#endif
 
 
 //================================================================
@@ -362,7 +364,9 @@ void mrbc_init_class_float(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_float, "**", c_float_power);
   mrbc_define_method(vm, mrbc_class_float, "to_i", c_float_to_i);
   mrbc_define_method(vm, mrbc_class_float, "to_f", c_ineffect);
+#if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_float, "to_s", c_float_to_s);
+#endif
 }
 
 #endif

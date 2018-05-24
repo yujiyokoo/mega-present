@@ -119,8 +119,10 @@ int mrbc_compare(const mrb_value *v1, const mrb_value *v2)
   case MRB_TT_ARRAY:
     return mrbc_array_compare( v1, v2 );
 
+#if MRBC_USE_STRING
   case MRB_TT_STRING:
     return mrbc_string_compare( v1, v2 );
+#endif
 
   case MRB_TT_RANGE:
     return mrbc_range_compare( v1, v2 );
@@ -233,7 +235,9 @@ void mrbc_clear_vm_id(mrb_value *v)
 {
   switch( v->tt ) {
   case MRB_TT_ARRAY:	mrbc_array_clear_vm_id(v);	break;
+#if MRBC_USE_STRING
   case MRB_TT_STRING:	mrbc_string_clear_vm_id(v);	break;
+#endif
   case MRB_TT_RANGE:	mrbc_range_clear_vm_id(v);	break;
   case MRB_TT_HASH:	mrbc_hash_clear_vm_id(v);	break;
 

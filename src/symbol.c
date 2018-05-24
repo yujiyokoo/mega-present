@@ -227,8 +227,7 @@ static void c_all_symbols(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_to_s(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value value = mrbc_string_new_cstr(vm, symid_to_str(v[0].i));
-  SET_RETURN(value);
+  v[0] = mrbc_string_new_cstr(vm, symid_to_str(v[0].i));
 }
 #endif
 

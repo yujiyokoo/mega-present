@@ -70,6 +70,7 @@ void mrbc_p_sub(mrb_value *v)
     console_putchar(']');
   } break;
 
+#if MRBC_USE_STRING
   case MRB_TT_STRING:{
     console_putchar('"');
     const char *s = mrbc_string_cstr(v);
@@ -83,6 +84,7 @@ void mrbc_p_sub(mrb_value *v)
     }
     console_putchar('"');
   } break;
+#endif
 
   case MRB_TT_RANGE:{
     mrb_value v1 = mrbc_range_first(v);
@@ -158,11 +160,13 @@ int mrbc_puts_sub(mrb_value *v)
     }
   } break;
 
+#if MRBC_USE_STRING
   case MRB_TT_STRING: {
     const char *s = mrbc_string_cstr(v);
     console_print(s);
     if( strlen(s) != 0 && s[strlen(s)-1] == '\n' ) ret = 1;
   } break;
+#endif
 
   case MRB_TT_RANGE:{
     mrb_value v1 = mrbc_range_first(v);
@@ -386,13 +390,13 @@ static void c_puts(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
-static void c_object_not(mrb_vm *vm, mrb_value *v, int argc)
+static void c_object_not(mrb_vm *vm, mrb_value v[], int argc)
 {
   SET_FALSE_RETURN();
 }
 
 // Object !=
-static void c_object_neq(mrb_vm *vm, mrb_value *v, int argc)
+static void c_object_neq(mrb_vm *vm, mrb_value v[], int argc)
 {
   int result = mrbc_compare(v, v+1);
 
@@ -416,7 +420,7 @@ static void c_object_compare(mrb_vm *vm, mrb_value v[], int argc)
 
 
 // Object#class
-static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
+static void c_object_class(mrb_vm *vm, mrb_value v[], int argc)
 {
 #if MRBC_USE_STRING
   mrb_class *cls = find_class_by_object( vm, v );
@@ -426,7 +430,7 @@ static void c_object_class(mrb_vm *vm, mrb_value *v, int argc)
 }
 
 // Object.new
-static void c_object_new(mrb_vm *vm, mrb_value *v, int argc)
+static void c_object_new(mrb_vm *vm, mrb_value v[], int argc)
 {
   *v = mrbc_instance_new(vm, v->cls, 0);
   // call "initialize"
@@ -507,9 +511,37 @@ static void c_object_attr_accessor(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
+#if MRBC_USE_STRING
+//================================================================
+/*! (method) to_s
+ */
+static void c_object_to_s(mrb_vm *vm, mrb_value v[], int argc)
+{
+  // (NOTE) address part assumes 32bit. but enough for this.
+
+  char buf[32];
+  mrb_printf pf;
+
+  mrbc_printf_init( &pf, buf, sizeof(buf), "#<%s:%08x>" );
+  while( mrbc_printf_main( &pf ) > 0 ) {
+    switch(pf.fmt.type) {
+    case 's':
+      mrbc_printf_str( &pf, symid_to_str(v->instance->cls->sym_id), ' ' );
+      break;
+    case 'x':
+      mrbc_printf_int( &pf, (uintptr_t)v->instance, 16 );
+      break;
+    }
+  }
+  mrbc_printf_end( &pf );
+
+  SET_RETURN( mrbc_string_new_cstr( vm, buf ) );
+}
+#endif
+
 
 #ifdef MRBC_DEBUG
-static void c_object_instance_methods(mrb_vm *vm, mrb_value *v, int argc)
+static void c_object_instance_methods(mrb_vm *vm, mrb_value v[], int argc)
 {
   // TODO: check argument.
 
@@ -547,6 +579,10 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_object, "attr_reader", c_object_attr_reader);
   mrbc_define_method(vm, mrbc_class_object, "attr_accessor", c_object_attr_accessor);
 
+#if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_object, "to_s", c_object_to_s);
+#endif
+
 #ifdef MRBC_DEBUG
   mrbc_define_method(vm, mrbc_class_object, "instance_methods", c_object_instance_methods);
   mrbc_define_method(vm, mrbc_class_object, "p", c_p);
@@ -555,7 +591,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
 
 // =============== ProcClass
 
-static void c_proc_call(mrb_vm *vm, mrb_value *v, int argc)
+static void c_proc_call(mrb_vm *vm, mrb_value v[], int argc)
 {
   // push callinfo, but not release regs
   mrbc_push_callinfo(vm, argc);
@@ -568,39 +604,69 @@ static void c_proc_call(mrb_vm *vm, mrb_value *v, int argc)
 }
 
 
+#if MRBC_USE_STRING
+static void c_proc_to_s(mrb_vm *vm, mrb_value v[], int argc)
+{
+  // (NOTE) address part assumes 32bit. but enough for this.
+  char buf[32];
+  mrb_printf pf;
+
+  mrbc_printf_init( &pf, buf, sizeof(buf), "<#Proc:%08x>" );
+  while( mrbc_printf_main( &pf ) > 0 ) {
+    mrbc_printf_int( &pf, (uintptr_t)v->proc, 16 );
+  }
+  mrbc_printf_end( &pf );
+
+  SET_RETURN( mrbc_string_new_cstr( vm, buf ) );
+}
+#endif
+
 static void mrbc_init_class_proc(mrb_vm *vm)
 {
   // Class
   mrbc_class_proc= mrbc_define_class(vm, "Proc", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_proc, "call", c_proc_call);
+#if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_proc, "to_s", c_proc_to_s);
+#endif
 }
 
 
 //================================================================
 // Nil class
 
-static void c_nil_false_not(mrb_vm *vm, mrb_value *v, int argc)
+//================================================================
+/*! (method) !
+*/
+static void c_nil_false_not(mrb_vm *vm, mrb_value v[], int argc)
 {
-  SET_TRUE_RETURN();
+  v[0].tt = MRB_TT_TRUE;
 }
 
+
+#if MRBC_USE_STRING
 //================================================================
 /*! (method) to_s
 */
-static void c_nil_to_s(mrb_vm *vm, mrb_value *v, int argc)
+static void c_nil_to_s(mrb_vm *vm, mrb_value v[], int argc)
 {
-  mrb_value ret = mrbc_string_new(vm, NULL, 0);
-  SET_RETURN(ret);
+  v[0] = mrbc_string_new(vm, NULL, 0);
 }
+#endif
 
+//================================================================
+/*! Nil class
+*/
 static void mrbc_init_class_nil(mrb_vm *vm)
 {
   // Class
   mrbc_class_nil = mrbc_define_class(vm, "NilClass", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_nil, "!", c_nil_false_not);
+#if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_nil, "to_s", c_nil_to_s);
+#endif
 }
 
 
@@ -608,12 +674,28 @@ static void mrbc_init_class_nil(mrb_vm *vm)
 //================================================================
 // False class
 
+#if MRBC_USE_STRING
+//================================================================
+/*! (method) to_s
+*/
+static void c_false_to_s(mrb_vm *vm, mrb_value v[], int argc)
+{
+  v[0] = mrbc_string_new_cstr(vm, "false");
+}
+#endif
+
+//================================================================
+/*! False class
+*/
 static void mrbc_init_class_false(mrb_vm *vm)
 {
   // Class
   mrbc_class_false = mrbc_define_class(vm, "FalseClass", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_false, "!", c_nil_false_not);
+#if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_false, "to_s", c_false_to_s);
+#endif
 }
 
 
@@ -621,11 +703,24 @@ static void mrbc_init_class_false(mrb_vm *vm)
 //================================================================
 // True class
 
+#if MRBC_USE_STRING
+//================================================================
+/*! (method) to_s
+*/
+static void c_true_to_s(mrb_vm *vm, mrb_value v[], int argc)
+{
+  v[0] = mrbc_string_new_cstr(vm, "true");
+}
+#endif
+
 static void mrbc_init_class_true(mrb_vm *vm)
 {
   // Class
   mrbc_class_true = mrbc_define_class(vm, "TrueClass", mrbc_class_object);
   // Methods
+#if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_true, "to_s", c_true_to_s);
+#endif
 }
 
 
@@ -633,7 +728,7 @@ static void mrbc_init_class_true(mrb_vm *vm)
 //================================================================
 /*! Ineffect operator / method
 */
-void c_ineffect(mrb_vm *vm, mrb_value *v, int argc)
+void c_ineffect(mrb_vm *vm, mrb_value v[], int argc)
 {
   // nothing to do.
 }
