@@ -492,6 +492,65 @@ inline static int op_setconst( mrb_vm *vm, uint32_t code, mrb_value *regs ) {
 }
 
 
+
+//================================================================
+/*!@brief
+  Execute OP_GETUPVAR
+
+  R(A) := uvget(B,C)
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_getupvar( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int ra = GETARG_A(code);
+  int rb = GETARG_B(code);
+  int rc = GETARG_C(code);   // UP
+  
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc;
+  mrb_value *up_regs = vm->regs + callinfo->reg_top;
+  
+  mrbc_release( &regs[ra] );
+  mrbc_dup( &up_regs[rb] );
+  regs[ra] = up_regs[rb];
+  
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_SETUPVAR
+
+  uvset(B,C,R(A))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_setupvar( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+  int ra = GETARG_A(code);
+  int rb = GETARG_B(code);
+  int rc = GETARG_C(code);   // UP
+  
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc;
+  mrb_value *up_regs = vm->regs + callinfo->reg_top;
+
+  mrbc_release( &up_regs[rb] );
+  mrbc_dup( &regs[ra] );
+  up_regs[rb] = regs[ra];
+
+  return 0;
+}
+
+
+
 //================================================================
 /*!@brief
   Execute OP_JMP
@@ -1699,6 +1758,8 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_SETIV:      ret = op_setiv     (vm, code, regs); break;
     case OP_GETCONST:   ret = op_getconst  (vm, code, regs); break;
     case OP_SETCONST:   ret = op_setconst  (vm, code, regs); break;
+    case OP_GETUPVAR:   ret = op_getupvar  (vm, code, regs); break;
+    case OP_SETUPVAR:   ret = op_setupvar  (vm, code, regs); break;
     case OP_JMP:        ret = op_jmp       (vm, code, regs); break;
     case OP_JMPIF:      ret = op_jmpif     (vm, code, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, code, regs); break;
