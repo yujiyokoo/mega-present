@@ -66,7 +66,7 @@ static void c_fixnum_power(mrb_vm *vm, mrb_value v[], int argc)
     SET_INT_RETURN( x );
   }
 
-#if MRBC_USE_FLOAT
+#if MRBC_USE_FLOAT && MRBC_USE_MATH
   else if( v[1].tt == MRB_TT_FLOAT ) {
     SET_FLOAT_RETURN( pow( v[0].i, v[1].d ) );
   }
@@ -311,6 +311,7 @@ static void c_float_negative(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
+#if MRBC_USE_MATH
 //================================================================
 /*! (operator) ** power
  */
@@ -325,6 +326,7 @@ static void c_float_power(mrb_vm *vm, mrb_value v[], int argc)
 
   SET_FLOAT_RETURN( pow( v[0].d, n ));
 }
+#endif
 
 
 //================================================================
@@ -361,7 +363,9 @@ void mrbc_init_class_float(mrb_vm *vm)
   mrbc_class_float = mrbc_define_class(vm, "Float", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_float, "-@", c_float_negative);
+#if MRBC_USE_MATH
   mrbc_define_method(vm, mrbc_class_float, "**", c_float_power);
+#endif
   mrbc_define_method(vm, mrbc_class_float, "to_i", c_float_to_i);
   mrbc_define_method(vm, mrbc_class_float, "to_f", c_ineffect);
 #if MRBC_USE_STRING

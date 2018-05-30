@@ -63,6 +63,9 @@
 /* USE Float. Support Float class */
 #define MRBC_USE_FLOAT 1
 
+/* USE Math class */
+#define MRBC_USE_MATH 0
+
 /* USE String. Support String class */
 #define MRBC_USE_STRING 1
 

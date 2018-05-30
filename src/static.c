@@ -29,6 +29,7 @@ mrb_class *mrbc_class_array;
 mrb_class *mrbc_class_fixnum;
 mrb_class *mrbc_class_symbol;
 mrb_class *mrbc_class_float;
+mrb_class *mrbc_class_math;
 mrb_class *mrbc_class_string;
 mrb_class *mrbc_class_range;
 mrb_class *mrbc_class_hash;
