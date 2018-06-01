@@ -27,6 +27,7 @@
 #include "c_array.h"
 #include "c_hash.h"
 #include "c_numeric.h"
+#include "c_math.h"
 #include "c_string.h"
 #include "c_range.h"
 
@@ -750,6 +751,9 @@ void mrbc_init_class(void)
   mrbc_init_class_symbol(0);
 #if MRBC_USE_FLOAT
   mrbc_init_class_float(0);
+#if MRBC_USE_MATH
+  mrbc_init_class_math(0);
+#endif
 #endif
 #if MRBC_USE_STRING
   mrbc_init_class_string(0);
