@@ -1342,6 +1342,46 @@ inline static int op_string( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
+  String Catination
+
+  str_cat(R(A),R(B))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_strcat( mrb_vm *vm, uint32_t code, mrb_value *regs )
+{
+#if MRBC_USE_STRING
+  int ra = GETARG_A(code);
+  int rb = GETARG_B(code);
+
+  // call "to_s"
+  mrb_sym sym_id = str_to_symid("to_s");
+  mrb_proc *m;
+  m = find_method(vm, regs[ra], sym_id);
+  if( m && m->c_func ){
+    m->func(vm, regs+ra, 0);
+  } 
+  m = find_method(vm, regs[rb], sym_id);
+  if( m && m->c_func ){
+    m->func(vm, regs+rb, 0);
+  }
+
+  mrb_value v = mrbc_string_add(vm, &regs[ra], &regs[rb]);
+  mrbc_release(&regs[ra]);
+  regs[ra] = v;
+
+#else
+  not_supported();
+#endif
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
   Create Hash object
 
   R(A) := hash_new(R(B),R(B+1)..R(B+C))
@@ -1782,6 +1822,7 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_GE:         ret = op_ge        (vm, code, regs); break;
     case OP_ARRAY:      ret = op_array     (vm, code, regs); break;
     case OP_STRING:     ret = op_string    (vm, code, regs); break;
+    case OP_STRCAT:     ret = op_strcat    (vm, code, regs); break;
     case OP_HASH:       ret = op_hash      (vm, code, regs); break;
     case OP_LAMBDA:     ret = op_lambda    (vm, code, regs); break;
     case OP_RANGE:      ret = op_range     (vm, code, regs); break;
