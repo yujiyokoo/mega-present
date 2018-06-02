@@ -106,6 +106,8 @@ enum OPCODE {
   OP_TCLASS    = 0x48,
 
   OP_STOP      = 0x4a,
+
+  OP_ABORT     = 0x4b,
 };
 
 #ifdef __cplusplus

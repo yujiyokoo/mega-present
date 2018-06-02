@@ -751,14 +751,17 @@ static void c_array_dup(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_array_each(mrb_vm *vm, mrb_value v[], int argc)
 {
-  uint32_t code = MKOPCODE(OP_CALL) | MKARG_A(argc);
+  uint32_t code[2] = {
+    MKOPCODE(OP_CALL) | MKARG_A(argc),
+    MKOPCODE(OP_ABORT)
+  };
   mrb_irep irep = {
     0,     // nlocals
     0,     // nregs
     0,     // rlen
-    1,     // ilen
+    2,     // ilen
     0,     // plen
-    (uint8_t *)&code,   // iseq
+    (uint8_t *)code,   // iseq
     NULL,  // pools
     NULL,  // ptr_to_sym
     NULL,  // reps

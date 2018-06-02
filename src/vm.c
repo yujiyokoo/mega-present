@@ -1630,7 +1630,7 @@ inline static int op_tclass( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute OP_STOP
+  Execute OP_STOP, OP_ABORT
 
   stop VM
 
@@ -1641,12 +1641,14 @@ inline static int op_tclass( mrb_vm *vm, uint32_t code, mrb_value *regs )
 */
 inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
-  int i;
-  for( i = 0; i < MAX_REGS_SIZE; i++ ) {
-    mrbc_release(&vm->regs[i]);
+  if( GET_OPCODE(code) == OP_STOP ) {
+    int i;
+    for( i = 0; i < MAX_REGS_SIZE; i++ ) {
+      mrbc_release(&vm->regs[i]);
+    }
+    vm->flag_preemption = 1;
   }
-  vm->flag_preemption = 1;
-
+  
   return -1;
 }
 
@@ -1768,11 +1770,6 @@ int mrbc_vm_run( mrb_vm *vm )
   int ret = 0;
 
   do {
-    // check irep length
-    if( vm->pc >= vm->pc_irep->ilen ){
-      return 0;
-    }
-
     // get one bytecode
     uint32_t code = bin_to_uint32(vm->pc_irep->code + vm->pc * 4);
     vm->pc++;
@@ -1804,7 +1801,7 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_JMPIF:      ret = op_jmpif     (vm, code, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, code, regs); break;
     case OP_SEND:       ret = op_send      (vm, code, regs); break;
-    case OP_SENDB:      ret = op_send      (vm, code, regs); break;
+    case OP_SENDB:      ret = op_send      (vm, code, regs); break;  // using OP_SEND
     case OP_CALL:       ret = op_call      (vm, code, regs); break;
     case OP_ENTER:      ret = op_enter     (vm, code, regs); break;
     case OP_RETURN:     ret = op_return    (vm, code, regs); break;
@@ -1831,6 +1828,7 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_METHOD:     ret = op_method    (vm, code, regs); break;
     case OP_TCLASS:     ret = op_tclass    (vm, code, regs); break;
     case OP_STOP:       ret = op_stop      (vm, code, regs); break;
+    case OP_ABORT:      ret = op_stop      (vm, code, regs); break;  // using OP_STOP
     default:
       console_printf("Skip OP=%02x\n", GET_OPCODE(code));
       break;
