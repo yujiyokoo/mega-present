@@ -1630,9 +1630,10 @@ inline static int op_tclass( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
 //================================================================
 /*!@brief
-  Execute OP_STOP, OP_ABORT
+  Execute OP_STOP and OP_ABORT
 
-  stop VM
+  stop VM (OP_STOP)
+  stop VM without release memory (OP_ABORT)
 
   @param  vm    A pointer of VM.
   @param  code  bytecode
@@ -1646,8 +1647,9 @@ inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
     for( i = 0; i < MAX_REGS_SIZE; i++ ) {
       mrbc_release(&vm->regs[i]);
     }
-    vm->flag_preemption = 1;
   }
+
+  vm->flag_preemption = 1;
   
   return -1;
 }
@@ -1801,7 +1803,7 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_JMPIF:      ret = op_jmpif     (vm, code, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, code, regs); break;
     case OP_SEND:       ret = op_send      (vm, code, regs); break;
-    case OP_SENDB:      ret = op_send      (vm, code, regs); break;  // using OP_SEND
+    case OP_SENDB:      ret = op_send      (vm, code, regs); break;  // reuse
     case OP_CALL:       ret = op_call      (vm, code, regs); break;
     case OP_ENTER:      ret = op_enter     (vm, code, regs); break;
     case OP_RETURN:     ret = op_return    (vm, code, regs); break;
@@ -1828,12 +1830,14 @@ int mrbc_vm_run( mrb_vm *vm )
     case OP_METHOD:     ret = op_method    (vm, code, regs); break;
     case OP_TCLASS:     ret = op_tclass    (vm, code, regs); break;
     case OP_STOP:       ret = op_stop      (vm, code, regs); break;
-    case OP_ABORT:      ret = op_stop      (vm, code, regs); break;  // using OP_STOP
+    case OP_ABORT:      ret = op_stop      (vm, code, regs); break;  // reuse
     default:
       console_printf("Skip OP=%02x\n", GET_OPCODE(code));
       break;
     }
   } while( !vm->flag_preemption );
+
+  vm->flag_preemption = 0;
 
   return ret;
 }
