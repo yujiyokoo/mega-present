@@ -107,7 +107,7 @@ enum OPCODE {
 
   OP_STOP      = 0x4a,
 
-  OP_ABORT     = 0x4b,
+  OP_ABORT     = 0x50,  // using OP_ABORT inside mruby/c only
 };
 
 #ifdef __cplusplus
