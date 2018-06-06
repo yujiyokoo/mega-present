@@ -110,7 +110,7 @@ static void not_supported(void)
 void mrbc_push_callinfo(mrb_vm *vm, int n_args)
 {
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-  callinfo->reg_top = vm->reg_top;
+  callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
   callinfo->n_args = n_args;
@@ -129,7 +129,7 @@ void mrbc_pop_callinfo(mrb_vm *vm)
 {
   vm->callinfo_top--;
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-  vm->reg_top = callinfo->reg_top;
+  vm->current_regs = callinfo->current_regs;
   vm->pc_irep = callinfo->pc_irep;
   vm->pc = callinfo->pc;
   vm->target_class = callinfo->target_class;
@@ -511,7 +511,7 @@ inline static int op_getupvar( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rc = GETARG_C(code);   // UP
   
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc;
-  mrb_value *up_regs = vm->regs + callinfo->reg_top;
+  mrb_value *up_regs = callinfo->current_regs;
   
   mrbc_release( &regs[ra] );
   mrbc_dup( &up_regs[rb] );
@@ -540,7 +540,7 @@ inline static int op_setupvar( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rc = GETARG_C(code);   // UP
   
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc;
-  mrb_value *up_regs = vm->regs + callinfo->reg_top;
+  mrb_value *up_regs = callinfo->current_regs;
 
   mrbc_release( &up_regs[rb] );
   mrbc_dup( &regs[ra] );
@@ -681,7 +681,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   vm->pc_irep = m->irep;
 
   // new regs
-  vm->reg_top += ra;
+  vm->current_regs += ra;
 
   return 0;
 }
@@ -759,14 +759,14 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
   // restore irep,pc,regs
   vm->callinfo_top--;
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-  int reg_top = vm->reg_top;
-  vm->reg_top = callinfo->reg_top;
+  mrb_value *regs_ptr = vm->current_regs;
+  vm->current_regs = callinfo->current_regs;
   // clear regs and restore vm->reg_top
-  while( reg_top > callinfo->reg_top ){
-    mrbc_release(&regs[reg_top]);
-    regs[reg_top].tt = MRB_TT_EMPTY;
-    reg_top--;
-  }
+  // while( regs_ptr > callinfo->current_regs ){
+  //   mrbc_release(regs_ptr);
+  //   regs_ptr->tt = MRB_TT_EMPTY;
+  //   regs_ptr--;
+  // }
   // restore others
   vm->pc_irep = callinfo->pc_irep;
   vm->pc = callinfo->pc;
@@ -1524,7 +1524,7 @@ inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
 
   // prepare callinfo
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-  callinfo->reg_top = vm->reg_top;
+  callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
   callinfo->target_class = vm->target_class;
@@ -1536,7 +1536,7 @@ inline static int op_exec( mrb_vm *vm, uint32_t code, mrb_value *regs )
   vm->pc_irep = vm->irep->reps[rb];
 
   // new regs
-  vm->reg_top += ra;
+  vm->current_regs += ra;
 
   vm->target_class = find_class_by_object(vm, &recv);
 
@@ -1729,7 +1729,7 @@ void mrbc_vm_begin(mrb_vm *vm)
 {
   vm->pc_irep = vm->irep;
   vm->pc = 0;
-  vm->reg_top = 0;
+  vm->current_regs = vm->regs;
   memset(vm->regs, 0, sizeof(vm->regs));
 
   // set self to reg[0]
@@ -1777,7 +1777,7 @@ int mrbc_vm_run( mrb_vm *vm )
     vm->pc++;
 
     // regs
-    mrb_value *regs = vm->regs + vm->reg_top;
+    mrb_value *regs = vm->current_regs;
 
     // Dispatch
     int opcode = GET_OPCODE(code);

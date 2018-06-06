@@ -211,7 +211,7 @@ static void c_fixnum_times(mrb_vm *vm, mrb_value v[], int argc)
   mrbc_push_callinfo(vm, 0);
 
   // adjust reg_top for reg[0]==Proc
-  vm->reg_top += v - vm->regs + 1;
+  vm->current_regs += v - vm->regs + 1;
 
   int i;
   for( i=0 ; i<cnt ; i++ ){

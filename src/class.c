@@ -343,7 +343,7 @@ void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
   if( m==0 ) return;   // no method
 
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-  callinfo->reg_top = vm->reg_top;
+  callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
   callinfo->n_args = 0;
@@ -355,7 +355,7 @@ void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
   vm->pc_irep = m->irep;
 
   // new regs
-  vm->reg_top += 2;   // recv and symbol
+  vm->current_regs += 2;   // recv and symbol
 
 }
 
@@ -601,7 +601,7 @@ static void c_proc_call(mrb_vm *vm, mrb_value v[], int argc)
   vm->pc = 0;
   vm->pc_irep = v[0].proc->irep;
 
-  vm->reg_top = v - vm->regs;
+  vm->current_regs = v;
 }
 
 
