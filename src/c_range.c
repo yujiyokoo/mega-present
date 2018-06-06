@@ -169,7 +169,7 @@ static void c_range_each(mrb_vm *vm, mrb_value v[], int argc)
   mrbc_push_callinfo(vm, 0);
 
   // adjust reg_top for reg[0]==Proc
-  vm->reg_top += v - vm->regs + 1;
+  vm->current_regs += v - vm->regs + 1;
 
   if( range->first.tt == MRB_TT_FIXNUM && range->last.tt == MRB_TT_FIXNUM ){
     int i, i_last = range->last.i;
