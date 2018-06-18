@@ -385,8 +385,12 @@ static void c_p(mrb_vm *vm, mrb_value v[], int argc)
 static void c_puts(mrb_vm *vm, mrb_value v[], int argc)
 {
   int i;
-  for( i = 1; i <= argc; i++ ) {
-    if( mrbc_puts_sub( &v[i] ) == 0 ) console_putchar('\n');
+  if( argc ){
+    for( i = 1; i <= argc; i++ ) {
+      if( mrbc_puts_sub( &v[i] ) == 0 ) console_putchar('\n');
+    }
+  } else {
+    console_putchar('\n');
   }
 }
 
