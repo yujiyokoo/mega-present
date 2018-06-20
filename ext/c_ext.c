@@ -18,6 +18,7 @@
 #include "alloc.h"
 #include "class.h"
 #include "value.h"
+#include "static.h"
 #include "console.h"
 #include "c_ext.h"
 
