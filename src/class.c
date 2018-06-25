@@ -444,9 +444,6 @@ static void c_object_new(mrb_vm *vm, mrb_value v[], int argc)
   uint32_to_bin( 1,(uint8_t*)&syms[0]);
   uint16_to_bin(10,(uint8_t*)&syms[4]);
 
-  mrb_sym sym_id = str_to_symid(&syms[6]);
-  find_method(vm, new_obj, sym_id);
-
   uint32_t code[2] = {
     MKOPCODE(OP_SEND) | MKARG_A(0) | MKARG_B(0) | MKARG_C(argc),
     MKOPCODE(OP_ABORT)
