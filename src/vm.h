@@ -145,7 +145,7 @@ inline static uint16_t bin_to_uint16( const void *s )
 /*!@brief
   Set 16bit big endian value from memory.
 
-  @param  s input value.
+  @param  s Input value.
   @param  bin Pointer of memory.
   @return sizeof(uint16_t).
 */
@@ -158,7 +158,7 @@ inline static void uint16_to_bin(uint16_t s, uint8_t *bin)
 /*!@brief
   Set 32bit big endian value from memory.
 
-  @param  s input value.
+  @param  l Input value.
   @param  bin Pointer of memory.
   @return sizeof(uint32_t).
 */
