@@ -8,7 +8,7 @@
 
 #include "sample01.c"
 
-#define MEMORY_SIZE (1024*10)
+#define MEMORY_SIZE (1024*30)
 static uint8_t memory_pool[MEMORY_SIZE];
 
 int main(void)
