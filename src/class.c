@@ -307,6 +307,21 @@ mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
 
 
 //================================================================
+/*! get class by name
+
+  @param  name		class name.
+  @return		pointer to class object.
+*/
+mrb_class * mrbc_get_class_by_name( const char *name )
+{
+  mrb_sym sym_id = str_to_symid(name);
+  mrb_object obj = const_object_get(sym_id);
+
+  return (obj.tt == MRB_TT_CLASS) ? obj.cls : NULL;
+}
+
+
+//================================================================
 /*!@brief
   define class method or instance method.
 
