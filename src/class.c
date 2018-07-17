@@ -269,13 +269,14 @@ mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrb_sym sym_id)
 */
 mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
 {
-  mrb_class *cls;
+  if( super == NULL ) super = mrbc_class_object;  // set default to Object.
+
   mrb_sym sym_id = str_to_symid(name);
   mrb_object obj = const_object_get(sym_id);
 
   // create a new class?
   if( obj.tt == MRB_TT_NIL ) {
-    cls = mrbc_alloc( 0, sizeof(mrb_class) );
+    mrb_class *cls = mrbc_alloc( 0, sizeof(mrb_class) );
     if( !cls ) return cls;	// ENOMEM
 
     cls->sym_id = sym_id;
@@ -316,6 +317,8 @@ mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
 */
 void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t cfunc)
 {
+  if( cls == NULL ) cls = mrbc_class_object;	// set default to Object.
+
   mrb_proc *rproc = mrbc_rproc_alloc(vm, name);
   rproc->c_func = 1;  // c-func
   rproc->next = cls->procs;
