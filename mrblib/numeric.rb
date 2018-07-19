@@ -1,5 +1,7 @@
 
 class Fixnum
+
+  # times
   def times
     i = 0
     while i < self
