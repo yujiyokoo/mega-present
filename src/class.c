@@ -794,6 +794,24 @@ void c_ineffect(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
+//================================================================
+/*! Run mrblib, which is mruby bytecode
+*/
+void mrbc_run_mrblib(void)
+{
+  extern const uint8_t mrblib_bytecode[];
+
+  mrb_vm vm;
+  mrbc_vm_open(&vm);
+  mrbc_load_mrb(&vm, mrblib_bytecode);
+  mrbc_vm_begin(&vm);
+  mrbc_vm_run(&vm);
+  mrbc_vm_end(&vm);
+  //mrbc_vm_close(&vm);
+}
+
+
+
 
 //================================================================
 // initialize
@@ -820,4 +838,6 @@ void mrbc_init_class(void)
   mrbc_init_class_array(0);
   mrbc_init_class_range(0);
   mrbc_init_class_hash(0);
+
+  mrbc_run_mrblib();
 }
