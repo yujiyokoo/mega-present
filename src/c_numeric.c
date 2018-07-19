@@ -185,55 +185,6 @@ static void c_fixnum_to_f(mrb_vm *vm, mrb_value v[], int argc)
 #endif
 
 
-//================================================================
-/*! (method) times
-*/
-static void c_fixnum_times(mrb_vm *vm, mrb_value v[], int argc)
-{
-  uint32_t code[2] = {
-    MKOPCODE(OP_CALL) | MKARG_A(argc),
-    MKOPCODE(OP_ABORT)
-  };
-  mrb_irep irep = {
-    0,     // nlocals
-    0,     // nregs
-    0,     // rlen
-    2,     // ilen
-    0,     // plen
-    (uint8_t *)code,   // iseq
-    NULL,  // pools
-    NULL,  // ptr_to_sym
-    NULL,  // reps
-  };
-
-  // count of times
-  int cnt = v[0].i;
-
-  mrbc_push_callinfo(vm, 0);
-
-  // adjust reg_top for reg[0]==Proc
-  vm->current_regs += v - vm->regs + 1;
-
-  int i;
-  for( i=0 ; i<cnt ; i++ ){
-    // set index
-    mrbc_release( &v[2] );
-    v[2].tt = MRB_TT_FIXNUM;
-    v[2].i = i;
-
-    // set OP_CALL irep
-    vm->pc = 0;
-    vm->pc_irep = &irep;
-
-    // execute OP_CALL
-    mrbc_vm_run(vm);
-  }
-
-  mrbc_pop_callinfo(vm);
-}
-
-
-
 #if MRBC_USE_STRING
 //================================================================
 /*! (method) chr
@@ -291,7 +242,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_fixnum, ">>", c_fixnum_rshift);
   mrbc_define_method(vm, mrbc_class_fixnum, "abs", c_fixnum_abs);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_i", c_ineffect);
-  mrbc_define_method(vm, mrbc_class_fixnum, "times", c_fixnum_times);
+  //  mrbc_define_method(vm, mrbc_class_fixnum, "times", c_fixnum_times);
 #if MRBC_USE_FLOAT
   mrbc_define_method(vm, mrbc_class_fixnum, "to_f", c_fixnum_to_f);
 #endif
