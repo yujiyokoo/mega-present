@@ -509,14 +509,14 @@ inline static int op_getupvar( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_B(code);
   int rc = GETARG_C(code);   // UP
-  
+
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc;
   mrb_value *up_regs = callinfo->current_regs;
-  
+
   mrbc_release( &regs[ra] );
   mrbc_dup( &up_regs[rb] );
   regs[ra] = up_regs[rb];
-  
+
   return 0;
 }
 
@@ -538,7 +538,7 @@ inline static int op_setupvar( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_B(code);
   int rc = GETARG_C(code);   // UP
-  
+
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc;
   mrb_value *up_regs = callinfo->current_regs;
 
@@ -664,9 +664,9 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   if( m->c_func ) {
     m->func(vm, regs + ra, rc);
 
-    int release_reg = ra+rc+1;
+    int release_reg = ra+1;
     while( release_reg <= bidx ) {
-      // mrbc_release(&regs[release_reg]);
+      mrbc_release(&regs[release_reg]);
       release_reg++;
     }
     return 0;
@@ -750,27 +750,24 @@ inline static int op_return( mrb_vm *vm, uint32_t code, mrb_value *regs )
 {
   // return value
   int ra = GETARG_A(code);
-  //  if( ra != 0 ){
-  mrb_value v = regs[ra];
-  mrbc_dup(&v);
+
   mrbc_release(&regs[0]);
-  regs[0] = v;
-  //  }
+  regs[0] = regs[ra];
+  regs[ra].tt = MRB_TT_EMPTY;
+
   // restore irep,pc,regs
   vm->callinfo_top--;
   mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-  mrb_value *regs_ptr = vm->current_regs;
   vm->current_regs = callinfo->current_regs;
-  // clear regs and restore vm->reg_top
-  // while( regs_ptr > callinfo->current_regs ){
-  //   mrbc_release(regs_ptr);
-  //   regs_ptr->tt = MRB_TT_EMPTY;
-  //   regs_ptr--;
-  // }
-  // restore others
   vm->pc_irep = callinfo->pc_irep;
   vm->pc = callinfo->pc;
   vm->target_class = callinfo->target_class;
+
+  // clear stacked arguments
+  int i;
+  for( i = 1; i <= callinfo->n_args; i++ ) {
+    mrbc_release( &regs[i] );
+  }
   return 0;
 }
 
@@ -1363,7 +1360,7 @@ inline static int op_strcat( mrb_vm *vm, uint32_t code, mrb_value *regs )
   m = find_method(vm, regs[ra], sym_id);
   if( m && m->c_func ){
     m->func(vm, regs+ra, 0);
-  } 
+  }
   m = find_method(vm, regs[rb], sym_id);
   if( m && m->c_func ){
     m->func(vm, regs+rb, 0);
@@ -1650,7 +1647,7 @@ inline static int op_stop( mrb_vm *vm, uint32_t code, mrb_value *regs )
   }
 
   vm->flag_preemption = 1;
-  
+
   return -1;
 }
 
