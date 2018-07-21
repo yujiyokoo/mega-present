@@ -7,11 +7,11 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
-SRC = numeric.rb
+SRC = array.rb numeric.rb 
 MRBC = mrbc
 
 all: mrblib.c
 
 mrblib.c: $(SRC)
 	cat $(SRC) > mrblib.rb
-	$(MRBC) -v -E -Bmrblib_bytecode mrblib.rb > mrblib.txt
+	$(MRBC) -E -Bmrblib_bytecode mrblib.rb
