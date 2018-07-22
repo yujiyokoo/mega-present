@@ -211,6 +211,30 @@ int mrbc_string_append(mrb_value *s1, mrb_value *s2)
 
 
 //================================================================
+/*! append c string (s1 += s2)
+
+  @param  s1	pointer to target value 1
+  @param  s2	pointer to char (c_str)
+  @param	mrb_error_code
+*/
+int mrbc_string_append_cstr(mrb_value *s1, const char *s2)
+{
+  int len1 = s1->string->size;
+  int len2 = strlen(s2);
+
+  uint8_t *str = mrbc_raw_realloc(s1->string->data, len1+len2+1);
+  if( !str ) return E_NOMEMORY_ERROR;
+
+  memcpy(str + len1, s2, len2 + 1);
+
+  s1->string->size = len1 + len2;
+  s1->string->data = str;
+
+  return 0;
+}
+
+
+//================================================================
 /*! locate a substring in a string
 
   @param  src		pointer to target string
@@ -601,6 +625,31 @@ static void c_string_index(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
+/*! (method) inspect
+*/
+static void c_string_inspect(mrb_vm *vm, mrb_value v[], int argc)
+{
+  char buf[10] = "\\x";
+  mrb_value ret = mrbc_string_new_cstr(vm, "\"");
+  const unsigned char *s = (const unsigned char *)mrbc_string_cstr(v);
+  int i;
+  for( i = 0; i < mrbc_string_size(v); i++ ) {
+    if( s[i] < ' ' || 0x7f <= s[i] ) {	// tiny isprint()
+      buf[2] = "0123456789ABCDEF"[s[i] >> 4];
+      buf[3] = "0123456789ABCDEF"[s[i] & 0x0f];
+      mrbc_string_append_cstr(&ret, buf);
+    } else {
+      buf[3] = s[i];
+      mrbc_string_append_cstr(&ret, buf+3);
+    }
+  }
+  mrbc_string_append_cstr(&ret, "\"");
+
+  SET_RETURN( ret );
+}
+
+
+//================================================================
 /*! (method) ord
 */
 static void c_string_ord(mrb_vm *vm, mrb_value v[], int argc)
@@ -834,6 +883,7 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_string, "chomp!",	c_string_chomp_self);
   mrbc_define_method(vm, mrbc_class_string, "dup",	c_string_dup);
   mrbc_define_method(vm, mrbc_class_string, "index",	c_string_index);
+  mrbc_define_method(vm, mrbc_class_string, "inspect",	c_string_inspect);
   mrbc_define_method(vm, mrbc_class_string, "ord",	c_string_ord);
   mrbc_define_method(vm, mrbc_class_string, "lstrip",	c_string_lstrip);
   mrbc_define_method(vm, mrbc_class_string, "lstrip!",	c_string_lstrip_self);
