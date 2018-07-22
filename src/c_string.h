@@ -45,6 +45,7 @@ void mrbc_string_clear_vm_id(mrb_value *str);
 mrb_value mrbc_string_dup(struct VM *vm, mrb_value *s1);
 mrb_value mrbc_string_add(struct VM *vm, mrb_value *s1, mrb_value *s2);
 int mrbc_string_append(mrb_value *s1, mrb_value *s2);
+int mrbc_string_append_cstr(mrb_value *s1, const char *s2);
 int mrbc_string_index(mrb_value *src, mrb_value *pattern, int offset);
 int mrbc_string_strip(mrb_value *src, int mode);
 int mrbc_string_chomp(mrb_value *src);

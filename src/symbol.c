@@ -223,6 +223,17 @@ static void c_all_symbols(mrb_vm *vm, mrb_value v[], int argc)
 
 #if MRBC_USE_STRING
 //================================================================
+/*! (method) inspect
+*/
+static void c_inspect(mrb_vm *vm, mrb_value v[], int argc)
+{
+  const char *s = symid_to_str(v[0].i);
+  v[0] = mrbc_string_new_cstr(vm, ":");
+  mrbc_string_append_cstr(&v[0], s);
+}
+
+
+//================================================================
 /*! (method) to_s
 */
 static void c_to_s(mrb_vm *vm, mrb_value v[], int argc)
@@ -255,6 +266,7 @@ void mrbc_init_class_symbol(struct VM *vm)
 
   mrbc_define_method(vm, mrbc_class_symbol, "all_symbols", c_all_symbols);
 #if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_symbol, "inspect", c_inspect);
   mrbc_define_method(vm, mrbc_class_symbol, "to_s", c_to_s);
   mrbc_define_method(vm, mrbc_class_symbol, "id2name", c_to_s);
 #endif

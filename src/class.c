@@ -24,6 +24,7 @@
 #include "symbol.h"
 #include "console.h"
 #include "opcode.h"
+#include "load.h"
 
 #include "c_array.h"
 #include "c_hash.h"
@@ -577,25 +578,38 @@ static void c_object_attr_accessor(mrb_vm *vm, mrb_value v[], int argc)
  */
 static void c_object_to_s(mrb_vm *vm, mrb_value v[], int argc)
 {
-  // (NOTE) address part assumes 32bit. but enough for this.
-
   char buf[32];
-  mrb_printf pf;
+  char *s = buf;
 
-  mrbc_printf_init( &pf, buf, sizeof(buf), "#<%s:%08x>" );
-  while( mrbc_printf_main( &pf ) > 0 ) {
-    switch(pf.fmt.type) {
-    case 's':
-      mrbc_printf_str( &pf, symid_to_str(v->instance->cls->sym_id), ' ' );
-      break;
-    case 'x':
-      mrbc_printf_int( &pf, (uintptr_t)v->instance, 16 );
-      break;
+  switch( v->tt ) {
+  case MRB_TT_CLASS:
+    s = symid_to_str( v->cls->sym_id );
+    break;
+
+  case MRB_TT_OBJECT:{
+    // (NOTE) address part assumes 32bit. but enough for this.
+    mrb_printf pf;
+
+    mrbc_printf_init( &pf, buf, sizeof(buf), "#<%s:%08x>" );
+    while( mrbc_printf_main( &pf ) > 0 ) {
+      switch(pf.fmt.type) {
+      case 's':
+	mrbc_printf_str( &pf, symid_to_str(v->instance->cls->sym_id), ' ' );
+	break;
+      case 'x':
+	mrbc_printf_int( &pf, (uintptr_t)v->instance, 16 );
+	break;
+      }
     }
-  }
-  mrbc_printf_end( &pf );
+    mrbc_printf_end( &pf );
+  } break;
 
-  SET_RETURN( mrbc_string_new_cstr( vm, buf ) );
+  default:
+    s = "";
+    break;
+  }
+
+  SET_RETURN( mrbc_string_new_cstr( vm, s ) );
 }
 #endif
 
@@ -640,6 +654,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_object, "attr_accessor", c_object_attr_accessor);
 
 #if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_object, "inspect", c_object_to_s);
   mrbc_define_method(vm, mrbc_class_object, "to_s", c_object_to_s);
 #endif
 
@@ -688,6 +703,7 @@ static void mrbc_init_class_proc(mrb_vm *vm)
   // Methods
   mrbc_define_method(vm, mrbc_class_proc, "call", c_proc_call);
 #if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_proc, "inspect", c_proc_to_s);
   mrbc_define_method(vm, mrbc_class_proc, "to_s", c_proc_to_s);
 #endif
 }
@@ -707,6 +723,15 @@ static void c_nil_false_not(mrb_vm *vm, mrb_value v[], int argc)
 
 #if MRBC_USE_STRING
 //================================================================
+/*! (method) inspect
+*/
+static void c_nil_inspect(mrb_vm *vm, mrb_value v[], int argc)
+{
+  v[0] = mrbc_string_new_cstr(vm, "nil");
+}
+
+
+//================================================================
 /*! (method) to_s
 */
 static void c_nil_to_s(mrb_vm *vm, mrb_value v[], int argc)
@@ -725,6 +750,7 @@ static void mrbc_init_class_nil(mrb_vm *vm)
   // Methods
   mrbc_define_method(vm, mrbc_class_nil, "!", c_nil_false_not);
 #if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_nil, "inspect", c_nil_inspect);
   mrbc_define_method(vm, mrbc_class_nil, "to_s", c_nil_to_s);
 #endif
 }
@@ -754,6 +780,7 @@ static void mrbc_init_class_false(mrb_vm *vm)
   // Methods
   mrbc_define_method(vm, mrbc_class_false, "!", c_nil_false_not);
 #if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_false, "inspect", c_false_to_s);
   mrbc_define_method(vm, mrbc_class_false, "to_s", c_false_to_s);
 #endif
 }
@@ -779,6 +806,7 @@ static void mrbc_init_class_true(mrb_vm *vm)
   mrbc_class_true = mrbc_define_class(vm, "TrueClass", mrbc_class_object);
   // Methods
 #if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_true, "inspect", c_true_to_s);
   mrbc_define_method(vm, mrbc_class_true, "to_s", c_true_to_s);
 #endif
 }

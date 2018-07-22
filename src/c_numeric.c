@@ -247,6 +247,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
 #endif
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_fixnum, "chr", c_fixnum_chr);
+  mrbc_define_method(vm, mrbc_class_fixnum, "inspect", c_fixnum_to_s);
   mrbc_define_method(vm, mrbc_class_fixnum, "to_s", c_fixnum_to_s);
 #endif
 }
@@ -335,6 +336,7 @@ void mrbc_init_class_float(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_float, "to_i", c_float_to_i);
   mrbc_define_method(vm, mrbc_class_float, "to_f", c_ineffect);
 #if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_float, "inspect", c_float_to_s);
   mrbc_define_method(vm, mrbc_class_float, "to_s", c_float_to_s);
 #endif
 }
