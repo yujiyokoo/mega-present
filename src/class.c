@@ -382,6 +382,75 @@ void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
 
 
 //================================================================
+/*! (BETA) Call any method of the object, but written by C.
+
+  @param  vm		pointer to vm.
+  @param  v		see bellow example.
+  @param  reg_ofs	see bellow example.
+  @param  recv		pointer to receiver.
+  @param  name		method name.
+  @param  argc		num of params.
+
+  @example
+  // (Fixnum).to_s(16)
+  static void c_fixnum_to_s(mrb_vm *vm, mrb_value v[], int argc)
+  {
+    mrb_value *recv = &v[1];
+    mrb_value arg1 = mrb_fixnum_value(16);
+    mrb_value ret = mrbc_send( vm, v, argc, recv, "to_s", 1, &arg1 );
+    SET_RETURN(ret);
+  }
+ */
+mrb_value mrbc_send( struct VM *vm, mrb_value *v, int reg_ofs,
+		     mrb_value *recv, const char *method, int argc, ... )
+{
+  mrb_sym sym_id = str_to_symid(method);
+  mrb_proc *m = find_method(vm, *recv, sym_id);
+
+  if( m == 0 ) {
+    console_printf("No method. vtype=%d method='%s'\n", recv->tt, method );
+    goto ERROR;
+  }
+  if( !m->c_func ) {
+    console_printf("Method %s is not C function\n", method );
+    goto ERROR;
+  }
+
+  // create call stack.
+  mrb_value *regs = v + reg_ofs + 2;
+  mrbc_release( &regs[0] );
+  regs[0] = *recv;
+  mrbc_dup(recv);
+
+  va_list ap;
+  va_start(ap, argc);
+  int i;
+  for( i = 1; i <= argc; i++ ) {
+    mrbc_release( &regs[i] );
+    regs[i] = *va_arg(ap, mrb_value *);
+  }
+  mrbc_release( &regs[i] );
+  regs[i] = mrb_nil_value();
+  va_end(ap);
+
+  // call method.
+  m->func(vm, regs, argc);
+  mrb_value ret = regs[0];
+
+  for(; i >= 0; i-- ) {
+    regs[i].tt = MRB_TT_EMPTY;
+  }
+
+  return ret;
+
+ ERROR:
+  return mrb_nil_value();
+}
+
+
+
+
+//================================================================
 // Object class
 
 #ifdef MRBC_DEBUG
@@ -579,7 +648,7 @@ static void c_object_attr_accessor(mrb_vm *vm, mrb_value v[], int argc)
 static void c_object_to_s(mrb_vm *vm, mrb_value v[], int argc)
 {
   char buf[32];
-  char *s = buf;
+  const char *s = buf;
 
   switch( v->tt ) {
   case MRB_TT_CLASS:
