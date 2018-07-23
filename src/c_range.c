@@ -143,52 +143,15 @@ static void c_range_last(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
-/*! (method) each
+/*! (method) exclude_end?
 */
-static void c_range_each(mrb_vm *vm, mrb_value v[], int argc)
+static void c_range_exclude_end(mrb_vm *vm, mrb_value v[], int argc)
 {
-  uint32_t code[2] = {
-    MKOPCODE(OP_CALL) | MKARG_A(argc),
-    MKOPCODE(OP_ABORT)
-  };
-  mrb_irep irep = {
-    0,     // nlocals
-    0,     // nregs
-    0,     // rlen
-    2,     // ilen
-    0,     // plen
-    (uint8_t *)code,   // iseq
-    NULL,  // pools
-    NULL,  // ptr_to_sym
-    NULL,  // reps
-  };
-
-  // get range
-  mrb_range *range = v[0].range;
-
-  mrbc_push_callinfo(vm, 0);
-
-  // adjust reg_top for reg[0]==Proc
-  vm->current_regs += v - vm->regs + 1;
-
-  if( range->first.tt == MRB_TT_FIXNUM && range->last.tt == MRB_TT_FIXNUM ){
-    int i, i_last = range->last.i;
-    if( range->flag_exclude ) i_last--;
-    for( i=range->first.i ; i<=i_last ; i++ ){
-      v[2].tt = MRB_TT_FIXNUM;
-      v[2].i = i;
-      // set OP_CALL irep
-      vm->pc = 0;
-      vm->pc_irep = &irep;
-      
-      // execute OP_CALL
-      mrbc_vm_run(vm);
-    }
+  if( v->range->flag_exclude ){
+    SET_TRUE_RETURN();
   } else {
-    console_printf( "Not supported\n" );
+    SET_FALSE_RETURN();
   }
-  
-  mrbc_pop_callinfo(vm);
 }
 
 
@@ -203,5 +166,5 @@ void mrbc_init_class_range(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_range, "===", c_range_equal3);
   mrbc_define_method(vm, mrbc_class_range, "first", c_range_first);
   mrbc_define_method(vm, mrbc_class_range, "last", c_range_last);
-  mrbc_define_method(vm, mrbc_class_range, "each", c_range_each);
+  mrbc_define_method(vm, mrbc_class_range, "exclude_end?", c_range_exclude_end);
 }
