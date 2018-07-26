@@ -1,8 +1,8 @@
 #
 # mruby/c  src/Makefile
 #
-# Copyright (C) 2015,2016 Kyushu Institute of Technology.
-# Copyright (C) 2015,2016 Shimane IT Open-Innovation Center.
+# Copyright (C) 2015-2018 Kyushu Institute of Technology.
+# Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
 #
 #  This file is distributed under BSD 3-Clause License.
 #
@@ -10,15 +10,14 @@
 CFLAGS = -Wall -Wpointer-arith -g -DMRBC_DEBUG  # -std=c99 -pedantic -pedantic-errors
 
 COMMON_SRCS = alloc.c class.c console.c global.c keyvalue.c load.c rrt0.c static.c symbol.c value.c vm.c hal/hal.c
-RUBY_LIB_SRCS = c_array.c c_hash.c c_numeric.c c_math.c c_range.c c_string.c 
-MRBLIB_SRC = ../mrblib/mrblib.c
+RUBY_LIB_SRCS = c_array.c c_hash.c c_numeric.c c_math.c c_range.c c_string.c mrblib.c
 
 TARGET = libmrubyc.a
-OBJS = $(COMMON_SRCS:.c=.o) $(RUBY_LIB_SRCS:.c=.o) $(MRBLIB_SRC:.c=.o)
+OBJS = $(COMMON_SRCS:.c=.o) $(RUBY_LIB_SRCS:.c=.o)
 
 
 all:
-	if [ ! -e hal ]; then ln -s hal_posix hal; fi
+	@if [ ! -e hal ]; then ln -s hal_posix hal; fi
 	$(MAKE) $(TARGET)
 
 $(TARGET): $(OBJS)

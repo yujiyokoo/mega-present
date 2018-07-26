@@ -11,6 +11,7 @@ all: mrubyc_lib mrubyc_ext mrubyc_bin
 
 
 mrubyc_lib:
+	cd mrblib ; make all
 	cd src ; make all
 
 mrubyc_ext:
@@ -20,6 +21,7 @@ mrubyc_bin:
 	cd sample_c ; make all
 
 clean:
+	cd mrblib ; make clean
 	cd src ; make clean
 	cd sample_c ; make clean
 
