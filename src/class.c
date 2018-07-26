@@ -735,7 +735,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
 
 // =============== ProcClass
 
-static void c_proc_call(mrb_vm *vm, mrb_value v[], int argc)
+void c_proc_call(mrb_vm *vm, mrb_value v[], int argc)
 {
   // push callinfo, but not release regs
   mrbc_push_callinfo(vm, argc);

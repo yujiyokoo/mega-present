@@ -664,6 +664,9 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   if( m->c_func ) {
     m->func(vm, regs + ra, rc);
 
+    extern void c_proc_call(mrb_vm *vm, mrb_value v[], int argc);
+	if( m->func == c_proc_call ) return 0;
+
     int release_reg = ra+1;
     while( release_reg <= bidx ) {
       mrbc_release(&regs[release_reg]);
