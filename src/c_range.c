@@ -185,34 +185,6 @@ static void c_range_inspect(mrb_vm *vm, mrb_value v[], int argc)
 
 
 
-#if MRBC_USE_STRING
-//================================================================
-/*! (method) inspect
-*/
-static void c_range_inspect(mrb_vm *vm, mrb_value v[], int argc)
-{
-  mrb_value ret = mrbc_string_new(vm, NULL, 0);
-  if( !ret.string ) goto RETURN_NIL;		// ENOMEM
-
-  int i;
-  for( i = 0; i < 2; i++ ) {
-    if( i != 0 ) mrbc_string_append_cstr( &ret, ".." );
-    mrb_value v1 = (i == 0) ? mrbc_range_first(v) : mrbc_range_last(v);
-    mrb_value s1 = mrbc_send( vm, v, argc, &v1, "inspect", 0 );
-    mrbc_string_append( &ret, &s1 );
-    mrbc_string_delete( &s1 );
-  }
-
-  SET_RETURN(ret);
-  return;
-
- RETURN_NIL:
-  SET_NIL_RETURN();
-}
-#endif
-
-
-
 //================================================================
 /*! initialize
 */
