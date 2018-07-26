@@ -34,6 +34,9 @@ void mrbc_define_method(struct VM *vm, mrb_class *cls, const char *name, mrb_fun
 void c_ineffect(mrb_vm *vm, mrb_value *v, int argc);
 
 void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc);
+mrb_value mrbc_send( struct VM *vm, mrb_value *v, int reg_ofs,
+		     mrb_value *recv, const char *method, int argc, ... );
+
 
 #ifdef __cplusplus
 }

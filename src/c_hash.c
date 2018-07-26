@@ -22,6 +22,7 @@
 #include "class.h"
 #include "c_array.h"
 #include "c_hash.h"
+#include "c_string.h"
 
 /*
   function summary
@@ -501,7 +502,50 @@ static void c_hash_values(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
+#if MRBC_USE_STRING
+//================================================================
+/*! (method) inspect
+*/
+static void c_hash_inspect(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_string_new_cstr(vm, "{");
+  if( !ret.string ) goto RETURN_NIL;		// ENOMEM
 
+  mrb_hash_iterator ite = mrbc_hash_iterator(v);
+  int flag_first = 1;
+
+  while( mrbc_hash_i_has_next(&ite) ) {
+    if( !flag_first ) mrbc_string_append_cstr( &ret, ", " );
+    flag_first = 0;
+    mrb_value *kv = mrbc_hash_i_next(&ite);
+
+    mrb_value s1 = mrbc_send( vm, v, argc, &kv[0], "inspect", 0 );
+    mrbc_string_append( &ret, &s1 );
+    mrbc_string_delete( &s1 );
+
+    mrbc_string_append_cstr( &ret, "=>" );
+
+    s1 = mrbc_send( vm, v, argc, &kv[1], "inspect", 0 );
+    mrbc_string_append( &ret, &s1 );
+    mrbc_string_delete( &s1 );
+  }
+
+  mrbc_string_append_cstr( &ret, "}" );
+
+  SET_RETURN(ret);
+  return;
+
+ RETURN_NIL:
+  SET_NIL_RETURN();
+}
+#endif
+
+
+
+
+//================================================================
+/*! initialize
+*/
 void mrbc_init_class_hash(struct VM *vm)
 {
   mrbc_class_hash = mrbc_define_class(vm, "Hash", mrbc_class_object);
@@ -524,4 +568,9 @@ void mrbc_init_class_hash(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_hash, "merge!",	c_hash_merge_self);
   mrbc_define_method(vm, mrbc_class_hash, "to_h",	c_ineffect);
   mrbc_define_method(vm, mrbc_class_hash, "values",	c_hash_values);
+#if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_hash, "inspect",	c_hash_inspect);
+  mrbc_define_method(vm, mrbc_class_hash, "to_s",	c_hash_inspect);
+#endif
+
 }

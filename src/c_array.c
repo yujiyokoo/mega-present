@@ -21,6 +21,7 @@
 #include "static.h"
 #include "class.h"
 #include "c_array.h"
+#include "c_string.h"
 #include "console.h"
 #include "opcode.h"
 
@@ -851,6 +852,36 @@ static void c_array_minmax(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
+#if MRBC_USE_STRING
+//================================================================
+/*! (method) inspect
+*/
+static void c_array_inspect(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_string_new_cstr(vm, "[");
+  if( !ret.string ) goto RETURN_NIL;		// ENOMEM
+
+  int i;
+  for( i = 0; i < mrbc_array_size(v); i++ ) {
+    if( i != 0 ) mrbc_string_append_cstr( &ret, ", " );
+
+    mrb_value v1 = mrbc_array_get(v, i);
+    mrb_value s1 = mrbc_send( vm, v, argc, &v1, "inspect", 0 );
+    mrbc_string_append( &ret, &s1 );
+    mrbc_string_delete( &s1 );
+  }
+
+  mrbc_string_append_cstr( &ret, "]" );
+
+  SET_RETURN(ret);
+  return;
+
+ RETURN_NIL:
+  SET_NIL_RETURN();
+}
+#endif
+
+
 
 //================================================================
 /*! initialize
@@ -882,4 +913,8 @@ void mrbc_init_class_array(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_array, "min", c_array_min);
   mrbc_define_method(vm, mrbc_class_array, "max", c_array_max);
   mrbc_define_method(vm, mrbc_class_array, "minmax", c_array_minmax);
+#if MRBC_USE_STRING
+  mrbc_define_method(vm, mrbc_class_array, "inspect", c_array_inspect);
+  mrbc_define_method(vm, mrbc_class_array, "to_s", c_array_inspect);
+#endif
 }
