@@ -492,13 +492,8 @@ static void c_object_not(mrb_vm *vm, mrb_value v[], int argc)
 // Object !=
 static void c_object_neq(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int result = mrbc_compare(v, v+1);
-
-  if( result ) {
-    SET_TRUE_RETURN();
-  } else {
-    SET_FALSE_RETURN();
-  }
+  int result = mrbc_compare( &v[0], &v[1] );
+  SET_BOOL_RETURN( result != 0 );
 }
 
 
@@ -508,8 +503,23 @@ static void c_object_neq(mrb_vm *vm, mrb_value v[], int argc)
 static void c_object_compare(mrb_vm *vm, mrb_value v[], int argc)
 {
   int result = mrbc_compare( &v[0], &v[1] );
+  SET_INT_RETURN( result );
+}
 
-  SET_INT_RETURN(result);
+
+//================================================================
+/*! (operator) ===
+ */
+static void c_object_equal3(mrb_vm *vm, mrb_value v[], int argc)
+{
+  if( v[0].tt == MRB_TT_CLASS ) {
+	mrb_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
+	SET_RETURN( result );
+
+  } else {
+	int result = mrbc_compare( &v[0], &v[1] );
+	SET_BOOL_RETURN( result == 0 );
+  }
 }
 
 
@@ -641,6 +651,28 @@ static void c_object_attr_accessor(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
+//================================================================
+/*! (method) is_a, kind_of
+ */
+static void c_object_kind_of(mrb_vm *vm, mrb_value v[], int argc)
+{
+  int result = 0;
+  if( v[1].tt != MRB_TT_CLASS ) goto DONE;
+
+  const mrb_class *cls = find_class_by_object( vm, &v[0] );
+
+  do {
+	result = (cls == v[1].cls);
+	if( result ) break;
+
+	cls = cls->super;
+  } while( cls != NULL );
+
+ DONE:
+  SET_BOOL_RETURN( result );
+}
+
+
 #if MRBC_USE_STRING
 //================================================================
 /*! (method) to_s
@@ -717,10 +749,13 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_define_method(vm, mrbc_class_object, "!", c_object_not);
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
   mrbc_define_method(vm, mrbc_class_object, "<=>", c_object_compare);
+  mrbc_define_method(vm, mrbc_class_object, "===", c_object_equal3);
   mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
   mrbc_define_method(vm, mrbc_class_object, "new", c_object_new);
   mrbc_define_method(vm, mrbc_class_object, "attr_reader", c_object_attr_reader);
   mrbc_define_method(vm, mrbc_class_object, "attr_accessor", c_object_attr_accessor);
+  mrbc_define_method(vm, mrbc_class_object, "is_a?", c_object_kind_of);
+  mrbc_define_method(vm, mrbc_class_object, "kind_of?", c_object_kind_of);
 
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_object, "inspect", c_object_to_s);

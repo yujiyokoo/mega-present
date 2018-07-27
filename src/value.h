@@ -176,6 +176,7 @@ typedef struct RProc {
 #define SET_FLOAT_RETURN(n)	(mrbc_release(v), v[0].tt=MRB_TT_FLOAT, v[0].d=(n))
 #define SET_FALSE_RETURN()	(mrbc_release(v), v[0].tt=MRB_TT_FALSE)
 #define SET_TRUE_RETURN()	(mrbc_release(v), v[0].tt=MRB_TT_TRUE)
+#define SET_BOOL_RETURN(n)	(mrbc_release(v), v[0].tt=(n)?MRB_TT_TRUE:MRB_TT_FALSE)
 #define SET_RETURN(n)		(mrbc_release(v), v[0]=(n))
 
 #define GET_TT_ARG(n)		(v[(n)].tt)

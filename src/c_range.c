@@ -96,29 +96,21 @@ int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2)
 */
 static void c_range_equal3(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int result = 0;
-
-  mrb_value *v_first = &v[0].range->first;
-  mrb_value *v_last =&v[0].range->last;
-  mrb_value *v1 = &v[1];
-
-  if( v_first->tt == MRB_TT_FIXNUM && v1->tt == MRB_TT_FIXNUM ) {
-    if( v->range->flag_exclude ) {
-      result = (v_first->i <= v1->i) && (v1->i < v_last->i);
-    } else {
-      result = (v_first->i <= v1->i) && (v1->i <= v_last->i);
-    }
-    goto DONE;
+  if( v[0].tt == MRB_TT_CLASS ) {
+	mrb_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
+	SET_RETURN( result );
+	return;
   }
-  console_printf( "Not supported\n" );
-  return;
+
+  int cmp_first = mrbc_compare( &v[0].range->first, &v[1] );
+  int result = (cmp_first <= 0);
+  if( !result ) goto DONE;
+
+  int cmp_last  = mrbc_compare( &v[1], &v[0].range->last );
+  result = (v->range->flag_exclude) ? (cmp_last < 0) : (cmp_last <= 0);
 
  DONE:
-  if( result ) {
-    SET_TRUE_RETURN();
-  } else {
-    SET_FALSE_RETURN();
-  }
+  SET_BOOL_RETURN( result );
 }
 
 
@@ -148,11 +140,8 @@ static void c_range_last(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_range_exclude_end(mrb_vm *vm, mrb_value v[], int argc)
 {
-  if( v->range->flag_exclude ){
-    SET_TRUE_RETURN();
-  } else {
-    SET_FALSE_RETURN();
-  }
+  int result = v->range->flag_exclude;
+  SET_BOOL_RETURN( result );
 }
 
 

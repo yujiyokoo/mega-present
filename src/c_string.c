@@ -354,30 +354,6 @@ static void c_string_add(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
-/*! (method) ===
-*/
-static void c_string_eql(mrb_vm *vm, mrb_value v[], int argc)
-{
-  int result = 0;
-  if( v[1].tt != MRB_TT_STRING ) goto DONE;
-
-  mrb_string *h1 = v[0].string;
-  mrb_string *h2 = v[1].string;
-
-  if( h1->size != h2->size ) goto DONE;	// false
-  result = !memcmp(h1->data, h2->data, h1->size);
-
- DONE:
-  if( result ) {
-    SET_TRUE_RETURN();
-  } else {
-    SET_FALSE_RETURN();
-  }
-}
-
-
-
-//================================================================
 /*! (method) size, length
 */
 static void c_string_size(mrb_vm *vm, mrb_value v[], int argc)
@@ -871,7 +847,6 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_class_string = mrbc_define_class(vm, "String", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_string, "+",	c_string_add);
-  mrbc_define_method(vm, mrbc_class_string, "===",	c_string_eql);
   mrbc_define_method(vm, mrbc_class_string, "size",	c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "length",	c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "to_i",	c_string_to_i);

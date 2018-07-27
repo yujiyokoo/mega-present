@@ -245,19 +245,6 @@ static void c_to_s(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
-/*! (method) ===
-*/
-static void c_equal3(mrb_vm *vm, mrb_value v[], int argc)
-{
-  if( mrbc_compare(&v[0], &v[1]) == 0 ) {
-    SET_TRUE_RETURN();
-  } else {
-    SET_FALSE_RETURN();
-  }
-}
-
-
-//================================================================
 /*! initialize
 */
 void mrbc_init_class_symbol(struct VM *vm)
@@ -271,5 +258,4 @@ void mrbc_init_class_symbol(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_symbol, "id2name", c_to_s);
 #endif
   mrbc_define_method(vm, mrbc_class_symbol, "to_sym", c_ineffect);
-  mrbc_define_method(vm, mrbc_class_symbol, "===", c_equal3);
 }
