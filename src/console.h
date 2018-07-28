@@ -49,7 +49,7 @@ typedef struct RPrintf {
 void console_printf(const char *fstr, ...);
 int mrbc_printf_main(mrb_printf *pf);
 int mrbc_printf_char(mrb_printf *pf, int ch);
-int mrbc_printf_str(mrb_printf *pf, const char *str, int pad);
+int mrbc_printf_bstr(mrb_printf *pf, const char *str, int len, int pad);
 int mrbc_printf_int(mrb_printf *pf, int32_t value, int base);
 int mrbc_printf_float( mrb_printf *pf, double value );
 void mrbc_printf_replace_buffer(mrb_printf *pf, char *buf, int size);
@@ -126,6 +126,22 @@ static inline void mrbc_printf_end( mrb_printf *pf )
 static inline int mrbc_printf_len( mrb_printf *pf )
 {
   return pf->p - pf->buf;
+}
+
+
+//================================================================
+/*! sprintf subcontract function for char '%s'
+
+  @param  pf	pointer to mrb_printf.
+  @param  str	output string.
+  @param  pad	padding character.
+  @retval 0	done.
+  @retval -1	buffer full.
+  @note		not terminate ('\0') buffer tail.
+*/
+static inline int mrbc_printf_str( mrb_printf *pf, const char *str, int pad )
+{
+  return mrbc_printf_bstr( pf, str, strlen(str), pad );
 }
 
 #ifdef __cplusplus

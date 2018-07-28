@@ -676,7 +676,7 @@ static void c_object_sprintf(mrb_vm *vm, mrb_value v[], int argc)
 
     case 's':
       if( v[i].tt == MRB_TT_STRING ) {
-	ret = mrbc_printf_str( &pf, mrbc_string_cstr( &v[i] ), ' ');
+	ret = mrbc_printf_bstr( &pf, mrbc_string_cstr(&v[i]), mrbc_string_size(&v[i]),' ');
       } else if( v[i].tt == MRB_TT_SYMBOL ) {
 	ret = mrbc_printf_str( &pf, mrbc_symbol_cstr( &v[i] ), ' ');
       }

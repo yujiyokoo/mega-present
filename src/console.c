@@ -187,23 +187,25 @@ int mrbc_printf_char( mrb_printf *pf, int ch )
 }
 
 
-
 //================================================================
-/*! sprintf subcontract function for char '%s'
+/*! sprintf subcontract function for byte array.
 
   @param  pf	pointer to mrb_printf.
-  @param  str	output string.
+  @param  str	pointer to byte array.
+  @param  len	byte length.
   @param  pad	padding character.
   @retval 0	done.
   @retval -1	buffer full.
   @note		not terminate ('\0') buffer tail.
 */
-int mrbc_printf_str( mrb_printf *pf, const char *str, int pad )
+int mrbc_printf_bstr( mrb_printf *pf, const char *str, int len, int pad )
 {
   int ret = 0;
 
-  if( str == NULL ) str = "(null)";
-  int len = strlen(str);
+  if( str == NULL ) {
+    str = "(null)";
+    len = 6;
+  }
   if( pf->fmt.precision && len > pf->fmt.precision ) len = pf->fmt.precision;
 
   int tw = len;

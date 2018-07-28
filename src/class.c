@@ -154,7 +154,7 @@ int mrbc_puts_sub(mrb_value *v)
     console_print( "#<Proc>" );
     break;
 
-  case MRB_TT_ARRAY:{
+  case MRB_TT_ARRAY: {
     int i;
     for( i = 0; i < mrbc_array_size(v); i++ ) {
       if( i != 0 ) console_putchar('\n');
