@@ -97,9 +97,9 @@ int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2)
 static void c_range_equal3(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( v[0].tt == MRB_TT_CLASS ) {
-	mrb_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
-	SET_RETURN( result );
-	return;
+    mrb_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
+    SET_RETURN( result );
+    return;
   }
 
   int cmp_first = mrbc_compare( &v[0].range->first, &v[1] );

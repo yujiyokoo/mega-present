@@ -513,12 +513,12 @@ static void c_object_compare(mrb_vm *vm, mrb_value v[], int argc)
 static void c_object_equal3(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( v[0].tt == MRB_TT_CLASS ) {
-	mrb_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
-	SET_RETURN( result );
+    mrb_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
+    SET_RETURN( result );
 
   } else {
-	int result = mrbc_compare( &v[0], &v[1] );
-	SET_BOOL_RETURN( result == 0 );
+    int result = mrbc_compare( &v[0], &v[1] );
+    SET_BOOL_RETURN( result == 0 );
   }
 }
 
@@ -662,10 +662,10 @@ static void c_object_kind_of(mrb_vm *vm, mrb_value v[], int argc)
   const mrb_class *cls = find_class_by_object( vm, &v[0] );
 
   do {
-	result = (cls == v[1].cls);
-	if( result ) break;
+    result = (cls == v[1].cls);
+    if( result ) break;
 
-	cls = cls->super;
+    cls = cls->super;
   } while( cls != NULL );
 
  DONE:
