@@ -756,6 +756,17 @@ static void c_object_sprintf(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
+/*! (method) printf
+*/
+static void c_object_printf(mrb_vm *vm, mrb_value v[], int argc)
+{
+  c_object_sprintf(vm, v, argc);
+  console_nprint( mrbc_string_cstr(v), mrbc_string_size(v) );
+  SET_NIL_RETURN();
+}
+
+
+//================================================================
 /*! (method) lstrip
 */
 static void c_string_lstrip(mrb_vm *vm, mrb_value v[], int argc)
@@ -874,6 +885,7 @@ void mrbc_init_class_string(struct VM *vm)
 #endif
 
   mrbc_define_method(vm, mrbc_class_object, "sprintf",	c_object_sprintf);
+  mrbc_define_method(vm, mrbc_class_object, "printf",	c_object_printf);
 }
 
 
