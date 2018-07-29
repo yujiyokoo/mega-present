@@ -78,6 +78,18 @@ static inline void console_print(const char *str)
 
 
 //================================================================
+/*! output string with length parameter.
+
+  @param str	str
+  @param size	byte length.
+*/
+static inline void console_nprint(const char *str, int size)
+{
+  hal_write(1, str, size);
+}
+
+
+//================================================================
 /*! initialize data container.
 
   @param  pf	pointer to mrb_printf

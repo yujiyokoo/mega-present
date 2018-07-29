@@ -164,11 +164,11 @@ int mrbc_puts_sub(mrb_value *v)
   } break;
 
 #if MRBC_USE_STRING
-  case MRB_TT_STRING: {
-    const char *s = mrbc_string_cstr(v);
-    console_print(s);
-    if( strlen(s) != 0 && s[strlen(s)-1] == '\n' ) ret = 1;
-  } break;
+  case MRB_TT_STRING:
+    console_nprint( mrbc_string_cstr(v), mrbc_string_size(v) );
+    if( mrbc_string_size(v) != 0 &&
+	mrbc_string_cstr(v)[ mrbc_string_size(v) - 1 ] == '\n' ) ret = 1;
+    break;
 #endif
 
   case MRB_TT_RANGE:{
