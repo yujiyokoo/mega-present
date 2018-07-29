@@ -510,7 +510,7 @@ inline static int op_getupvar( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_B(code);
   int rc = GETARG_C(code);   // UP
 
-  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc;
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc*2;
   mrb_value *up_regs = callinfo->current_regs;
 
   mrbc_release( &regs[ra] );
@@ -539,7 +539,7 @@ inline static int op_setupvar( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_B(code);
   int rc = GETARG_C(code);   // UP
 
-  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc;
+  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc*2;
   mrb_value *up_regs = callinfo->current_regs;
 
   mrbc_release( &up_regs[rb] );
