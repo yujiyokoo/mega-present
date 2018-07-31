@@ -241,7 +241,7 @@ mrb_class *find_class_by_object(struct VM *vm, mrb_object *obj)
   @param  sym_id
   @return
 */
-mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrb_sym sym_id)
+mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrbc_sym sym_id)
 {
   mrb_class *cls = find_class_by_object(vm, &recv);
 
@@ -272,7 +272,7 @@ mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
 {
   if( super == NULL ) super = mrbc_class_object;  // set default to Object.
 
-  mrb_sym sym_id = str_to_symid(name);
+  mrbc_sym sym_id = str_to_symid(name);
   mrb_object obj = const_object_get(sym_id);
 
   // create a new class?
@@ -315,7 +315,7 @@ mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
 */
 mrb_class * mrbc_get_class_by_name( const char *name )
 {
-  mrb_sym sym_id = str_to_symid(name);
+  mrbc_sym sym_id = str_to_symid(name);
   mrb_object obj = const_object_get(sym_id);
 
   return (obj.tt == MRB_TT_CLASS) ? obj.cls : NULL;
@@ -357,7 +357,7 @@ void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t
 */
 void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
 {
-  mrb_sym sym_id = str_to_symid(name);
+  mrbc_sym sym_id = str_to_symid(name);
   mrb_proc *m = find_method(vm, v[0], sym_id);
 
   if( m==0 ) return;   // no method
@@ -404,7 +404,7 @@ void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
 mrb_value mrbc_send( struct VM *vm, mrb_value *v, int reg_ofs,
 		     mrb_value *recv, const char *method, int argc, ... )
 {
-  mrb_sym sym_id = str_to_symid(method);
+  mrbc_sym sym_id = str_to_symid(method);
   mrb_proc *m = find_method(vm, *recv, sym_id);
 
   if( m == 0 ) {
@@ -584,7 +584,7 @@ static void c_object_new(mrb_vm *vm, mrb_value v[], int argc)
 static void c_object_getiv(mrb_vm *vm, mrb_value v[], int argc)
 {
   const char *name = mrbc_get_callee_name(vm);
-  mrb_sym sym_id = str_to_symid( name );
+  mrbc_sym sym_id = str_to_symid( name );
   mrb_value ret = mrbc_instance_getiv(&v[0], sym_id);
 
   SET_RETURN(ret);
@@ -602,7 +602,7 @@ static void c_object_setiv(mrb_vm *vm, mrb_value v[], int argc)
   if( !namebuf ) return;
   strcpy(namebuf, name);
   namebuf[strlen(name)-1] = '\0';	// delete '='
-  mrb_sym sym_id = str_to_symid(namebuf);
+  mrbc_sym sym_id = str_to_symid(namebuf);
 
   mrbc_instance_setiv(&v[0], sym_id, &v[1]);
   mrbc_raw_free(namebuf);

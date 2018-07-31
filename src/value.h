@@ -25,7 +25,7 @@ extern "C" {
 // mrb types
 //typedef float mrb_float;
 //typedef int32_t mrb_int;
-typedef int16_t mrb_sym;
+typedef int16_t mrbc_sym;
 
 /* aspec access ? */
 #define MRB_ASPEC_REQ(a)          (((a) >> 18) & 0x1f)
@@ -127,7 +127,7 @@ typedef struct RObject mrb_value;
   mruby/c class object.
 */
 typedef struct RClass {
-  mrb_sym sym_id;	// class name
+  mrbc_sym sym_id;	// class name
 #ifdef MRBC_DEBUG
   const char *names;	// for debug. delete soon.
 #endif
@@ -157,7 +157,7 @@ typedef struct RProc {
   MRBC_OBJECT_HEADER;
 
   unsigned int c_func : 1;	// 0:IREP, 1:C Func
-  mrb_sym sym_id;
+  mrbc_sym sym_id;
 #ifdef MRBC_DEBUG
   const char *names;		// for debug; delete soon
 #endif
@@ -200,8 +200,8 @@ struct IREP *mrbc_irep_alloc(struct VM *vm);
 void mrbc_irep_free(struct IREP *irep);
 mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
 void mrbc_instance_delete(mrb_value *v);
-void mrbc_instance_setiv(mrb_object *obj, mrb_sym sym_id, mrb_value *v);
-mrb_value mrbc_instance_getiv(mrb_object *obj, mrb_sym sym_id);
+void mrbc_instance_setiv(mrb_object *obj, mrbc_sym sym_id, mrb_value *v);
+mrb_value mrbc_instance_getiv(mrb_object *obj, mrbc_sym sym_id);
 
 
 

@@ -392,7 +392,7 @@ void mrbc_instance_delete(mrb_value *v)
   @param  sym_id	key symbol ID.
   @param  v		pointer to value.
 */
-void mrbc_instance_setiv(mrb_object *obj, mrb_sym sym_id, mrb_value *v)
+void mrbc_instance_setiv(mrb_object *obj, mrbc_sym sym_id, mrb_value *v)
 {
   mrbc_dup(v);
   mrbc_kv_set( obj->instance->ivar, sym_id, v );
@@ -406,7 +406,7 @@ void mrbc_instance_setiv(mrb_object *obj, mrb_sym sym_id, mrb_value *v)
   @param  sym_id	key symbol ID.
   @return		value.
 */
-mrb_value mrbc_instance_getiv(mrb_object *obj, mrb_sym sym_id)
+mrb_value mrbc_instance_getiv(mrb_object *obj, mrbc_sym sym_id)
 {
   mrb_value *v = mrbc_kv_get( obj->instance->ivar, sym_id );
   if( !v ) return mrb_nil_value();

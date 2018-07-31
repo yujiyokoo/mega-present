@@ -22,7 +22,7 @@ typedef enum {
 
 typedef struct GLOBAL_OBJECT {
   mrbc_globaltype gtype : 8;
-  mrb_sym sym_id;
+  mrbc_sym sym_id;
   mrb_object obj;
 } mrb_globalobject;
 
@@ -39,7 +39,7 @@ void  mrbc_init_global(void)
 /* search */
 /* linear search is not efficient! */
 /* TODO: Use binary search */
-static int search_global_object(mrb_sym sym_id, mrbc_globaltype gtype)
+static int search_global_object(mrbc_sym sym_id, mrbc_globaltype gtype)
 {
   int i;
   for( i=0 ; i<global_end ; i++ ){
@@ -51,7 +51,7 @@ static int search_global_object(mrb_sym sym_id, mrbc_globaltype gtype)
 
 /* add */
 /* TODO: Check reference count */
-void global_object_add(mrb_sym sym_id, mrb_value v)
+void global_object_add(mrbc_sym sym_id, mrb_value v)
 {
   int index = search_global_object(sym_id, MRBC_GLOBAL_OBJECT);
   if( index == -1 ) {
@@ -70,7 +70,7 @@ void global_object_add(mrb_sym sym_id, mrb_value v)
 /* add const */
 /* TODO: Check reference count */
 /* TODO: Integrate with global_add */
-void const_object_add(mrb_sym sym_id, mrb_object *obj)
+void const_object_add(mrbc_sym sym_id, mrb_object *obj)
 {
   int index = search_global_object(sym_id, MRBC_CONST_OBJECT);
   if( index == -1 ){
@@ -88,7 +88,7 @@ void const_object_add(mrb_sym sym_id, mrb_object *obj)
 }
 
 /* get */
-mrb_value global_object_get(mrb_sym sym_id)
+mrb_value global_object_get(mrbc_sym sym_id)
 {
   int index = search_global_object(sym_id, MRBC_GLOBAL_OBJECT);
   if( index >= 0 ){
@@ -101,7 +101,7 @@ mrb_value global_object_get(mrb_sym sym_id)
 
 /* get const */
 /* TODO: Integrate with get_global_object */
-mrb_object const_object_get(mrb_sym sym_id)
+mrb_object const_object_get(mrbc_sym sym_id)
 {
   int index = search_global_object(sym_id, MRBC_CONST_OBJECT);
   if( index >= 0 ){

@@ -244,7 +244,7 @@ inline static int op_loadsym( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym_name);
+  mrbc_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
   regs[ra].tt = MRB_TT_SYMBOL;
@@ -359,7 +359,7 @@ inline static int op_getglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym_name);
+  mrbc_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
   regs[ra] = global_object_get(sym_id);
@@ -384,7 +384,7 @@ inline static int op_setglobal( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym_name);
+  mrbc_sym sym_id = str_to_symid(sym_name);
   global_object_add(sym_id, regs[ra]);
 
   return 0;
@@ -408,7 +408,7 @@ inline static int op_getiv( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_Bx(code);
 
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym_name+1);	// skip '@'
+  mrbc_sym sym_id = str_to_symid(sym_name+1);	// skip '@'
 
   mrb_value val = mrbc_instance_getiv(&regs[0], sym_id);
 
@@ -436,7 +436,7 @@ inline static int op_setiv( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_Bx(code);
 
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym_name+1);	// skip '@'
+  mrbc_sym sym_id = str_to_symid(sym_name+1);	// skip '@'
 
   mrbc_instance_setiv(&regs[0], sym_id, &regs[ra]);
 
@@ -460,7 +460,7 @@ inline static int op_getconst( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym_name);
+  mrbc_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
   regs[ra] = const_object_get(sym_id);
@@ -485,7 +485,7 @@ inline static int op_setconst( mrb_vm *vm, uint32_t code, mrb_value *regs ) {
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym_name);
+  mrbc_sym sym_id = str_to_symid(sym_name);
   const_object_add(sym_id, &regs[ra]);
 
   return 0;
@@ -652,7 +652,7 @@ inline static int op_send( mrb_vm *vm, uint32_t code, mrb_value *regs )
   }
 
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
-  mrb_sym sym_id = str_to_symid(sym_name);
+  mrbc_sym sym_id = str_to_symid(sym_name);
   mrb_proc *m = find_method(vm, recv, sym_id);
 
   if( m == 0 ) {
@@ -1358,7 +1358,7 @@ inline static int op_strcat( mrb_vm *vm, uint32_t code, mrb_value *regs )
   int rb = GETARG_B(code);
 
   // call "to_s"
-  mrb_sym sym_id = str_to_symid("to_s");
+  mrbc_sym sym_id = str_to_symid("to_s");
   mrb_proc *m;
   m = find_method(vm, regs[ra], sym_id);
   if( m && m->c_func ){

@@ -27,7 +27,7 @@
   @param  sym_id	symbol ID.
   @return		result. It's not necessarily found.
 */
-static int binary_search(mrb_kv_handle *kvh, mrb_sym sym_id)
+static int binary_search(mrb_kv_handle *kvh, mrbc_sym sym_id)
 {
   int left = 0;
   int right = kvh->n_stored - 1;
@@ -134,7 +134,7 @@ int mrbc_kv_resize(mrb_kv_handle *kvh, int size)
   @param  set_val	set value.
   @return		mrb_error_code.
 */
-int mrbc_kv_set(mrb_kv_handle *kvh, mrb_sym sym_id, mrb_value *set_val)
+int mrbc_kv_set(mrb_kv_handle *kvh, mrbc_sym sym_id, mrb_value *set_val)
 {
   int idx = binary_search(kvh, sym_id);
   if( idx < 0 ) {
@@ -182,7 +182,7 @@ int mrbc_kv_set(mrb_kv_handle *kvh, mrb_sym sym_id, mrb_value *set_val)
   @param  sym_id	symbol ID.
   @return		pointer to mrb_value or NULL.
 */
-mrb_value * mrbc_kv_get(mrb_kv_handle *kvh, mrb_sym sym_id)
+mrb_value * mrbc_kv_get(mrb_kv_handle *kvh, mrbc_sym sym_id)
 {
   int idx = binary_search(kvh, sym_id);
   if( idx < 0 ) return NULL;
@@ -201,7 +201,7 @@ mrb_value * mrbc_kv_get(mrb_kv_handle *kvh, mrb_sym sym_id)
   @param  set_val	set value.
   @return		mrb_error_code.
 */
-int mrbc_kv_append(mrb_kv_handle *kvh, mrb_sym sym_id, mrb_value *set_val)
+int mrbc_kv_append(mrb_kv_handle *kvh, mrbc_sym sym_id, mrb_value *set_val)
 {
   // need resize?
   if( kvh->n_stored >= kvh->data_size ) {
@@ -245,7 +245,7 @@ int mrbc_kv_reorder(mrb_kv_handle *kvh)
   @param  sym_id	symbol ID.
   @return		mrb_error_code.
 */
-int mrbc_kv_remove(mrb_kv_handle *kvh, mrb_sym sym_id)
+int mrbc_kv_remove(mrb_kv_handle *kvh, mrbc_sym sym_id)
 {
   int idx = binary_search(kvh, sym_id);
   if( idx < 0 ) return 0;

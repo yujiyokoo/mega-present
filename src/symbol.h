@@ -24,8 +24,8 @@ struct VM;
 
 mrb_value mrbc_symbol_new(struct VM *vm, const char *str);
 uint16_t calc_hash(const char *str);
-mrb_sym str_to_symid(const char *str);
-const char *symid_to_str(mrb_sym sym_id);
+mrbc_sym str_to_symid(const char *str);
+const char *symid_to_str(mrbc_sym sym_id);
 void mrbc_init_class_symbol(struct VM *vm);
 
 

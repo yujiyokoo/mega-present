@@ -3,8 +3,8 @@
   Manage global objects.
 
   <pre>
-  Copyright (C) 2015 Kyushu Institute of Technology.
-  Copyright (C) 2015 Shimane IT Open-innovation Center.
+  Copyright (C) 2015-2018 Kyushu Institute of Technology.
+  Copyright (C) 2015-2018 Shimane IT Open-innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -23,11 +23,11 @@ extern "C" {
 
 void  mrbc_init_global(void);
 
-void global_object_add(mrb_sym sym_id, mrb_value v);
-mrb_value global_object_get(mrb_sym sym_id);
+void global_object_add(mrbc_sym sym_id, mrb_value v);
+mrb_value global_object_get(mrbc_sym sym_id);
 
-void const_object_add(mrb_sym sym_id, mrb_object *obj);
-mrb_object const_object_get(mrb_sym sym_id);
+void const_object_add(mrbc_sym sym_id, mrb_object *obj);
+mrb_object const_object_get(mrbc_sym sym_id);
 
 void mrbc_global_clear_vm_id(void);
 

@@ -134,7 +134,7 @@ mrb_value mrbc_symbol_new(struct VM *vm, const char *str)
 {
   mrb_value ret = {.tt = MRB_TT_SYMBOL};
   uint16_t h = calc_hash(str);
-  mrb_sym sym_id = search_index(h, str);
+  mrbc_sym sym_id = search_index(h, str);
 
   if( sym_id >= 0 ) {
     ret.i = sym_id;
@@ -175,12 +175,12 @@ uint16_t calc_hash(const char *str)
 /*! Convert string to symbol value.
 
   @param  str		Target string.
-  @return mrb_sym	Symbol value.
+  @return mrbc_sym	Symbol value.
 */
-mrb_sym str_to_symid(const char *str)
+mrbc_sym str_to_symid(const char *str)
 {
   uint16_t h = calc_hash(str);
-  mrb_sym sym_id = search_index(h, str);
+  mrbc_sym sym_id = search_index(h, str);
   if( sym_id >= 0 ) return sym_id;
 
   return add_index( h, str );
@@ -190,11 +190,11 @@ mrb_sym str_to_symid(const char *str)
 //================================================================
 /*! Convert symbol value to string.
 
-  @param  mrb_sym	Symbol value.
+  @param  mrbc_sym	Symbol value.
   @return const char*	String.
   @retval NULL		Invalid sym_id was given.
 */
-const char * symid_to_str(mrb_sym sym_id)
+const char * symid_to_str(mrbc_sym sym_id)
 {
   if( sym_id < 0 ) return NULL;
   if( sym_id >= sym_index_pos ) return NULL;
