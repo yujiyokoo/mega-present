@@ -1,5 +1,5 @@
 #
-# Range, mrubyc class library
+# Object, mrubyc class library
 #
 #  Copyright (C) 2015-2018 Kyushu Institute of Technology.
 #  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
@@ -9,21 +9,11 @@
 #  Memory management for objects in mruby/c.
 #
 #
-class Range
+class Object
+  RUBY_VERSION = "1.9"
+  MRUBYC_VERSION = "1.1"
 
-  # each
-  def each 
-    val = self.first
-    last = self.last
-
-    lim = last
-    lim += 1 unless exclude_end?
-    i = val
-    while i < lim do
-      yield i
-      i += 1
-    end
-    return self
+  def initialize
   end
-
 end
+
