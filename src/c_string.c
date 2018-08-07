@@ -354,6 +354,33 @@ static void c_string_add(mrb_vm *vm, mrb_value v[], int argc)
 
 
 //================================================================
+/*! (method) *
+*/
+static void c_string_mul(mrb_vm *vm, mrb_value v[], int argc)
+{
+  if( v[1].tt != MRB_TT_FIXNUM ) {
+    console_print( "TypeError\n" );	// raise?
+    return;
+  }
+
+  mrb_value value = mrbc_string_new(vm, NULL,
+				    mrbc_string_size(&v[0]) * v[1].i);
+  if( value.string == NULL ) return;		// ENOMEM
+
+  uint8_t *p = value.string->data;
+  int i;
+  for( i = 0; i < v[1].i; i++ ) {
+    memcpy( p, mrbc_string_cstr(&v[0]), mrbc_string_size(&v[0]) );
+    p += mrbc_string_size(&v[0]);
+  }
+  *p = 0;
+
+  SET_RETURN(value);
+}
+
+
+
+//================================================================
 /*! (method) size, length
 */
 static void c_string_size(mrb_vm *vm, mrb_value v[], int argc)
@@ -858,6 +885,7 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_class_string = mrbc_define_class(vm, "String", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_string, "+",	c_string_add);
+  mrbc_define_method(vm, mrbc_class_string, "*",	c_string_mul);
   mrbc_define_method(vm, mrbc_class_string, "size",	c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "length",	c_string_size);
   mrbc_define_method(vm, mrbc_class_string, "to_i",	c_string_to_i);
