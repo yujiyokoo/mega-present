@@ -28,7 +28,7 @@ static double to_double( const mrb_value *v )
 {
   switch( v->tt ) {
   case MRB_TT_FIXNUM:	return (double)v->i;
-  case MRB_TT_FLOAT:	return v->d;
+  case MRB_TT_FLOAT:	return (double)v->d;
   default:		return 0;	// TypeError. raise?
   }
 }

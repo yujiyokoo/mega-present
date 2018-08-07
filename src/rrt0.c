@@ -171,7 +171,7 @@ static void c_sleep(mrb_vm *vm, mrb_value v[], int argc)
 
 #if MRBC_USE_FLOAT
   case MRB_TT_FLOAT:
-    mrbc_sleep_ms(tcb, (uint32_t)(GET_FLOAT_ARG(1) * 1000));
+    mrbc_sleep_ms(tcb, (mrbc_int)(GET_FLOAT_ARG(1) * 1000));
     break;
 #endif
 

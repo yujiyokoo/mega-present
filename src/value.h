@@ -22,9 +22,9 @@ extern "C" {
 #endif
 
 
-// mrb types
-//typedef float mrb_float;
-//typedef int32_t mrb_int;
+// mrbc types
+typedef int32_t mrbc_int;
+typedef double mrbc_float;
 typedef int16_t mrbc_sym;
 
 /* aspec access ? */
@@ -104,9 +104,9 @@ typedef enum {
 typedef struct RObject {
   mrb_vtype tt : 8;
   union {
-    int32_t i;			// MRB_TT_FIXNUM, SYMBOL
+    mrbc_int i;			// MRB_TT_FIXNUM, SYMBOL
 #if MRBC_USE_FLOAT
-    double d;			// MRB_TT_FLOAT
+    mrbc_float d;			// MRB_TT_FLOAT
 #endif
     struct RClass *cls;		// MRB_TT_CLASS
     struct RObject *handle;	// handle to objects
@@ -195,7 +195,7 @@ void mrbc_dup(mrb_value *v);
 void mrbc_release(mrb_value *v);
 void mrbc_dec_ref_counter(mrb_value *v);
 void mrbc_clear_vm_id(mrb_value *v);
-int32_t mrbc_atoi(const char *s, int base);
+mrbc_int mrbc_atoi(const char *s, int base);
 struct IREP *mrbc_irep_alloc(struct VM *vm);
 void mrbc_irep_free(struct IREP *irep);
 mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
@@ -212,7 +212,7 @@ mrb_value mrbc_instance_getiv(mrb_object *obj, mrbc_sym sym_id);
   @param  n	int value
   @return	mrb_value of type fixnum.
 */
-static inline mrb_value mrb_fixnum_value( int32_t n )
+static inline mrb_value mrb_fixnum_value( mrbc_int n )
 {
   mrb_value value = {.tt = MRB_TT_FIXNUM};
   value.i = n;
@@ -228,7 +228,7 @@ static inline mrb_value mrb_fixnum_value( int32_t n )
   @param  n	dluble value
   @return	mrb_value of type float.
 */
-static inline mrb_value mrb_float_value( double n )
+static inline mrb_value mrb_float_value( mrbc_float n )
 {
   mrb_value value = {.tt = MRB_TT_FLOAT};
   value.d = n;

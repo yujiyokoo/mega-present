@@ -3,8 +3,8 @@
   console output module. (not yet input)
 
   <pre>
-  Copyright (C) 2015-2017 Kyushu Institute of Technology.
-  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2018 Kyushu Institute of Technology.
+  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -51,7 +51,7 @@ int mrbc_printf_main(mrb_printf *pf);
 int mrbc_printf_char(mrb_printf *pf, int ch);
 int mrbc_printf_bstr(mrb_printf *pf, const char *str, int len, int pad);
 int mrbc_printf_int(mrb_printf *pf, int32_t value, int base);
-int mrbc_printf_float( mrb_printf *pf, double value );
+int mrbc_printf_float( mrb_printf *pf, mrbc_float value );
 void mrbc_printf_replace_buffer(mrb_printf *pf, char *buf, int size);
 
 

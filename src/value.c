@@ -67,7 +67,7 @@ mrb_proc *mrbc_rproc_alloc(struct VM *vm, const char *name)
 */
 int mrbc_compare(const mrb_value *v1, const mrb_value *v2)
 {
-  double d1, d2;
+  mrbc_float d1, d2;
 
   // if TT_XXX is different
   if( v1->tt != v2->tt ) {
@@ -257,7 +257,7 @@ void mrbc_clear_vm_id(mrb_value *v)
   @param  base	n base.
   @return	result.
 */
-int32_t mrbc_atoi( const char *s, int base )
+mrbc_int mrbc_atoi( const char *s, int base )
 {
   int ret = 0;
   int sign = 0;

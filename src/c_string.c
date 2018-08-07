@@ -358,7 +358,7 @@ static void c_string_add(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_string_size(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int32_t size = mrbc_string_size(&v[0]);
+  mrbc_int size = mrbc_string_size(&v[0]);
 
   SET_INT_RETURN( size );
 }
@@ -378,7 +378,7 @@ static void c_string_to_i(mrb_vm *vm, mrb_value v[], int argc)
     }
   }
 
-  int32_t i = mrbc_atoi( mrbc_string_cstr(v), base );
+  mrbc_int i = mrbc_atoi( mrbc_string_cstr(v), base );
 
   SET_INT_RETURN( i );
 }
@@ -390,7 +390,7 @@ static void c_string_to_i(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_string_to_f(mrb_vm *vm, mrb_value v[], int argc)
 {
-  double d = atof(mrbc_string_cstr(v));
+  mrbc_float d = atof(mrbc_string_cstr(v));
 
   SET_FLOAT_RETURN( d );
 }
@@ -689,10 +689,10 @@ static void c_object_sprintf(mrb_vm *vm, mrb_value v[], int argc)
 	ret = mrbc_printf_int( &pf, v[i].i, 10);
 #if MRBC_USE_FLOAT
       } else if( v[i].tt == MRB_TT_FLOAT ) {
-	ret = mrbc_printf_int( &pf, (int32_t)v[i].d, 10);
+	ret = mrbc_printf_int( &pf, (mrbc_int)v[i].d, 10);
 #endif
       } else if( v[i].tt == MRB_TT_STRING ) {
-	int32_t ival = atol(mrbc_string_cstr(&v[i]));
+	mrbc_int ival = atol(mrbc_string_cstr(&v[i]));
 	ret = mrbc_printf_int( &pf, ival, 10 );
       }
       break;
@@ -721,7 +721,7 @@ static void c_object_sprintf(mrb_vm *vm, mrb_value v[], int argc)
 	ret = mrbc_printf_float( &pf, v[i].d );
       } else
 	if( v[i].tt == MRB_TT_FIXNUM ) {
-	  ret = mrbc_printf_float( &pf, (double)v[i].i );
+	  ret = mrbc_printf_float( &pf, v[i].i );
 	}
       break;
 #endif

@@ -18,6 +18,7 @@
 #if MRBC_USE_FLOAT
 #include <stdio.h>
 #endif
+#include "value.h"
 #include "console.h"
 
 
@@ -58,17 +59,17 @@ void console_printf(const char *fstr, ...)
       case 'd':
       case 'i':
       case 'u':
-	ret = mrbc_printf_int( &pf, va_arg(ap, uint32_t), 10);
+	ret = mrbc_printf_int( &pf, va_arg(ap, unsigned int), 10);
 	break;
 
       case 'b':
       case 'B':
-	ret = mrbc_printf_int( &pf, va_arg(ap, uint32_t), 2);
+	ret = mrbc_printf_int( &pf, va_arg(ap, unsigned int), 2);
 	break;
 
       case 'x':
       case 'X':
-	ret = mrbc_printf_int( &pf, va_arg(ap, uint32_t), 16);
+	ret = mrbc_printf_int( &pf, va_arg(ap, unsigned int), 16);
 	break;
 
 #if MRBC_USE_FLOAT
@@ -250,15 +251,15 @@ int mrbc_printf_bstr( mrb_printf *pf, const char *str, int len, int pad )
   @retval -1	buffer full.
   @note		not terminate ('\0') buffer tail.
 */
-int mrbc_printf_int( mrb_printf *pf, int32_t value, int base )
+int mrbc_printf_int( mrb_printf *pf, mrbc_int value, int base )
 {
   int sign = 0;
-  uint32_t v = (uint32_t)value;
+  uint32_t v = value;	// (note) Change this when supporting 64 bit.
 
   if( pf->fmt.type == 'd' || pf->fmt.type == 'i' ) {	// signed.
     if( value < 0 ) {
       sign = '-';
-      v = (uint32_t)-value;
+      v = -value;
     } else if( pf->fmt.flag_plus ) {
       sign = '+';
     } else if( pf->fmt.flag_space ) {

@@ -15,6 +15,7 @@
 #include "vm_config.h"
 #include "opcode.h"
 #include <stdio.h>
+#include <limits.h>
 #if MRBC_USE_FLOAT
 #include <math.h>
 #endif
@@ -45,7 +46,7 @@ static void c_fixnum_bitref(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_fixnum_negative(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int32_t num = GET_INT_ARG(0);
+  mrbc_int num = GET_INT_ARG(0);
   SET_INT_RETURN( -num );
 }
 
@@ -56,7 +57,7 @@ static void c_fixnum_negative(mrb_vm *vm, mrb_value v[], int argc)
 static void c_fixnum_power(mrb_vm *vm, mrb_value v[], int argc)
 {
   if( v[1].tt == MRB_TT_FIXNUM ) {
-    int32_t x = 1;
+    mrbc_int x = 1;
     int i;
 
     if( v[1].i < 0 ) x = 0;
@@ -79,7 +80,7 @@ static void c_fixnum_power(mrb_vm *vm, mrb_value v[], int argc)
  */
 static void c_fixnum_mod(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int32_t num = GET_INT_ARG(1);
+  mrbc_int num = GET_INT_ARG(1);
   SET_INT_RETURN( v->i % num );
 }
 
@@ -89,7 +90,7 @@ static void c_fixnum_mod(mrb_vm *vm, mrb_value v[], int argc)
  */
 static void c_fixnum_and(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int32_t num = GET_INT_ARG(1);
+  mrbc_int num = GET_INT_ARG(1);
   SET_INT_RETURN(v->i & num);
 }
 
@@ -99,7 +100,7 @@ static void c_fixnum_and(mrb_vm *vm, mrb_value v[], int argc)
  */
 static void c_fixnum_or(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int32_t num = GET_INT_ARG(1);
+  mrbc_int num = GET_INT_ARG(1);
   SET_INT_RETURN(v->i | num);
 }
 
@@ -109,7 +110,7 @@ static void c_fixnum_or(mrb_vm *vm, mrb_value v[], int argc)
  */
 static void c_fixnum_xor(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int32_t num = GET_INT_ARG(1);
+  mrbc_int num = GET_INT_ARG(1);
   SET_INT_RETURN( v->i ^ num );
 }
 
@@ -119,7 +120,7 @@ static void c_fixnum_xor(mrb_vm *vm, mrb_value v[], int argc)
  */
 static void c_fixnum_not(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int32_t num = GET_INT_ARG(0);
+  mrbc_int num = GET_INT_ARG(0);
   SET_INT_RETURN( ~num );
 }
 
@@ -127,18 +128,15 @@ static void c_fixnum_not(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! x-bit left shift for x
  */
-static int32_t shift(int32_t x, int32_t y)
+static mrbc_int shift(mrbc_int x, mrbc_int y)
 {
-  if( y >= 33 ){
-    x = 0;
-  } else if( y >= 0 ){
-    x <<= y;
-  } else if( y > -33 ){
-    x = x >> -y;
-  } else {
-    x = 0;
-  }
-  return x;
+  // Don't support environments that include padding in int.
+  const int INT_BITS = sizeof(mrbc_int) * CHAR_BIT;
+
+  if( y >= INT_BITS ) return 0;
+  if( y >= 0 ) return x << y;
+  if( y <= -INT_BITS ) return 0;
+  return x >> -y;
 }
 
 
@@ -179,7 +177,7 @@ static void c_fixnum_abs(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_fixnum_to_f(mrb_vm *vm, mrb_value v[], int argc)
 {
-  double f = GET_INT_ARG(0);
+  mrbc_float f = GET_INT_ARG(0);
   SET_FLOAT_RETURN( f );
 }
 #endif
@@ -261,7 +259,7 @@ void mrbc_init_class_fixnum(mrb_vm *vm)
 */
 static void c_float_negative(mrb_vm *vm, mrb_value v[], int argc)
 {
-  double num = GET_FLOAT_ARG(0);
+  mrbc_float num = GET_FLOAT_ARG(0);
   SET_FLOAT_RETURN( -num );
 }
 
@@ -272,7 +270,7 @@ static void c_float_negative(mrb_vm *vm, mrb_value v[], int argc)
  */
 static void c_float_power(mrb_vm *vm, mrb_value v[], int argc)
 {
-  double n = 0;
+  mrbc_float n = 0;
   switch( v[1].tt ) {
   case MRB_TT_FIXNUM:	n = v[1].i;	break;
   case MRB_TT_FLOAT:	n = v[1].d;	break;
@@ -300,7 +298,7 @@ static void c_float_abs(mrb_vm *vm, mrb_value v[], int argc)
 */
 static void c_float_to_i(mrb_vm *vm, mrb_value v[], int argc)
 {
-  int32_t i = (int32_t)GET_FLOAT_ARG(0);
+  mrbc_int i = (mrbc_int)GET_FLOAT_ARG(0);
   SET_INT_RETURN( i );
 }
 
