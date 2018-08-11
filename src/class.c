@@ -34,33 +34,44 @@
 #include "c_range.h"
 
 
-#ifdef MRBC_DEBUG
-int mrbc_puts_sub(mrb_value *v);
+static int mrbc_puts_sub(mrb_value *v);
+static int mrbc_p_sub(mrb_value *v);
 
 //================================================================
-/*! p - sub function
+/*! print - sub function
+  @param  v	pointer to target value.
+  @retval 0	normal return.
+  @retval 1	already output LF.
  */
-void mrbc_p_sub(mrb_value *v)
+static int mrbc_print_sub(mrb_value *v)
 {
+  int ret = 0;
+
   switch( v->tt ){
   case MRB_TT_EMPTY:	console_print("(empty)");	break;
-  case MRB_TT_NIL:	console_print("nil");		break;
-
-  case MRB_TT_FALSE:
-  case MRB_TT_TRUE:
-  case MRB_TT_FIXNUM:
-  case MRB_TT_FLOAT:
-  case MRB_TT_CLASS:
-  case MRB_TT_OBJECT:
-  case MRB_TT_PROC:
-    mrbc_puts_sub(v);
+  case MRB_TT_NIL:					break;
+  case MRB_TT_FALSE:	console_print("false");		break;
+  case MRB_TT_TRUE:	console_print("true");		break;
+  case MRB_TT_FIXNUM:	console_printf("%d", v->i);	break;
+#if MRBC_USE_FLOAT
+  case MRB_TT_FLOAT:    console_printf("%g", v->d);	break;
+#endif
+  case MRB_TT_SYMBOL:
+    console_print(mrbc_symbol_cstr(v));
     break;
 
-  case MRB_TT_SYMBOL:{
-    const char *s = mrbc_symbol_cstr( v );
-    char *fmt = strchr(s, ':') ? "\":%s\"" : ":%s";
-    console_printf(fmt, s);
-  } break;
+  case MRB_TT_CLASS:
+    console_print(symid_to_str(v->cls->sym_id));
+    break;
+
+  case MRB_TT_OBJECT:
+    console_printf( "#<%s:%08x>",
+	symid_to_str( find_class_by_object(0,v)->sym_id ), v->instance );
+    break;
+
+  case MRB_TT_PROC:
+    console_printf( "#<Proc:%08x>", v->proc );
+    break;
 
   case MRB_TT_ARRAY:{
     console_putchar('[');
@@ -71,6 +82,83 @@ void mrbc_p_sub(mrb_value *v)
       mrbc_p_sub(&v1);
     }
     console_putchar(']');
+  } break;
+
+#if MRBC_USE_STRING
+  case MRB_TT_STRING:
+    console_nprint( mrbc_string_cstr(v), mrbc_string_size(v) );
+    if( mrbc_string_size(v) != 0 &&
+	mrbc_string_cstr(v)[ mrbc_string_size(v) - 1 ] == '\n' ) ret = 1;
+    break;
+#endif
+
+  case MRB_TT_RANGE:{
+    mrb_value v1 = mrbc_range_first(v);
+    mrbc_print_sub(&v1);
+    console_print( mrbc_range_exclude_end(v) ? "..." : ".." );
+    v1 = mrbc_range_last(v);
+    mrbc_print_sub(&v1);
+  } break;
+
+  case MRB_TT_HASH:{
+    console_putchar('{');
+    mrb_hash_iterator ite = mrbc_hash_iterator(v);
+    while( mrbc_hash_i_has_next(&ite) ) {
+      mrb_value *vk = mrbc_hash_i_next(&ite);
+      mrbc_p_sub(vk);
+      console_print("=>");
+      mrbc_p_sub(vk+1);
+      if( mrbc_hash_i_has_next(&ite) ) console_print(", ");
+    }
+    console_putchar('}');
+  } break;
+
+  default:
+    console_printf("Not support MRB_TT_XX(%d)", v->tt);
+    break;
+  }
+
+  return ret;
+}
+
+
+//================================================================
+/*! puts - sub function
+
+  @param  v	pointer to target value.
+  @retval 0	normal return.
+  @retval 1	already output LF.
+ */
+static int mrbc_puts_sub(mrb_value *v)
+{
+  if( v->tt == MRB_TT_ARRAY ) {
+    int i;
+    for( i = 0; i < mrbc_array_size(v); i++ ) {
+      if( i != 0 ) console_putchar('\n');
+      mrb_value v1 = mrbc_array_get(v, i);
+      mrbc_puts_sub(&v1);
+    }
+    return 0;
+  }
+
+  return mrbc_print_sub(v);
+}
+
+
+//================================================================
+/*! p - sub function
+ */
+static int mrbc_p_sub(mrb_value *v)
+{
+  switch( v->tt ){
+  case MRB_TT_NIL:
+    console_print("nil");
+    break;
+
+  case MRB_TT_SYMBOL:{
+    const char *s = mrbc_symbol_cstr( v );
+    char *fmt = strchr(s, ':') ? "\":%s\"" : ":%s";
+    console_printf(fmt, s);
   } break;
 
 #if MRBC_USE_STRING
@@ -97,103 +185,15 @@ void mrbc_p_sub(mrb_value *v)
     mrbc_p_sub(&v1);
   } break;
 
-  case MRB_TT_HASH:{
-    console_putchar('{');
-    mrb_hash_iterator ite = mrbc_hash_iterator(v);
-    while( mrbc_hash_i_has_next(&ite) ) {
-      mrb_value *vk = mrbc_hash_i_next(&ite);
-      mrbc_p_sub(vk);
-      console_print("=>");
-      mrbc_p_sub(vk+1);
-      if( mrbc_hash_i_has_next(&ite) ) console_print(", ");
-    }
-    console_putchar('}');
-  } break;
-
   default:
-    console_printf("MRB_TT_XX(%d)", v->tt);
-    break;
-  }
-}
-#endif
-
-
-//================================================================
-/*! puts - sub function
-
-  @param  v	pointer to target value.
-  @retval 0	normal return.
-  @retval 1	already output LF.
- */
-int mrbc_puts_sub(mrb_value *v)
-{
-  int ret = 0;
-
-  switch( v->tt ){
-  case MRB_TT_NIL:					break;
-  case MRB_TT_FALSE:	console_print("false");		break;
-  case MRB_TT_TRUE:	console_print("true");		break;
-  case MRB_TT_FIXNUM:	console_printf("%d", v->i);	break;
-#if MRBC_USE_FLOAT
-  case MRB_TT_FLOAT:    console_printf("%g", v->d);	break;
-#endif
-  case MRB_TT_SYMBOL:
-    console_print( mrbc_symbol_cstr( v ) );
-    break;
-
-  case MRB_TT_CLASS:
-    console_print( symid_to_str( v->cls->sym_id ) );
-    break;
-
-  case MRB_TT_OBJECT:
-    console_printf( "#<%s:%08x>",
-	symid_to_str( find_class_by_object(0,v)->sym_id ), v->instance );
-    break;
-
-  case MRB_TT_PROC:
-    console_print( "#<Proc>" );
-    break;
-
-  case MRB_TT_ARRAY: {
-    int i;
-    for( i = 0; i < mrbc_array_size(v); i++ ) {
-      if( i != 0 ) console_putchar('\n');
-      mrb_value v1 = mrbc_array_get(v, i);
-      mrbc_puts_sub(&v1);
-    }
-  } break;
-
-#if MRBC_USE_STRING
-  case MRB_TT_STRING:
-    console_nprint( mrbc_string_cstr(v), mrbc_string_size(v) );
-    if( mrbc_string_size(v) != 0 &&
-	mrbc_string_cstr(v)[ mrbc_string_size(v) - 1 ] == '\n' ) ret = 1;
-    break;
-#endif
-
-  case MRB_TT_RANGE:{
-    mrb_value v1 = mrbc_range_first(v);
-    mrbc_puts_sub(&v1);
-    console_print( mrbc_range_exclude_end(v) ? "..." : ".." );
-    v1 = mrbc_range_last(v);
-    mrbc_puts_sub(&v1);
-  } break;
-
-  case MRB_TT_HASH:
-#ifdef MRBC_DEBUG
-    mrbc_p_sub(v);
-#else
-    console_print("#<Hash>");
-#endif
-    break;
-
-  default:
-    console_printf("MRB_TT_XX(%d)", v->tt);
+    mrbc_print_sub(v);
     break;
   }
 
-  return ret;
+  return 0;
 }
+
+
 
 
 //================================================================
@@ -484,6 +484,19 @@ static void c_puts(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
+//================================================================
+/*! (method) print
+ */
+static void c_print(mrb_vm *vm, mrb_value v[], int argc)
+{
+  int i;
+  for( i = 1; i <= argc; i++ ) {
+    mrbc_print_sub( &v[i] );
+  }
+}
+
+
+
 static void c_object_not(mrb_vm *vm, mrb_value v[], int argc)
 {
   SET_FALSE_RETURN();
@@ -746,6 +759,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
   mrbc_class_object = mrbc_define_class(vm, "Object", 0);
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "puts", c_puts);
+  mrbc_define_method(vm, mrbc_class_object, "print", c_print);
   mrbc_define_method(vm, mrbc_class_object, "!", c_object_not);
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
   mrbc_define_method(vm, mrbc_class_object, "<=>", c_object_compare);
