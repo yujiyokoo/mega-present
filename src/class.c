@@ -34,8 +34,8 @@
 #include "c_range.h"
 
 
-static int mrbc_puts_sub(mrb_value *v);
-static int mrbc_p_sub(mrb_value *v);
+static int mrbc_puts_sub(mrbc_value *v);
+static int mrbc_p_sub(mrbc_value *v);
 
 //================================================================
 /*! print - sub function
@@ -43,68 +43,68 @@ static int mrbc_p_sub(mrb_value *v);
   @retval 0	normal return.
   @retval 1	already output LF.
  */
-static int mrbc_print_sub(mrb_value *v)
+static int mrbc_print_sub(mrbc_value *v)
 {
   int ret = 0;
 
   switch( v->tt ){
-  case MRB_TT_EMPTY:	console_print("(empty)");	break;
-  case MRB_TT_NIL:					break;
-  case MRB_TT_FALSE:	console_print("false");		break;
-  case MRB_TT_TRUE:	console_print("true");		break;
-  case MRB_TT_FIXNUM:	console_printf("%d", v->i);	break;
+  case MRBC_TT_EMPTY:	console_print("(empty)");	break;
+  case MRBC_TT_NIL:					break;
+  case MRBC_TT_FALSE:	console_print("false");		break;
+  case MRBC_TT_TRUE:	console_print("true");		break;
+  case MRBC_TT_FIXNUM:	console_printf("%d", v->i);	break;
 #if MRBC_USE_FLOAT
-  case MRB_TT_FLOAT:    console_printf("%g", v->d);	break;
+  case MRBC_TT_FLOAT:    console_printf("%g", v->d);	break;
 #endif
-  case MRB_TT_SYMBOL:
+  case MRBC_TT_SYMBOL:
     console_print(mrbc_symbol_cstr(v));
     break;
 
-  case MRB_TT_CLASS:
+  case MRBC_TT_CLASS:
     console_print(symid_to_str(v->cls->sym_id));
     break;
 
-  case MRB_TT_OBJECT:
+  case MRBC_TT_OBJECT:
     console_printf( "#<%s:%08x>",
 	symid_to_str( find_class_by_object(0,v)->sym_id ), v->instance );
     break;
 
-  case MRB_TT_PROC:
+  case MRBC_TT_PROC:
     console_printf( "#<Proc:%08x>", v->proc );
     break;
 
-  case MRB_TT_ARRAY:{
+  case MRBC_TT_ARRAY:{
     console_putchar('[');
     int i;
     for( i = 0; i < mrbc_array_size(v); i++ ) {
       if( i != 0 ) console_print(", ");
-      mrb_value v1 = mrbc_array_get(v, i);
+      mrbc_value v1 = mrbc_array_get(v, i);
       mrbc_p_sub(&v1);
     }
     console_putchar(']');
   } break;
 
 #if MRBC_USE_STRING
-  case MRB_TT_STRING:
+  case MRBC_TT_STRING:
     console_nprint( mrbc_string_cstr(v), mrbc_string_size(v) );
     if( mrbc_string_size(v) != 0 &&
 	mrbc_string_cstr(v)[ mrbc_string_size(v) - 1 ] == '\n' ) ret = 1;
     break;
 #endif
 
-  case MRB_TT_RANGE:{
-    mrb_value v1 = mrbc_range_first(v);
+  case MRBC_TT_RANGE:{
+    mrbc_value v1 = mrbc_range_first(v);
     mrbc_print_sub(&v1);
     console_print( mrbc_range_exclude_end(v) ? "..." : ".." );
     v1 = mrbc_range_last(v);
     mrbc_print_sub(&v1);
   } break;
 
-  case MRB_TT_HASH:{
+  case MRBC_TT_HASH:{
     console_putchar('{');
-    mrb_hash_iterator ite = mrbc_hash_iterator(v);
+    mrbc_hash_iterator ite = mrbc_hash_iterator_new(v);
     while( mrbc_hash_i_has_next(&ite) ) {
-      mrb_value *vk = mrbc_hash_i_next(&ite);
+      mrbc_value *vk = mrbc_hash_i_next(&ite);
       mrbc_p_sub(vk);
       console_print("=>");
       mrbc_p_sub(vk+1);
@@ -114,7 +114,7 @@ static int mrbc_print_sub(mrb_value *v)
   } break;
 
   default:
-    console_printf("Not support MRB_TT_XX(%d)", v->tt);
+    console_printf("Not support MRBC_TT_XX(%d)", v->tt);
     break;
   }
 
@@ -129,13 +129,13 @@ static int mrbc_print_sub(mrb_value *v)
   @retval 0	normal return.
   @retval 1	already output LF.
  */
-static int mrbc_puts_sub(mrb_value *v)
+static int mrbc_puts_sub(mrbc_value *v)
 {
-  if( v->tt == MRB_TT_ARRAY ) {
+  if( v->tt == MRBC_TT_ARRAY ) {
     int i;
     for( i = 0; i < mrbc_array_size(v); i++ ) {
       if( i != 0 ) console_putchar('\n');
-      mrb_value v1 = mrbc_array_get(v, i);
+      mrbc_value v1 = mrbc_array_get(v, i);
       mrbc_puts_sub(&v1);
     }
     return 0;
@@ -148,21 +148,21 @@ static int mrbc_puts_sub(mrb_value *v)
 //================================================================
 /*! p - sub function
  */
-static int mrbc_p_sub(mrb_value *v)
+static int mrbc_p_sub(mrbc_value *v)
 {
   switch( v->tt ){
-  case MRB_TT_NIL:
+  case MRBC_TT_NIL:
     console_print("nil");
     break;
 
-  case MRB_TT_SYMBOL:{
+  case MRBC_TT_SYMBOL:{
     const char *s = mrbc_symbol_cstr( v );
     char *fmt = strchr(s, ':') ? "\":%s\"" : ":%s";
     console_printf(fmt, s);
   } break;
 
 #if MRBC_USE_STRING
-  case MRB_TT_STRING:{
+  case MRBC_TT_STRING:{
     console_putchar('"');
     const char *s = mrbc_string_cstr(v);
     int i;
@@ -177,8 +177,8 @@ static int mrbc_p_sub(mrb_value *v)
   } break;
 #endif
 
-  case MRB_TT_RANGE:{
-    mrb_value v1 = mrbc_range_first(v);
+  case MRBC_TT_RANGE:{
+    mrbc_value v1 = mrbc_range_first(v);
     mrbc_p_sub(&v1);
     console_print( mrbc_range_exclude_end(v) ? "..." : ".." );
     v1 = mrbc_range_last(v);
@@ -202,27 +202,27 @@ static int mrbc_p_sub(mrb_value *v)
 
   @param  vm
   @param  obj
-  @return pointer to mrb_class
+  @return pointer to mrbc_class
 */
-mrb_class *find_class_by_object(struct VM *vm, mrb_object *obj)
+mrbc_class *find_class_by_object(struct VM *vm, mrbc_object *obj)
 {
-  mrb_class *cls;
+  mrbc_class *cls;
 
   switch( obj->tt ) {
-  case MRB_TT_TRUE:	cls = mrbc_class_true;		break;
-  case MRB_TT_FALSE:	cls = mrbc_class_false; 	break;
-  case MRB_TT_NIL:	cls = mrbc_class_nil;		break;
-  case MRB_TT_FIXNUM:	cls = mrbc_class_fixnum;	break;
-  case MRB_TT_FLOAT:	cls = mrbc_class_float; 	break;
-  case MRB_TT_SYMBOL:	cls = mrbc_class_symbol;	break;
+  case MRBC_TT_TRUE:	cls = mrbc_class_true;		break;
+  case MRBC_TT_FALSE:	cls = mrbc_class_false; 	break;
+  case MRBC_TT_NIL:	cls = mrbc_class_nil;		break;
+  case MRBC_TT_FIXNUM:	cls = mrbc_class_fixnum;	break;
+  case MRBC_TT_FLOAT:	cls = mrbc_class_float; 	break;
+  case MRBC_TT_SYMBOL:	cls = mrbc_class_symbol;	break;
 
-  case MRB_TT_OBJECT:	cls = obj->instance->cls;       break;
-  case MRB_TT_CLASS:    cls = obj->cls;                 break;
-  case MRB_TT_PROC:	cls = mrbc_class_proc;		break;
-  case MRB_TT_ARRAY:	cls = mrbc_class_array; 	break;
-  case MRB_TT_STRING:	cls = mrbc_class_string;	break;
-  case MRB_TT_RANGE:	cls = mrbc_class_range; 	break;
-  case MRB_TT_HASH:	cls = mrbc_class_hash;		break;
+  case MRBC_TT_OBJECT:	cls = obj->instance->cls;       break;
+  case MRBC_TT_CLASS:    cls = obj->cls;                 break;
+  case MRBC_TT_PROC:	cls = mrbc_class_proc;		break;
+  case MRBC_TT_ARRAY:	cls = mrbc_class_array; 	break;
+  case MRBC_TT_STRING:	cls = mrbc_class_string;	break;
+  case MRBC_TT_RANGE:	cls = mrbc_class_range; 	break;
+  case MRBC_TT_HASH:	cls = mrbc_class_hash;		break;
 
   default:		cls = mrbc_class_object;	break;
   }
@@ -241,12 +241,12 @@ mrb_class *find_class_by_object(struct VM *vm, mrb_object *obj)
   @param  sym_id
   @return
 */
-mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrbc_sym sym_id)
+mrbc_proc *find_method(struct VM *vm, mrbc_value recv, mrbc_sym sym_id)
 {
-  mrb_class *cls = find_class_by_object(vm, &recv);
+  mrbc_class *cls = find_class_by_object(vm, &recv);
 
   while( cls != 0 ) {
-    mrb_proc *proc = cls->procs;
+    mrbc_proc *proc = cls->procs;
     while( proc != 0 ) {
       if( proc->sym_id == sym_id ) {
         return proc;
@@ -268,16 +268,16 @@ mrb_proc *find_method(mrb_vm *vm, mrb_value recv, mrbc_sym sym_id)
   @param  name		class name.
   @param  super		super class.
 */
-mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
+mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super)
 {
   if( super == NULL ) super = mrbc_class_object;  // set default to Object.
 
   mrbc_sym sym_id = str_to_symid(name);
-  mrb_object obj = const_object_get(sym_id);
+  mrbc_object obj = const_object_get(sym_id);
 
   // create a new class?
-  if( obj.tt == MRB_TT_NIL ) {
-    mrb_class *cls = mrbc_alloc( 0, sizeof(mrb_class) );
+  if( obj.tt == MRBC_TT_NIL ) {
+    mrbc_class *cls = mrbc_alloc( 0, sizeof(mrbc_class) );
     if( !cls ) return cls;	// ENOMEM
 
     cls->sym_id = sym_id;
@@ -288,7 +288,7 @@ mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
     cls->procs = 0;
 
     // register to global constant.
-    mrb_value v = {.tt = MRB_TT_CLASS};
+    mrbc_value v = {.tt = MRBC_TT_CLASS};
     v.cls = cls;
     const_object_add(sym_id, &v);
 
@@ -296,7 +296,7 @@ mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
   }
 
   // already?
-  if( obj.tt == MRB_TT_CLASS ) {
+  if( obj.tt == MRBC_TT_CLASS ) {
     return obj.cls;
   }
 
@@ -313,12 +313,12 @@ mrb_class * mrbc_define_class(mrb_vm *vm, const char *name, mrb_class *super)
   @param  name		class name.
   @return		pointer to class object.
 */
-mrb_class * mrbc_get_class_by_name( const char *name )
+mrbc_class * mrbc_get_class_by_name( const char *name )
 {
   mrbc_sym sym_id = str_to_symid(name);
-  mrb_object obj = const_object_get(sym_id);
+  mrbc_object obj = const_object_get(sym_id);
 
-  return (obj.tt == MRB_TT_CLASS) ? obj.cls : NULL;
+  return (obj.tt == MRBC_TT_CLASS) ? obj.cls : NULL;
 }
 
 
@@ -331,11 +331,11 @@ mrb_class * mrbc_get_class_by_name( const char *name )
   @param  name		method name.
   @param  cfunc		pointer to function.
 */
-void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t cfunc)
+void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_func_t cfunc)
 {
   if( cls == NULL ) cls = mrbc_class_object;	// set default to Object.
 
-  mrb_proc *rproc = mrbc_rproc_alloc(vm, name);
+  mrbc_proc *rproc = mrbc_rproc_alloc(vm, name);
   rproc->c_func = 1;  // c-func
   rproc->next = cls->procs;
   cls->procs = rproc;
@@ -355,14 +355,14 @@ void mrbc_define_method(mrb_vm *vm, mrb_class *cls, const char *name, mrb_func_t
   @param  v		receiver and params
   @param  argc		num of params
 */
-void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
+void mrbc_funcall(struct VM *vm, const char *name, mrbc_value *v, int argc)
 {
   mrbc_sym sym_id = str_to_symid(name);
-  mrb_proc *m = find_method(vm, v[0], sym_id);
+  mrbc_proc *m = find_method(vm, v[0], sym_id);
 
   if( m==0 ) return;   // no method
 
-  mrb_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  mrbc_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
@@ -393,19 +393,19 @@ void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc)
 
   @example
   // (Fixnum).to_s(16)
-  static void c_fixnum_to_s(mrb_vm *vm, mrb_value v[], int argc)
+  static void c_fixnum_to_s(struct VM *vm, mrbc_value v[], int argc)
   {
-    mrb_value *recv = &v[1];
-    mrb_value arg1 = mrb_fixnum_value(16);
-    mrb_value ret = mrbc_send( vm, v, argc, recv, "to_s", 1, &arg1 );
+    mrbc_value *recv = &v[1];
+    mrbc_value arg1 = mrbc_fixnum_value(16);
+    mrbc_value ret = mrbc_send( vm, v, argc, recv, "to_s", 1, &arg1 );
     SET_RETURN(ret);
   }
  */
-mrb_value mrbc_send( struct VM *vm, mrb_value *v, int reg_ofs,
-		     mrb_value *recv, const char *method, int argc, ... )
+mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
+		     mrbc_value *recv, const char *method, int argc, ... )
 {
   mrbc_sym sym_id = str_to_symid(method);
-  mrb_proc *m = find_method(vm, *recv, sym_id);
+  mrbc_proc *m = find_method(vm, *recv, sym_id);
 
   if( m == 0 ) {
     console_printf("No method. vtype=%d method='%s'\n", recv->tt, method );
@@ -417,7 +417,7 @@ mrb_value mrbc_send( struct VM *vm, mrb_value *v, int reg_ofs,
   }
 
   // create call stack.
-  mrb_value *regs = v + reg_ofs + 2;
+  mrbc_value *regs = v + reg_ofs + 2;
   mrbc_release( &regs[0] );
   regs[0] = *recv;
   mrbc_dup(recv);
@@ -427,24 +427,24 @@ mrb_value mrbc_send( struct VM *vm, mrb_value *v, int reg_ofs,
   int i;
   for( i = 1; i <= argc; i++ ) {
     mrbc_release( &regs[i] );
-    regs[i] = *va_arg(ap, mrb_value *);
+    regs[i] = *va_arg(ap, mrbc_value *);
   }
   mrbc_release( &regs[i] );
-  regs[i] = mrb_nil_value();
+  regs[i] = mrbc_nil_value();
   va_end(ap);
 
   // call method.
   m->func(vm, regs, argc);
-  mrb_value ret = regs[0];
+  mrbc_value ret = regs[0];
 
   for(; i >= 0; i-- ) {
-    regs[i].tt = MRB_TT_EMPTY;
+    regs[i].tt = MRBC_TT_EMPTY;
   }
 
   return ret;
 
  ERROR:
-  return mrb_nil_value();
+  return mrbc_nil_value();
 }
 
 
@@ -457,7 +457,7 @@ mrb_value mrbc_send( struct VM *vm, mrb_value *v, int reg_ofs,
 //================================================================
 /*! (method) p
  */
-static void c_p(mrb_vm *vm, mrb_value v[], int argc)
+static void c_p(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
@@ -471,7 +471,7 @@ static void c_p(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) puts
  */
-static void c_puts(mrb_vm *vm, mrb_value v[], int argc)
+static void c_puts(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   if( argc ){
@@ -487,7 +487,7 @@ static void c_puts(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) print
  */
-static void c_print(mrb_vm *vm, mrb_value v[], int argc)
+static void c_print(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
@@ -499,7 +499,7 @@ static void c_print(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (operator) !
  */
-static void c_object_not(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_not(struct VM *vm, mrbc_value v[], int argc)
 {
   SET_FALSE_RETURN();
 }
@@ -508,7 +508,7 @@ static void c_object_not(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (operator) !=
  */
-static void c_object_neq(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_neq(struct VM *vm, mrbc_value v[], int argc)
 {
   int result = mrbc_compare( &v[0], &v[1] );
   SET_BOOL_RETURN( result != 0 );
@@ -518,7 +518,7 @@ static void c_object_neq(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (operator) <=>
  */
-static void c_object_compare(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_compare(struct VM *vm, mrbc_value v[], int argc)
 {
   int result = mrbc_compare( &v[0], &v[1] );
   SET_INT_RETURN( result );
@@ -528,10 +528,10 @@ static void c_object_compare(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (operator) ===
  */
-static void c_object_equal3(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_equal3(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[0].tt == MRB_TT_CLASS ) {
-    mrb_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
+  if( v[0].tt == MRBC_TT_CLASS ) {
+    mrbc_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
     SET_RETURN( result );
 
   } else {
@@ -544,9 +544,9 @@ static void c_object_equal3(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) class
  */
-static void c_object_class(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_class(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrb_value value = {.tt = MRB_TT_CLASS};
+  mrbc_value value = {.tt = MRBC_TT_CLASS};
   value.cls = find_class_by_object( vm, v );
   SET_RETURN( value );
 }
@@ -554,9 +554,9 @@ static void c_object_class(mrb_vm *vm, mrb_value v[], int argc)
 
 
 // Object.new
-static void c_object_new(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrb_value new_obj = mrbc_instance_new(vm, v->cls, 0);
+  mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
 
   char syms[]="______initialize";
   uint32_to_bin( 1,(uint8_t*)&syms[0]);
@@ -566,7 +566,7 @@ static void c_object_new(mrb_vm *vm, mrb_value v[], int argc)
     MKOPCODE(OP_SEND) | MKARG_A(0) | MKARG_B(0) | MKARG_C(argc),
     MKOPCODE(OP_ABORT)
     };
-   mrb_irep irep = {
+   mrbc_irep irep = {
     0,     // nlocals
     0,     // nregs
     0,     // rlen
@@ -582,9 +582,9 @@ static void c_object_new(mrb_vm *vm, mrb_value v[], int argc)
   v[0] = new_obj;
   mrbc_dup(&new_obj);
 
-  mrb_irep *org_pc_irep = vm->pc_irep;
+  mrbc_irep *org_pc_irep = vm->pc_irep;
   uint16_t  org_pc = vm->pc;
-  mrb_value* org_regs = vm->current_regs;
+  mrbc_value* org_regs = vm->current_regs;
   vm->pc = 0;
   vm->pc_irep = &irep;
   vm->current_regs = v;
@@ -601,11 +601,11 @@ static void c_object_new(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) instance variable getter
  */
-static void c_object_getiv(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_getiv(struct VM *vm, mrbc_value v[], int argc)
 {
   const char *name = mrbc_get_callee_name(vm);
   mrbc_sym sym_id = str_to_symid( name );
-  mrb_value ret = mrbc_instance_getiv(&v[0], sym_id);
+  mrbc_value ret = mrbc_instance_getiv(&v[0], sym_id);
 
   SET_RETURN(ret);
 }
@@ -614,7 +614,7 @@ static void c_object_getiv(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) instance variable setter
  */
-static void c_object_setiv(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_setiv(struct VM *vm, mrbc_value v[], int argc)
 {
   const char *name = mrbc_get_callee_name(vm);
 
@@ -633,11 +633,11 @@ static void c_object_setiv(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (class method) access method 'attr_reader'
  */
-static void c_object_attr_reader(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_attr_reader(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
-    if( v[i].tt != MRB_TT_SYMBOL ) continue;	// TypeError raise?
+    if( v[i].tt != MRBC_TT_SYMBOL ) continue;	// TypeError raise?
 
     // define reader method
     const char *name = mrbc_symbol_cstr(&v[i]);
@@ -649,11 +649,11 @@ static void c_object_attr_reader(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (class method) access method 'attr_accessor'
  */
-static void c_object_attr_accessor(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_attr_accessor(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
-    if( v[i].tt != MRB_TT_SYMBOL ) continue;	// TypeError raise?
+    if( v[i].tt != MRBC_TT_SYMBOL ) continue;	// TypeError raise?
 
     // define reader method
     const char *name = mrbc_symbol_cstr(&v[i]);
@@ -674,12 +674,12 @@ static void c_object_attr_accessor(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) is_a, kind_of
  */
-static void c_object_kind_of(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_kind_of(struct VM *vm, mrbc_value v[], int argc)
 {
   int result = 0;
-  if( v[1].tt != MRB_TT_CLASS ) goto DONE;
+  if( v[1].tt != MRBC_TT_CLASS ) goto DONE;
 
-  const mrb_class *cls = find_class_by_object( vm, &v[0] );
+  const mrbc_class *cls = find_class_by_object( vm, &v[0] );
 
   do {
     result = (cls == v[1].cls);
@@ -697,19 +697,19 @@ static void c_object_kind_of(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) to_s
  */
-static void c_object_to_s(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   char buf[32];
   const char *s = buf;
 
   switch( v->tt ) {
-  case MRB_TT_CLASS:
+  case MRBC_TT_CLASS:
     s = symid_to_str( v->cls->sym_id );
     break;
 
-  case MRB_TT_OBJECT:{
+  case MRBC_TT_OBJECT:{
     // (NOTE) address part assumes 32bit. but enough for this.
-    mrb_printf pf;
+    mrbc_printf pf;
 
     mrbc_printf_init( &pf, buf, sizeof(buf), "#<%s:%08x>" );
     while( mrbc_printf_main( &pf ) > 0 ) {
@@ -736,7 +736,7 @@ static void c_object_to_s(mrb_vm *vm, mrb_value v[], int argc)
 
 
 #ifdef MRBC_DEBUG
-static void c_object_instance_methods(mrb_vm *vm, mrb_value v[], int argc)
+static void c_object_instance_methods(struct VM *vm, mrbc_value v[], int argc)
 {
   // TODO: check argument.
 
@@ -744,8 +744,8 @@ static void c_object_instance_methods(mrb_vm *vm, mrb_value v[], int argc)
   console_printf( "[" );
   int flag_first = 1;
 
-  mrb_class *cls = find_class_by_object( vm, v );
-  mrb_proc *proc = cls->procs;
+  mrbc_class *cls = find_class_by_object( vm, v );
+  mrbc_proc *proc = cls->procs;
   while( proc ) {
     console_printf( "%s:%s", (flag_first ? "" : ", "),
 		    symid_to_str(proc->sym_id) );
@@ -760,7 +760,7 @@ static void c_object_instance_methods(mrb_vm *vm, mrb_value v[], int argc)
 #endif
 
 
-static void mrbc_init_class_object(mrb_vm *vm)
+static void mrbc_init_class_object(struct VM *vm)
 {
   // Class
   mrbc_class_object = mrbc_define_class(vm, "Object", 0);
@@ -791,7 +791,7 @@ static void mrbc_init_class_object(mrb_vm *vm)
 
 // =============== ProcClass
 
-void c_proc_call(mrb_vm *vm, mrb_value v[], int argc)
+void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
   // push callinfo, but not release regs
   mrbc_push_callinfo(vm, argc);
@@ -805,11 +805,11 @@ void c_proc_call(mrb_vm *vm, mrb_value v[], int argc)
 
 
 #if MRBC_USE_STRING
-static void c_proc_to_s(mrb_vm *vm, mrb_value v[], int argc)
+static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   // (NOTE) address part assumes 32bit. but enough for this.
   char buf[32];
-  mrb_printf pf;
+  mrbc_printf pf;
 
   mrbc_printf_init( &pf, buf, sizeof(buf), "<#Proc:%08x>" );
   while( mrbc_printf_main( &pf ) > 0 ) {
@@ -821,7 +821,7 @@ static void c_proc_to_s(mrb_vm *vm, mrb_value v[], int argc)
 }
 #endif
 
-static void mrbc_init_class_proc(mrb_vm *vm)
+static void mrbc_init_class_proc(struct VM *vm)
 {
   // Class
   mrbc_class_proc= mrbc_define_class(vm, "Proc", mrbc_class_object);
@@ -840,9 +840,9 @@ static void mrbc_init_class_proc(mrb_vm *vm)
 //================================================================
 /*! (method) !
 */
-static void c_nil_false_not(mrb_vm *vm, mrb_value v[], int argc)
+static void c_nil_false_not(struct VM *vm, mrbc_value v[], int argc)
 {
-  v[0].tt = MRB_TT_TRUE;
+  v[0].tt = MRBC_TT_TRUE;
 }
 
 
@@ -850,7 +850,7 @@ static void c_nil_false_not(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) inspect
 */
-static void c_nil_inspect(mrb_vm *vm, mrb_value v[], int argc)
+static void c_nil_inspect(struct VM *vm, mrbc_value v[], int argc)
 {
   v[0] = mrbc_string_new_cstr(vm, "nil");
 }
@@ -859,7 +859,7 @@ static void c_nil_inspect(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) to_s
 */
-static void c_nil_to_s(mrb_vm *vm, mrb_value v[], int argc)
+static void c_nil_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   v[0] = mrbc_string_new(vm, NULL, 0);
 }
@@ -868,7 +868,7 @@ static void c_nil_to_s(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! Nil class
 */
-static void mrbc_init_class_nil(mrb_vm *vm)
+static void mrbc_init_class_nil(struct VM *vm)
 {
   // Class
   mrbc_class_nil = mrbc_define_class(vm, "NilClass", mrbc_class_object);
@@ -889,7 +889,7 @@ static void mrbc_init_class_nil(mrb_vm *vm)
 //================================================================
 /*! (method) to_s
 */
-static void c_false_to_s(mrb_vm *vm, mrb_value v[], int argc)
+static void c_false_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   v[0] = mrbc_string_new_cstr(vm, "false");
 }
@@ -898,7 +898,7 @@ static void c_false_to_s(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! False class
 */
-static void mrbc_init_class_false(mrb_vm *vm)
+static void mrbc_init_class_false(struct VM *vm)
 {
   // Class
   mrbc_class_false = mrbc_define_class(vm, "FalseClass", mrbc_class_object);
@@ -919,13 +919,13 @@ static void mrbc_init_class_false(mrb_vm *vm)
 //================================================================
 /*! (method) to_s
 */
-static void c_true_to_s(mrb_vm *vm, mrb_value v[], int argc)
+static void c_true_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   v[0] = mrbc_string_new_cstr(vm, "true");
 }
 #endif
 
-static void mrbc_init_class_true(mrb_vm *vm)
+static void mrbc_init_class_true(struct VM *vm)
 {
   // Class
   mrbc_class_true = mrbc_define_class(vm, "TrueClass", mrbc_class_object);
@@ -941,7 +941,7 @@ static void mrbc_init_class_true(mrb_vm *vm)
 //================================================================
 /*! Ineffect operator / method
 */
-void c_ineffect(mrb_vm *vm, mrb_value v[], int argc)
+void c_ineffect(struct VM *vm, mrbc_value v[], int argc)
 {
   // nothing to do.
 }
@@ -950,11 +950,11 @@ void c_ineffect(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! Run mrblib, which is mruby bytecode
 */
-void mrbc_run_mrblib(void)
+static void mrbc_run_mrblib(void)
 {
   extern const uint8_t mrblib_bytecode[];
 
-  mrb_vm vm;
+  mrbc_vm vm;
   mrbc_vm_open(&vm);
   mrbc_load_mrb(&vm, mrblib_bytecode);
   mrbc_vm_begin(&vm);

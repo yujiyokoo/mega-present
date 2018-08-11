@@ -42,17 +42,16 @@ typedef struct RPrintf {
     int width;				//!< display width. (e.g. %10d as 10)
     int precision;			//!< precision (e.g. %5.2f as 2)
   } fmt;
-} mrb_printf;
-
+} mrbc_printf;
 
 
 void console_printf(const char *fstr, ...);
-int mrbc_printf_main(mrb_printf *pf);
-int mrbc_printf_char(mrb_printf *pf, int ch);
-int mrbc_printf_bstr(mrb_printf *pf, const char *str, int len, int pad);
-int mrbc_printf_int(mrb_printf *pf, int32_t value, int base);
-int mrbc_printf_float( mrb_printf *pf, mrbc_float value );
-void mrbc_printf_replace_buffer(mrb_printf *pf, char *buf, int size);
+int mrbc_printf_main(mrbc_printf *pf);
+int mrbc_printf_char(mrbc_printf *pf, int ch);
+int mrbc_printf_bstr(mrbc_printf *pf, const char *str, int len, int pad);
+int mrbc_printf_int(mrbc_printf *pf, mrbc_int value, int base);
+int mrbc_printf_float(mrbc_printf *pf, double value);
+void mrbc_printf_replace_buffer(mrbc_printf *pf, char *buf, int size);
 
 
 //================================================================
@@ -92,12 +91,12 @@ static inline void console_nprint(const char *str, int size)
 //================================================================
 /*! initialize data container.
 
-  @param  pf	pointer to mrb_printf
+  @param  pf	pointer to mrbc_printf
   @param  buf	pointer to output buffer.
   @param  size	buffer size.
   @param  fstr	format string.
 */
-static inline void mrbc_printf_init( mrb_printf *pf, char *buf, int size,
+static inline void mrbc_printf_init( mrbc_printf *pf, char *buf, int size,
 				     const char *fstr )
 {
   pf->p = pf->buf = buf;
@@ -110,9 +109,9 @@ static inline void mrbc_printf_init( mrb_printf *pf, char *buf, int size,
 //================================================================
 /*! clear output buffer in container.
 
-  @param  pf	pointer to mrb_printf
+  @param  pf	pointer to mrbc_printf
 */
-static inline void mrbc_printf_clear( mrb_printf *pf )
+static inline void mrbc_printf_clear( mrbc_printf *pf )
 {
   pf->p = pf->buf;
 }
@@ -121,9 +120,9 @@ static inline void mrbc_printf_clear( mrb_printf *pf )
 //================================================================
 /*! terminate ('\0') output buffer.
 
-  @param  pf	pointer to mrb_printf
+  @param  pf	pointer to mrbc_printf
 */
-static inline void mrbc_printf_end( mrb_printf *pf )
+static inline void mrbc_printf_end( mrbc_printf *pf )
 {
   *pf->p = '\0';
 }
@@ -132,10 +131,10 @@ static inline void mrbc_printf_end( mrb_printf *pf )
 //================================================================
 /*! return string length in buffer
 
-  @param  pf	pointer to mrb_printf
+  @param  pf	pointer to mrbc_printf
   @return	length
 */
-static inline int mrbc_printf_len( mrb_printf *pf )
+static inline int mrbc_printf_len( mrbc_printf *pf )
 {
   return pf->p - pf->buf;
 }
@@ -144,14 +143,14 @@ static inline int mrbc_printf_len( mrb_printf *pf )
 //================================================================
 /*! sprintf subcontract function for char '%s'
 
-  @param  pf	pointer to mrb_printf.
+  @param  pf	pointer to mrbc_printf.
   @param  str	output string.
   @param  pad	padding character.
   @retval 0	done.
   @retval -1	buffer full.
   @note		not terminate ('\0') buffer tail.
 */
-static inline int mrbc_printf_str( mrb_printf *pf, const char *str, int pad )
+static inline int mrbc_printf_str( mrbc_printf *pf, const char *str, int pad )
 {
   return mrbc_printf_bstr( pf, str, strlen(str), pad );
 }

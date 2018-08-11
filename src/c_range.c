@@ -31,15 +31,15 @@
   @param  flag_exclude	true: exclude the end object, otherwise include.
   @return		range object.
 */
-mrb_value mrbc_range_new( struct VM *vm, mrb_value *first, mrb_value *last, int flag_exclude)
+mrbc_value mrbc_range_new( struct VM *vm, mrbc_value *first, mrbc_value *last, int flag_exclude)
 {
-  mrb_value value = {.tt = MRB_TT_RANGE};
+  mrbc_value value = {.tt = MRBC_TT_RANGE};
 
-  value.range = mrbc_alloc(vm, sizeof(mrb_range));
+  value.range = mrbc_alloc(vm, sizeof(mrbc_range));
   if( !value.range ) return value;		// ENOMEM
 
   value.range->ref_count = 1;
-  value.range->tt = MRB_TT_STRING;	// TODO: for DEBUG
+  value.range->tt = MRBC_TT_STRING;	// TODO: for DEBUG
   value.range->flag_exclude = flag_exclude;
   value.range->first = *first;
   value.range->last = *last;
@@ -53,7 +53,7 @@ mrb_value mrbc_range_new( struct VM *vm, mrb_value *first, mrb_value *last, int 
 
   @param  target 	pointer to range object.
 */
-void mrbc_range_delete(mrb_value *v)
+void mrbc_range_delete(mrbc_value *v)
 {
   mrbc_release( &v->range->first );
   mrbc_release( &v->range->last );
@@ -65,7 +65,7 @@ void mrbc_range_delete(mrb_value *v)
 //================================================================
 /*! clear vm_id
 */
-void mrbc_range_clear_vm_id(mrb_value *v)
+void mrbc_range_clear_vm_id(mrbc_value *v)
 {
   mrbc_set_vm_id( v->range, 0 );
   mrbc_clear_vm_id( &v->range->first );
@@ -76,7 +76,7 @@ void mrbc_range_clear_vm_id(mrb_value *v)
 //================================================================
 /*! compare
 */
-int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2)
+int mrbc_range_compare(const mrbc_value *v1, const mrbc_value *v2)
 {
   int res;
 
@@ -94,10 +94,10 @@ int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2)
 //================================================================
 /*! (method) ===
 */
-static void c_range_equal3(mrb_vm *vm, mrb_value v[], int argc)
+static void c_range_equal3(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[0].tt == MRB_TT_CLASS ) {
-    mrb_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
+  if( v[0].tt == MRBC_TT_CLASS ) {
+    mrbc_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
     SET_RETURN( result );
     return;
   }
@@ -117,9 +117,9 @@ static void c_range_equal3(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) first
 */
-static void c_range_first(mrb_vm *vm, mrb_value v[], int argc)
+static void c_range_first(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrb_value ret = mrbc_range_first(v);
+  mrbc_value ret = mrbc_range_first(v);
   SET_RETURN(ret);
 }
 
@@ -127,9 +127,9 @@ static void c_range_first(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) last
 */
-static void c_range_last(mrb_vm *vm, mrb_value v[], int argc)
+static void c_range_last(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrb_value ret = mrbc_range_last(v);
+  mrbc_value ret = mrbc_range_last(v);
   SET_RETURN(ret);
 }
 
@@ -138,7 +138,7 @@ static void c_range_last(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) exclude_end?
 */
-static void c_range_exclude_end(mrb_vm *vm, mrb_value v[], int argc)
+static void c_range_exclude_end(struct VM *vm, mrbc_value v[], int argc)
 {
   int result = v->range->flag_exclude;
   SET_BOOL_RETURN( result );
@@ -150,16 +150,16 @@ static void c_range_exclude_end(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) inspect
 */
-static void c_range_inspect(mrb_vm *vm, mrb_value v[], int argc)
+static void c_range_inspect(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrb_value ret = mrbc_string_new(vm, NULL, 0);
+  mrbc_value ret = mrbc_string_new(vm, NULL, 0);
   if( !ret.string ) goto RETURN_NIL;		// ENOMEM
 
   int i;
   for( i = 0; i < 2; i++ ) {
     if( i != 0 ) mrbc_string_append_cstr( &ret, ".." );
-    mrb_value v1 = (i == 0) ? mrbc_range_first(v) : mrbc_range_last(v);
-    mrb_value s1 = mrbc_send( vm, v, argc, &v1, "inspect", 0 );
+    mrbc_value v1 = (i == 0) ? mrbc_range_first(v) : mrbc_range_last(v);
+    mrbc_value s1 = mrbc_send( vm, v, argc, &v1, "inspect", 0 );
     mrbc_string_append( &ret, &s1 );
     mrbc_string_delete( &s1 );
   }
@@ -177,7 +177,7 @@ static void c_range_inspect(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! initialize
 */
-void mrbc_init_class_range(mrb_vm *vm)
+void mrbc_init_class_range(struct VM *vm)
 {
   mrbc_class_range = mrbc_define_class(vm, "Range", mrbc_class_object);
 

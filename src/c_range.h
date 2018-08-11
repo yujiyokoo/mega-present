@@ -29,26 +29,23 @@ typedef struct RRange {
   MRBC_OBJECT_HEADER;
 
   uint8_t flag_exclude;	// true: exclude the end object, otherwise include.
-  mrb_value first;
-  mrb_value last;
+  mrbc_value first;
+  mrbc_value last;
 
-} mrb_range;
+} mrbc_range;
 
 
-struct VM;
-
-mrb_value mrbc_range_new(struct VM *vm, mrb_value *first, mrb_value *last, int flag_exclude);
-void mrbc_range_delete(mrb_value *v);
-void mrbc_range_clear_vm_id(mrb_value *v);
-int mrbc_range_compare(const mrb_value *v1, const mrb_value *v2);
-void mrbc_init_class_range(mrb_vm *vm);
-
+mrbc_value mrbc_range_new(struct VM *vm, mrbc_value *first, mrbc_value *last, int flag_exclude);
+void mrbc_range_delete(mrbc_value *v);
+void mrbc_range_clear_vm_id(mrbc_value *v);
+int mrbc_range_compare(const mrbc_value *v1, const mrbc_value *v2);
+void mrbc_init_class_range(struct VM *vm);
 
 
 //================================================================
 /*! get first value
 */
-static inline mrb_value mrbc_range_first(const mrb_value *v)
+static inline mrbc_value mrbc_range_first(const mrbc_value *v)
 {
   return v->range->first;
 }
@@ -56,7 +53,7 @@ static inline mrb_value mrbc_range_first(const mrb_value *v)
 //================================================================
 /*! get last value
 */
-static inline mrb_value mrbc_range_last(const mrb_value *v)
+static inline mrbc_value mrbc_range_last(const mrbc_value *v)
 {
   return v->range->last;
 }
@@ -64,7 +61,7 @@ static inline mrb_value mrbc_range_last(const mrb_value *v)
 //================================================================
 /*! get exclude_end?
 */
-static inline int mrbc_range_exclude_end(const mrb_value *v)
+static inline int mrbc_range_exclude_end(const mrbc_value *v)
 {
   return v->range->flag_exclude;
 }

@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
+#include "vm.h"
 #include "alloc.h"
 #include "console.h"
 
@@ -496,7 +497,7 @@ void * mrbc_raw_realloc(void *ptr, unsigned int size)
   @return void * pointer to allocated memory.
   @retval NULL	error.
 */
-void * mrbc_alloc(const mrb_vm *vm, unsigned int size)
+void * mrbc_alloc(const struct VM *vm, unsigned int size)
 {
   uint8_t *ptr = mrbc_raw_alloc(size);
   if( ptr == NULL ) return NULL;	// ENOMEM
@@ -515,7 +516,7 @@ void * mrbc_alloc(const mrb_vm *vm, unsigned int size)
   @return void * pointer to allocated memory.
   @retval NULL	error.
 */
-void * mrbc_realloc(const mrb_vm *vm, void *ptr, unsigned int size)
+void * mrbc_realloc(const struct VM *vm, void *ptr, unsigned int size)
 {
   return mrbc_raw_realloc(ptr, size);
 }
@@ -527,7 +528,7 @@ void * mrbc_realloc(const mrb_vm *vm, void *ptr, unsigned int size)
   @param  vm	pointer to VM.
   @param  ptr	Return value of mrbc_alloc()
 */
-void mrbc_free(const mrb_vm *vm, void *ptr)
+void mrbc_free(const struct VM *vm, void *ptr)
 {
   mrbc_raw_free(ptr);
 }
@@ -538,7 +539,7 @@ void mrbc_free(const mrb_vm *vm, void *ptr)
 
   @param  vm	pointer to VM.
 */
-void mrbc_free_all(const mrb_vm *vm)
+void mrbc_free_all(const struct VM *vm)
 {
   USED_BLOCK *ptr = (USED_BLOCK *)memory_pool;
   void *free_target = NULL;

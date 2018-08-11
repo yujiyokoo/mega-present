@@ -25,9 +25,9 @@ extern "C" {
 */
 typedef struct RKeyValue {
   mrbc_sym sym_id;	//!< symbol ID as key.
-  mrb_value value;	//!< stored value.
+  mrbc_value value;	//!< stored value.
 
-} mrb_kv;
+} mrbc_kv;
 
 
 //================================================================
@@ -36,28 +36,27 @@ typedef struct RKeyValue {
 typedef struct RKeyValueHandle {
   uint16_t data_size;	//!< data buffer size.
   uint16_t n_stored;	//!< # of stored.
-  mrb_kv *data;		//!< pointer to allocated memory.
+  mrbc_kv *data;		//!< pointer to allocated memory.
 
-} mrb_kv_handle;
+} mrbc_kv_handle;
 
 
-mrb_kv_handle *mrbc_kv_new(struct VM *vm, int size);
-void mrbc_kv_delete(mrb_kv_handle *kvh);
-void mrbc_kv_clear_vm_id(mrb_kv_handle *kvh);
-int mrbc_kv_resize(mrb_kv_handle *kvh, int size);
-int mrbc_kv_set(mrb_kv_handle *kvh, mrbc_sym sym_id, mrb_value *set_val);
-mrb_value *mrbc_kv_get(mrb_kv_handle *kvh, mrbc_sym sym_id);
-int mrbc_kv_append(mrb_kv_handle *kvh, mrbc_sym sym_id, mrb_value *set_val);
-int mrbc_kv_reorder(mrb_kv_handle *kvh);
-int mrbc_kv_remove(mrb_kv_handle *kvh, mrbc_sym sym_id);
-void mrbc_kv_clear(mrb_kv_handle *kvh);
-
+mrbc_kv_handle *mrbc_kv_new(struct VM *vm, int size);
+void mrbc_kv_delete(mrbc_kv_handle *kvh);
+void mrbc_kv_clear_vm_id(mrbc_kv_handle *kvh);
+int mrbc_kv_resize(mrbc_kv_handle *kvh, int size);
+int mrbc_kv_set(mrbc_kv_handle *kvh, mrbc_sym sym_id, mrbc_value *set_val);
+mrbc_value *mrbc_kv_get(mrbc_kv_handle *kvh, mrbc_sym sym_id);
+int mrbc_kv_append(mrbc_kv_handle *kvh, mrbc_sym sym_id, mrbc_value *set_val);
+int mrbc_kv_reorder(mrbc_kv_handle *kvh);
+int mrbc_kv_remove(mrbc_kv_handle *kvh, mrbc_sym sym_id);
+void mrbc_kv_clear(mrbc_kv_handle *kvh);
 
 
 //================================================================
 /*! get size
 */
-inline static int mrbc_kv_size(const mrb_kv_handle *kvh)
+inline static int mrbc_kv_size(const mrbc_kv_handle *kvh)
 {
   return kvh->n_stored;
 }

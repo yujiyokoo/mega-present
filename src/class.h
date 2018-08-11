@@ -23,19 +23,16 @@ extern "C" {
 #endif
 
 
-mrb_class *find_class_by_object(struct VM *vm, mrb_object *obj);
-mrb_proc *find_method(struct VM *vm, mrb_value recv, mrbc_sym sym_id);
-
+mrbc_class *find_class_by_object(struct VM *vm, mrbc_object *obj);
+mrbc_proc *find_method(struct VM *vm, mrbc_value recv, mrbc_sym sym_id);
+mrbc_class *mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super);
+mrbc_class *mrbc_get_class_by_name(const char *name);
+void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_func_t cfunc);
+void mrbc_funcall(struct VM *vm, const char *name, mrbc_value *v, int argc);
+mrbc_value mrbc_send(struct VM *vm, mrbc_value *v, int reg_ofs, mrbc_value *recv, const char *method, int argc, ...);
+void c_proc_call(struct VM *vm, mrbc_value v[], int argc);
+void c_ineffect(struct VM *vm, mrbc_value v[], int argc);
 void mrbc_init_class(void);
-mrb_class * mrbc_define_class(struct VM *vm, const char *name, mrb_class *super);
-mrb_class * mrbc_get_class_by_name( const char *name );
-void mrbc_define_method(struct VM *vm, mrb_class *cls, const char *name, mrb_func_t func);
-
-void c_ineffect(mrb_vm *vm, mrb_value *v, int argc);
-
-void mrbc_funcall(mrb_vm *vm, const char *name, mrb_value *v, int argc);
-mrb_value mrbc_send( struct VM *vm, mrb_value *v, int reg_ofs,
-		     mrb_value *recv, const char *method, int argc, ... );
 
 
 #ifdef __cplusplus

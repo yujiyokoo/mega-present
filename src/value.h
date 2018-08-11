@@ -35,13 +35,13 @@ typedef int16_t mrbc_sym;
 
 #define MRBC_OBJECT_HEADER \
   uint16_t ref_count; \
-  mrb_vtype tt : 8  // TODO: for debug use only.
+  mrbc_vtype tt : 8  // TODO: for debug use only.
 
 
 struct VM;
 struct IREP;
 struct RObject;
-typedef void (*mrb_func_t)(struct VM *vm, struct RObject *v, int argc);
+typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 
 
 //================================================================
@@ -50,27 +50,27 @@ typedef void (*mrb_func_t)(struct VM *vm, struct RObject *v, int argc);
 */
 typedef enum {
   /* internal use */
-  MRB_TT_HANDLE = -1,
+  MRBC_TT_HANDLE = -1,
   /* primitive */
-  MRB_TT_EMPTY = 0,
-  MRB_TT_NIL,
-  MRB_TT_FALSE,		// (note) true/false threshold. see op_jmpif
+  MRBC_TT_EMPTY = 0,
+  MRBC_TT_NIL,
+  MRBC_TT_FALSE,		// (note) true/false threshold. see op_jmpif
 
-  MRB_TT_TRUE,
-  MRB_TT_FIXNUM,
-  MRB_TT_FLOAT,
-  MRB_TT_SYMBOL,
-  MRB_TT_CLASS,
+  MRBC_TT_TRUE,
+  MRBC_TT_FIXNUM,
+  MRBC_TT_FLOAT,
+  MRBC_TT_SYMBOL,
+  MRBC_TT_CLASS,
 
   /* non-primitive */
-  MRB_TT_OBJECT = 20,
-  MRB_TT_PROC,
-  MRB_TT_ARRAY,
-  MRB_TT_STRING,
-  MRB_TT_RANGE,
-  MRB_TT_HASH,
+  MRBC_TT_OBJECT = 20,
+  MRBC_TT_PROC,
+  MRBC_TT_ARRAY,
+  MRBC_TT_STRING,
+  MRBC_TT_RANGE,
+  MRBC_TT_HASH,
 
-} mrb_vtype;
+} mrbc_vtype;
 
 
 //================================================================
@@ -93,7 +93,7 @@ typedef enum {
   E_NOTIMP_ERROR,
   E_FLOATDOMAIN_ERROR,
   E_KEY_ERROR,
-} mrb_error_code;
+} mrbc_error_code;
 
 
 
@@ -101,25 +101,28 @@ typedef enum {
 /*!@brief
   mruby/c value object.
 */
-typedef struct RObject {
-  mrb_vtype tt : 8;
+struct RObject {
+  mrbc_vtype tt : 8;
   union {
-    mrbc_int i;			// MRB_TT_FIXNUM, SYMBOL
+    mrbc_int i;			// MRBC_TT_FIXNUM, SYMBOL
 #if MRBC_USE_FLOAT
-    mrbc_float d;			// MRB_TT_FLOAT
+    mrbc_float d;		// MRBC_TT_FLOAT
 #endif
-    struct RClass *cls;		// MRB_TT_CLASS
+    struct RClass *cls;		// MRBC_TT_CLASS
     struct RObject *handle;	// handle to objects
-    struct RInstance *instance;	// MRB_TT_OBJECT
-    struct RProc *proc;		// MRB_TT_PROC
-    struct RArray *array;	// MRB_TT_ARRAY
-    struct RString *string;	// MRB_TT_STRING
+    struct RInstance *instance;	// MRBC_TT_OBJECT
+    struct RProc *proc;		// MRBC_TT_PROC
+    struct RArray *array;	// MRBC_TT_ARRAY
+    struct RString *string;	// MRBC_TT_STRING
     const char *str;		// C-string (only loader use.)
-    struct RRange *range;	// MRB_TT_RANGE
-    struct RHash *hash;		// MRB_TT_HASH
+    struct RRange *range;	// MRBC_TT_RANGE
+    struct RHash *hash;		// MRBC_TT_HASH
   };
-} mrb_object;
-typedef struct RObject mrb_value;
+};
+typedef struct RObject mrb_object;	// not recommended.
+typedef struct RObject mrb_value;	// not recommended.
+typedef struct RObject mrbc_object;
+typedef struct RObject mrbc_value;
 
 
 //================================================================
@@ -133,7 +136,8 @@ typedef struct RClass {
 #endif
   struct RClass *super;	// mrbc_class[super]
   struct RProc *procs;	// mrbc_proc[rprocs], linked list
-} mrb_class;
+} mrbc_class;
+typedef struct RClass mrb_class;
 
 
 //================================================================
@@ -146,7 +150,8 @@ typedef struct RInstance {
   struct RClass *cls;
   struct RKeyValueHandle *ivar;
   uint8_t data[];
-} mrb_instance;
+} mrbc_instance;
+typedef struct RInstance mrb_instance;
 
 
 //================================================================
@@ -164,27 +169,28 @@ typedef struct RProc {
   struct RProc *next;
   union {
     struct IREP *irep;
-    mrb_func_t func;
+    mrbc_func_t func;
   };
-} mrb_proc;
+} mrbc_proc;
+typedef struct RProc mrb_proc;
 
 
 
 // for C call
-#define SET_RETURN(n)		do { mrb_value nnn = (n); \
+#define SET_RETURN(n)		do { mrbc_value nnn = (n); \
     mrbc_dec_ref_counter(v); v[0] = nnn; } while(0)
 #define SET_NIL_RETURN()	do { \
-    mrbc_dec_ref_counter(v); v[0].tt = MRB_TT_NIL; } while(0)
+    mrbc_dec_ref_counter(v); v[0].tt = MRBC_TT_NIL; } while(0)
 #define SET_FALSE_RETURN()	do { \
-    mrbc_dec_ref_counter(v); v[0].tt = MRB_TT_FALSE; } while(0)
+    mrbc_dec_ref_counter(v); v[0].tt = MRBC_TT_FALSE; } while(0)
 #define SET_TRUE_RETURN()	do { \
-    mrbc_dec_ref_counter(v); v[0].tt = MRB_TT_TRUE; } while(0)
+    mrbc_dec_ref_counter(v); v[0].tt = MRBC_TT_TRUE; } while(0)
 #define SET_BOOL_RETURN(n)	do { \
-    mrbc_dec_ref_counter(v); v[0].tt = (n)?MRB_TT_TRUE:MRB_TT_FALSE; } while(0)
+    mrbc_dec_ref_counter(v); v[0].tt = (n)?MRBC_TT_TRUE:MRBC_TT_FALSE; } while(0)
 #define SET_INT_RETURN(n)	do { mrbc_int nnn = (n);		\
-    mrbc_dec_ref_counter(v); v[0].tt = MRB_TT_FIXNUM; v[0].i = nnn; } while(0)
+    mrbc_dec_ref_counter(v); v[0].tt = MRBC_TT_FIXNUM; v[0].i = nnn; } while(0)
 #define SET_FLOAT_RETURN(n)	do { mrbc_float nnn = (n); \
-    mrbc_dec_ref_counter(v); v[0].tt = MRB_TT_FLOAT; v[0].d = nnn; } while(0)
+    mrbc_dec_ref_counter(v); v[0].tt = MRBC_TT_FLOAT; v[0].d = nnn; } while(0)
 
 #define GET_TT_ARG(n)		(v[(n)].tt)
 #define GET_INT_ARG(n)		(v[(n)].i)
@@ -194,22 +200,20 @@ typedef struct RProc {
 #define GET_STRING_ARG(n)	(v[(n)].string->data)
 
 
-
-mrb_object *mrbc_obj_alloc(struct VM *vm, mrb_vtype tt);
-mrb_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
-int mrbc_compare(const mrb_value *v1, const mrb_value *v2);
-void mrbc_dup(mrb_value *v);
-void mrbc_release(mrb_value *v);
-void mrbc_dec_ref_counter(mrb_value *v);
-void mrbc_clear_vm_id(mrb_value *v);
+mrbc_object *mrbc_obj_alloc(struct VM *vm, mrbc_vtype tt);
+mrbc_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
+int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2);
+void mrbc_dup(mrbc_value *v);
+void mrbc_release(mrbc_value *v);
+void mrbc_dec_ref_counter(mrbc_value *v);
+void mrbc_clear_vm_id(mrbc_value *v);
 mrbc_int mrbc_atoi(const char *s, int base);
 struct IREP *mrbc_irep_alloc(struct VM *vm);
 void mrbc_irep_free(struct IREP *irep);
-mrb_value mrbc_instance_new(struct VM *vm, mrb_class *cls, int size);
-void mrbc_instance_delete(mrb_value *v);
-void mrbc_instance_setiv(mrb_object *obj, mrbc_sym sym_id, mrb_value *v);
-mrb_value mrbc_instance_getiv(mrb_object *obj, mrbc_sym sym_id);
-
+mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size);
+void mrbc_instance_delete(mrbc_value *v);
+void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v);
+mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id);
 
 
 //================================================================
@@ -217,14 +221,15 @@ mrb_value mrbc_instance_getiv(mrb_object *obj, mrbc_sym sym_id);
   Returns a fixnum in mruby/c.
 
   @param  n	int value
-  @return	mrb_value of type fixnum.
+  @return	mrbc_value of type fixnum.
 */
-static inline mrb_value mrb_fixnum_value( mrbc_int n )
+static inline mrbc_value mrbc_fixnum_value( mrbc_int n )
 {
-  mrb_value value = {.tt = MRB_TT_FIXNUM};
+  mrbc_value value = {.tt = MRBC_TT_FIXNUM};
   value.i = n;
   return value;
 }
+#define mrb_fixnum_value mrbc_fixnum_value
 
 
 #if MRBC_USE_FLOAT
@@ -233,14 +238,15 @@ static inline mrb_value mrb_fixnum_value( mrbc_int n )
   Returns a float in mruby/c.
 
   @param  n	dluble value
-  @return	mrb_value of type float.
+  @return	mrbc_value of type float.
 */
-static inline mrb_value mrb_float_value( mrbc_float n )
+static inline mrbc_value mrbc_float_value( mrbc_float n )
 {
-  mrb_value value = {.tt = MRB_TT_FLOAT};
+  mrbc_value value = {.tt = MRBC_TT_FLOAT};
   value.d = n;
   return value;
 }
+#define mrb_float_value mrbc_float_value
 #endif
 
 
@@ -248,39 +254,42 @@ static inline mrb_value mrb_float_value( mrbc_float n )
 /*!@brief
   Returns a nil in mruby/c.
 
-  @return	mrb_value of type nil.
+  @return	mrbc_value of type nil.
 */
-static inline mrb_value mrb_nil_value(void)
+static inline mrbc_value mrbc_nil_value(void)
 {
-  mrb_value value = {.tt = MRB_TT_NIL};
+  mrbc_value value = {.tt = MRBC_TT_NIL};
   return value;
 }
+#define mrb_nil_value mrbc_nil_value
 
 
 //================================================================
 /*!@brief
   Returns a true in mruby/c.
 
-  @return	mrb_value of type true.
+  @return	mrbc_value of type true.
 */
-static inline mrb_value mrb_true_value(void)
+static inline mrbc_value mrbc_true_value(void)
 {
-  mrb_value value = {.tt = MRB_TT_TRUE};
+  mrbc_value value = {.tt = MRBC_TT_TRUE};
   return value;
 }
+#define mrb_true_value mrbc_true_value
 
 
 //================================================================
 /*!@brief
   Returns a false in mruby/c.
 
-  @return	mrb_value of type false.
+  @return	mrbc_value of type false.
 */
-static inline mrb_value mrb_false_value(void)
+static inline mrbc_value mrbc_false_value(void)
 {
-  mrb_value value = {.tt = MRB_TT_FALSE};
+  mrbc_value value = {.tt = MRBC_TT_FALSE};
   return value;
 }
+#define mrb_false_value mrbc_false_value
 
 
 #ifdef __cplusplus

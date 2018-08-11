@@ -130,9 +130,9 @@ static int add_index( uint16_t hash, const char *str )
   @param  str	String
   @return 	symbol object
 */
-mrb_value mrbc_symbol_new(struct VM *vm, const char *str)
+mrbc_value mrbc_symbol_new(struct VM *vm, const char *str)
 {
-  mrb_value ret = {.tt = MRB_TT_SYMBOL};
+  mrbc_value ret = {.tt = MRBC_TT_SYMBOL};
   uint16_t h = calc_hash(str);
   mrbc_sym sym_id = search_index(h, str);
 
@@ -207,13 +207,13 @@ const char * symid_to_str(mrbc_sym sym_id)
 //================================================================
 /*! (method) all_symbols
 */
-static void c_all_symbols(mrb_vm *vm, mrb_value v[], int argc)
+static void c_all_symbols(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrb_value ret = mrbc_array_new(vm, sym_index_pos);
+  mrbc_value ret = mrbc_array_new(vm, sym_index_pos);
 
   int i;
   for( i = 0; i < sym_index_pos; i++ ) {
-    mrb_value sym1 = {.tt = MRB_TT_SYMBOL};
+    mrbc_value sym1 = {.tt = MRBC_TT_SYMBOL};
     sym1.i = i;
     mrbc_array_push(&ret, &sym1);
   }
@@ -225,7 +225,7 @@ static void c_all_symbols(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) inspect
 */
-static void c_inspect(mrb_vm *vm, mrb_value v[], int argc)
+static void c_inspect(struct VM *vm, mrbc_value v[], int argc)
 {
   const char *s = symid_to_str(v[0].i);
   v[0] = mrbc_string_new_cstr(vm, ":");
@@ -236,7 +236,7 @@ static void c_inspect(mrb_vm *vm, mrb_value v[], int argc)
 //================================================================
 /*! (method) to_s
 */
-static void c_to_s(mrb_vm *vm, mrb_value v[], int argc)
+static void c_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   v[0] = mrbc_string_new_cstr(vm, symid_to_str(v[0].i));
 }

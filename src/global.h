@@ -21,14 +21,11 @@ extern "C" {
 #endif
 
 
-void  mrbc_init_global(void);
-
-void global_object_add(mrbc_sym sym_id, mrb_value v);
-mrb_value global_object_get(mrbc_sym sym_id);
-
-void const_object_add(mrbc_sym sym_id, mrb_object *obj);
-mrb_object const_object_get(mrbc_sym sym_id);
-
+void mrbc_init_global(void);
+void global_object_add(mrbc_sym sym_id, mrbc_value v);
+void const_object_add(mrbc_sym sym_id, mrbc_object *obj);
+mrbc_value global_object_get(mrbc_sym sym_id);
+mrbc_object const_object_get(mrbc_sym sym_id);
 void mrbc_global_clear_vm_id(void);
 
 

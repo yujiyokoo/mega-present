@@ -23,12 +23,12 @@ typedef enum {
 typedef struct GLOBAL_OBJECT {
   mrbc_globaltype gtype : 8;
   mrbc_sym sym_id;
-  mrb_object obj;
-} mrb_globalobject;
+  mrbc_object obj;
+} mrbc_globalobject;
 
 // max of global object in mrbc_global[]
 static int global_end;
-static mrb_globalobject mrbc_global[MAX_GLOBAL_OBJECT_SIZE];
+static mrbc_globalobject mrbc_global[MAX_GLOBAL_OBJECT_SIZE];
 
 //
 void  mrbc_init_global(void)
@@ -43,7 +43,7 @@ static int search_global_object(mrbc_sym sym_id, mrbc_globaltype gtype)
 {
   int i;
   for( i=0 ; i<global_end ; i++ ){
-    mrb_globalobject *obj = &mrbc_global[i];
+    mrbc_globalobject *obj = &mrbc_global[i];
     if( obj->sym_id == sym_id && obj->gtype == gtype ) return i;
   }
   return -1;
@@ -51,7 +51,7 @@ static int search_global_object(mrbc_sym sym_id, mrbc_globaltype gtype)
 
 /* add */
 /* TODO: Check reference count */
-void global_object_add(mrbc_sym sym_id, mrb_value v)
+void global_object_add(mrbc_sym sym_id, mrbc_value v)
 {
   int index = search_global_object(sym_id, MRBC_GLOBAL_OBJECT);
   if( index == -1 ) {
@@ -70,7 +70,7 @@ void global_object_add(mrbc_sym sym_id, mrb_value v)
 /* add const */
 /* TODO: Check reference count */
 /* TODO: Integrate with global_add */
-void const_object_add(mrbc_sym sym_id, mrb_object *obj)
+void const_object_add(mrbc_sym sym_id, mrbc_object *obj)
 {
   int index = search_global_object(sym_id, MRBC_CONST_OBJECT);
   if( index == -1 ){
@@ -88,27 +88,27 @@ void const_object_add(mrbc_sym sym_id, mrb_object *obj)
 }
 
 /* get */
-mrb_value global_object_get(mrbc_sym sym_id)
+mrbc_value global_object_get(mrbc_sym sym_id)
 {
   int index = search_global_object(sym_id, MRBC_GLOBAL_OBJECT);
   if( index >= 0 ){
     mrbc_dup( &mrbc_global[index].obj );
     return mrbc_global[index].obj;
   } else {
-    return mrb_nil_value();
+    return mrbc_nil_value();
   }
 }
 
 /* get const */
 /* TODO: Integrate with get_global_object */
-mrb_object const_object_get(mrbc_sym sym_id)
+mrbc_object const_object_get(mrbc_sym sym_id)
 {
   int index = search_global_object(sym_id, MRBC_CONST_OBJECT);
   if( index >= 0 ){
     mrbc_dup( &mrbc_global[index].obj );
     return mrbc_global[index].obj;
   } else {
-    return mrb_nil_value();
+    return mrbc_nil_value();
   }
 }
 

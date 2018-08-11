@@ -32,30 +32,28 @@ typedef struct RString {
   uint16_t size;	//!< string length.
   uint8_t *data;	//!< pointer to allocated buffer.
 
-} mrb_string;
+} mrbc_string;
 
 
-struct VM;
-
-mrb_value mrbc_string_new(struct VM *vm, const void *src, int len);
-mrb_value mrbc_string_new_cstr(struct VM *vm, const char *src);
-mrb_value mrbc_string_new_alloc(struct VM *vm, void *buf, int len);
-void mrbc_string_delete(mrb_value *str);
-void mrbc_string_clear_vm_id(mrb_value *str);
-mrb_value mrbc_string_dup(struct VM *vm, mrb_value *s1);
-mrb_value mrbc_string_add(struct VM *vm, mrb_value *s1, mrb_value *s2);
-int mrbc_string_append(mrb_value *s1, mrb_value *s2);
-int mrbc_string_append_cstr(mrb_value *s1, const char *s2);
-int mrbc_string_index(mrb_value *src, mrb_value *pattern, int offset);
-int mrbc_string_strip(mrb_value *src, int mode);
-int mrbc_string_chomp(mrb_value *src);
+mrbc_value mrbc_string_new(struct VM *vm, const void *src, int len);
+mrbc_value mrbc_string_new_cstr(struct VM *vm, const char *src);
+mrbc_value mrbc_string_new_alloc(struct VM *vm, void *buf, int len);
+void mrbc_string_delete(mrbc_value *str);
+void mrbc_string_clear_vm_id(mrbc_value *str);
+mrbc_value mrbc_string_dup(struct VM *vm, mrbc_value *s1);
+mrbc_value mrbc_string_add(struct VM *vm, mrbc_value *s1, mrbc_value *s2);
+int mrbc_string_append(mrbc_value *s1, mrbc_value *s2);
+int mrbc_string_append_cstr(mrbc_value *s1, const char *s2);
+int mrbc_string_index(mrbc_value *src, mrbc_value *pattern, int offset);
+int mrbc_string_strip(mrbc_value *src, int mode);
+int mrbc_string_chomp(mrbc_value *src);
 void mrbc_init_class_string(struct VM *vm);
 
 
 //================================================================
 /*! compare
 */
-static inline int mrbc_string_compare(const mrb_value *v1, const mrb_value *v2)
+static inline int mrbc_string_compare(const mrbc_value *v1, const mrbc_value *v2)
 {
   int len = (v1->string->size < v2->string->size) ?
     v1->string->size : v2->string->size;
@@ -69,7 +67,7 @@ static inline int mrbc_string_compare(const mrb_value *v1, const mrb_value *v2)
 //================================================================
 /*! get size
 */
-static inline int mrbc_string_size(const mrb_value *str)
+static inline int mrbc_string_size(const mrbc_value *str)
 {
   return str->string->size;
 }
@@ -77,7 +75,7 @@ static inline int mrbc_string_size(const mrb_value *str)
 //================================================================
 /*! get c-language string (char *)
 */
-static inline char * mrbc_string_cstr(const mrb_value *v)
+static inline char * mrbc_string_cstr(const mrbc_value *v)
 {
   return (char*)v->string->data;
 }

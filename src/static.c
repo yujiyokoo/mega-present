@@ -16,23 +16,23 @@
 #include "symbol.h"
 
 /* Class Tree */
-mrb_class *mrbc_class_object;
+mrbc_class *mrbc_class_object;
 
 /* Proc */
-mrb_class *mrbc_class_proc;
+mrbc_class *mrbc_class_proc;
 
 /* Classes */
-mrb_class *mrbc_class_false;
-mrb_class *mrbc_class_true;
-mrb_class *mrbc_class_nil;
-mrb_class *mrbc_class_array;
-mrb_class *mrbc_class_fixnum;
-mrb_class *mrbc_class_symbol;
-mrb_class *mrbc_class_float;
-mrb_class *mrbc_class_math;
-mrb_class *mrbc_class_string;
-mrb_class *mrbc_class_range;
-mrb_class *mrbc_class_hash;
+mrbc_class *mrbc_class_false;
+mrbc_class *mrbc_class_true;
+mrbc_class *mrbc_class_nil;
+mrbc_class *mrbc_class_array;
+mrbc_class *mrbc_class_fixnum;
+mrbc_class *mrbc_class_symbol;
+mrbc_class *mrbc_class_float;
+mrbc_class *mrbc_class_math;
+mrbc_class *mrbc_class_string;
+mrbc_class *mrbc_class_range;
+mrbc_class *mrbc_class_hash;
 
 void init_static(void)
 {

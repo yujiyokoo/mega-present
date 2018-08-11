@@ -22,28 +22,21 @@ extern "C" {
 #endif
 
 
-/* VM */
-extern mrb_vm mrbc_vm[];
-
-/* Object */
-//extern mrb_object *mrbc_pool_object;
-
-
 /* Class Tree */
-extern mrb_class *mrbc_class_object;
+extern mrbc_class *mrbc_class_object;
 
-extern mrb_class *mrbc_class_proc;
-extern mrb_class *mrbc_class_false;
-extern mrb_class *mrbc_class_true;
-extern mrb_class *mrbc_class_nil;
-extern mrb_class *mrbc_class_array;
-extern mrb_class *mrbc_class_fixnum;
-extern mrb_class *mrbc_class_float;
-extern mrb_class *mrbc_class_math;
-extern mrb_class *mrbc_class_string;
-extern mrb_class *mrbc_class_symbol;
-extern mrb_class *mrbc_class_range;
-extern mrb_class *mrbc_class_hash;
+extern mrbc_class *mrbc_class_proc;
+extern mrbc_class *mrbc_class_false;
+extern mrbc_class *mrbc_class_true;
+extern mrbc_class *mrbc_class_nil;
+extern mrbc_class *mrbc_class_array;
+extern mrbc_class *mrbc_class_fixnum;
+extern mrbc_class *mrbc_class_float;
+extern mrbc_class *mrbc_class_math;
+extern mrbc_class *mrbc_class_string;
+extern mrbc_class *mrbc_class_symbol;
+extern mrbc_class *mrbc_class_range;
+extern mrbc_class *mrbc_class_hash;
 
 
 void init_static(void);

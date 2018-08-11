@@ -29,35 +29,33 @@ typedef struct RArray {
 
   uint16_t data_size;	//!< data buffer size.
   uint16_t n_stored;	//!< # of stored.
-  mrb_value *data;	//!< pointer to allocated memory.
+  mrbc_value *data;	//!< pointer to allocated memory.
 
-} mrb_array;
+} mrbc_array;
 
 
-struct VM;
-
-mrb_value mrbc_array_new(struct VM *vm, int size);
-void mrbc_array_delete(mrb_value *ary);
-void mrbc_array_clear_vm_id(mrb_value *ary);
-int mrbc_array_resize(mrb_value *ary, int size);
-int mrbc_array_set(mrb_value *ary, int idx, mrb_value *set_val);
-mrb_value mrbc_array_get(mrb_value *ary, int idx);
-int mrbc_array_push(mrb_value *ary, mrb_value *set_val);
-mrb_value mrbc_array_pop(mrb_value *ary);
-int mrbc_array_unshift(mrb_value *ary, mrb_value *set_val);
-mrb_value mrbc_array_shift(mrb_value *ary);
-int mrbc_array_insert(mrb_value *ary, int idx, mrb_value *set_val);
-mrb_value mrbc_array_remove(mrb_value *ary, int idx);
-void mrbc_array_clear(mrb_value *ary);
-int mrbc_array_compare(const mrb_value *v1, const mrb_value *v2);
-void mrbc_array_minmax(mrb_value *ary, mrb_value **pp_min_value, mrb_value **pp_max_value);
+mrbc_value mrbc_array_new(struct VM *vm, int size);
+void mrbc_array_delete(mrbc_value *ary);
+void mrbc_array_clear_vm_id(mrbc_value *ary);
+int mrbc_array_resize(mrbc_value *ary, int size);
+int mrbc_array_set(mrbc_value *ary, int idx, mrbc_value *set_val);
+mrbc_value mrbc_array_get(mrbc_value *ary, int idx);
+int mrbc_array_push(mrbc_value *ary, mrbc_value *set_val);
+mrbc_value mrbc_array_pop(mrbc_value *ary);
+int mrbc_array_unshift(mrbc_value *ary, mrbc_value *set_val);
+mrbc_value mrbc_array_shift(mrbc_value *ary);
+int mrbc_array_insert(mrbc_value *ary, int idx, mrbc_value *set_val);
+mrbc_value mrbc_array_remove(mrbc_value *ary, int idx);
+void mrbc_array_clear(mrbc_value *ary);
+int mrbc_array_compare(const mrbc_value *v1, const mrbc_value *v2);
+void mrbc_array_minmax(mrbc_value *ary, mrbc_value **pp_min_value, mrbc_value **pp_max_value);
 void mrbc_init_class_array(struct VM *vm);
 
 
 //================================================================
 /*! get size
 */
-inline static int mrbc_array_size(const mrb_value *ary)
+inline static int mrbc_array_size(const mrbc_value *ary)
 {
   return ary->array->n_stored;
 }

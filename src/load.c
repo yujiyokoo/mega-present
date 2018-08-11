@@ -40,7 +40,7 @@
    "0000"	compiler version
   </pre>
 */
-static int load_header(mrb_vm *vm, const uint8_t **pos)
+static int load_header(struct VM *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos;
 
@@ -74,7 +74,7 @@ static int load_header(mrb_vm *vm, const uint8_t **pos)
 
   @param  vm    A pointer of VM.
   @param  pos	A pointer of pointer of IREP section.
-  @return       Pointer of allocated mrb_irep or NULL
+  @return       Pointer of allocated mrbc_irep or NULL
 
   <pre>
    (loop n of child irep bellow)
@@ -98,12 +98,12 @@ static int load_header(mrb_vm *vm, const uint8_t **pos)
      ...	symbol data
   </pre>
 */
-static mrb_irep * load_irep_1(mrb_vm *vm, const uint8_t **pos)
+static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos + 4;			// skip record size
 
   // new irep
-  mrb_irep *irep = mrbc_irep_alloc(0);
+  mrbc_irep *irep = mrbc_irep_alloc(0);
   if( irep == NULL ) {
     vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
     return NULL;
@@ -120,7 +120,7 @@ static mrb_irep * load_irep_1(mrb_vm *vm, const uint8_t **pos)
 
   // allocate memory for child irep's pointers
   if( irep->rlen ) {
-    irep->reps = (mrb_irep **)mrbc_alloc(0, sizeof(mrb_irep *) * irep->rlen);
+    irep->reps = (mrbc_irep **)mrbc_alloc(0, sizeof(mrbc_irep *) * irep->rlen);
     if( irep->reps == NULL ) {
       vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
       return NULL;
@@ -134,7 +134,7 @@ static mrb_irep * load_irep_1(mrb_vm *vm, const uint8_t **pos)
   // POOL BLOCK
   irep->plen = bin_to_uint32(p);	p += 4;
   if( irep->plen ) {
-    irep->pools = (mrb_object**)mrbc_alloc(0, sizeof(void*) * irep->plen);
+    irep->pools = (mrbc_object**)mrbc_alloc(0, sizeof(void*) * irep->plen);
     if(irep->pools == NULL ) {
       vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
       return NULL;
@@ -145,7 +145,7 @@ static mrb_irep * load_irep_1(mrb_vm *vm, const uint8_t **pos)
   for( i = 0; i < irep->plen; i++ ) {
     int tt = *p++;
     int obj_size = bin_to_uint16(p);	p += 2;
-    mrb_object *obj = mrbc_obj_alloc(0, MRB_TT_EMPTY);
+    mrbc_object *obj = mrbc_obj_alloc(0, MRBC_TT_EMPTY);
     if( obj == NULL ) {
       vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
       return NULL;
@@ -153,7 +153,7 @@ static mrb_irep * load_irep_1(mrb_vm *vm, const uint8_t **pos)
     switch( tt ) {
 #if MRBC_USE_STRING
     case 0: { // IREP_TT_STRING
-      obj->tt = MRB_TT_STRING;
+      obj->tt = MRBC_TT_STRING;
       obj->str = (char*)p;
     } break;
 #endif
@@ -161,7 +161,7 @@ static mrb_irep * load_irep_1(mrb_vm *vm, const uint8_t **pos)
       char buf[obj_size+1];
       memcpy(buf, p, obj_size);
       buf[obj_size] = '\0';
-      obj->tt = MRB_TT_FIXNUM;
+      obj->tt = MRBC_TT_FIXNUM;
       obj->i = atol(buf);
     } break;
 #if MRBC_USE_FLOAT
@@ -169,7 +169,7 @@ static mrb_irep * load_irep_1(mrb_vm *vm, const uint8_t **pos)
       char buf[obj_size+1];
       memcpy(buf, p, obj_size);
       buf[obj_size] = '\0';
-      obj->tt = MRB_TT_FLOAT;
+      obj->tt = MRBC_TT_FLOAT;
       obj->d = atof(buf);
     } break;
 #endif
@@ -201,11 +201,11 @@ static mrb_irep * load_irep_1(mrb_vm *vm, const uint8_t **pos)
 
   @param  vm    A pointer of VM.
   @param  pos	A pointer of pointer of IREP section.
-  @return       Pointer of allocated mrb_irep or NULL
+  @return       Pointer of allocated mrbc_irep or NULL
 */
-static mrb_irep * load_irep_0(mrb_vm *vm, const uint8_t **pos)
+static mrbc_irep * load_irep_0(struct VM *vm, const uint8_t **pos)
 {
-  mrb_irep *irep = load_irep_1(vm, pos);
+  mrbc_irep *irep = load_irep_1(vm, pos);
   if( !irep ) return NULL;
 
   int i;
@@ -233,7 +233,7 @@ static mrb_irep * load_irep_0(mrb_vm *vm, const uint8_t **pos)
    "0000"	rite version
   </pre>
 */
-static int load_irep(mrb_vm *vm, const uint8_t **pos)
+static int load_irep(struct VM *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos + 4;			// 4 = skip "RITE"
   int section_size = bin_to_uint32(p);
@@ -262,7 +262,7 @@ static int load_irep(mrb_vm *vm, const uint8_t **pos)
   @param  pos	A pointer of pointer of LVAR section.
   @return int	zero if no error.
 */
-static int load_lvar(mrb_vm *vm, const uint8_t **pos)
+static int load_lvar(struct VM *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos;
 
@@ -281,7 +281,7 @@ static int load_lvar(mrb_vm *vm, const uint8_t **pos)
   @param  ptr	Pointer to bytecode.
 
 */
-int mrbc_load_mrb(mrb_vm *vm, const uint8_t *ptr)
+int mrbc_load_mrb(struct VM *vm, const uint8_t *ptr)
 {
   int ret = -1;
   vm->mrb = ptr;

@@ -37,11 +37,12 @@ typedef struct IREP {
   uint16_t plen;		//!< # of pool
 
   uint8_t     *code;		//!< ISEQ (code) BLOCK
-  mrb_object  **pools;          //!< array of POOL objects pointer.
+  mrbc_object  **pools;          //!< array of POOL objects pointer.
   uint8_t     *ptr_to_sym;
   struct IREP **reps;		//!< array of child IREP's pointer.
 
-} mrb_irep;
+} mrbc_irep;
+typedef struct IREP mrb_irep;
 
 
 //================================================================
@@ -49,12 +50,13 @@ typedef struct IREP {
   Call information
 */
 typedef struct CALLINFO {
-  mrb_irep *pc_irep;
+  mrbc_irep *pc_irep;
   uint16_t  pc;
-  mrb_value *current_regs;
-  mrb_class *target_class;
+  mrbc_value *current_regs;
+  mrbc_class *target_class;
   uint8_t   n_args;     // num of args
-} mrb_callinfo;
+} mrbc_callinfo;
+typedef struct CALLINFO mrb_callinfo;
 
 
 //================================================================
@@ -62,39 +64,40 @@ typedef struct CALLINFO {
   Virtual Machine
 */
 typedef struct VM {
-  mrb_irep *irep;
+  mrbc_irep *irep;
 
   uint8_t        vm_id; // vm_id : 1..n
   const uint8_t *mrb;   // bytecode
 
-  mrb_irep *pc_irep;    // PC
+  mrbc_irep *pc_irep;    // PC
   uint16_t  pc;         // PC
 
   //  uint16_t     reg_top;
-  mrb_value    regs[MAX_REGS_SIZE];
-  mrb_value   *current_regs;
+  mrbc_value    regs[MAX_REGS_SIZE];
+  mrbc_value   *current_regs;
   uint16_t     callinfo_top;
-  mrb_callinfo callinfo[MAX_CALLINFO_SIZE];
+  mrbc_callinfo callinfo[MAX_CALLINFO_SIZE];
 
-  mrb_class *target_class;
+  mrbc_class *target_class;
 
   int32_t error_code;
 
   volatile int8_t flag_preemption;
   int8_t flag_need_memfree;
-} mrb_vm;
+} mrbc_vm;
+typedef struct VM mrb_vm;
 
 
 const char *mrbc_get_irep_symbol(const uint8_t *p, int n);
-const char *mrbc_get_callee_name(mrb_vm *vm);
-mrb_vm *mrbc_vm_open(mrb_vm *vm_arg);
-void mrbc_vm_close(mrb_vm *vm);
-void mrbc_vm_begin(mrb_vm *vm);
-void mrbc_vm_end(mrb_vm *vm);
-int mrbc_vm_run(mrb_vm *vm);
+const char *mrbc_get_callee_name(struct VM *vm);
+void mrbc_push_callinfo(struct VM *vm, int n_args);
+void mrbc_pop_callinfo(struct VM *vm);
+mrbc_vm *mrbc_vm_open(struct VM *vm_arg);
+void mrbc_vm_close(struct VM *vm);
+void mrbc_vm_begin(struct VM *vm);
+void mrbc_vm_end(struct VM *vm);
+int mrbc_vm_run(struct VM *vm);
 
-void mrbc_push_callinfo(mrb_vm *vm, int n_args);
-void mrbc_pop_callinfo(mrb_vm *vm);
 
 //================================================================
 /*!@brief

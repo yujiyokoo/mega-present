@@ -66,7 +66,7 @@ typedef struct RTcb {
     struct RMutex *mutex;
   };
   struct VM vm;
-} mrb_tcb;
+} mrbc_tcb;
 
 
 
@@ -77,7 +77,7 @@ typedef struct RTcb {
 typedef struct RMutex {
   volatile int lock;
   struct RTcb *tcb;
-} mrb_mutex;
+} mrbc_mutex;
 
 #define MRBC_MUTEX_INITIALIZER { 0 }
 
@@ -86,19 +86,20 @@ typedef struct RMutex {
 /***** Function prototypes **************************************************/
 void mrbc_tick(void);
 void mrbc_init(uint8_t *ptr, unsigned int size);
-void mrbc_init_tcb(mrb_tcb *tcb);
-mrb_tcb *mrbc_create_task(const uint8_t *vm_code, mrb_tcb *tcb);
-int mrbc_start_task(mrb_tcb *tcb);
+void mrbc_init_tcb(mrbc_tcb *tcb);
+mrbc_tcb *mrbc_create_task(const uint8_t *vm_code, mrbc_tcb *tcb);
+int mrbc_start_task(mrbc_tcb *tcb);
 int mrbc_run(void);
-void mrbc_sleep_ms(mrb_tcb *tcb, uint32_t ms);
-void mrbc_relinquish(mrb_tcb *tcb);
-void mrbc_change_priority(mrb_tcb *tcb, int priority);
-void mrbc_suspend_task(mrb_tcb *tcb);
-void mrbc_resume_task(mrb_tcb *tcb);
-mrb_mutex *mrbc_mutex_init(mrb_mutex *mutex);
-int mrbc_mutex_lock(mrb_mutex *mutex, mrb_tcb *tcb);
-int mrbc_mutex_unlock(mrb_mutex *mutex, mrb_tcb *tcb);
-int mrbc_mutex_trylock(mrb_mutex *mutex, mrb_tcb *tcb);
+void mrbc_sleep_ms(mrbc_tcb *tcb, uint32_t ms);
+void mrbc_relinquish(mrbc_tcb *tcb);
+void mrbc_change_priority(mrbc_tcb *tcb, int priority);
+void mrbc_suspend_task(mrbc_tcb *tcb);
+void mrbc_resume_task(mrbc_tcb *tcb);
+mrbc_mutex *mrbc_mutex_init(mrbc_mutex *mutex);
+int mrbc_mutex_lock(mrbc_mutex *mutex, mrbc_tcb *tcb);
+int mrbc_mutex_unlock(mrbc_mutex *mutex, mrbc_tcb *tcb);
+int mrbc_mutex_trylock(mrbc_mutex *mutex, mrbc_tcb *tcb);
+
 
 /***** Inline functions *****************************************************/
 
