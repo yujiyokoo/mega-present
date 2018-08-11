@@ -20,7 +20,6 @@
 extern "C" {
 #endif
 
-struct VM;
 
 mrbc_value mrbc_symbol_new(struct VM *vm, const char *str);
 uint16_t calc_hash(const char *str);
