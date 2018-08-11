@@ -6,9 +6,7 @@
 #
 #  This file is distributed under BSD 3-Clause License.
 #
-#  Memory management for objects in mruby/c.
-#
-#
+
 class Object
   RUBY_VERSION = "1.9"
   MRUBYC_VERSION = "1.1"
@@ -16,4 +14,3 @@ class Object
   def initialize
   end
 end
-

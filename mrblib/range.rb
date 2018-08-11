@@ -6,13 +6,11 @@
 #
 #  This file is distributed under BSD 3-Clause License.
 #
-#  Memory management for objects in mruby/c.
-#
-#
+
 class Range
 
   # each
-  def each 
+  def each
     val = self.first
     last = self.last
 
