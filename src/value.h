@@ -171,13 +171,20 @@ typedef struct RProc {
 
 
 // for C call
-#define SET_INT_RETURN(n)	(mrbc_release(v), v[0].tt=MRB_TT_FIXNUM, v[0].i=(n))
-#define SET_NIL_RETURN()	(mrbc_release(v), v[0].tt=MRB_TT_NIL)
-#define SET_FLOAT_RETURN(n)	(mrbc_release(v), v[0].tt=MRB_TT_FLOAT, v[0].d=(n))
-#define SET_FALSE_RETURN()	(mrbc_release(v), v[0].tt=MRB_TT_FALSE)
-#define SET_TRUE_RETURN()	(mrbc_release(v), v[0].tt=MRB_TT_TRUE)
-#define SET_BOOL_RETURN(n)	(mrbc_release(v), v[0].tt=(n)?MRB_TT_TRUE:MRB_TT_FALSE)
-#define SET_RETURN(n)		(mrbc_release(v), v[0]=(n))
+#define SET_RETURN(n)		do { mrb_value nnn = (n); \
+    mrbc_dec_ref_counter(v); v[0] = nnn; } while(0)
+#define SET_NIL_RETURN()	do { \
+    mrbc_dec_ref_counter(v); v[0].tt = MRB_TT_NIL; } while(0)
+#define SET_FALSE_RETURN()	do { \
+    mrbc_dec_ref_counter(v); v[0].tt = MRB_TT_FALSE; } while(0)
+#define SET_TRUE_RETURN()	do { \
+    mrbc_dec_ref_counter(v); v[0].tt = MRB_TT_TRUE; } while(0)
+#define SET_BOOL_RETURN(n)	do { \
+    mrbc_dec_ref_counter(v); v[0].tt = (n)?MRB_TT_TRUE:MRB_TT_FALSE; } while(0)
+#define SET_INT_RETURN(n)	do { mrbc_int nnn = (n);		\
+    mrbc_dec_ref_counter(v); v[0].tt = MRB_TT_FIXNUM; v[0].i = nnn; } while(0)
+#define SET_FLOAT_RETURN(n)	do { mrbc_float nnn = (n); \
+    mrbc_dec_ref_counter(v); v[0].tt = MRB_TT_FLOAT; v[0].d = nnn; } while(0)
 
 #define GET_TT_ARG(n)		(v[(n)].tt)
 #define GET_INT_ARG(n)		(v[(n)].i)
