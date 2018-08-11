@@ -1,6 +1,5 @@
 /*! @file
   @brief
-  Realtime multitask monitor for mruby/c
   Hardware abstraction layer
         for ESP32
 
