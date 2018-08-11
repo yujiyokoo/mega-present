@@ -496,13 +496,18 @@ static void c_print(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
-
+//================================================================
+/*! (operator) !
+ */
 static void c_object_not(mrb_vm *vm, mrb_value v[], int argc)
 {
   SET_FALSE_RETURN();
 }
 
-// Object !=
+
+//================================================================
+/*! (operator) !=
+ */
 static void c_object_neq(mrb_vm *vm, mrb_value v[], int argc)
 {
   int result = mrbc_compare( &v[0], &v[1] );
@@ -536,15 +541,17 @@ static void c_object_equal3(mrb_vm *vm, mrb_value v[], int argc)
 }
 
 
-// Object#class
+//================================================================
+/*! (method) class
+ */
 static void c_object_class(mrb_vm *vm, mrb_value v[], int argc)
 {
-#if MRBC_USE_STRING
-  mrb_class *cls = find_class_by_object( vm, v );
-  mrb_value value = mrbc_string_new_cstr(vm, symid_to_str(cls->sym_id) );
-  SET_RETURN(value);
-#endif
+  mrb_value value = {.tt = MRB_TT_CLASS};
+  value.cls = find_class_by_object( vm, v );
+  SET_RETURN( value );
 }
+
+
 
 // Object.new
 static void c_object_new(mrb_vm *vm, mrb_value v[], int argc)
