@@ -199,6 +199,12 @@ typedef struct RProc mrb_proc;
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
 #define GET_STRING_ARG(n)	(v[(n)].string->data)
 
+#define mrbc_fixnum_value(n)	((mrbc_value){.tt = MRBC_TT_FIXNUM, .i=(n)})
+#define mrbc_float_value(n)	((mrbc_value){.tt = MRBC_TT_FLOAT, .d=(n)})
+#define mrbc_nil_value()	((mrbc_value){.tt = MRBC_TT_NIL})
+#define mrbc_true_value()	((mrbc_value){.tt = MRBC_TT_TRUE})
+#define mrbc_false_value()	((mrbc_value){.tt = MRBC_TT_FALSE})
+#define mrbc_bool_value(n)	((mrbc_value){.tt = (n)?MRBC_TT_TRUE:MRBC_TT_FALSE})
 
 mrbc_object *mrbc_obj_alloc(struct VM *vm, mrbc_vtype tt);
 mrbc_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
@@ -216,6 +222,8 @@ void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v);
 mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id);
 
 
+// (mruby compatible functions.)
+
 //================================================================
 /*!@brief
   Returns a fixnum in mruby/c.
@@ -223,13 +231,12 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id);
   @param  n	int value
   @return	mrbc_value of type fixnum.
 */
-static inline mrbc_value mrbc_fixnum_value( mrbc_int n )
+static inline mrbc_value mrb_fixnum_value( mrbc_int n )
 {
   mrbc_value value = {.tt = MRBC_TT_FIXNUM};
   value.i = n;
   return value;
 }
-#define mrb_fixnum_value mrbc_fixnum_value
 
 
 #if MRBC_USE_FLOAT
@@ -240,13 +247,12 @@ static inline mrbc_value mrbc_fixnum_value( mrbc_int n )
   @param  n	dluble value
   @return	mrbc_value of type float.
 */
-static inline mrbc_value mrbc_float_value( mrbc_float n )
+static inline mrbc_value mrb_float_value( mrbc_float n )
 {
   mrbc_value value = {.tt = MRBC_TT_FLOAT};
   value.d = n;
   return value;
 }
-#define mrb_float_value mrbc_float_value
 #endif
 
 
@@ -256,12 +262,11 @@ static inline mrbc_value mrbc_float_value( mrbc_float n )
 
   @return	mrbc_value of type nil.
 */
-static inline mrbc_value mrbc_nil_value(void)
+static inline mrbc_value mrb_nil_value(void)
 {
   mrbc_value value = {.tt = MRBC_TT_NIL};
   return value;
 }
-#define mrb_nil_value mrbc_nil_value
 
 
 //================================================================
@@ -270,12 +275,11 @@ static inline mrbc_value mrbc_nil_value(void)
 
   @return	mrbc_value of type true.
 */
-static inline mrbc_value mrbc_true_value(void)
+static inline mrbc_value mrb_true_value(void)
 {
   mrbc_value value = {.tt = MRBC_TT_TRUE};
   return value;
 }
-#define mrb_true_value mrbc_true_value
 
 
 //================================================================
@@ -284,12 +288,24 @@ static inline mrbc_value mrbc_true_value(void)
 
   @return	mrbc_value of type false.
 */
-static inline mrbc_value mrbc_false_value(void)
+static inline mrbc_value mrb_false_value(void)
 {
   mrbc_value value = {.tt = MRBC_TT_FALSE};
   return value;
 }
-#define mrb_false_value mrbc_false_value
+
+
+//================================================================
+/*!@brief
+  Returns a true or false in mruby/c.
+
+  @return	mrbc_value of type false.
+*/
+static inline mrbc_value mrb_bool_value( int n )
+{
+  mrbc_value value = {.tt = n ? MRBC_TT_TRUE : MRBC_TT_FALSE};
+  return value;
+}
 
 
 #ifdef __cplusplus
