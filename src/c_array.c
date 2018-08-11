@@ -879,6 +879,49 @@ static void c_array_inspect(mrb_vm *vm, mrb_value v[], int argc)
  RETURN_NIL:
   SET_NIL_RETURN();
 }
+
+
+//================================================================
+/*! (method) join
+*/
+static void c_array_join_1(mrb_vm *vm, mrb_value v[], int argc,
+			   mrb_value *src, mrb_value *ret, mrb_value *separator)
+{
+  if( mrbc_array_size(src) == 0 ) return;
+
+  int i = 0;
+  int flag_error = 0;
+  while( !flag_error ) {
+    if( src->array->data[i].tt == MRB_TT_ARRAY ) {
+      c_array_join_1(vm, v, argc, &src->array->data[i], ret, separator);
+    } else {
+      mrb_value v1 = mrbc_send( vm, v, argc, &src->array->data[i], "to_s", 0 );
+      flag_error |= mrbc_string_append( ret, &v1 );
+      mrbc_dec_ref_counter(&v1);
+    }
+    if( ++i >= mrbc_array_size(src) ) break;	// normal return.
+    flag_error |= mrbc_string_append( ret, separator );
+  }
+}
+
+static void c_array_join(mrb_vm *vm, mrb_value v[], int argc)
+{
+  mrb_value ret = mrbc_string_new(vm, NULL, 0);
+  if( !ret.string ) goto RETURN_NIL;		// ENOMEM
+
+  mrb_value separator = (argc == 0) ? mrbc_string_new_cstr(vm, "") :
+    mrbc_send( vm, v, argc, &v[1], "to_s", 0 );
+
+  c_array_join_1(vm, v, argc, &v[0], &ret, &separator );
+  mrbc_dec_ref_counter(&separator);
+
+  SET_RETURN(ret);
+  return;
+
+ RETURN_NIL:
+  SET_NIL_RETURN();
+}
+
 #endif
 
 
@@ -916,5 +959,6 @@ void mrbc_init_class_array(struct VM *vm)
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_array, "inspect", c_array_inspect);
   mrbc_define_method(vm, mrbc_class_array, "to_s", c_array_inspect);
+  mrbc_define_method(vm, mrbc_class_array, "join", c_array_join);
 #endif
 }
