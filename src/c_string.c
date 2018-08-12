@@ -22,11 +22,30 @@
 #include "static.h"
 #include "class.h"
 #include "symbol.h"
+#include "c_array.h"
 #include "c_string.h"
 #include "console.h"
 
 
 #if MRBC_USE_STRING
+//================================================================
+/*! white space character test
+
+  @param  ch	character code.
+  @return	result.
+*/
+static int is_space( int ch )
+{
+  static const char ws[] = " \t\r\n\f\v";	// '\0' on tail
+
+  int i;
+  for( i = 0; i < sizeof(ws); i++ ) {
+    if( ch == ws[i] ) return 1;
+  }
+  return 0;
+}
+
+
 //================================================================
 /*! constructor
 
@@ -166,7 +185,7 @@ mrbc_value mrbc_string_dup(struct VM *vm, mrbc_value *s1)
   @param  s2	pointer to target value 2
   @return	new string as s1 + s2
 */
-mrbc_value mrbc_string_add(struct VM *vm, mrbc_value *s1, mrbc_value *s2)
+mrbc_value mrbc_string_add(struct VM *vm, const mrbc_value *s1, const mrbc_value *s2)
 {
   mrbc_string *h1 = s1->string;
   mrbc_string *h2 = s2->string;
@@ -188,7 +207,7 @@ mrbc_value mrbc_string_add(struct VM *vm, mrbc_value *s1, mrbc_value *s2)
   @param  s2	pointer to target value 2
   @param	mrbc_error_code
 */
-int mrbc_string_append(mrbc_value *s1, mrbc_value *s2)
+int mrbc_string_append(mrbc_value *s1, const mrbc_value *s2)
 {
   int len1 = s1->string->size;
   int len2 = (s2->tt == MRBC_TT_STRING) ? s2->string->size : 1;
@@ -242,7 +261,7 @@ int mrbc_string_append_cstr(mrbc_value *s1, const char *s2)
   @param  offset	search offset
   @return		position index. or minus value if not found.
 */
-int mrbc_string_index(mrbc_value *src, mrbc_value *pattern, int offset)
+int mrbc_string_index(const mrbc_value *src, const mrbc_value *pattern, int offset)
 {
   char *p1 = mrbc_string_cstr(src) + offset;
   char *p2 = mrbc_string_cstr(pattern);
@@ -269,27 +288,20 @@ int mrbc_string_index(mrbc_value *src, mrbc_value *pattern, int offset)
 */
 int mrbc_string_strip(mrbc_value *src, int mode)
 {
-  static const char ws[] = " \t\r\n\f\v";	// '\0' on tail
   char *p1 = mrbc_string_cstr(src);
   char *p2 = p1 + mrbc_string_size(src) - 1;
   int n_left = 0;
 
   // left-side
   if( mode & 0x01 ) {
-    n_left = strspn( p1, ws );
+    n_left = strspn( p1, " \t\r\n\f\v" );
     p1 += n_left;
   }
 
   // right-side
   if( mode & 0x02 ) {
     while( p1 <= p2 ) {
-      int i;
-      for( i = 0; i < sizeof(ws); i++ ) {
-	if( *p2 == ws[i] ) goto NEXTLOOP;
-      }
-      break;	// not match
-
-    NEXTLOOP:
+      if( !is_space(*p2) ) break;	// not match
       p2--;
     }
   }
@@ -664,6 +676,121 @@ static void c_string_ord(struct VM *vm, mrbc_value v[], int argc)
 
 
 //================================================================
+/*! (method) split
+*/
+static void c_string_split(struct VM *vm, mrbc_value v[], int argc)
+{
+  mrbc_value ret = mrbc_array_new(vm, 0);
+  if( mrbc_string_size(&v[0]) == 0 ) goto DONE;
+
+  // check limit parameter.
+  int limit = 0;
+  if( argc >= 2 ) {
+    if( v[2].tt != MRBC_TT_FIXNUM ) {
+      console_print( "TypeError\n" );     // raise?
+      return;
+    }
+    limit = v[2].i;
+    if( limit == 1 ) {
+      mrbc_array_push( &ret, &v[0] );
+      mrbc_dup( &v[0] );
+      goto DONE;
+    }
+  }
+
+  // check separator parameter.
+  mrb_value sep = (argc == 0) ? mrbc_string_new_cstr(vm, " ") : v[1];
+  switch( sep.tt ) {
+  case MRBC_TT_NIL:
+    sep = mrbc_string_new_cstr(vm, " ");
+    break;
+
+  case MRBC_TT_STRING:
+    break;
+
+  default:
+    console_print( "TypeError\n" );     // raise?
+    return;
+  }
+
+  int flag_strip = (mrbc_string_cstr(&sep)[0] == ' ') &&
+		   (mrbc_string_size(&sep) == 1);
+  int offset = 0;
+  int sep_len = mrbc_string_size(&sep);
+  if( sep_len == 0 ) sep_len++;
+
+  while( 1 ) {
+    int pos, len;
+
+    if( flag_strip ) {
+      for( ; offset < mrbc_string_size(&v[0]); offset++ ) {
+	if( !is_space( mrbc_string_cstr(&v[0])[offset] )) break;
+      }
+      if( offset > mrbc_string_size(&v[0])) break;
+    }
+
+    // check limit
+    if( limit > 0 && mrbc_array_size(&ret)+1 >= limit ) {
+      pos = -1;
+      goto SPLIT_ITEM;
+    }
+
+    // split by space character.
+    if( flag_strip ) {
+      pos = offset;
+      for( ; pos < mrbc_string_size(&v[0]); pos++ ) {
+	if( is_space( mrbc_string_cstr(&v[0])[pos] )) break;
+      }
+      len = pos - offset;
+      goto SPLIT_ITEM;
+    }
+
+    // split by each character.
+    if( mrbc_string_size(&sep) == 0 ) {
+      pos = (offset < mrbc_string_size(&v[0])-1) ? offset : -1;
+      len = 1;
+      goto SPLIT_ITEM;
+    }
+
+    // split by specified character.
+    pos = mrbc_string_index( &v[0], &sep, offset );
+    len = pos - offset;
+
+
+  SPLIT_ITEM:
+    if( pos < 0 ) len = mrbc_string_size(&v[0]) - offset;
+
+    mrb_value v1 = mrbc_string_new(vm, mrbc_string_cstr(&v[0]) + offset, len);
+    mrbc_array_push( &ret, &v1 );
+
+    if( pos < 0 ) break;
+    offset = pos + sep_len;
+  }
+
+  // remove trailing empty item
+  if( limit == 0 ) {
+    while( 1 ) {
+      int idx = mrbc_array_size(&ret) - 1;
+      if( idx < 0 ) break;
+
+      mrb_value v1 = mrbc_array_get( &ret, idx );
+      if( mrbc_string_size(&v1) != 0 ) break;
+
+      mrbc_array_remove(&ret, idx);
+      mrbc_string_delete( &v1 );
+    }
+  }
+
+  if( argc == 0 || v[1].tt == MRBC_TT_NIL ) {
+    mrbc_string_delete(&sep);
+  }
+
+ DONE:
+  SET_RETURN( ret );
+}
+
+
+//================================================================
 /*! (method) sprintf
 */
 static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
@@ -899,6 +1026,7 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_string, "index",	c_string_index);
   mrbc_define_method(vm, mrbc_class_string, "inspect",	c_string_inspect);
   mrbc_define_method(vm, mrbc_class_string, "ord",	c_string_ord);
+  mrbc_define_method(vm, mrbc_class_string, "split",	c_string_split);
   mrbc_define_method(vm, mrbc_class_string, "lstrip",	c_string_lstrip);
   mrbc_define_method(vm, mrbc_class_string, "lstrip!",	c_string_lstrip_self);
   mrbc_define_method(vm, mrbc_class_string, "rstrip",	c_string_rstrip);
