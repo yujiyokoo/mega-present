@@ -290,18 +290,19 @@ int mrbc_string_strip(mrbc_value *src, int mode)
 {
   char *p1 = mrbc_string_cstr(src);
   char *p2 = p1 + mrbc_string_size(src) - 1;
-  int n_left = 0;
 
   // left-side
   if( mode & 0x01 ) {
-    n_left = strspn( p1, " \t\r\n\f\v" );
-    p1 += n_left;
+    while( p1 <= p2 ) {
+      if( *p1 == '\0' ) break;
+      if( !is_space(*p1) ) break;
+      p1++;
+    }
   }
-
   // right-side
   if( mode & 0x02 ) {
     while( p1 <= p2 ) {
-      if( !is_space(*p2) ) break;	// not match
+      if( !is_space(*p2) ) break;
       p2--;
     }
   }
@@ -310,7 +311,7 @@ int mrbc_string_strip(mrbc_value *src, int mode)
   if( mrbc_string_size(src) == new_size ) return 0;
 
   char *buf = mrbc_string_cstr(src);
-  if( n_left ) memmove( buf, p1, new_size );
+  if( p1 != buf ) memmove( buf, p1, new_size );
   buf[new_size] = '\0';
   mrbc_raw_realloc(buf, new_size+1);	// shrink suitable size.
   src->string->size = new_size;
