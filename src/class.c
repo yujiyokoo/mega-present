@@ -765,6 +765,7 @@ static void mrbc_init_class_object(struct VM *vm)
   // Class
   mrbc_class_object = mrbc_define_class(vm, "Object", 0);
   // Methods
+  mrbc_define_method(vm, mrbc_class_object, "initialize", c_ineffect);
   mrbc_define_method(vm, mrbc_class_object, "puts", c_puts);
   mrbc_define_method(vm, mrbc_class_object, "print", c_print);
   mrbc_define_method(vm, mrbc_class_object, "!", c_object_not);
