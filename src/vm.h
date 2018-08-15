@@ -50,6 +50,7 @@ typedef struct IREP mrb_irep;
   Call information
 */
 typedef struct CALLINFO {
+  struct CALLINFO *prev;
   mrbc_irep *pc_irep;
   uint16_t  pc;
   mrbc_value *current_regs;
@@ -75,8 +76,7 @@ typedef struct VM {
   //  uint16_t     reg_top;
   mrbc_value    regs[MAX_REGS_SIZE];
   mrbc_value   *current_regs;
-  uint16_t     callinfo_top;
-  mrbc_callinfo callinfo[MAX_CALLINFO_SIZE];
+  mrbc_callinfo *callinfo_tail;
 
   mrbc_class *target_class;
 

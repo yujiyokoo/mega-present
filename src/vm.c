@@ -109,13 +109,14 @@ static void not_supported(void)
 */
 void mrbc_push_callinfo( struct VM *vm, int n_args )
 {
-  mrbc_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
   callinfo->n_args = n_args;
   callinfo->target_class = vm->target_class;
-  vm->callinfo_top++;
+  callinfo->prev = vm->callinfo_tail;
+  vm->callinfo_tail = callinfo;
 }
 
 
@@ -127,12 +128,14 @@ void mrbc_push_callinfo( struct VM *vm, int n_args )
 */
 void mrbc_pop_callinfo( struct VM *vm )
 {
-  vm->callinfo_top--;
-  mrbc_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  vm->callinfo_tail = callinfo->prev;
   vm->current_regs = callinfo->current_regs;
   vm->pc_irep = callinfo->pc_irep;
   vm->pc = callinfo->pc;
   vm->target_class = callinfo->target_class;
+  // free callinfo
+  mrbc_free(vm, callinfo);
 }
 
 
@@ -509,8 +512,15 @@ inline static int op_getupvar( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_B(code);
   int rc = GETARG_C(code);   // UP
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
 
-  mrbc_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc*2;
+  // find callinfo
+  int n = rc * 2 + 1;
+  while( n > 0 ){
+    callinfo = callinfo->prev;
+    n--;
+  }
+
   mrbc_value *up_regs = callinfo->current_regs;
 
   mrbc_release( &regs[ra] );
@@ -538,8 +548,15 @@ inline static int op_setupvar( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_B(code);
   int rc = GETARG_C(code);   // UP
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
 
-  mrbc_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 2 - rc*2;
+  // find callinfo
+  int n = rc * 2 + 1;
+  while( n > 0 ){
+    callinfo = callinfo->prev;
+    n--;
+  }
+
   mrbc_value *up_regs = callinfo->current_regs;
 
   mrbc_release( &up_regs[rb] );
@@ -727,7 +744,7 @@ inline static int op_call( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 */
 inline static int op_enter( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 {
-  mrbc_callinfo *callinfo = vm->callinfo + vm->callinfo_top - 1;
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
   uint32_t enter_param = GETARG_Ax(code);
   int def_args = (enter_param >> 13) & 0x1f;  // default args
   int args = (enter_param >> 18) & 0x1f;      // given args
@@ -759,8 +776,8 @@ inline static int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   regs[ra].tt = MRBC_TT_EMPTY;
 
   // restore irep,pc,regs
-  vm->callinfo_top--;
-  mrbc_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  vm->callinfo_tail = callinfo->prev;
   vm->current_regs = callinfo->current_regs;
   vm->pc_irep = callinfo->pc_irep;
   vm->pc = callinfo->pc;
@@ -771,6 +788,10 @@ inline static int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   for( i = 1; i <= callinfo->n_args; i++ ) {
     mrbc_release( &regs[i] );
   }
+
+  // release callinfo
+  mrbc_free(vm, callinfo);
+
   return 0;
 }
 
@@ -1523,13 +1544,7 @@ inline static int op_exec( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   mrbc_value recv = regs[ra];
 
   // prepare callinfo
-  mrbc_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
-  callinfo->current_regs = vm->current_regs;
-  callinfo->pc_irep = vm->pc_irep;
-  callinfo->pc = vm->pc;
-  callinfo->target_class = vm->target_class;
-  callinfo->n_args = 0;
-  vm->callinfo_top++;
+  mrbc_push_callinfo(vm, 0);
 
   // target irep
   vm->pc = 0;
@@ -1736,8 +1751,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->regs[0].tt = MRBC_TT_CLASS;
   vm->regs[0].cls = mrbc_class_object;
 
-  vm->callinfo_top = 0;
-  memset(vm->callinfo, 0, sizeof(vm->callinfo));
+  vm->callinfo_tail = NULL;
 
   // target_class
   vm->target_class = mrbc_class_object;

@@ -362,13 +362,14 @@ void mrbc_funcall(struct VM *vm, const char *name, mrbc_value *v, int argc)
 
   if( m==0 ) return;   // no method
 
-  mrbc_callinfo *callinfo = vm->callinfo + vm->callinfo_top;
+  mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
   callinfo->n_args = 0;
   callinfo->target_class = vm->target_class;
-  vm->callinfo_top++;
+  callinfo->prev = vm->callinfo_tail;
+  vm->callinfo_tail = callinfo;
 
   // target irep
   vm->pc = 0;
