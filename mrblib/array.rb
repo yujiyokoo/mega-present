@@ -9,7 +9,9 @@
 
 class Array
 
+  #
   # each
+  #
   def each
     idx = 0
     while idx < length
@@ -19,7 +21,33 @@ class Array
     self
   end
 
+  #
+  # each index
+  #
+  def each_index
+    idx = 0
+    while idx < length
+      yield idx
+      idx += 1
+    end
+    self
+  end
+
+  #
+  # each with index
+  #
+  def each_with_index
+    idx = 0
+    while idx < length
+      yield self[idx], idx
+      idx += 1
+    end
+    self
+  end
+
+  #
   # collect
+  #
   def collect
     idx = 0
     ary = []
@@ -28,6 +56,18 @@ class Array
       idx += 1
     end
     ary
+  end
+
+  #
+  # collect!
+  #
+  def collect!
+    idx = 0
+    while idx < length
+      self[idx] = yield self[idx]
+      idx += 1
+    end
+    self
   end
 
 end
