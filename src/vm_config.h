@@ -47,7 +47,7 @@
 
 /* maximum size of global objects */
 #ifndef MAX_GLOBAL_OBJECT_SIZE
-#define MAX_GLOBAL_OBJECT_SIZE 20
+#define MAX_GLOBAL_OBJECT_SIZE 50
 #endif
 
 /* maximum size of consts */
