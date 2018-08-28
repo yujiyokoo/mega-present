@@ -376,6 +376,11 @@ static void c_string_mul(struct VM *vm, mrbc_value v[], int argc)
     return;
   }
 
+  if( v[1].i < 0 ) {
+    console_printf( "ArgumentError\n" );	// raise?
+    return;
+  }
+
   mrbc_value value = mrbc_string_new(vm, NULL,
 				    mrbc_string_size(&v[0]) * v[1].i);
   if( value.string == NULL ) return;		// ENOMEM
