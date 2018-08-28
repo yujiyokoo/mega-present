@@ -590,7 +590,8 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   vm->pc_irep = &irep;
   vm->current_regs = v;
 
-  mrbc_vm_run(vm);
+  while( mrbc_vm_run(vm) == 0 )
+    ;
 
   vm->pc = org_pc;
   vm->pc_irep = org_pc_irep;
