@@ -209,6 +209,7 @@ typedef struct RProc mrb_proc;
 mrbc_object *mrbc_obj_alloc(struct VM *vm, mrbc_vtype tt);
 mrbc_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
 int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2);
+int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls );
 void mrbc_dup(mrbc_value *v);
 void mrbc_release(mrbc_value *v);
 void mrbc_dec_ref_counter(mrbc_value *v);

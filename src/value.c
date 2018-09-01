@@ -142,8 +142,25 @@ int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
 
 
 //================================================================
-/*!@brief
-  Duplicate mrbc_value
+/*! Check the class is the class of object.
+
+  @param  obj	target object
+  @param  cls	class
+*/
+int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls )
+{
+  const mrbc_class *c = find_class_by_object( 0, obj );
+  while( c != NULL ) {
+    if( c == cls ) return 1;
+    c = c->super;
+  }
+
+  return 0;
+}
+
+
+//================================================================
+/*! Duplicate mrbc_value
 
   @param   v     Pointer to mrbc_value
 */

@@ -204,7 +204,7 @@ static int mrbc_p_sub(mrbc_value *v)
   @param  obj
   @return pointer to mrbc_class
 */
-mrbc_class *find_class_by_object(struct VM *vm, mrbc_object *obj)
+mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
 {
   mrbc_class *cls;
 
@@ -531,14 +531,15 @@ static void c_object_compare(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_equal3(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[0].tt == MRBC_TT_CLASS ) {
-    mrbc_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
-    SET_RETURN( result );
+  int result;
 
+  if( v[0].tt == MRBC_TT_CLASS ) {
+    result = mrbc_obj_is_kind_of( &v[1], v[0].cls );
   } else {
-    int result = mrbc_compare( &v[0], &v[1] );
-    SET_BOOL_RETURN( result == 0 );
+    result = (mrbc_compare( &v[0], &v[1] ) == 0);
   }
+
+  SET_BOOL_RETURN( result );
 }
 
 
@@ -681,14 +682,7 @@ static void c_object_kind_of(struct VM *vm, mrbc_value v[], int argc)
   int result = 0;
   if( v[1].tt != MRBC_TT_CLASS ) goto DONE;
 
-  const mrbc_class *cls = find_class_by_object( vm, &v[0] );
-
-  do {
-    result = (cls == v[1].cls);
-    if( result ) break;
-
-    cls = cls->super;
-  } while( cls != NULL );
+  result = mrbc_obj_is_kind_of( &v[0], v[1].cls );
 
  DONE:
   SET_BOOL_RETURN( result );
