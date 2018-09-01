@@ -673,7 +673,9 @@ inline static int op_send( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   mrbc_proc *m = find_method(vm, recv, sym_id);
 
   if( m == 0 ) {
-    console_printf("No method. vtype=%d method='%s'\n", recv.tt, sym_name);
+    mrb_class *cls = find_class_by_object( vm, &recv );
+    console_printf("No method. Class:%s Method:%s\n",
+		   symid_to_str(cls->sym_id), sym_name );
     return 0;
   }
 
@@ -682,7 +684,7 @@ inline static int op_send( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
     m->func(vm, regs + ra, rc);
 
     extern void c_proc_call(mrbc_vm *vm, mrbc_value v[], int argc);
-	if( m->func == c_proc_call ) return 0;
+    if( m->func == c_proc_call ) return 0;
 
     int release_reg = ra+1;
     while( release_reg <= bidx ) {
