@@ -439,7 +439,7 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
   mrbc_value ret = regs[0];
 
   for(; i >= 0; i-- ) {
-    regs[i].tt = MRBC_TT_EMPTY;
+    regs[i].tt = MRBC_TT_NIL;
   }
 
   return ret;

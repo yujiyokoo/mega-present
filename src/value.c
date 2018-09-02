@@ -194,7 +194,7 @@ void mrbc_dup(mrbc_value *v)
 void mrbc_release(mrbc_value *v)
 {
   mrbc_dec_ref_counter(v);
-  v->tt = MRBC_TT_EMPTY;
+  v->tt = MRBC_TT_NIL;
 }
 
 
