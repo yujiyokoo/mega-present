@@ -775,7 +775,7 @@ inline static int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 
   mrbc_release(&regs[0]);
   regs[0] = regs[ra];
-  regs[ra].tt = MRBC_TT_NIL;
+  regs[ra].tt = MRBC_TT_EMPTY;
 
   // restore irep,pc,regs
   mrbc_callinfo *callinfo = vm->callinfo_tail;
@@ -1615,7 +1615,7 @@ inline static int op_method( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
     cls->procs = proc;
 
     mrbc_set_vm_id(proc, 0);
-    regs[ra+1].tt = MRBC_TT_NIL;
+    regs[ra+1].tt = MRBC_TT_EMPTY;
   }
 
   return 0;
@@ -1747,12 +1747,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->pc_irep = vm->irep;
   vm->pc = 0;
   vm->current_regs = vm->regs;
-
-  // clear regs
-  int i;
-  for( i=1 ; i<MAX_REGS_SIZE ; i++ ){
-    vm->regs[i].tt = MRBC_TT_NIL;
-  }
+  memset(vm->regs, 0, sizeof(vm->regs));
 
    // clear regs
   int i;

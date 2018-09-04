@@ -145,7 +145,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   for( i = 0; i < irep->plen; i++ ) {
     int tt = *p++;
     int obj_size = bin_to_uint16(p);	p += 2;
-    mrbc_object *obj = mrbc_obj_alloc(0, MRBC_TT_NIL);
+    mrbc_object *obj = mrbc_obj_alloc(0, MRBC_TT_EMPTY);
     if( obj == NULL ) {
       vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
       return NULL;
