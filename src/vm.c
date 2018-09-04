@@ -1749,6 +1749,12 @@ void mrbc_vm_begin( struct VM *vm )
   vm->current_regs = vm->regs;
   memset(vm->regs, 0, sizeof(vm->regs));
 
+   // clear regs
+  int i;
+  for( i = 1; i < MAX_REGS_SIZE; i++ ) {
+    vm->regs[i].tt = MRBC_TT_NIL;
+  }
+
   // set self to reg[0]
   vm->regs[0].tt = MRBC_TT_CLASS;
   vm->regs[0].cls = mrbc_class_object;
