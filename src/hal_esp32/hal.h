@@ -42,7 +42,7 @@ void mrbc_tick(void);
 void hal_init(void);
 void hal_enable_irq(void);
 void hal_disable_irq(void);
-# define hal_idle_cpu()    vTaskDelay(1000/portTICK_PERIOD_MS)
+# define hal_idle_cpu()    float tickUnit = 1/portTICK_PERIOD_MS;vTaskDelay(tickUnit < 1 ? 1 : tickUnit)
 
 #else // MRBC_NO_TIMER
 # define hal_init()        ((void)0)
