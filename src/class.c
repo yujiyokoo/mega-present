@@ -164,11 +164,11 @@ static int mrbc_p_sub(mrbc_value *v)
 #if MRBC_USE_STRING
   case MRBC_TT_STRING:{
     console_putchar('"');
-    const char *s = mrbc_string_cstr(v);
+    const unsigned char *s = (const unsigned char *)mrbc_string_cstr(v);
     int i;
     for( i = 0; i < mrbc_string_size(v); i++ ) {
       if( s[i] < ' ' || 0x7f <= s[i] ) {	// tiny isprint()
-	console_printf("\\x%02x", s[i]);
+	console_printf("\\x%02X", s[i]);
       } else {
 	console_putchar(s[i]);
       }
