@@ -1015,7 +1015,7 @@ static void c_string_to_sym(struct VM *vm, mrbc_value v[], int argc)
 
   Pattern syntax
 
-  <syntax> ::= (<pattern>)* | '^' (<pattern>)* | '^'
+  <syntax> ::= (<pattern>)* | '^' (<pattern>)*
   <pattern> ::= <in order> | <range>
   <in order> ::= (<ch>)+
   <range> ::= <ch> '-' <ch>
@@ -1036,20 +1036,9 @@ static struct tr_pattern * tr_parse_pattern( struct VM *vm, const mrb_value *v_p
   struct tr_pattern *ret = NULL;
 
   int i = 0;
-  if( flag_reverse_enable && pattern[i] == '^' ) {
+  if( flag_reverse_enable && pattern_length >= 2 && pattern[i] == '^' ) {
     flag_reverse = 1;
-
-    if( ++i == pattern_length ) {		// only "^" pattern
-      ret = mrbc_alloc( vm, sizeof(struct tr_pattern) + 1 );
-      if( ret != NULL ) {
-	ret->type = 1;
-	ret->flag_reverse = 0;
-	ret->n = 1;
-	ret->next = NULL;
-	ret->ch[0] = '^';
-      }
-      return ret;
-    }
+    i++;
   }
 
   struct tr_pattern *pat1;
