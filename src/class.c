@@ -454,6 +454,39 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
 //================================================================
 // Object class
 
+//================================================================
+/*! (method) alias_method
+
+  note: using the 'alias' keyword, this method will be called.
+*/
+static void c_object_alias_method(struct VM *vm, mrbc_value v[], int argc)
+{
+  // find method only in this class.
+  mrb_proc *proc = v[0].cls->procs;
+  while( proc != NULL ) {
+    if( proc->sym_id == v[2].i ) break;
+    proc = proc->next;
+  }
+  if( !proc ) {
+    console_printf("NameError: undefined_method '%s'\n", symid_to_str(v[2].i));
+    return;
+  }
+
+  // copy the Proc object
+  mrbc_proc *proc_alias = mrbc_alloc(0, sizeof(mrbc_proc));
+  if( !proc_alias ) return;		// ENOMEM
+  memcpy( proc_alias, proc, sizeof(mrbc_proc) );
+
+  // regist procs link.
+  proc_alias->sym_id = v[1].i;
+#if defined(MRBC_DEBUG)
+  proc_alias->names = symid_to_str(v[1].i);
+#endif
+  proc_alias->next = v[0].cls->procs;
+  v[0].cls->procs = proc_alias;
+}
+
+
 #ifdef MRBC_DEBUG
 //================================================================
 /*! (method) p
@@ -762,6 +795,7 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_class_object = mrbc_define_class(vm, "Object", 0);
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "initialize", c_ineffect);
+  mrbc_define_method(vm, mrbc_class_object, "alias_method", c_object_alias_method);
   mrbc_define_method(vm, mrbc_class_object, "puts", c_object_puts);
   mrbc_define_method(vm, mrbc_class_object, "print", c_object_print);
   mrbc_define_method(vm, mrbc_class_object, "!", c_object_not);
