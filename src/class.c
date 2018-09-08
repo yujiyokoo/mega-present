@@ -241,9 +241,9 @@ mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
   @param  sym_id
   @return
 */
-mrbc_proc *find_method(struct VM *vm, mrbc_value recv, mrbc_sym sym_id)
+mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
 {
-  mrbc_class *cls = find_class_by_object(vm, &recv);
+  mrbc_class *cls = find_class_by_object(vm, recv);
 
   while( cls != 0 ) {
     mrbc_proc *proc = cls->procs;
@@ -358,7 +358,7 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 void mrbc_funcall(struct VM *vm, const char *name, mrbc_value *v, int argc)
 {
   mrbc_sym sym_id = str_to_symid(name);
-  mrbc_proc *m = find_method(vm, v[0], sym_id);
+  mrbc_proc *m = find_method(vm, &v[0], sym_id);
 
   if( m==0 ) return;   // no method
 
@@ -406,7 +406,7 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
 		     mrbc_value *recv, const char *method, int argc, ... )
 {
   mrbc_sym sym_id = str_to_symid(method);
-  mrbc_proc *m = find_method(vm, *recv, sym_id);
+  mrbc_proc *m = find_method(vm, recv, sym_id);
 
   if( m == 0 ) {
     console_printf("No method. vtype=%d method='%s'\n", recv->tt, method );
@@ -458,7 +458,7 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
 //================================================================
 /*! (method) p
  */
-static void c_p(struct VM *vm, mrbc_value v[], int argc)
+static void c_object_p(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
@@ -472,7 +472,7 @@ static void c_p(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (method) puts
  */
-static void c_puts(struct VM *vm, mrbc_value v[], int argc)
+static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   if( argc ){
@@ -488,7 +488,7 @@ static void c_puts(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (method) print
  */
-static void c_print(struct VM *vm, mrbc_value v[], int argc)
+static void c_object_print(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
@@ -762,8 +762,8 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_class_object = mrbc_define_class(vm, "Object", 0);
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "initialize", c_ineffect);
-  mrbc_define_method(vm, mrbc_class_object, "puts", c_puts);
-  mrbc_define_method(vm, mrbc_class_object, "print", c_print);
+  mrbc_define_method(vm, mrbc_class_object, "puts", c_object_puts);
+  mrbc_define_method(vm, mrbc_class_object, "print", c_object_print);
   mrbc_define_method(vm, mrbc_class_object, "!", c_object_not);
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
   mrbc_define_method(vm, mrbc_class_object, "<=>", c_object_compare);
@@ -775,6 +775,7 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "is_a?", c_object_kind_of);
   mrbc_define_method(vm, mrbc_class_object, "kind_of?", c_object_kind_of);
 
+
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_object, "inspect", c_object_to_s);
   mrbc_define_method(vm, mrbc_class_object, "to_s", c_object_to_s);
@@ -782,7 +783,7 @@ static void mrbc_init_class_object(struct VM *vm)
 
 #ifdef MRBC_DEBUG
   mrbc_define_method(vm, mrbc_class_object, "instance_methods", c_object_instance_methods);
-  mrbc_define_method(vm, mrbc_class_object, "p", c_p);
+  mrbc_define_method(vm, mrbc_class_object, "p", c_object_p);
 #endif
 }
 

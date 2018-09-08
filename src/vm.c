@@ -670,7 +670,7 @@ inline static int op_send( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrbc_sym sym_id = str_to_symid(sym_name);
-  mrbc_proc *m = find_method(vm, recv, sym_id);
+  mrbc_proc *m = find_method(vm, &recv, sym_id);
 
   if( m == 0 ) {
     mrb_class *cls = find_class_by_object( vm, &recv );
@@ -1382,12 +1382,7 @@ inline static int op_strcat( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 
   // call "to_s"
   mrbc_sym sym_id = str_to_symid("to_s");
-  mrbc_proc *m;
-  m = find_method(vm, regs[ra], sym_id);
-  if( m && m->c_func ){
-    m->func(vm, regs+ra, 0);
-  }
-  m = find_method(vm, regs[rb], sym_id);
+  mrbc_proc *m = find_method(vm, &regs[rb], sym_id);
   if( m && m->c_func ){
     m->func(vm, regs+rb, 0);
   }
@@ -1749,7 +1744,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->current_regs = vm->regs;
   memset(vm->regs, 0, sizeof(vm->regs));
 
-   // clear regs
+  // clear regs
   int i;
   for( i = 1; i < MAX_REGS_SIZE; i++ ) {
     vm->regs[i].tt = MRBC_TT_NIL;

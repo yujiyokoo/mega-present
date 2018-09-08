@@ -24,7 +24,7 @@ extern "C" {
 
 
 mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj);
-mrbc_proc *find_method(struct VM *vm, mrbc_value recv, mrbc_sym sym_id);
+mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id);
 mrbc_class *mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super);
 mrbc_class *mrbc_get_class_by_name(const char *name);
 void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_func_t cfunc);
