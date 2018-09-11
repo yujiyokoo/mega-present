@@ -777,6 +777,9 @@ inline static int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   regs[0] = regs[ra];
   regs[ra].tt = MRBC_TT_EMPTY;
 
+  // nregs to release
+  int nregs = vm->pc_irep->nregs;
+
   // restore irep,pc,regs
   mrbc_callinfo *callinfo = vm->callinfo_tail;
   vm->callinfo_tail = callinfo->prev;
@@ -787,7 +790,7 @@ inline static int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 
   // clear stacked arguments
   int i;
-  for( i = 1; i <= callinfo->n_args; i++ ) {
+  for( i = 1; i <= nregs; i++ ) {
     mrbc_release( &regs[i] );
   }
 
