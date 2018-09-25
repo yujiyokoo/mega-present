@@ -1075,6 +1075,7 @@ static struct tr_pattern * tr_parse_pattern( struct VM *vm, const mrb_value *v_p
       }
     }
 
+    // connect linked list.
     if( ret == NULL ) {
       ret = pat1;
     } else {
@@ -1130,6 +1131,13 @@ static int tr_get_character( const struct tr_pattern *pat, int n_th )
   return -1;
 }
 
+static void tr_free_pattern( struct tr_pattern *pat )
+{
+  if( pat == NULL ) return;
+  if( pat->next ) { tr_free_pattern( pat->next ); }
+  mrbc_raw_free( pat );
+}
+
 static int tr_main( struct VM *vm, mrbc_value v[], int argc )
 {
   if( !(argc == 2 && v[1].tt == MRBC_TT_STRING && v[2].tt == MRBC_TT_STRING)) {
@@ -1148,20 +1156,20 @@ static int tr_main( struct VM *vm, mrbc_value v[], int argc )
   int i;
   for( i = 0; i < len; i++ ) {
     int n = tr_find_character( pat, s[i] );
-    if( n >= 0 ) {
-      flag_changed = 1;
-      if( rep == NULL ) {
-	memmove( s + i, s + i + 1, len - i );
-	len--;
-	i--;
-      } else {
-	s[i] = tr_get_character( rep, n );
-      }
+    if( n < 0 ) continue;
+
+    flag_changed = 1;
+    if( rep == NULL ) {
+      memmove( s + i, s + i + 1, len - i );
+      len--;
+      i--;
+    } else {
+      s[i] = tr_get_character( rep, n );
     }
   }
 
-  mrbc_raw_free( pat );
-  if( rep ) mrbc_raw_free( rep );
+  tr_free_pattern( pat );
+  tr_free_pattern( rep );
 
   v[0].string->size = len;
   v[0].string->data[len] = 0;
