@@ -27,6 +27,10 @@ mrbc_sym str_to_symid(const char *str);
 const char *symid_to_str(mrbc_sym sym_id);
 void mrbc_init_class_symbol(struct VM *vm);
 
+#if defined(MRBC_DEBUG)
+void mrbc_symbol_statistics( int *total_used );
+#endif
+
 
 //================================================================
 /*! get c-language string (char *)

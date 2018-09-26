@@ -259,3 +259,21 @@ void mrbc_init_class_symbol(struct VM *vm)
 #endif
   mrbc_define_method(vm, mrbc_class_symbol, "to_sym", c_ineffect);
 }
+
+
+
+#if defined(MRBC_DEBUG)
+//================================================================
+/* statistics
+
+   (e.g.)
+   total = MAX_SYMBOLS_COUNT;
+   mrbc_symbol_statistics( &used );
+   console_printf("Symbol table: %d/%d %d%% used.\n",
+                   used, total, 100 * used / total );
+*/
+void mrbc_symbol_statistics( int *total_used )
+{
+  *total_used = sym_index_pos;
+}
+#endif
