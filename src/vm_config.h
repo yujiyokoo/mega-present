@@ -42,7 +42,7 @@
 
 /* maximum number of symbols */
 #ifndef MAX_SYMBOLS_COUNT
-#define MAX_SYMBOLS_COUNT 200
+#define MAX_SYMBOLS_COUNT 300
 #endif
 
 /* maximum size of global objects */
