@@ -1028,6 +1028,15 @@ struct tr_pattern {
   char ch[];
 };
 
+static void tr_free_pattern( struct tr_pattern *pat )
+{
+  while( pat ) {
+    struct tr_pattern *p = pat->next;
+    mrbc_raw_free( pat );
+    pat = p;
+  }
+}
+
 static struct tr_pattern * tr_parse_pattern( struct VM *vm, const mrb_value *v_pattern, int flag_reverse_enable )
 {
   const char *pattern = mrbc_string_cstr( v_pattern );
@@ -1129,13 +1138,6 @@ static int tr_get_character( const struct tr_pattern *pat, int n_th )
   }
 
   return -1;
-}
-
-static void tr_free_pattern( struct tr_pattern *pat )
-{
-  if( pat == NULL ) return;
-  if( pat->next ) { tr_free_pattern( pat->next ); }
-  mrbc_raw_free( pat );
 }
 
 static int tr_main( struct VM *vm, mrbc_value v[], int argc )
