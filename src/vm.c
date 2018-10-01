@@ -790,7 +790,7 @@ inline static int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 
   // clear stacked arguments
   int i;
-  for( i = 1; i <= nregs; i++ ) {
+  for( i = 1; i < nregs; i++ ) {
     mrbc_release( &regs[i] );
   }
 
