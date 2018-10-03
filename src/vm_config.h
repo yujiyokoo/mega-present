@@ -73,9 +73,16 @@
 
 /* Hardware dependent flags */
 
-/* 32it alignment is required */
-/* 0: Byte alignment */
-/* 1: 32bit alignment */
-#define MRBC_REQUIRE_32BIT_ALIGNMENT 0
+/* Endian
+   Define either MRBC_BIG_ENDIAN or MRBC_LITTLE_ENDIAN.
+*/
+#if !defined(MRBC_BIG_ENDIAN) && !defined(MRBC_LITTLE_ENDIAN)
+# define MRBC_LITTLE_ENDIAN
+#endif
+
+/* 32it alignment
+   If 32-bit alignment is required, enable the following line.
+ */
+// #define MRBC_REQUIRE_32BIT_ALIGNMENT
 
 #endif
