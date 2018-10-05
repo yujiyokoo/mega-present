@@ -105,7 +105,7 @@ int mrbc_vm_run(struct VM *vm);
   @param  s	Pointer to memory.
   @return	32bit unsigned value.
 */
-inline static uint32_t bin_to_uint32( const void *s )
+static inline uint32_t bin_to_uint32( const void *s )
 {
   // Little endian, no alignment.
   //  e.g. ARM Coretex-M4, Intel x86
@@ -147,7 +147,7 @@ inline static uint32_t bin_to_uint32( const void *s )
   @param  s	Pointer to memory.
   @return	16bit unsigned value.
 */
-inline static uint16_t bin_to_uint16( const void *s )
+static inline uint16_t bin_to_uint16( const void *s )
 {
   // Little endian, no alignment.
 #if defined(MRBC_LITTLE_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)

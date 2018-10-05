@@ -56,7 +56,7 @@ void mrbc_kv_clear(mrbc_kv_handle *kvh);
 //================================================================
 /*! get size
 */
-inline static int mrbc_kv_size(const mrbc_kv_handle *kvh)
+static inline int mrbc_kv_size(const mrbc_kv_handle *kvh)
 {
   return kvh->n_stored;
 }

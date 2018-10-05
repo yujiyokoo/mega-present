@@ -55,7 +55,7 @@ void mrbc_init_class_array(struct VM *vm);
 //================================================================
 /*! get size
 */
-inline static int mrbc_array_size(const mrbc_value *ary)
+static inline int mrbc_array_size(const mrbc_value *ary)
 {
   return ary->array->n_stored;
 }

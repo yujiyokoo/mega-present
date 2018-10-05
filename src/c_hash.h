@@ -66,21 +66,21 @@ void mrbc_init_class_hash(struct VM *vm);
 //================================================================
 /*! get size
 */
-inline static int mrbc_hash_size(const mrbc_value *hash) {
+static inline int mrbc_hash_size(const mrbc_value *hash) {
   return hash->hash->n_stored / 2;
 }
 
 //================================================================
 /*! clear vm_id
 */
-inline static void mrbc_hash_clear_vm_id(mrbc_value *hash) {
+static inline void mrbc_hash_clear_vm_id(mrbc_value *hash) {
   mrbc_array_clear_vm_id(hash);
 }
 
 //================================================================
 /*! resize buffer
 */
-inline static int mrbc_hash_resize(mrbc_value *hash, int size)
+static inline int mrbc_hash_resize(mrbc_value *hash, int size)
 {
   return mrbc_array_resize(hash, size * 2);
 }
@@ -89,7 +89,7 @@ inline static int mrbc_hash_resize(mrbc_value *hash, int size)
 //================================================================
 /*! iterator constructor
 */
-inline static mrbc_hash_iterator mrbc_hash_iterator_new( mrbc_value *v )
+static inline mrbc_hash_iterator mrbc_hash_iterator_new( mrbc_value *v )
 {
   mrbc_hash_iterator ite;
   ite.target = v->hash;
@@ -102,7 +102,7 @@ inline static mrbc_hash_iterator mrbc_hash_iterator_new( mrbc_value *v )
 //================================================================
 /*! iterator has_next?
 */
-inline static int mrbc_hash_i_has_next( mrbc_hash_iterator *ite )
+static inline int mrbc_hash_i_has_next( mrbc_hash_iterator *ite )
 {
   return ite->point < ite->p_end;
 }
@@ -110,7 +110,7 @@ inline static int mrbc_hash_i_has_next( mrbc_hash_iterator *ite )
 //================================================================
 /*! iterator getter
 */
-inline static mrbc_value *mrbc_hash_i_next( mrbc_hash_iterator *ite )
+static inline mrbc_value *mrbc_hash_i_next( mrbc_hash_iterator *ite )
 {
   mrbc_value *ret = ite->point;
   ite->point += 2;
