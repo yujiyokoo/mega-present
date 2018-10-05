@@ -15,32 +15,35 @@
 #ifndef MRBC_SRC_OPCODE_H_
 #define MRBC_SRC_OPCODE_H_
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-#define GET_OPCODE(code)            ((code) & 0x7f)
-#define GETARG_A(code)              (((code) >> 23) & 0x1ff)
-#define GETARG_B(code)              (((code) >> 14) & 0x1ff)
-#define GETARG_C(code)              (((code) >>  7) & 0x7f)
-#define GETARG_Ax(code)             (((code) >>  7) & 0x1ffffff)
-
-#define GETARG_Bz(code)              GETARG_UNPACK_b(code,14,2)
-
-#define GETARG_UNPACK_b(i,n1,n2)    ((((code)) >> (7+(n2))) & (((1<<(n1))-1)))
-
-#define MKOPCODE(op)                ((op & 0x7f)<<24)
-#define MKARG_A(c)                  ((c & 0xff)<<1 | (c & 0x01)>>8)
-#define MKARG_B(c)                  ((c & 0x1fc)<<6 | (c & 0x03)<<22)
-#define MKARG_C(c)                  ((c & 0x7e)<<15 | (c & 0x01)<<31)
+#define GET_OPCODE(code)	((code) & 0x7f)			// 7bit
+#define GETARG_A(code)		(((code) >> 23) & 0x1ff)	// 9bit
+#define GETARG_B(code)		(((code) >> 14) & 0x1ff)	// 9bit
+#define GETARG_C(code)		(((code) >>  7) & 0x7f)		// 7bit
+#define GETARG_Ax(code)		(((code) >>  7) & 0x1ffffff)	// 25bit
+#define GETARG_Bx(code)		(((code) >>  7) & 0xffff)	// 16bit
+#define GETARG_Bz(code)		(((code) >>  9) & 0x3fff)	// 14bit
+#define GETARG_sBx(code)	(GETARG_Bx(code)-0x7fff)
 
 
-#define MAXARG_Bx                   (0xffff)
-#define MAXARG_sBx                  (MAXARG_Bx>>1)
-#define GETARG_Bx(code)             (((code) >>  7) & 0xffff)
-#define GETARG_sBx(code)            (GETARG_Bx(code)-MAXARG_sBx)
-#define GETARG_C(code)              (((code) >>  7) & 0x7f)
+#if defined(MRBC_LITTLE_ENDIAN)
+#define MKOPCODE(op) (((op) & 0x7f)<<24)
+#define MKARG_A(x)   (((uint32_t)(x) & 0xff)<<1 | ((uint32_t)(x) & 0x01)>>8)
+#define MKARG_B(x)   (((uint32_t)(x) & 0x1fc)<<6 | ((uint32_t)(x) & 0x03)<<22)
+#define MKARG_C(x)   (((uint32_t)(x) & 0x7e)<<15 | ((uint32_t)(x) & 0x01)<<31)
+
+#elif defined(MRBC_BIG_ENDIAN)
+#define MKOPCODE(op) ((op) & 0x7f)
+#define MKARG_A(x)   ((uint32_t)(x) << 23)
+#define MKARG_B(x)   ((uint32_t)(x) << 14)
+#define MKARG_C(x)   ((uint32_t)(x) << 7)
+#endif
 
 
 //================================================================
