@@ -1,8 +1,8 @@
 #
 # mruby/c  Makefile
 #
-# Copyright (C) 2015,2016 Kyushu Institute of Technology.
-# Copyright (C) 2015,2016 Shimane IT Open-Innovation Center.
+# Copyright (C) 2015-2018 Kyushu Institute of Technology.
+# Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
 #
 #  This file is distributed under BSD 3-Clause License.
 #
@@ -11,19 +11,20 @@ all: mrubyc_lib mrubyc_ext mrubyc_bin
 
 
 mrubyc_lib:
-	cd mrblib ; make all
-	cd src ; make all
+	cd mrblib ; $(MAKE) all
+	cd src ; $(MAKE) all
 
 mrubyc_ext:
-	cd ext ; make all
+	cd ext ; $(MAKE) all
 
 mrubyc_bin:
-	cd sample_c ; make all
+	cd sample_c ; $(MAKE) all
 
 clean:
-	cd mrblib ; make clean
-	cd src ; make clean
-	cd sample_c ; make clean
+	cd mrblib ; $(MAKE) clean
+	cd src ; $(MAKE) clean
+	cd ext ; $(MAKE) clean
+	cd sample_c ; $(MAKE) clean
 
 package: clean
 	@LANG=C ;\
