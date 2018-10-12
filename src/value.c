@@ -30,16 +30,6 @@
 
 
 
-mrbc_object *mrbc_obj_alloc(struct VM *vm, mrbc_vtype tt)
-{
-  mrbc_object *ptr = (mrbc_object *)mrbc_alloc(vm, sizeof(mrbc_object));
-  if( ptr ){
-    ptr->tt = tt;
-  }
-  return ptr;
-}
-
-
 mrbc_proc *mrbc_rproc_alloc(struct VM *vm, const char *name)
 {
   mrbc_proc *ptr = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
