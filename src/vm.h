@@ -37,7 +37,7 @@ typedef struct IREP {
   uint16_t plen;		//!< # of pool
 
   uint8_t     *code;		//!< ISEQ (code) BLOCK
-  mrbc_object  **pools;          //!< array of POOL objects pointer.
+  mrbc_object **pools;		//!< array of POOL objects pointer.
   uint8_t     *ptr_to_sym;
   struct IREP **reps;		//!< array of child IREP's pointer.
 
@@ -174,7 +174,7 @@ static inline uint16_t bin_to_uint16( const void *s )
 //================================================================
 /*! Set 32bit value to memory.
 
-  @param  s	Source value.
+  @param  v	Source value.
   @param  d	Pointer to memory.
 */
 static inline void uint32_to_bin( uint32_t v, void *d )
@@ -193,7 +193,7 @@ static inline void uint32_to_bin( uint32_t v, void *d )
 //================================================================
 /*! Set 16bit value to memory.
 
-  @param  s	Source value.
+  @param  v	Source value.
   @param  d	Pointer to memory.
 */
 static inline void uint16_to_bin( uint16_t v, void *d )
