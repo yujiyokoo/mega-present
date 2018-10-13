@@ -51,6 +51,7 @@ typedef struct IREP mrb_irep;
 */
 typedef struct CALLINFO {
   struct CALLINFO *prev;
+  mrbc_sym mid;
   mrbc_irep *pc_irep;
   uint16_t  pc;
   mrbc_value *current_regs;
@@ -90,7 +91,7 @@ typedef struct VM mrb_vm;
 
 const char *mrbc_get_irep_symbol(const uint8_t *p, int n);
 const char *mrbc_get_callee_name(struct VM *vm);
-void mrbc_push_callinfo(struct VM *vm, int n_args);
+void mrbc_push_callinfo(struct VM *vm, mrbc_sym mid, int n_args);
 void mrbc_pop_callinfo(struct VM *vm);
 mrbc_vm *mrbc_vm_open(struct VM *vm_arg);
 void mrbc_vm_close(struct VM *vm);

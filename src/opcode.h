@@ -78,7 +78,8 @@ enum OPCODE {
   OP_SENDB     = 0x21,
 
   OP_CALL      = 0x23,
-
+  OP_SUPER     = 0x24,
+  OP_ARGARY    = 0x25,
   OP_ENTER     = 0x26,
 
   OP_RETURN    = 0x29,

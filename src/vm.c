@@ -107,12 +107,13 @@ static void not_supported(void)
   Push current status to callinfo stack
 
 */
-void mrbc_push_callinfo( struct VM *vm, int n_args )
+void mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
 {
   mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
+  callinfo->mid = mid;
   callinfo->n_args = n_args;
   callinfo->target_class = vm->target_class;
   callinfo->prev = vm->callinfo_tail;
@@ -696,7 +697,7 @@ static inline int op_send( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 
   // m is Ruby method.
   // callinfo
-  mrbc_push_callinfo(vm, rc);
+  mrbc_push_callinfo(vm, sym_id, rc);
 
   // target irep
   vm->pc = 0;
@@ -722,12 +723,106 @@ static inline int op_send( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 */
 static inline int op_call( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 {
-  mrbc_push_callinfo(vm, 0);
+  mrbc_push_callinfo(vm, 0, 0);
 
   // jump to proc
   vm->pc = 0;
   vm->pc_irep = regs[0].proc->irep;
 
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_SUPER
+
+  R(A) := super(R(A+1),... ,R(A+C+1))
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_super( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
+{
+  int ra = GETARG_A(code);
+  int rb = GETARG_B(code);  // index of method sym
+  int rc = GETARG_C(code);  // number of params
+  
+  // copy self, same as LOADSELF
+  mrbc_release(&regs[ra]);
+  mrbc_dup(&regs[0]);
+  
+  mrbc_sym sym_id = vm->callinfo_tail->mid;
+
+  // find super method
+  mrbc_proc *m = 0;
+  mrbc_class *cls = regs[ra].instance->cls->super;
+  while( cls != 0 ) {
+    mrbc_proc *proc = cls->procs;
+    while( proc != 0 ) {
+      if( proc->sym_id == sym_id ) {
+	m = proc;
+	goto FIND_SUPER_EXIT;
+      }
+      proc = proc->next;
+    }
+    cls = cls->super;
+  }
+ FIND_SUPER_EXIT:
+  
+  if( m == 0 ) {
+    // No super method
+    return 0;
+  }
+
+  // m is C func
+  if( m->c_func ) {
+    m->func(vm, regs + ra, rc);
+    
+    extern void c_proc_call(mrbc_vm *vm, mrbc_value v[], int argc);
+    if( m->func == c_proc_call ) return 0;
+
+    int release_reg = ra+1;
+    while( release_reg <= ra+rc+1 ) {
+      mrbc_release(&regs[release_reg]);
+      release_reg++;
+    }
+    return 0;
+  }
+
+  // m is Ruby method.
+  // callinfo
+  mrbc_push_callinfo(vm, sym_id, rc);
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = m->irep;
+  // new regs
+  vm->current_regs += ra;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_ARGARY
+
+  R(A) := argument array (16=6:1:5:4)
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+inline static int op_argary( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
+{
+  //
+  
   return 0;
 }
 
@@ -1544,7 +1639,7 @@ static inline int op_exec( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   mrbc_value recv = regs[ra];
 
   // prepare callinfo
-  mrbc_push_callinfo(vm, 0);
+  mrbc_push_callinfo(vm, 0, 0);
 
   // target irep
   vm->pc = 0;
@@ -1825,6 +1920,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_SEND:       ret = op_send      (vm, code, regs); break;
     case OP_SENDB:      ret = op_send      (vm, code, regs); break;  // reuse
     case OP_CALL:       ret = op_call      (vm, code, regs); break;
+    case OP_SUPER:      ret = op_super     (vm, code, regs); break;
+    case OP_ARGARY:     ret = op_argary    (vm, code, regs); break;
     case OP_ENTER:      ret = op_enter     (vm, code, regs); break;
     case OP_RETURN:     ret = op_return    (vm, code, regs); break;
     case OP_BLKPUSH:    ret = op_blkpush   (vm, code, regs); break;

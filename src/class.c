@@ -826,7 +826,7 @@ static void mrbc_init_class_object(struct VM *vm)
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
   // push callinfo, but not release regs
-  mrbc_push_callinfo(vm, argc);
+  mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
 
   // target irep
   vm->pc = 0;
