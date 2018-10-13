@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
+
 #include "vm.h"
 #include "load.h"
 #include "errorcode.h"
@@ -145,7 +147,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   for( i = 0; i < irep->plen; i++ ) {
     int tt = *p++;
     int obj_size = bin_to_uint16(p);	p += 2;
-    mrbc_object *obj = mrbc_obj_alloc(0, MRBC_TT_EMPTY);
+    mrbc_object *obj = mrbc_alloc(0, sizeof(mrbc_object));
     if( obj == NULL ) {
       vm->error_code = LOAD_FILE_IREP_ERROR_ALLOCATION;
       return NULL;
@@ -174,7 +176,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
     } break;
 #endif
     default:
-      break;
+      assert(!"Unknown tt");
     }
 
     irep->pools[i] = obj;

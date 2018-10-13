@@ -206,7 +206,6 @@ typedef struct RProc mrb_proc;
 #define mrbc_false_value()	((mrbc_value){.tt = MRBC_TT_FALSE})
 #define mrbc_bool_value(n)	((mrbc_value){.tt = (n)?MRBC_TT_TRUE:MRBC_TT_FALSE})
 
-mrbc_object *mrbc_obj_alloc(struct VM *vm, mrbc_vtype tt);
 mrbc_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
 int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2);
 int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls );
