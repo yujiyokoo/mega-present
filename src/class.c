@@ -217,7 +217,7 @@ mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
   case MRBC_TT_SYMBOL:	cls = mrbc_class_symbol;	break;
 
   case MRBC_TT_OBJECT:	cls = obj->instance->cls;       break;
-  case MRBC_TT_CLASS:    cls = obj->cls;                 break;
+  case MRBC_TT_CLASS:   cls = obj->cls;                 break;
   case MRBC_TT_PROC:	cls = mrbc_class_proc;		break;
   case MRBC_TT_ARRAY:	cls = mrbc_class_array; 	break;
   case MRBC_TT_STRING:	cls = mrbc_class_string;	break;

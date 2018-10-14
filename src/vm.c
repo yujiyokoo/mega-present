@@ -748,12 +748,13 @@ static inline int op_call( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 inline static int op_super( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 {
   int ra = GETARG_A(code);
-  int rb = GETARG_B(code);  // index of method sym
+  //  int rb = GETARG_B(code);  // index of method sym
   int rc = GETARG_C(code);  // number of params
   
   // copy self, same as LOADSELF
   mrbc_release(&regs[ra]);
   mrbc_dup(&regs[0]);
+  regs[ra] = regs[0];
   
   mrbc_sym sym_id = vm->callinfo_tail->mid;
 
@@ -772,7 +773,7 @@ inline static int op_super( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
     cls = cls->super;
   }
  FIND_SUPER_EXIT:
-  
+
   if( m == 0 ) {
     // No super method
     return 0;
