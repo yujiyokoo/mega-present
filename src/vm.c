@@ -296,7 +296,7 @@ static inline int op_loadself( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   int ra = GETARG_A(code);
 
   mrbc_release(&regs[ra]);
-  mrbc_dup(&regs[0]);       // TODO: Need?
+  mrbc_dup(&regs[0]);
   regs[ra] = regs[0];
 
   return 0;
