@@ -779,6 +779,9 @@ inline static int op_super( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
     return 0;
   }
 
+  // Change class
+  regs[ra].instance->cls = cls;
+  
   // m is C func
   if( m->c_func ) {
     m->func(vm, regs + ra, rc);
