@@ -14,13 +14,14 @@
 */
 
 #include "vm_config.h"
-#include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
 #include "vm.h"
 #include "alloc.h"
+#include "load.h"
 #include "static.h"
+#include "global.h"
 #include "opcode.h"
 #include "class.h"
 #include "symbol.h"
@@ -101,15 +102,55 @@ static void not_supported(void)
 }
 
 
+//================================================================
+/*! mrbc_irep allocator
+
+  @param  vm	Pointer to VM.
+  @return	Pointer to allocated memory or NULL.
+*/
+mrbc_irep *mrbc_irep_alloc(struct VM *vm)
+{
+  mrbc_irep *p = (mrbc_irep *)mrbc_alloc(vm, sizeof(mrbc_irep));
+  if( p )
+    memset(p, 0, sizeof(mrbc_irep));	// caution: assume NULL is zero.
+  return p;
+}
+
 
 //================================================================
-/*!@brief
-  Push current status to callinfo stack
+/*! release mrbc_irep holds memory
+
+  @param  irep	Pointer to allocated mrbc_irep.
+*/
+void mrbc_irep_free(mrbc_irep *irep)
+{
+  int i;
+
+  // release pools.
+  for( i = 0; i < irep->plen; i++ ) {
+    mrbc_raw_free( irep->pools[i] );
+  }
+  if( irep->plen ) mrbc_raw_free( irep->pools );
+
+  // release child ireps.
+  for( i = 0; i < irep->rlen; i++ ) {
+    mrbc_irep_free( irep->reps[i] );
+  }
+  if( irep->rlen ) mrbc_raw_free( irep->reps );
+
+  mrbc_raw_free( irep );
+}
+
+
+//================================================================
+/*! Push current status to callinfo stack
 
 */
 void mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
 {
   mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
+  if( !callinfo ) return;
+
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
@@ -121,10 +162,8 @@ void mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
 }
 
 
-
 //================================================================
-/*!@brief
-  Push current status to callinfo stack
+/*! Pop current status to callinfo stack
 
 */
 void mrbc_pop_callinfo( struct VM *vm )
@@ -135,9 +174,10 @@ void mrbc_pop_callinfo( struct VM *vm )
   vm->pc_irep = callinfo->pc_irep;
   vm->pc = callinfo->pc;
   vm->target_class = callinfo->target_class;
-  // free callinfo
+
   mrbc_free(vm, callinfo);
 }
+
 
 
 
@@ -750,12 +790,12 @@ inline static int op_super( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   int ra = GETARG_A(code);
   //  int rb = GETARG_B(code);  // index of method sym
   int rc = GETARG_C(code);  // number of params
-  
+
   // copy self, same as LOADSELF
   mrbc_release(&regs[ra]);
   mrbc_dup(&regs[0]);
   regs[ra] = regs[0];
-  
+
   mrbc_sym sym_id = vm->callinfo_tail->mid;
 
   // find super method
@@ -782,7 +822,7 @@ inline static int op_super( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   // m is C func
   if( m->c_func ) {
     m->func(vm, regs + ra, rc);
-    
+
     extern void c_proc_call(mrbc_vm *vm, mrbc_value v[], int argc);
     if( m->func == c_proc_call ) return 0;
 
@@ -823,7 +863,7 @@ inline static int op_super( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 inline static int op_argary( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 {
   //
-  
+
   return 0;
 }
 

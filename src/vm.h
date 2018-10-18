@@ -16,9 +16,9 @@
 #ifndef MRBC_SRC_VM_H_
 #define MRBC_SRC_VM_H_
 
-#include <stdint.h>
 #include "vm_config.h"
 #include "value.h"
+#include "class.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,8 +89,11 @@ typedef struct VM {
 typedef struct VM mrb_vm;
 
 
+
 const char *mrbc_get_irep_symbol(const uint8_t *p, int n);
 const char *mrbc_get_callee_name(struct VM *vm);
+mrbc_irep *mrbc_irep_alloc(struct VM *vm);
+void mrbc_irep_free(mrbc_irep *irep);
 void mrbc_push_callinfo(struct VM *vm, mrbc_sym mid, int n_args);
 void mrbc_pop_callinfo(struct VM *vm);
 mrbc_vm *mrbc_vm_open(struct VM *vm_arg);
@@ -98,6 +101,7 @@ void mrbc_vm_close(struct VM *vm);
 void mrbc_vm_begin(struct VM *vm);
 void mrbc_vm_end(struct VM *vm);
 int mrbc_vm_run(struct VM *vm);
+
 
 
 //================================================================

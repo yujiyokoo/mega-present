@@ -24,57 +24,58 @@ $(TARGET): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 
 
-vm.o: vm.c vm_config.h vm.h value.h alloc.h static.h global.h opcode.h \
-  class.h symbol.h console.h hal/hal.h c_string.h c_range.h c_array.h \
-  c_hash.h
+vm.o: vm.c vm_config.h vm.h value.h class.h alloc.h load.h static.h \
+  global.h opcode.h symbol.h console.h hal/hal.h c_string.h c_range.h \
+  c_array.h c_hash.h
 
 hal.o: hal/hal.c hal/hal.h
 
-value.o: value.c vm_config.h value.h class.h vm.h static.h global.h \
-  symbol.h alloc.h c_string.h c_range.h c_array.h c_hash.h
+value.o: value.c vm_config.h value.h vm.h class.h alloc.h c_string.h \
+  c_range.h c_array.h c_hash.h
 
-alloc.o: alloc.c vm_config.h alloc.h vm.h value.h console.h hal/hal.h
+alloc.o: alloc.c vm_config.h vm.h value.h class.h alloc.h console.h \
+  hal/hal.h
 
-keyvalue.o: keyvalue.c vm_config.h value.h alloc.h vm.h keyvalue.h
+keyvalue.o: keyvalue.c vm_config.h value.h alloc.h keyvalue.h
 
-static.o: static.c vm_config.h static.h vm.h value.h global.h class.h \
-  symbol.h
+static.o: static.c vm_config.h static.h class.h value.h global.h
 
-global.o: global.c vm_config.h value.h static.h vm.h global.h mrubyc.h \
-  errorcode.h alloc.h symbol.h class.h c_array.h c_hash.h \
-  c_numeric.h c_range.h c_string.h load.h console.h hal/hal.h \
-  rrt0.h
+global.o: global.c vm_config.h value.h static.h class.h global.h mrubyc.h \
+  errorcode.h vm.h alloc.h symbol.h c_array.h c_hash.h c_numeric.h \
+  c_range.h c_string.h load.h console.h hal/hal.h rrt0.h
 
-class.o: class.c vm_config.h value.h vm.h class.h alloc.h static.h \
-  global.h symbol.h console.h hal/hal.h c_array.h c_hash.h c_numeric.h \
-  c_math.h c_string.h c_range.h
+class.o: class.c vm_config.h value.h alloc.h class.h vm.h keyvalue.h \
+  static.h symbol.h global.h console.h hal/hal.h opcode.h load.h \
+  c_array.h c_hash.h c_numeric.h c_math.h c_string.h c_range.h
 
-symbol.o: symbol.c vm_config.h value.h vm.h alloc.h static.h global.h \
-  class.h symbol.h console.h hal/hal.h
+symbol.o: symbol.c vm_config.h value.h vm.h class.h alloc.h static.h \
+  symbol.h c_string.h c_array.h console.h hal/hal.h
 
-load.o: load.c vm_config.h vm.h value.h load.h errorcode.h alloc.h
+load.o: load.c vm_config.h vm.h value.h class.h load.h errorcode.h \
+  alloc.h
 
-console.o: console.c vm_config.h console.h hal/hal.h
+console.o: console.c vm_config.h value.h console.h hal/hal.h
 
-c_array.o: c_array.c vm_config.h value.h vm.h alloc.h static.h global.h \
-  class.h c_array.h console.h hal/hal.h
+c_array.o: c_array.c vm_config.h value.h vm.h class.h alloc.h static.h \
+  c_array.h c_string.h console.h hal/hal.h opcode.h
 
-c_numeric.o: c_numeric.c vm_config.h c_numeric.h vm.h value.h alloc.h \
-  class.h static.h global.h console.h
+c_numeric.o: c_numeric.c vm_config.h opcode.h value.h static.h class.h \
+  console.h hal/hal.h c_numeric.h vm.h c_string.h
 
-c_math.o: c_math.c vm_config.h value.h
+c_math.o: c_math.c vm_config.h value.h static.h class.h
 
-c_string.o: c_string.c vm_config.h value.h alloc.h vm.h static.h global.h \
-  class.h c_string.h console.h hal/hal.h
+c_string.o: c_string.c vm_config.h value.h vm.h class.h alloc.h static.h \
+  symbol.h c_array.h c_string.h console.h hal/hal.h
 
-c_range.o: c_range.c vm_config.h value.h alloc.h vm.h static.h global.h \
-  class.h c_range.h console.h hal/hal.h
+c_range.o: c_range.c vm_config.h value.h alloc.h static.h class.h \
+  c_range.h c_string.h console.h hal/hal.h opcode.h
 
-c_hash.o: c_hash.c vm_config.h value.h vm.h alloc.h static.h global.h \
-  class.h c_array.h c_hash.h
+c_hash.o: c_hash.c vm_config.h value.h vm.h class.h alloc.h static.h \
+  c_array.h c_hash.h c_string.h
 
-rrt0.o: rrt0.c vm_config.h alloc.h vm.h value.h static.h global.h load.h \
-  class.h console.h hal/hal.h rrt0.h
+
+rrt0.o: rrt0.c vm_config.h alloc.h static.h class.h value.h load.h vm.h \
+  console.h hal/hal.h rrt0.h
 
 
 clean:

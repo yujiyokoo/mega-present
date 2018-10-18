@@ -12,8 +12,8 @@
 
 #include "vm_config.h"
 #include "static.h"
+#include "global.h"
 #include "class.h"
-#include "symbol.h"
 
 /* Class Tree */
 mrbc_class *mrbc_class_object;
