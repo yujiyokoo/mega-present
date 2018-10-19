@@ -252,8 +252,7 @@ mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size)
   v.instance = (mrbc_instance *)mrbc_alloc(vm, sizeof(mrbc_instance) + size);
   if( v.instance == NULL ) return v;	// ENOMEM
 
-  v.instance->ivar = mrbc_kv_new(vm, 0);
-  if( v.instance->ivar == NULL ) {	// ENOMEM
+  if( mrbc_kv_init_handle(vm, &v.instance->ivar, 0) != 0 ) {
     mrbc_raw_free(v.instance);
     v.instance = NULL;
     return v;
@@ -275,7 +274,7 @@ mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size)
 */
 void mrbc_instance_delete(mrbc_value *v)
 {
-  mrbc_kv_delete( v->instance->ivar );
+  mrbc_kv_delete_data( &v->instance->ivar );
   mrbc_raw_free( v->instance );
 }
 
@@ -290,7 +289,7 @@ void mrbc_instance_delete(mrbc_value *v)
 void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v)
 {
   mrbc_dup(v);
-  mrbc_kv_set( obj->instance->ivar, sym_id, v );
+  mrbc_kv_set( &obj->instance->ivar, sym_id, v );
 }
 
 
@@ -303,7 +302,7 @@ void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v)
 */
 mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
 {
-  mrbc_value *v = mrbc_kv_get( obj->instance->ivar, sym_id );
+  mrbc_value *v = mrbc_kv_get( &obj->instance->ivar, sym_id );
   if( !v ) return mrbc_nil_value();
 
   mrbc_dup(v);

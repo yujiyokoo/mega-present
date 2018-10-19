@@ -1,5 +1,6 @@
 /*! @file
   @brief
+  mruby/c Object, Proc, Nil, False and True class and class specific functions.
 
   <pre>
   Copyright (C) 2015-2018 Kyushu Institute of Technology.
@@ -15,6 +16,7 @@
 #define MRBC_SRC_CLASS_H_
 
 #include "value.h"
+#include "keyvalue.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +33,7 @@ typedef struct RClass {
 #endif
   struct RClass *super;	// mrbc_class[super]
   struct RProc *procs;	// mrbc_proc[rprocs], linked list
+
 } mrbc_class;
 typedef struct RClass mrb_class;
 
@@ -42,8 +45,9 @@ typedef struct RInstance {
   MRBC_OBJECT_HEADER;
 
   struct RClass *cls;
-  struct RKeyValueHandle *ivar;
+  struct RKeyValueHandle ivar;
   uint8_t data[];
+
 } mrbc_instance;
 typedef struct RInstance mrb_instance;
 
@@ -64,6 +68,7 @@ typedef struct RProc {
     struct IREP *irep;
     mrbc_func_t func;
   };
+
 } mrbc_proc;
 typedef struct RProc mrb_proc;
 

@@ -49,28 +49,42 @@ static int binary_search(mrbc_kv_handle *kvh, mrbc_sym sym_id)
 //================================================================
 /*! constructor
 
-  @param  vm	pointer to VM.
-  @param  size	initial size.
+  @param  vm	Pointer to VM.
+  @param  size	Initial size of data.
   @return 	Key-Value handle.
 */
 mrbc_kv_handle * mrbc_kv_new(struct VM *vm, int size)
 {
-  /*
-    Allocate handle and data buffer.
-  */
   mrbc_kv_handle *kvh = mrbc_alloc(vm, sizeof(mrbc_kv_handle));
   if( !kvh ) return NULL;	// ENOMEM
 
-  kvh->data = mrbc_alloc(vm, sizeof(mrbc_kv) * size);
-  if( !kvh->data ) {		// ENOMEM
+  if( mrbc_kv_init_handle( vm, kvh, size ) != 0 ) {
     mrbc_raw_free( kvh );
     return NULL;
   }
 
+  return kvh;
+}
+
+
+//================================================================
+/*! initialize handle
+
+  @param  vm	Pointer to VM.
+  @param  kvh	Pointer to Key-Value handle.
+  @param  size	Initial size of data.
+  @return 	0 if no error.
+*/
+int mrbc_kv_init_handle(struct VM *vm, mrbc_kv_handle *kvh, int size)
+{
+  // Allocate data buffer.
+  kvh->data = mrbc_alloc(vm, sizeof(mrbc_kv) * size);
+  if( !kvh->data ) return -1;		// ENOMEM
+
   kvh->data_size = size;
   kvh->n_stored = 0;
 
-  return kvh;
+  return 0;
 }
 
 
@@ -81,10 +95,20 @@ mrbc_kv_handle * mrbc_kv_new(struct VM *vm, int size)
 */
 void mrbc_kv_delete(mrbc_kv_handle *kvh)
 {
-  mrbc_kv_clear(kvh);
-
-  mrbc_raw_free(kvh->data);
+  mrbc_kv_delete_data(kvh);
   mrbc_raw_free(kvh);
+}
+
+
+//================================================================
+/*! delete all datas
+
+  @param  kvh	pointer to key-value handle.
+*/
+void mrbc_kv_delete_data(mrbc_kv_handle *kvh)
+{
+  mrbc_kv_clear(kvh);
+  mrbc_raw_free(kvh->data);
 }
 
 
