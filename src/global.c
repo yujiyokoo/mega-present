@@ -1,123 +1,108 @@
+/*! @file
+  @brief
+  Constant and global variables.
 
-#include "vm_config.h"
-#include <assert.h>
-#include "value.h"
-#include "static.h"
-#include "global.h"
-#include "mrubyc.h"
+  <pre>
+  Copyright (C) 2015-2018 Kyushu Institute of Technology.
+  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
 
-/*
+  This file is distributed under BSD 3-Clause License.
 
-  GLobal objects are stored in 'mrbc_global' array.
-  'mrbc_global' array is decending order by sym_id.
-  In case of searching a global object, binary search is used.
-  In case of adding a global object, insertion sort is used.
-
+  </pre>
 */
 
-typedef enum {
-  MRBC_GLOBAL_OBJECT = 1,
-  MRBC_CONST_OBJECT,
-} mrbc_globaltype;
+#include "vm_config.h"
+#include "value.h"
+#include "global.h"
+#include "keyvalue.h"
+#include "console.h"
 
-typedef struct GLOBAL_OBJECT {
-  mrbc_globaltype gtype : 8;
-  mrbc_sym sym_id;
-  mrbc_object obj;
-} mrbc_globalobject;
 
-// max of global object in mrbc_global[]
-static int global_end;
-static mrbc_globalobject mrbc_global[MAX_GLOBAL_OBJECT_SIZE];
+static mrbc_kv_handle handle_const;	//!< for global(Object) constants.
+static mrbc_kv_handle handle_global;	//!< for global variables.
 
-//
+
+//================================================================
+/*! initialize const and global table with default value.
+*/
 void  mrbc_init_global(void)
 {
-  global_end = 0;
+  mrbc_kv_init_handle( 0, &handle_const, 15 );
+  mrbc_kv_init_handle( 0, &handle_global, 0 );
 }
 
-/* search */
-/* linear search is not efficient! */
-/* TODO: Use binary search */
-static int search_global_object(mrbc_sym sym_id, mrbc_globaltype gtype)
-{
-  int i;
-  for( i=0 ; i<global_end ; i++ ){
-    mrbc_globalobject *obj = &mrbc_global[i];
-    if( obj->sym_id == sym_id && obj->gtype == gtype ) return i;
-  }
-  return -1;
-}
 
-/* add */
-/* TODO: Check reference count */
-void global_object_add(mrbc_sym sym_id, mrbc_value v)
+//================================================================
+/*! setter constant
+
+  @param  sym_id	symbol ID.
+  @param  v		pointer to mrbc_value.
+  @return		mrbc_error_code.
+*/
+int mrbc_set_const( mrbc_sym sym_id, mrbc_value *v )
 {
-  int index = search_global_object(sym_id, MRBC_GLOBAL_OBJECT);
-  if( index == -1 ) {
-    index = global_end++;
-    assert( index < MAX_GLOBAL_OBJECT_SIZE );	// maybe raise ex
-  } else {
-    mrbc_release( &(mrbc_global[index].obj) );
+  mrb_value *already = mrbc_kv_get( &handle_const, sym_id );
+  if( already != NULL ) {
+    console_printf( "warning: already initialized constant.\n" );
+    mrbc_release( already );
   }
 
-  mrbc_global[index].gtype = MRBC_GLOBAL_OBJECT;
-  mrbc_global[index].sym_id = sym_id;
-  mrbc_global[index].obj = v;
-  mrbc_dup( &v );
+  return mrbc_kv_set( &handle_const, sym_id, v );
 }
 
-/* add const */
-/* TODO: Check reference count */
-/* TODO: Integrate with global_add */
-void const_object_add(mrbc_sym sym_id, mrbc_object *obj)
+
+//================================================================
+/*! getter constant
+
+  @param  sym_id	symbol ID.
+  @return		pointer to mrbc_value or NULL.
+*/
+mrbc_value * mrbc_get_const( mrbc_sym sym_id )
 {
-  int index = search_global_object(sym_id, MRBC_CONST_OBJECT);
-  if( index == -1 ){
-    index = global_end;
-    global_end++;
-    assert( index < MAX_GLOBAL_OBJECT_SIZE );	// maybe raise ex
-  } else {
-    // warning: already initialized constant.
-    mrbc_release( &(mrbc_global[index].obj) );
-  }
-  mrbc_global[index].gtype = MRBC_CONST_OBJECT;
-  mrbc_global[index].sym_id = sym_id;
-  mrbc_global[index].obj = *obj;
-  mrbc_dup( obj );
+  return mrbc_kv_get( &handle_const, sym_id );
 }
 
-/* get */
-mrbc_value global_object_get(mrbc_sym sym_id)
+
+//================================================================
+/*! setter global variable.
+
+  @param  sym_id	symbol ID.
+  @param  v		pointer to mrbc_value.
+  @return		mrbc_error_code.
+*/
+int mrbc_set_global( mrbc_sym sym_id, mrbc_value *v )
 {
-  int index = search_global_object(sym_id, MRBC_GLOBAL_OBJECT);
-  if( index >= 0 ){
-    mrbc_dup( &mrbc_global[index].obj );
-    return mrbc_global[index].obj;
-  } else {
-    return mrbc_nil_value();
-  }
+  return mrbc_kv_set( &handle_global, sym_id, v );
 }
 
-/* get const */
-/* TODO: Integrate with get_global_object */
-mrbc_object const_object_get(mrbc_sym sym_id)
+
+//================================================================
+/*! getter global variable.
+
+  @param  sym_id	symbol ID.
+  @return		pointer to mrbc_value or NULL.
+*/
+mrbc_value * mrbc_get_global( mrbc_sym sym_id )
 {
-  int index = search_global_object(sym_id, MRBC_CONST_OBJECT);
-  if( index >= 0 ){
-    mrbc_dup( &mrbc_global[index].obj );
-    return mrbc_global[index].obj;
-  } else {
-    return mrbc_nil_value();
-  }
+  return mrbc_kv_get( &handle_global, sym_id );
 }
 
 
-/* clear vm_id in global object for process terminated. */
+//================================================================
+/*! clear vm_id in global object for process terminated.
+*/
 void mrbc_global_clear_vm_id(void)
 {
   int i;
-  for( i = 0; i < global_end; i++ ) {
-    mrbc_clear_vm_id( &mrbc_global[i].obj );
+  mrbc_kv *p;
+
+  p = handle_const.data;
+  for( i = 0; i < mrbc_kv_size(&handle_const); i++, p++ ) {
+    mrbc_clear_vm_id( &p->value );
+  }
+
+  p = handle_global.data;
+  for( i = 0; i < mrbc_kv_size(&handle_global); i++, p++ ) {
+    mrbc_clear_vm_id( &p->value );
   }
 }

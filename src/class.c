@@ -391,10 +391,10 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
   if( super == NULL ) super = mrbc_class_object;  // set default to Object.
 
   mrbc_sym sym_id = str_to_symid(name);
-  mrbc_object obj = const_object_get(sym_id);
+  mrbc_object *obj = mrbc_get_const( sym_id );
 
   // create a new class?
-  if( obj.tt == MRBC_TT_NIL ) {
+  if( obj == NULL ) {
     mrbc_class *cls = mrbc_alloc( 0, sizeof(mrbc_class) );
     if( !cls ) return cls;	// ENOMEM
 
@@ -406,16 +406,13 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
     cls->procs = 0;
 
     // register to global constant.
-    mrbc_value v = {.tt = MRBC_TT_CLASS};
-    v.cls = cls;
-    const_object_add(sym_id, &v);
-
+    mrbc_set_const( sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = cls} );
     return cls;
   }
 
   // already?
-  if( obj.tt == MRBC_TT_CLASS ) {
-    return obj.cls;
+  if( obj->tt == MRBC_TT_CLASS ) {
+    return obj->cls;
   }
 
   // error.
@@ -434,9 +431,10 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
 mrbc_class * mrbc_get_class_by_name( const char *name )
 {
   mrbc_sym sym_id = str_to_symid(name);
-  mrbc_object obj = const_object_get(sym_id);
+  mrbc_object *obj = mrbc_get_const( sym_id );
 
-  return (obj.tt == MRBC_TT_CLASS) ? obj.cls : NULL;
+  if( obj == NULL ) return NULL;
+  return (obj->tt == MRBC_TT_CLASS) ? obj->cls : NULL;
 }
 
 

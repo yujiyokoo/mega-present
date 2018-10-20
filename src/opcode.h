@@ -68,6 +68,7 @@ enum OPCODE {
 
   OP_GETCONST  = 0x11,
   OP_SETCONST  = 0x12,
+  OP_GETMCNST  = 0x13,
 
   OP_GETUPVAR  = 0x15,
   OP_SETUPVAR  = 0x16,

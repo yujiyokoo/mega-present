@@ -406,7 +406,13 @@ static inline int op_getglobal( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   mrbc_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
-  regs[ra] = global_object_get(sym_id);
+  mrbc_value *v = mrbc_get_global(sym_id);
+  if( v == NULL ) {
+    regs[ra] = mrbc_nil_value();
+  } else {
+    mrbc_dup(v);
+    regs[ra] = *v;
+  }
 
   return 0;
 }
@@ -429,7 +435,8 @@ static inline int op_setglobal( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   int rb = GETARG_Bx(code);
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrbc_sym sym_id = str_to_symid(sym_name);
-  global_object_add(sym_id, regs[ra]);
+  mrbc_dup(&regs[ra]);
+  mrbc_set_global(sym_id, &regs[ra]);
 
   return 0;
 }
@@ -507,7 +514,15 @@ static inline int op_getconst( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   mrbc_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[ra]);
-  regs[ra] = const_object_get(sym_id);
+  mrbc_value *v = mrbc_get_const(sym_id);
+  if( v == NULL ) {		// raise?
+    console_printf( "NameError: uninitialized constant %s\n",
+		    symid_to_str( sym_id ));
+    return 0;
+  }
+
+  mrbc_dup(v);
+  regs[ra] = *v;
 
   return 0;
 }
@@ -530,7 +545,8 @@ static inline int op_setconst( mrbc_vm *vm, uint32_t code, mrbc_value *regs ) {
   int rb = GETARG_Bx(code);
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
   mrbc_sym sym_id = str_to_symid(sym_name);
-  const_object_add(sym_id, &regs[ra]);
+  mrbc_dup(&regs[ra]);
+  mrbc_set_const(sym_id, &regs[ra]);
 
   return 0;
 }
@@ -821,7 +837,7 @@ inline static int op_super( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 
   // Change class
   regs[ra].instance->cls = cls;
-  
+
   // m is C func
   if( m->c_func ) {
     m->func(vm, regs + ra, rc);
@@ -1956,6 +1972,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_SETIV:      ret = op_setiv     (vm, code, regs); break;
     case OP_GETCONST:   ret = op_getconst  (vm, code, regs); break;
     case OP_SETCONST:   ret = op_setconst  (vm, code, regs); break;
+    case OP_GETMCNST:   ret = op_getconst  (vm, code, regs); break;  // reuse
     case OP_GETUPVAR:   ret = op_getupvar  (vm, code, regs); break;
     case OP_SETUPVAR:   ret = op_setupvar  (vm, code, regs); break;
     case OP_JMP:        ret = op_jmp       (vm, code, regs); break;

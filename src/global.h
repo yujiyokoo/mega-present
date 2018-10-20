@@ -1,6 +1,6 @@
 /*! @file
   @brief
-  Manage global objects.
+  Constant and global variables.
 
   <pre>
   Copyright (C) 2015-2018 Kyushu Institute of Technology.
@@ -20,12 +20,11 @@
 extern "C" {
 #endif
 
-
 void mrbc_init_global(void);
-void global_object_add(mrbc_sym sym_id, mrbc_value v);
-void const_object_add(mrbc_sym sym_id, mrbc_object *obj);
-mrbc_value global_object_get(mrbc_sym sym_id);
-mrbc_object const_object_get(mrbc_sym sym_id);
+int mrbc_set_const(mrbc_sym sym_id, mrbc_value *v);
+mrbc_value *mrbc_get_const(mrbc_sym sym_id);
+int mrbc_set_global(mrbc_sym sym_id, mrbc_value *v);
+mrbc_value *mrbc_get_global(mrbc_sym sym_id);
 void mrbc_global_clear_vm_id(void);
 
 
