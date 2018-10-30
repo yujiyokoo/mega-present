@@ -960,7 +960,7 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
     v[offset+i] = v[i];
   }
   // [nil]
-  v[offset+1].tt = MRBC_TT_NIL;
+  v[offset+2].tt = MRBC_TT_NIL;
   
 }
 
