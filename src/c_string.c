@@ -880,10 +880,9 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
     case 'G':
       if( v[i].tt == MRBC_TT_FLOAT ) {
 	ret = mrbc_printf_float( &pf, v[i].d );
-      } else
-	if( v[i].tt == MRBC_TT_FIXNUM ) {
-	  ret = mrbc_printf_float( &pf, v[i].i );
-	}
+      } else if( v[i].tt == MRBC_TT_FIXNUM ) {
+	ret = mrbc_printf_float( &pf, v[i].i );
+      }
       break;
 #endif
 
