@@ -59,7 +59,11 @@ void console_printf(const char *fstr, ...)
       case 'd':
       case 'i':
       case 'u':
-	ret = mrbc_printf_int( &pf, va_arg(ap, unsigned int), 10);
+	ret = mrbc_printf_int( &pf, va_arg(ap, int), 10);
+	break;
+
+      case 'D':	// for mrbc_int
+	ret = mrbc_printf_int( &pf, va_arg(ap, mrbc_int), 10);
 	break;
 
       case 'b':
@@ -254,7 +258,7 @@ int mrbc_printf_bstr( mrbc_printf *pf, const char *str, int len, int pad )
 int mrbc_printf_int( mrbc_printf *pf, mrbc_int value, int base )
 {
   int sign = 0;
-  uint32_t v = value;	// (note) Change this when supporting 64 bit.
+  mrbc_int v = value;
 
   if( pf->fmt.type == 'd' || pf->fmt.type == 'i' ) {	// signed.
     if( value < 0 ) {
