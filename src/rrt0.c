@@ -792,14 +792,14 @@ void pq(mrbc_tcb *p_tcb)
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf("%08x  ", ((uintptr_t)p & 0xffffffff));
+    console_printf("%08x  ", (uint32_t)p);
     p = p->next;
   }
   console_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" nx:%04x  ", ((uintptr_t)p->next & 0xffff));
+    console_printf(" nx:%04x  ", (uint16_t)p->next);
     p = p->next;
   }
   console_printf("\n");
