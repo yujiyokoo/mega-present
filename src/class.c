@@ -468,7 +468,7 @@ int mrbc_print_sub(mrbc_value *v)
   case MRBC_TT_NIL:					break;
   case MRBC_TT_FALSE:	console_print("false");		break;
   case MRBC_TT_TRUE:	console_print("true");		break;
-  case MRBC_TT_FIXNUM:	console_printf("%d", v->i);	break;
+  case MRBC_TT_FIXNUM:	console_printf("%D", v->i);	break;
 #if MRBC_USE_FLOAT
   case MRBC_TT_FLOAT:	console_printf("%g", v->d);	break;
 #endif
@@ -855,7 +855,7 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 	mrbc_printf_str( &pf, symid_to_str(v->instance->cls->sym_id), ' ' );
 	break;
       case 'x':
-	mrbc_printf_int( &pf, (uintptr_t)v->instance, 16 );
+	mrbc_printf_int( &pf, (uint32_t)v->instance, 16 );
 	break;
       }
     }
@@ -935,7 +935,7 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
   // self in block call
   mrbc_value *self = vm->callinfo_tail->current_regs;
-  
+
   // push callinfo, but not release regs
   mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
 
@@ -947,7 +947,7 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
   // original v[] : [proc][argc][nil]
   //                |current_regs
   // copied   v[] : [proc][argc][obj][argc][nil]
-  //                            |current_regs  
+  //                            |current_regs
   int offset = 1+argc;
   vm->current_regs = v+offset;
   // [obj]
@@ -973,7 +973,7 @@ static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   mrbc_printf_init( &pf, buf, sizeof(buf), "<#Proc:%08x>" );
   while( mrbc_printf_main( &pf ) > 0 ) {
-    mrbc_printf_int( &pf, (uintptr_t)v->proc, 16 );
+    mrbc_printf_int( &pf, (uint32_t)v->proc, 16 );
   }
   mrbc_printf_end( &pf );
 

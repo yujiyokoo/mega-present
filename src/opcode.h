@@ -33,13 +33,13 @@ extern "C" {
 
 
 #if defined(MRBC_LITTLE_ENDIAN)
-#define MKOPCODE(op) (((op) & 0x7f)<<24)
+#define MKOPCODE(op) (((uint32_t)(op) & 0x7f)<<24)
 #define MKARG_A(x)   (((uint32_t)(x) & 0xff)<<1 | ((uint32_t)(x) & 0x01)>>8)
 #define MKARG_B(x)   (((uint32_t)(x) & 0x1fc)<<6 | ((uint32_t)(x) & 0x03)<<22)
 #define MKARG_C(x)   (((uint32_t)(x) & 0x7e)<<15 | ((uint32_t)(x) & 0x01)<<31)
 
 #elif defined(MRBC_BIG_ENDIAN)
-#define MKOPCODE(op) ((op) & 0x7f)
+#define MKOPCODE(op) ((uint32_t)(op) & 0x7f)
 #define MKARG_A(x)   ((uint32_t)(x) << 23)
 #define MKARG_B(x)   ((uint32_t)(x) << 14)
 #define MKARG_C(x)   ((uint32_t)(x) << 7)
