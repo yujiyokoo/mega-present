@@ -976,17 +976,13 @@ static inline int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 static inline int op_blkpush( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 {
   int ra = GETARG_A(code);
-
-  mrbc_value *stack = regs + 1;
-
-  if( stack[0].tt == MRBC_TT_NIL ){
-    return -1;  // EYIELD
-  }
-
+  int rb = GETARG_Bx(code);  // 16=6:1:5:4
+  int offset = rb >> 10;     //    ^
+  
   mrbc_release(&regs[ra]);
-  mrbc_dup( stack );
-  regs[ra] = stack[0];
-
+  mrbc_dup( &regs[offset+1] );
+  regs[ra] = regs[offset+1];
+  
   return 0;
 }
 
