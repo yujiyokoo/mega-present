@@ -933,9 +933,6 @@ static void mrbc_init_class_object(struct VM *vm)
 
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
-  // self in block call
-  mrbc_value *self = vm->callinfo_tail->current_regs;
-
   // push callinfo, but not release regs
   mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
 
@@ -943,24 +940,7 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
   vm->pc = 0;
   vm->pc_irep = v[0].proc->irep;
 
-  // copy regs for object
-  // original v[] : [proc][argc][nil]
-  //                |current_regs
-  // copied   v[] : [proc][argc][obj][argc][nil]
-  //                            |current_regs
-  int offset = 1+argc;
-  vm->current_regs = v+offset;
-  // [obj]
-  mrbc_dup(self);
-  v[offset] = *self;
-  // [argc]
-  int i;
-  for( i = 1 ; i<=argc ; i++ ){
-    mrbc_dup(&v[i]);
-    v[offset+i] = v[i];
-  }
-  // [nil]
-  v[offset+argc+1].tt = MRBC_TT_NIL;
+  vm->current_regs = v;
 }
 
 

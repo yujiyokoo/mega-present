@@ -928,14 +928,8 @@ static inline int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   // return value
   int ra = GETARG_A(code);
 
-  mrbc_value *regs0 = regs;
-  // return value stored in original regs[0] if return in block
-  mrbc_callinfo *ci = vm->callinfo_tail;
-  if( ci && ci->current_regs[1].tt == MRBC_TT_PROC ){
-    regs0 = regs - 2;
-  } 
-  mrbc_release(regs0);
-  *regs0 = regs[ra];
+  mrbc_release(&regs[0]);
+  regs[0] = regs[ra];
   regs[ra].tt = MRBC_TT_EMPTY;
     
   // nregs to release
