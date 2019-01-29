@@ -643,11 +643,7 @@ static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_not(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[0].tt == MRBC_TT_NIL || v[0].tt == MRBC_TT_FALSE ) {
-    SET_TRUE_RETURN();
-  } else {
-    SET_FALSE_RETURN();
-  }
+  SET_BOOL_RETURN( v[0].tt == MRBC_TT_NIL || v[0].tt == MRBC_TT_FALSE );
 }
 
 
@@ -834,6 +830,15 @@ static void c_object_kind_of(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
+/*! (method) nil?
+ */
+static void c_object_nil(struct VM *vm, mrbc_value v[], int argc)
+{
+  SET_BOOL_RETURN( v[0].tt == MRBC_TT_NIL );
+}
+
+
 #if MRBC_USE_STRING
 //================================================================
 /*! (method) to_s
@@ -921,6 +926,7 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "attr_accessor", c_object_attr_accessor);
   mrbc_define_method(vm, mrbc_class_object, "is_a?", c_object_kind_of);
   mrbc_define_method(vm, mrbc_class_object, "kind_of?", c_object_kind_of);
+  mrbc_define_method(vm, mrbc_class_object, "nil?", c_object_nil);
 
 
 #if MRBC_USE_STRING
