@@ -643,7 +643,11 @@ static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_not(struct VM *vm, mrbc_value v[], int argc)
 {
-  SET_FALSE_RETURN();
+  if( v[0].tt == MRBC_TT_NIL || v[0].tt == MRBC_TT_FALSE ) {
+    SET_TRUE_RETURN();
+  } else {
+    SET_FALSE_RETURN();
+  }
 }
 
 
@@ -978,12 +982,41 @@ static void mrbc_init_class_proc(struct VM *vm)
 // Nil class
 
 //================================================================
-/*! (method) !
+/*! (method) to_i
 */
-static void c_nil_false_not(struct VM *vm, mrbc_value v[], int argc)
+static void c_nil_to_i(struct VM *vm, mrbc_value v[], int argc)
 {
-  v[0].tt = MRBC_TT_TRUE;
+  v[0] = mrbc_fixnum_value(0);
 }
+
+
+//================================================================
+/*! (method) to_a
+*/
+static void c_nil_to_a(struct VM *vm, mrbc_value v[], int argc)
+{
+  v[0] = mrbc_array_new(vm, 0);
+}
+
+
+//================================================================
+/*! (method) to_h
+*/
+static void c_nil_to_h(struct VM *vm, mrbc_value v[], int argc)
+{
+  v[0] = mrbc_hash_new(vm, 0);
+}
+
+
+#if MRBC_USE_FLOAT
+//================================================================
+/*! (method) to_f
+*/
+static void c_nil_to_f(struct VM *vm, mrbc_value v[], int argc)
+{
+  v[0] = mrbc_float_value(0);
+}
+#endif
 
 
 #if MRBC_USE_STRING
@@ -1012,8 +1045,15 @@ static void mrbc_init_class_nil(struct VM *vm)
 {
   // Class
   mrbc_class_nil = mrbc_define_class(vm, "NilClass", mrbc_class_object);
+
   // Methods
-  mrbc_define_method(vm, mrbc_class_nil, "!", c_nil_false_not);
+  mrbc_define_method(vm, mrbc_class_nil, "to_i", c_nil_to_i);
+  mrbc_define_method(vm, mrbc_class_nil, "to_a", c_nil_to_a);
+  mrbc_define_method(vm, mrbc_class_nil, "to_h", c_nil_to_h);
+
+#if MRBC_USE_FLOAT
+  mrbc_define_method(vm, mrbc_class_nil, "to_f", c_nil_to_f);
+#endif
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_nil, "inspect", c_nil_inspect);
   mrbc_define_method(vm, mrbc_class_nil, "to_s", c_nil_to_s);
@@ -1043,7 +1083,6 @@ static void mrbc_init_class_false(struct VM *vm)
   // Class
   mrbc_class_false = mrbc_define_class(vm, "FalseClass", mrbc_class_object);
   // Methods
-  mrbc_define_method(vm, mrbc_class_false, "!", c_nil_false_not);
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_false, "inspect", c_false_to_s);
   mrbc_define_method(vm, mrbc_class_false, "to_s", c_false_to_s);
