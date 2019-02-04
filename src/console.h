@@ -50,6 +50,7 @@ int mrbc_printf_main(mrbc_printf *pf);
 int mrbc_printf_char(mrbc_printf *pf, int ch);
 int mrbc_printf_bstr(mrbc_printf *pf, const char *str, int len, int pad);
 int mrbc_printf_int(mrbc_printf *pf, mrbc_int value, int base);
+int mrbc_printf_bit(mrbc_printf *pf, mrbc_int value, int bit);
 int mrbc_printf_float(mrbc_printf *pf, double value);
 void mrbc_printf_replace_buffer(mrbc_printf *pf, char *buf, int size);
 

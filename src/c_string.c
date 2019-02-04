@@ -832,6 +832,8 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
     case 'c':
       if( v[i].tt == MRBC_TT_FIXNUM ) {
 	ret = mrbc_printf_char( &pf, v[i].i );
+      } else if( v[i].tt == MRBC_TT_STRING ) {
+	ret = mrbc_printf_char( &pf, mrbc_string_cstr(&v[i])[0] );
       }
       break;
 
@@ -861,14 +863,20 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
     case 'b':
     case 'B':
       if( v[i].tt == MRBC_TT_FIXNUM ) {
-	ret = mrbc_printf_int( &pf, v[i].i, 2);
+	ret = mrbc_printf_bit( &pf, v[i].i, 1);
       }
       break;
 
     case 'x':
     case 'X':
       if( v[i].tt == MRBC_TT_FIXNUM ) {
-	ret = mrbc_printf_int( &pf, v[i].i, 16);
+	ret = mrbc_printf_bit( &pf, v[i].i, 4);
+      }
+      break;
+
+    case 'o':
+      if( v[i].tt == MRBC_TT_FIXNUM ) {
+	ret = mrbc_printf_bit( &pf, v[i].i, 3);
       }
       break;
 
