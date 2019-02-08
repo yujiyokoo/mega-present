@@ -39,7 +39,7 @@ void mrbc_array_delete(mrbc_value *ary);
 void mrbc_array_clear_vm_id(mrbc_value *ary);
 int mrbc_array_resize(mrbc_value *ary, int size);
 int mrbc_array_set(mrbc_value *ary, int idx, mrbc_value *set_val);
-mrbc_value mrbc_array_get(mrbc_value *ary, int idx);
+mrbc_value mrbc_array_get(const mrbc_value *ary, int idx);
 int mrbc_array_push(mrbc_value *ary, mrbc_value *set_val);
 mrbc_value mrbc_array_pop(mrbc_value *ary);
 int mrbc_array_unshift(mrbc_value *ary, mrbc_value *set_val);

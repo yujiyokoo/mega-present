@@ -197,7 +197,7 @@ int mrbc_array_set(mrbc_value *ary, int idx, mrbc_value *set_val)
   @param  idx		index
   @return		mrbc_value data at index position or Nil.
 */
-mrbc_value mrbc_array_get(mrbc_value *ary, int idx)
+mrbc_value mrbc_array_get(const mrbc_value *ary, int idx)
 {
   mrbc_array *h = ary->array;
 
