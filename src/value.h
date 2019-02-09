@@ -16,6 +16,7 @@
 #define MRBC_SRC_VALUE_H_
 
 #include <stdint.h>
+#include "vm_config.h"
 
 #ifdef __cplusplus
 extern "C" {
