@@ -3,8 +3,8 @@
   mruby bytecode executor.
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2019 Kyushu Institute of Technology.
+  Copyright (C) 2015-2019 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -931,7 +931,7 @@ static inline int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   mrbc_release(&regs[0]);
   regs[0] = regs[ra];
   regs[ra].tt = MRBC_TT_EMPTY;
-    
+
   // nregs to release
   int nregs = vm->pc_irep->nregs;
 
@@ -972,11 +972,11 @@ static inline int op_blkpush( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   int ra = GETARG_A(code);
   int rb = GETARG_Bx(code);  // 16=6:1:5:4
   int offset = rb >> 10;     //    ^
-  
+
   mrbc_release(&regs[ra]);
   mrbc_dup( &regs[offset+1] );
   regs[ra] = regs[offset+1];
-  
+
   return 0;
 }
 
@@ -1100,7 +1100,6 @@ static inline int op_sub( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 
   // other case
   op_send(vm, code, regs);
-  mrbc_release(&regs[ra+1]);
   return 0;
 }
 

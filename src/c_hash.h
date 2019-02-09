@@ -89,7 +89,7 @@ static inline int mrbc_hash_resize(mrbc_value *hash, int size)
 //================================================================
 /*! iterator constructor
 */
-static inline mrbc_hash_iterator mrbc_hash_iterator_new( mrbc_value *v )
+static inline mrbc_hash_iterator mrbc_hash_iterator_new( const mrbc_value *v )
 {
   mrbc_hash_iterator ite;
   ite.target = v->hash;

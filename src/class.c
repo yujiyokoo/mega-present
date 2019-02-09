@@ -407,7 +407,7 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
 //================================================================
 /*! p - sub function
  */
-int mrbc_p_sub(mrbc_value *v)
+int mrbc_p_sub(const mrbc_value *v)
 {
   switch( v->tt ){
   case MRBC_TT_NIL:
@@ -459,7 +459,7 @@ int mrbc_p_sub(mrbc_value *v)
   @retval 0	normal return.
   @retval 1	already output LF.
 */
-int mrbc_print_sub(mrbc_value *v)
+int mrbc_print_sub(const mrbc_value *v)
 {
   int ret = 0;
 
@@ -545,7 +545,7 @@ int mrbc_print_sub(mrbc_value *v)
   @retval 0	normal return.
   @retval 1	already output LF.
 */
-int mrbc_puts_sub(mrbc_value *v)
+int mrbc_puts_sub(const mrbc_value *v)
 {
   if( v->tt == MRBC_TT_ARRAY ) {
     int i;

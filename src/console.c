@@ -15,12 +15,13 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+#include <assert.h>
 #if MRBC_USE_FLOAT
 #include <stdio.h>
 #endif
 #include "value.h"
+#include "alloc.h"
 #include "console.h"
-
 
 
 //================================================================
@@ -62,18 +63,18 @@ void console_printf(const char *fstr, ...)
 	ret = mrbc_printf_int( &pf, va_arg(ap, int), 10);
 	break;
 
-      case 'D':	// for mrbc_int
+      case 'D':	// for mrbc_int (see mrbc_print_sub in class.c)
 	ret = mrbc_printf_int( &pf, va_arg(ap, mrbc_int), 10);
 	break;
 
       case 'b':
       case 'B':
-	ret = mrbc_printf_int( &pf, va_arg(ap, unsigned int), 2);
+	ret = mrbc_printf_bit( &pf, va_arg(ap, unsigned int), 1);
 	break;
 
       case 'x':
       case 'X':
-	ret = mrbc_printf_int( &pf, va_arg(ap, unsigned int), 16);
+	ret = mrbc_printf_bit( &pf, va_arg(ap, unsigned int), 4);
 	break;
 
 #if MRBC_USE_FLOAT
@@ -246,7 +247,7 @@ int mrbc_printf_bstr( mrbc_printf *pf, const char *str, int len, int pad )
 
 
 //================================================================
-/*! sprintf subcontract function for integer '%d' '%x' '%b'
+/*! sprintf subcontract function for integer '%d', '%u'
 
   @param  pf	pointer to mrbc_printf.
   @param  value	output value.
@@ -260,15 +261,83 @@ int mrbc_printf_int( mrbc_printf *pf, mrbc_int value, int base )
   int sign = 0;
   mrbc_int v = value;
 
-  if( pf->fmt.type == 'd' || pf->fmt.type == 'i' ) {	// signed.
-    if( value < 0 ) {
-      sign = '-';
-      v = -value;
-    } else if( pf->fmt.flag_plus ) {
-      sign = '+';
-    } else if( pf->fmt.flag_space ) {
-      sign = ' ';
+  if( value < 0 ) {
+    sign = '-';
+    v = -value;
+  } else if( pf->fmt.flag_plus ) {
+    sign = '+';
+  } else if( pf->fmt.flag_space ) {
+    sign = ' ';
+  }
+
+  if( pf->fmt.flag_minus || pf->fmt.width == 0 ) {
+    pf->fmt.flag_zero = 0; // disable zero padding if left align or width zero.
+  }
+
+  // create string to allocated buffer
+  int alloc_size = 32+2;	// int32 + terminate + 1
+  if( alloc_size < pf->fmt.precision + 1 ) alloc_size = pf->fmt.precision + 1;
+  assert( sizeof(mrbc_int) * 8 < alloc_size );
+
+  char *buf = mrbc_raw_alloc( alloc_size );
+  if( buf == NULL ) return 0;	// ENOMEM
+
+  char *p = buf + alloc_size - 1;
+  *p = '\0';
+  do {
+    assert( p != buf );
+    int i = v % base;
+    *--p = i + ((i < 10)? '0' : 'a' - 10);
+    v /= base;
+  } while( v != 0 );
+
+  // precision parameter
+  int precision_remain = (int)pf->fmt.precision - ((buf + alloc_size - 1) - p);
+  while( --precision_remain >= 0 ) {
+    *--p = '0';
+  }
+  pf->fmt.precision = 0;
+
+  // decide pad character and output sign character
+  int ret;
+  int pad;
+  if( pf->fmt.flag_zero ) {
+    pad = '0';
+    if( sign ) {
+      *pf->p++ = sign;
+      if( pf->p >= pf->buf_end ) {
+	ret = -1;
+	goto DONE;
+      }
+      pf->fmt.width--;
     }
+  } else {
+    pad = ' ';
+    if( sign ) *--p = sign;
+  }
+  ret = mrbc_printf_str( pf, p, pad );
+
+ DONE:
+  mrbc_raw_free( buf );
+  return ret;
+}
+
+
+
+//================================================================
+/*! sprintf subcontract function for '%x', '%o', '%b'
+
+  @param  pf	pointer to mrbc_printf.
+  @param  value	output value.
+  @param  bit	n bit. (4=hex, 3=oct, 1=bin)
+  @retval 0	done.
+  @retval -1	buffer full.
+  @note		not terminate ('\0') buffer tail.
+*/
+int mrbc_printf_bit( mrbc_printf *pf, mrbc_int value, int bit )
+{
+  if( pf->fmt.flag_plus || pf->fmt.flag_space ) {
+    return mrbc_printf_int( pf, value, 1 << bit );
   }
 
   if( pf->fmt.flag_minus || pf->fmt.width == 0 ) {
@@ -276,31 +345,41 @@ int mrbc_printf_int( mrbc_printf *pf, mrbc_int value, int base )
   }
   pf->fmt.precision = 0;
 
-  int bias_a = (pf->fmt.type == 'X') ? 'A' - 10 : 'a' - 10;
+  mrbc_int v = value;
+  int offset_a = (pf->fmt.type == 'X') ? 'A' - 10 : 'a' - 10;
+  int mask = (1 << bit) - 1;	// 0x0f, 0x07, 0x01
+  int mchar = mask + ((mask < 10)? '0' : offset_a);
 
   // create string to local buffer
-  char buf[32+2];	// int32 + terminate + 1
+  char buf[40];	// > int32(bit) + '..f\0'
+  assert( sizeof(buf) > (sizeof(mrbc_int) * 8 + 4) );
   char *p = buf + sizeof(buf) - 1;
   *p = '\0';
+  int n;
   do {
-    int i = v % base;
-    *--p = (i < 10)? i + '0' : i + bias_a;
-    v /= base;
-  } while( v != 0 );
+    assert( p >= buf );
+    n = v & mask;
+    *--p = n + ((n < 10)? '0' : offset_a);
+    v >>= bit;
+  } while( v != 0 && v != -1 );
+
+  // add "..f" for negative value?
+  // (note) '0' flag such as "%08x" is incompatible with ruby.
+  if( value < 0 && !pf->fmt.flag_zero ) {
+    if( n != mask ) *--p = mchar;
+    *--p = '.';
+    *--p = '.';
+    assert( p >= buf );
+  }
 
   // decide pad character and output sign character
   int pad;
   if( pf->fmt.flag_zero ) {
-    pad = '0';
-    if( sign ) {
-      *pf->p++ = sign;
-      if( pf->p >= pf->buf_end ) return -1;
-      pf->fmt.width--;
-    }
+    pad = (value < 0) ? mchar : '0';
   } else {
     pad = ' ';
-    if( sign ) *--p = sign;
   }
+
   return mrbc_printf_str( pf, p, pad );
 }
 
