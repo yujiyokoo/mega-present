@@ -290,10 +290,13 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
   if( cls == NULL ) cls = mrbc_class_object;	// set default to Object.
 
   mrbc_proc *proc = mrbc_rproc_alloc(vm, name);
+  if( !proc ) return;	// ENOMEM
+
   proc->c_func = 1;  // c-func
+  proc->func = cfunc;
+
   proc->next = cls->procs;
   cls->procs = proc;
-  proc->func = cfunc;
 }
 
 
