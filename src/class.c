@@ -65,17 +65,17 @@ int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls )
 */
 mrbc_proc *mrbc_rproc_alloc(struct VM *vm, const char *name)
 {
-  mrbc_proc *ptr = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
-  if( !ptr ) return ptr;
+  mrbc_proc *proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
+  if( !proc ) return proc;	// ENOMEM
 
-  ptr->ref_count = 1;
-  ptr->sym_id = str_to_symid(name);
+  proc->ref_count = 1;
+  proc->sym_id = str_to_symid(name);
 #ifdef MRBC_DEBUG
-  ptr->names = name;	// for debug; delete soon.
+  proc->names = name;	// for debug; delete soon.
 #endif
-  ptr->next = 0;
+  proc->next = 0;
 
-  return ptr;
+  return proc;
 }
 
 
@@ -289,11 +289,11 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 {
   if( cls == NULL ) cls = mrbc_class_object;	// set default to Object.
 
-  mrbc_proc *rproc = mrbc_rproc_alloc(vm, name);
-  rproc->c_func = 1;  // c-func
-  rproc->next = cls->procs;
-  cls->procs = rproc;
-  rproc->func = cfunc;
+  mrbc_proc *proc = mrbc_rproc_alloc(vm, name);
+  proc->c_func = 1;  // c-func
+  proc->next = cls->procs;
+  cls->procs = proc;
+  proc->func = cfunc;
 }
 
 
