@@ -3,8 +3,8 @@
   mrubyc memory management.
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2019 Kyushu Institute of Technology.
+  Copyright (C) 2015-2019 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -19,7 +19,7 @@
 #include <assert.h>
 #include "vm.h"
 #include "alloc.h"
-#include "console.h"
+#include "hal/hal.h"
 
 
 // Layer 1st(f) and 2nd(s) model
@@ -93,8 +93,8 @@ typedef struct FREE_BLOCK {
 
 
 // memory pool
-static unsigned int memory_pool_size;
-static uint8_t     *memory_pool;
+static uint8_t *memory_pool;
+static MRBC_ALLOC_MEMSIZE_T memory_pool_size;
 
 // free memory block index
 #define SIZE_FREE_BLOCKS \
@@ -110,7 +110,7 @@ static uint16_t free_sli_bitmap[MRBC_ALLOC_FLI_BIT_WIDTH + 2]; // + sentinel
 //================================================================
 /*! Number of leading zeros.
 
-  @param  x	target (16bit unsined)
+  @param  x	target (16bit unsigned)
   @retval int	nlz value
 */
 static inline int nlz16(uint16_t x)
@@ -188,7 +188,6 @@ static void add_free_block(FREE_BLOCK *target)
   memset( (uint8_t *)target + sizeof(FREE_BLOCK), 0xff,
           target->size - sizeof(FREE_BLOCK) );
 #endif
-
 }
 
 
@@ -284,6 +283,7 @@ void mrbc_init_alloc(void *ptr, unsigned int size)
 {
   assert( size != 0 );
   assert( size <= (MRBC_ALLOC_MEMSIZE_T)(~0) );
+  if( memory_pool != NULL ) return;
 
   memory_pool      = ptr;
   memory_pool_size = size;
@@ -296,6 +296,18 @@ void mrbc_init_alloc(void *ptr, unsigned int size)
   block->prev_offset = 0;
 
   add_free_block(block);
+}
+
+
+//================================================================
+/*! cleanup memory pool
+*/
+void mrbc_cleanup_alloc(void)
+{
+  memory_pool = NULL;
+  memset( free_blocks, 0, sizeof(free_blocks) );
+  free_fli_bitmap = 0;
+  memset( free_sli_bitmap, 0, sizeof(free_sli_bitmap) );
 }
 
 
@@ -346,7 +358,8 @@ void * mrbc_raw_alloc(unsigned int size)
       }
       else {
 	// out of memory
-	console_print("Fatal error: Out of memory.\n");
+	static const char msg[] = "Fatal error: Out of memory.\n";
+	hal_write(1, msg, sizeof(msg)-1);
 	return NULL;  // ENOMEM
       }
     }
@@ -504,33 +517,6 @@ void * mrbc_alloc(const struct VM *vm, unsigned int size)
   if( vm ) SET_VM_ID(ptr, vm->vm_id);
 
   return ptr;
-}
-
-
-//================================================================
-/*! re-allocate memory
-
-  @param  vm	pointer to VM.
-  @param  ptr	Return value of mrbc_alloc()
-  @param  size	request size.
-  @return void * pointer to allocated memory.
-  @retval NULL	error.
-*/
-void * mrbc_realloc(const struct VM *vm, void *ptr, unsigned int size)
-{
-  return mrbc_raw_realloc(ptr, size);
-}
-
-
-//================================================================
-/*! release memory
-
-  @param  vm	pointer to VM.
-  @param  ptr	Return value of mrbc_alloc()
-*/
-void mrbc_free(const struct VM *vm, void *ptr)
-{
-  mrbc_raw_free(ptr);
 }
 
 
