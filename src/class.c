@@ -1142,13 +1142,33 @@ static void mrbc_run_mrblib(void)
 {
   extern const uint8_t mrblib_bytecode[];
 
-  mrbc_vm vm;
-  mrbc_vm_open(&vm);
-  mrbc_load_mrb(&vm, mrblib_bytecode);
-  mrbc_vm_begin(&vm);
-  mrbc_vm_run(&vm);
-  mrbc_vm_end(&vm);
-  //mrbc_vm_close(&vm);
+  mrbc_vm *vm = mrbc_alloc( 0, sizeof(mrbc_vm) );
+  if( !vm ) return;	// ENOMEM
+
+  // insted of mrbc_vm_open()
+  memset(vm, 0, sizeof(mrbc_vm));
+
+  mrbc_load_mrb(vm, mrblib_bytecode);
+  mrbc_vm_begin(vm);
+  mrbc_vm_run(vm);
+
+  // not necessary to call mrbc_vm_end()
+
+  // insted of mrbc_vm_close()
+  mrbc_irep *irep = vm->irep;
+  int i;
+
+  // release pools.
+  for( i = 0; i < irep->plen; i++ ) {
+    mrbc_raw_free( irep->pools[i] );
+  }
+  if( irep->plen ) mrbc_raw_free( irep->pools );
+
+  // release only irep pointer array.
+  if( irep->rlen ) mrbc_raw_free( irep->reps );
+
+  mrbc_raw_free( irep );
+  mrbc_raw_free( vm );
 }
 
 
