@@ -3,8 +3,8 @@
   mruby/c Symbol class
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2019 Kyushu Institute of Technology.
+  Copyright (C) 2015-2019 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -47,6 +47,16 @@ struct SYM_INDEX {
 
 static struct SYM_INDEX sym_index[MAX_SYMBOLS_COUNT];
 static int sym_index_pos;	// point to the last(free) sym_index array.
+
+
+//================================================================
+/*! cleanup
+ */
+void mrbc_cleanup_symbol(void)
+{
+  memset(sym_index, 0, sizeof(sym_index));
+  sym_index_pos = 0;
+}
 
 
 //================================================================

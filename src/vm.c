@@ -58,6 +58,15 @@ static inline int nlz32(uint32_t x)
 
 
 //================================================================
+/*! cleanup
+*/
+void mrbc_cleanup_vm(void)
+{
+  memset(free_vm_bitmap, 0, sizeof(free_vm_bitmap));
+}
+
+
+//================================================================
 /*! get sym[n] from symbol table in irep
 
   @param  p	Pointer to IREP SYMS section.
