@@ -143,7 +143,10 @@ void mrbc_irep_free(mrbc_irep *irep)
 
   // release child ireps.
   for( i = 0; i < irep->rlen; i++ ) {
-    mrbc_irep_free( irep->reps[i] );
+    if( irep->reps[i]->ref_count == 0 ) {
+      mrbc_irep_free( irep->reps[i] );
+    }
+
   }
   if( irep->rlen ) mrbc_raw_free( irep->reps );
 
@@ -748,8 +751,6 @@ static inline int op_send( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   // m is C func
   if( m->c_func ) {
     m->func(vm, regs + ra, rc);
-
-    extern void c_proc_call(mrbc_vm *vm, mrbc_value v[], int argc);
     if( m->func == c_proc_call ) return 0;
 
     int release_reg = ra+1;
@@ -850,8 +851,6 @@ inline static int op_super( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   // m is C func
   if( m->c_func ) {
     m->func(vm, regs + ra, rc);
-
-    extern void c_proc_call(mrbc_vm *vm, mrbc_value v[], int argc);
     if( m->func == c_proc_call ) return 0;
 
     int release_reg = ra+1;
@@ -1609,6 +1608,7 @@ static inline int op_lambda( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
   int rb = GETARG_Bz(code);      // sequence position in irep list
   // int c = GETARG_C(code);    // TODO: Add flags support for OP_LAMBDA
   mrbc_proc *proc = mrbc_rproc_alloc(vm, "(lambda)");
+  if( !proc ) return -1;	// ENOMEM
 
   proc->c_func = 0;
   proc->irep = vm->pc_irep->reps[rb];
@@ -1734,46 +1734,46 @@ static inline int op_method( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 {
   int ra = GETARG_A(code);
   int rb = GETARG_B(code);
+
+  assert( regs[ra].tt == MRBC_TT_CLASS );
+
+  mrbc_class *cls = regs[ra].cls;
   mrbc_proc *proc = regs[ra+1].proc;
 
-  if( regs[ra].tt == MRBC_TT_CLASS ) {
-    mrbc_class *cls = regs[ra].cls;
+  // get sym_id and method name
+  const mrbc_irep *cur_irep = vm->pc_irep;
+  const char *sym_name = mrbc_get_irep_symbol(cur_irep->ptr_to_sym, rb);
+  mrbc_sym sym_id = str_to_symid(sym_name);
 
-    // sym_id : method name
-    mrbc_irep *cur_irep = vm->pc_irep;
-    const char *sym_name = mrbc_get_irep_symbol(cur_irep->ptr_to_sym, rb);
-    int sym_id = str_to_symid(sym_name);
-
-    // check same name method
-    mrbc_proc *p = cls->procs;
-    void *pp = &cls->procs;
-    while( p != NULL ) {
-      if( p->sym_id == sym_id ) break;
-      pp = &p->next;
-      p = p->next;
-    }
-    if( p ) {
-      // found it.
-      *((mrbc_proc**)pp) = p->next;
-      if( !p->c_func ) {
-	mrbc_value v = {.tt = MRBC_TT_PROC};
-	v.proc = p;
-	mrbc_release(&v);
-      }
-    }
-
-    // add proc to class
-    proc->c_func = 0;
-    proc->sym_id = sym_id;
+  proc->sym_id = sym_id;
 #ifdef MRBC_DEBUG
-    proc->names = sym_name;		// debug only.
+  proc->names = sym_name;		// debug only.
 #endif
-    proc->next = cls->procs;
-    cls->procs = proc;
+  proc->irep->ref_count++;
+  mrbc_set_vm_id(proc, 0);
 
-    mrbc_set_vm_id(proc, 0);
-    regs[ra+1].tt = MRBC_TT_EMPTY;
+  // checking same method name
+  mrbc_proc *p = cls->procs;
+  mrbc_proc **pp = &cls->procs;
+  while( p != NULL ) {
+    if( p->sym_id == sym_id ) break;
+    pp = &p->next;
+    p = p->next;
   }
+  if( p ) {
+    // Found it. Unchain it in linked list and remove.
+    *pp = p->next;
+    if( !p->c_func ) {
+      if( --p->irep->ref_count == 0 ) mrbc_irep_free( p->irep );
+      mrbc_raw_free( p );
+    }
+  }
+
+  // add to class
+  proc->next = cls->procs;
+  cls->procs = proc;
+
+  regs[ra+1].tt = MRBC_TT_EMPTY;
 
   return 0;
 }

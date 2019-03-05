@@ -30,6 +30,7 @@ extern "C" {
   IREP Internal REPresentation
 */
 typedef struct IREP {
+  uint16_t ref_count;		//!< reference counter
   uint16_t nlocals;		//!< # of local variables
   uint16_t nregs;		//!< # of register variables
   uint16_t rlen;		//!< # of child IREP blocks
