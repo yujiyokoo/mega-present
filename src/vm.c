@@ -720,6 +720,7 @@ static inline int op_send( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
     regs[bidx].tt = MRBC_TT_NIL;
     break;
 
+
   case OP_SENDB:
     // set Proc object
     if( regs[bidx].tt != MRBC_TT_NIL && regs[bidx].tt != MRBC_TT_PROC ){
@@ -936,11 +937,13 @@ static inline int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 {
   // return value
   int ra = GETARG_A(code);
+  int rb = GETARG_B(code);
 
   mrbc_release(&regs[0]);
   regs[0] = regs[ra];
   regs[ra].tt = MRBC_TT_EMPTY;
 
+  if( rb==OP_R_NORMAL ){
   // nregs to release
   int nregs = vm->pc_irep->nregs;
 
@@ -960,6 +963,22 @@ static inline int op_return( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 
   // release callinfo
   mrbc_free(vm, callinfo);
+
+  } else if( rb==OP_R_BREAK ){
+    // OP_R_BREAK
+    mrbc_callinfo *callinfo = vm->callinfo_tail;
+    mrbc_value *reg_top = callinfo->current_regs;
+    while( callinfo->prev && reg_top==callinfo->current_regs ){
+      mrbc_callinfo *temp = callinfo;
+      callinfo = callinfo->prev;
+      mrbc_free(vm, temp);
+    }
+    vm->callinfo_tail = callinfo->prev;
+    vm->current_regs = callinfo->current_regs;
+    vm->pc_irep = callinfo->pc_irep;
+    vm->pc = callinfo->pc;
+    vm->target_class = callinfo->target_class;
+  }
 
   return 0;
 }

@@ -117,6 +117,16 @@ enum OPCODE {
   OP_ABORT     = 0x50,  // using OP_ABORT inside mruby/c only
 };
 
+//================================================================
+/*!@brief
+  OP_RETURN parameter
+
+*/
+#define OP_R_NORMAL 0
+#define OP_R_BREAK  1
+#define OP_R_RETURN 2
+
+
 #ifdef __cplusplus
 }
 #endif
