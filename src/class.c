@@ -589,8 +589,9 @@ static void c_object_alias_method(struct VM *vm, mrbc_value v[], int argc)
   mrbc_proc *proc_alias = mrbc_alloc(0, sizeof(mrbc_proc));
   if( !proc_alias ) return;		// ENOMEM
   memcpy( proc_alias, proc, sizeof(mrbc_proc) );
+  if( !proc->c_func ) proc->irep->ref_count++;
 
-  // regist procs link.
+  // register procs link.
   proc_alias->sym_id = v[1].i;
 #if defined(MRBC_DEBUG)
   proc_alias->names = symid_to_str(v[1].i);
@@ -713,6 +714,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
     MKOPCODE(OP_ABORT)
     };
    mrbc_irep irep = {
+    0,     // ref_count
     0,     // nlocals
     0,     // nregs
     0,     // rlen
@@ -913,6 +915,8 @@ static void mrbc_init_class_object(struct VM *vm)
 {
   // Class
   mrbc_class_object = mrbc_define_class(vm, "Object", 0);
+  mrbc_class_object->super = 0;		// for in case of repeatedly called.
+
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "initialize", c_ineffect);
   mrbc_define_method(vm, mrbc_class_object, "alias_method", c_object_alias_method);
@@ -1142,10 +1146,9 @@ static void mrbc_run_mrblib(void)
 {
   extern const uint8_t mrblib_bytecode[];
 
+  // instead of mrbc_vm_open()
   mrbc_vm *vm = mrbc_alloc( 0, sizeof(mrbc_vm) );
   if( !vm ) return;	// ENOMEM
-
-  // insted of mrbc_vm_open()
   memset(vm, 0, sizeof(mrbc_vm));
 
   mrbc_load_mrb(vm, mrblib_bytecode);
@@ -1154,20 +1157,8 @@ static void mrbc_run_mrblib(void)
 
   // not necessary to call mrbc_vm_end()
 
-  // insted of mrbc_vm_close()
-  mrbc_irep *irep = vm->irep;
-  int i;
-
-  // release pools.
-  for( i = 0; i < irep->plen; i++ ) {
-    mrbc_raw_free( irep->pools[i] );
-  }
-  if( irep->plen ) mrbc_raw_free( irep->pools );
-
-  // release only irep pointer array.
-  if( irep->rlen ) mrbc_raw_free( irep->reps );
-
-  mrbc_raw_free( irep );
+  // instead of mrbc_vm_close()
+  mrbc_irep_free( vm->irep );
   mrbc_raw_free( vm );
 }
 
