@@ -1906,7 +1906,7 @@ void mrbc_vm_close( struct VM *vm )
   free_vm_bitmap[i] &= ~(1 << (FREE_BITMAP_WIDTH - n - 1));
 
   // free irep and vm
-  mrbc_irep_free( vm->irep );
+  if( vm->irep ) mrbc_irep_free( vm->irep );
   if( vm->flag_need_memfree ) mrbc_raw_free(vm);
 }
 
