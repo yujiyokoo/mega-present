@@ -509,7 +509,8 @@ int is_allocated_memory(void *tgt)
 {
 #if 1
   // check simply.
-  return memory_pool < tgt && tgt < (memory_pool + memory_pool_size);
+  return ((void *)memory_pool < tgt) &&
+    (tgt < (void *)(memory_pool + memory_pool_size));
 
 #else
   // check strictly.
