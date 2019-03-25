@@ -27,6 +27,7 @@ void mrbc_cleanup_alloc(void);
 void *mrbc_raw_alloc(unsigned int size);
 void mrbc_raw_free(void *ptr);
 void *mrbc_raw_realloc(void *ptr, unsigned int size);
+int is_allocated_memory(void *tgt);
 void *mrbc_alloc(const struct VM *vm, unsigned int size);
 void mrbc_free_all(const struct VM *vm);
 void mrbc_set_vm_id(void *ptr, int vm_id);
