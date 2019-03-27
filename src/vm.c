@@ -143,10 +143,7 @@ void mrbc_irep_free(mrbc_irep *irep)
 
   // release child ireps.
   for( i = 0; i < irep->rlen; i++ ) {
-    if( irep->reps[i]->ref_count == 0 ) {
-      mrbc_irep_free( irep->reps[i] );
-    }
-
+    mrbc_irep_free( irep->reps[i] );
   }
   if( irep->rlen ) mrbc_raw_free( irep->reps );
 
@@ -1768,32 +1765,24 @@ static inline int op_method( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 #ifdef MRBC_DEBUG
   proc->names = sym_name;		// debug only.
 #endif
-  proc->irep->ref_count++;
   mrbc_set_vm_id(proc, 0);
-
-  // checking same method name
-  mrbc_proc *p = cls->procs;
-  mrbc_proc **pp = &cls->procs;
-  while( p != NULL ) {
-    if( p->sym_id == sym_id ) break;
-    pp = &p->next;
-    p = p->next;
-  }
-  if( p ) {
-    // Found it. Unchain it in linked list and remove.
-    *pp = p->next;
-    if( !p->c_func ) {
-      if( --p->irep->ref_count == 0 ) mrbc_irep_free( p->irep );
-      mrbc_raw_free( p );
-    }
-  }
 
   // add to class
   proc->next = cls->procs;
   cls->procs = proc;
 
-  regs[ra+1].tt = MRBC_TT_EMPTY;
+  // checking same method name
+  for( ;proc->next != NULL; proc = proc->next ) {
+    if( proc->next->sym_id == sym_id ) {
+      // Found it. Unchain it in linked list and remove.
+      mrbc_proc *del_proc = proc->next;
+      proc->next = proc->next->next;
+      mrbc_raw_free( del_proc );
+      break;
+    }
+  }
 
+  regs[ra+1].tt = MRBC_TT_EMPTY;
   return 0;
 }
 

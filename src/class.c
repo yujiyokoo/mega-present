@@ -589,7 +589,6 @@ static void c_object_alias_method(struct VM *vm, mrbc_value v[], int argc)
   mrbc_proc *proc_alias = mrbc_alloc(0, sizeof(mrbc_proc));
   if( !proc_alias ) return;		// ENOMEM
   memcpy( proc_alias, proc, sizeof(mrbc_proc) );
-  if( !proc->c_func ) proc->irep->ref_count++;
 
   // register procs link.
   proc_alias->sym_id = v[1].i;
@@ -714,7 +713,6 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
     MKOPCODE(OP_ABORT)
     };
    mrbc_irep irep = {
-    0,     // ref_count
     0,     // nlocals
     0,     // nregs
     0,     // rlen
@@ -1158,7 +1156,6 @@ static void mrbc_run_mrblib(void)
   // not necessary to call mrbc_vm_end()
 
   // instead of mrbc_vm_close()
-  mrbc_irep_free( vm->irep );
   mrbc_raw_free( vm );
 }
 
