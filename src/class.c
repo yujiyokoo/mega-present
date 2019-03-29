@@ -1191,5 +1191,5 @@ void mrbc_init_class(void)
   mrbc_init_class_range(0);
   mrbc_init_class_hash(0);
 
-  mrbc_run_mrblib();
+  //  mrbc_run_mrblib();
 }

@@ -72,8 +72,9 @@ typedef struct VM {
   uint8_t        vm_id; // vm_id : 1..n
   const uint8_t *mrb;   // bytecode
 
-  mrbc_irep *pc_irep;    // PC
-  uint16_t  pc;         // PC
+  mrbc_irep *pc_irep;   // PC
+  uint16_t pc;          // PC, soon remove
+  uint8_t *inst;        // instruction
 
   //  uint16_t     reg_top;
   mrbc_value    regs[MAX_REGS_SIZE];

@@ -41,7 +41,7 @@ keyvalue.o: keyvalue.c vm_config.h value.h alloc.h keyvalue.h
 static.o: static.c vm_config.h static.h class.h value.h global.h
 
 global.o: global.c vm_config.h value.h static.h class.h global.h mrubyc.h \
-  errorcode.h vm.h alloc.h symbol.h c_array.h c_hash.h c_numeric.h \
+  vm.h alloc.h symbol.h c_array.h c_hash.h c_numeric.h \
   c_range.h c_string.h load.h console.h hal/hal.h rrt0.h
 
 class.o: class.c vm_config.h value.h alloc.h class.h vm.h keyvalue.h \
@@ -51,8 +51,7 @@ class.o: class.c vm_config.h value.h alloc.h class.h vm.h keyvalue.h \
 symbol.o: symbol.c vm_config.h value.h vm.h class.h alloc.h static.h \
   symbol.h c_string.h c_array.h console.h hal/hal.h
 
-load.o: load.c vm_config.h vm.h value.h class.h load.h errorcode.h \
-  alloc.h
+load.o: load.c vm_config.h vm.h value.h class.h load.h alloc.h
 
 console.o: console.c vm_config.h value.h console.h hal/hal.h
 

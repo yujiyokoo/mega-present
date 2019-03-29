@@ -16,7 +16,6 @@
 
 #include "vm_config.h"
 
-#include "errorcode.h"
 #include "vm.h"
 #include "value.h"
 #include "static.h"
