@@ -443,7 +443,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   @param  vm    pointer of VM.
   @param  inst  pointer to instruction
   @param  regs  pointer to regs
-  @retval -1  No error and exit from vm.
+  @retval 0  No error.
 */
 static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
 {
@@ -477,7 +477,7 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
   @param  vm    pointer of VM.
   @param  inst  pointer to instruction
   @param  regs  pointer to regs
-  @retval -1  No error and exit from vm.
+  @retval 0  No error.
 */
 static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
 {
@@ -518,6 +518,50 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_METHOD
+
+  R(a) = lambda(SEQ[b],L_METHOD)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_TCLASS
+
+  R(a) = target_class
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_release(&regs[a]);
+  regs[a].tt = MRBC_TT_CLASS;
+  regs[a].cls = vm->target_class;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_STOP
 
   stop VM
@@ -529,6 +573,8 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
 */
 static inline int op_stop( mrbc_vm *vm, mrbc_value *regs )
 {
+  FETCH_Z();
+
   //  if( GET_OPCODE(code) == OP_STOP ) {
   //   int i;
   //  for( i = 0; i < MAX_REGS_SIZE; i++ ) {
@@ -694,6 +740,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_ADDI:       ret = op_addi      (vm, regs); break;
 
     case OP_MUL:        ret = op_mul       (vm, regs); break;
+
+    case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
 
     case OP_STOP:       ret = op_stop      (vm, regs); break;
       

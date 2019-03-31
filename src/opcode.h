@@ -69,7 +69,11 @@ enum OPCODE {
   OP_ADDI      = 0x3c,
 
   OP_MUL       = 0x3f,
-  
+
+  OP_METHOD    = 0x56,
+
+  OP_TCLASS    = 0x61,
+
   OP_STOP      = 0x67,
   OP_ABORT     = 0xff,
 };
