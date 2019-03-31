@@ -390,6 +390,52 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_RETURN
+
+  return R(a) (normal)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_release(&regs[0]);
+  regs[0] = regs[a];
+  regs[a].tt = MRBC_TT_EMPTY;
+  
+  // nregs to release
+  int nregs = vm->pc_irep->nregs;
+
+  // restore irep,pc,regs
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  if( callinfo ){
+    vm->callinfo_tail = callinfo->prev;
+    vm->current_regs = callinfo->current_regs;
+    vm->pc_irep = callinfo->pc_irep;
+    vm->pc = callinfo->pc;
+    vm->target_class = callinfo->target_class;
+  }
+  
+  // clear stacked arguments
+  int i;
+  for( i = 1; i < nregs; i++ ) {
+    mrbc_release( &regs[i] );
+  }
+
+  // release callinfo
+  if( callinfo ) mrbc_free(vm, callinfo);
+  
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_ADDI
 
   R(a) = R(a)+mrb_int(b)
@@ -643,9 +689,13 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_SEND:       ret = op_send      (vm, regs); break;
 
+    case OP_RETURN:     ret = op_return    (vm, regs); break;
+      
     case OP_ADDI:       ret = op_addi      (vm, regs); break;
 
     case OP_MUL:        ret = op_mul       (vm, regs); break;
+
+    case OP_STOP:       ret = op_stop      (vm, regs); break;
       
     default:
       console_printf("Skip OP=%02x\n", op);
