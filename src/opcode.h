@@ -49,10 +49,24 @@ enum OPCODE {
   
   OP_LOADI     = 0x03,
 
+  OP_LOADI__1  = 0x05,
+  OP_LOADI_0   = 0x06,
+  OP_LOADI_1   = 0x07,
+  OP_LOADI_2   = 0x08,
+  OP_LOADI_3   = 0x09,
+  OP_LOADI_4   = 0x0a,
+  OP_LOADI_5   = 0x0b,
+  OP_LOADI_6   = 0x0c,
+  OP_LOADI_7   = 0x0d,
+  
   OP_LOADSELF  = 0x10,
 
   OP_SEND      = 0x2e,
   OP_SENDB     = 0x2f,
+
+  OP_ADDI      = 0x3c,
+
+  OP_MUL       = 0x3f,
   
   OP_STOP      = 0x67,
   OP_ABORT     = 0xff,

@@ -259,6 +259,33 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_LOADI_n (n=-1,0,1..7)
+
+  R(a) = R(a)+mrb_int(n)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval -1  No error and exit from vm.
+*/
+static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  // get n
+  int opcode = vm->inst[-2];
+  int n = opcode - OP_LOADI_0;
+
+  mrbc_release(&regs[a]);
+  regs[a] = mrbc_fixnum_value(n);
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_LOADSELF
 
   R(a) = self
@@ -355,6 +382,88 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 
   // new regs
   vm->current_regs += a;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_ADDI
+
+  R(a) = R(a)+mrb_int(b)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval -1  No error and exit from vm.
+*/
+static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+    regs[a].i += b;
+    return 0;
+  }
+
+  #if MRBC_USE_FLOAT
+  if( regs[a].tt == MRBC_TT_FLOAT ) {
+    regs[a].d += b;
+    return 0;
+  }
+  #endif
+
+  not_supported();
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_MUL
+
+  R(a) = R(a)*R(a+1)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval -1  No error and exit from vm.
+*/
+static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Fixnum, Fixnum
+      regs[a].i *= regs[a+1].i;
+      return 0;
+    }
+    #if MRBC_USE_FLOAT
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Fixnum, Float
+      regs[a].tt = MRBC_TT_FLOAT;
+      regs[a].d = regs[a].i * regs[a+1].d;
+      return 0;
+    }
+  }
+  if( regs[a].tt == MRBC_TT_FLOAT ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Float, Fixnum
+      regs[a].d *= regs[a+1].i;
+      return 0;
+    }
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Float, Float
+      regs[a].d *= regs[a+1].d;
+      return 0;
+    }
+    #endif
+  }
+  
+  // other case
+  //op_send(vm, code, regs);
+  mrbc_release(&regs[a+1]);
 
   return 0;
 }
@@ -520,10 +629,24 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_LOADI:      ret = op_loadi     (vm, regs); break;
 
+    case OP_LOADI__1:
+    case OP_LOADI_0:
+    case OP_LOADI_1:
+    case OP_LOADI_2:
+    case OP_LOADI_3:
+    case OP_LOADI_4:
+    case OP_LOADI_5:
+    case OP_LOADI_6:
+    case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
+      
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
 
     case OP_SEND:       ret = op_send      (vm, regs); break;
 
+    case OP_ADDI:       ret = op_addi      (vm, regs); break;
+
+    case OP_MUL:        ret = op_mul       (vm, regs); break;
+      
     default:
       console_printf("Skip OP=%02x\n", op);
       break;
