@@ -217,7 +217,7 @@ static inline int op_nop( mrbc_vm *vm, mrbc_value *regs )
 /*!@brief
   Execute OP_MOVE
 
-  move
+  R(a) = R(b)
 
   @param  vm    pointer of VM.
   @param  inst  pointer to instruction
@@ -238,6 +238,8 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
 /*!@brief
   Execute OP_LOADI
 
+  R(a) = mrb_int(b)
+
   @param  vm    pointer of VM.
   @param  inst  pointer to instruction
   @param  regs  pointer to regs
@@ -246,6 +248,7 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
+
   mrbc_release(&regs[a]);
   regs[a] = mrbc_fixnum_value(b);
   return 0;
@@ -258,7 +261,7 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
 /*!@brief
   Execute OP_LOADSELF
 
-  
+  R(a) = self
 
   @param  vm    pointer of VM.
   @param  inst  pointer to instruction
@@ -268,9 +271,91 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
+  
   mrbc_release(&regs[a]);
   mrbc_dup(&regs[0]);
   regs[a] = regs[0];
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_SEND
+
+  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BBB();
+
+  mrbc_value recv = regs[a];
+
+  // Block param
+  int bidx = a + c + 1;
+  int opcode = OP_SEND;
+  switch( opcode ) {
+  case OP_SEND:
+    // set nil
+    mrbc_release( &regs[bidx] );
+    regs[bidx].tt = MRBC_TT_NIL;
+    break;
+
+  case OP_SENDB:
+    // set Proc object
+    if( regs[bidx].tt != MRBC_TT_NIL && regs[bidx].tt != MRBC_TT_PROC ){
+      // TODO: fix the following behavior
+      // convert to Proc ?
+      // raise exceprion in mruby/c ?
+      return 0;
+    }
+    break;
+
+  default:
+    break;
+  }
+
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  mrbc_sym sym_id = str_to_symid(sym_name);
+  mrbc_proc *m = find_method(vm, &recv, sym_id);
+
+  if( m == 0 ) {
+    mrb_class *cls = find_class_by_object( vm, &recv );
+    console_printf("No method. Class:%s Method:%s\n",
+		   symid_to_str(cls->sym_id), sym_name );
+    return 0;
+  }
+
+  // m is C func
+  if( m->c_func ) {
+    m->func(vm, regs + a, c);
+    if( m->func == c_proc_call ) return 0;
+
+    int release_reg = a+1;
+    while( release_reg <= bidx ) {
+      mrbc_release(&regs[release_reg]);
+      release_reg++;
+    }
+    return 0;
+  }
+
+  // m is Ruby method.
+  // callinfo
+  mrbc_push_callinfo(vm, sym_id, c);
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = m->irep;
+
+  // new regs
+  vm->current_regs += a;
+
   return 0;
 }
 
@@ -432,8 +517,13 @@ int mrbc_vm_run( struct VM *vm )
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
     case OP_MOVE:       ret = op_move      (vm, regs); break;
+
     case OP_LOADI:      ret = op_loadi     (vm, regs); break;
+
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
+
+    case OP_SEND:       ret = op_send      (vm, regs); break;
+
     default:
       console_printf("Skip OP=%02x\n", op);
       break;

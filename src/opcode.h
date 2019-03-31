@@ -51,7 +51,8 @@ enum OPCODE {
 
   OP_LOADSELF  = 0x10,
 
-  OP_SEND      = 0x50,  // Bug
+  OP_SEND      = 0x2e,
+  OP_SENDB     = 0x2f,
   
   OP_STOP      = 0x67,
   OP_ABORT     = 0xff,
