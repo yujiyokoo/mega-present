@@ -49,8 +49,8 @@
    $ export LDFLAGS=-lm
    $ make
 
-   on utuntu
-   $ export LDFAGS="-Wl,--no-as-needed -lm"
+   on ubuntu
+   $ export LDFLAGS="-Wl,--no-as-needed -lm"
    $ make
 */
 
