@@ -95,8 +95,8 @@ const char * mrbc_get_irep_symbol( const uint8_t *p, int n )
 */
 const char *mrbc_get_callee_name( struct VM *vm )
 {
-  uint32_t code = bin_to_uint32(vm->pc_irep->code + (vm->pc - 1) * 4);
-  //int rb = GETARG_B(code);  // index of method sym
+  // uint32_t code = bin_to_uint32(vm->pc_irep->code + (vm->pc - 1) * 4);
+  // int rb = GETARG_B(code);  // index of method sym
   int rb = 0;
   return mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
 }
@@ -167,6 +167,7 @@ void mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
+  callinfo->inst = vm->inst;
   callinfo->mid = mid;
   callinfo->n_args = n_args;
   callinfo->target_class = vm->target_class;
@@ -326,27 +327,9 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 
   // Block param
   int bidx = a + c + 1;
-  int opcode = OP_SEND;
-  switch( opcode ) {
-  case OP_SEND:
-    // set nil
-    mrbc_release( &regs[bidx] );
-    regs[bidx].tt = MRBC_TT_NIL;
-    break;
 
-  case OP_SENDB:
-    // set Proc object
-    if( regs[bidx].tt != MRBC_TT_NIL && regs[bidx].tt != MRBC_TT_PROC ){
-      // TODO: fix the following behavior
-      // convert to Proc ?
-      // raise exceprion in mruby/c ?
-      return 0;
-    }
-    break;
-
-  default:
-    break;
-  }
+  mrbc_release( &regs[bidx] );
+  regs[bidx].tt = MRBC_TT_NIL;
 
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
@@ -379,9 +362,30 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
   // target irep
   vm->pc = 0;
   vm->pc_irep = m->irep;
+  vm->inst = m->irep->code;
 
   // new regs
   vm->current_regs += a;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_ENTER
+
+  arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_W();
 
   return 0;
 }
@@ -417,6 +421,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
     vm->current_regs = callinfo->current_regs;
     vm->pc_irep = callinfo->pc_irep;
     vm->pc = callinfo->pc;
+    vm->inst = callinfo->inst;
     vm->target_class = callinfo->target_class;
   }
   
@@ -516,6 +521,44 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
 
 
 
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_STRING
+
+  R(a) = str_dup(Lit(b))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+#if MRBC_USE_STRING
+  mrbc_object *pool_obj = vm->pc_irep->pools[b];
+
+  /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
+  int len = bin_to_uint16(pool_obj->str - 2);
+  mrbc_value value = mrbc_string_new(vm, pool_obj->str, len);
+  if( value.string == NULL ) return -1;         // ENOMEM
+
+  mrbc_release(&regs[a]);
+  regs[a] = value;
+
+  #else
+  not_supported();
+  #endif
+
+  return 0;
+}
+
+
+
 //================================================================
 /*!@brief
   Execute OP_METHOD
@@ -530,6 +573,57 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
+
+  mrbc_release(&regs[a]);
+
+  // new proc
+  mrbc_proc *proc = mrbc_rproc_alloc(vm, "");
+  if( !proc ) return 0;	// ENOMEM
+  proc->c_func = 0;
+  proc->sym_id = -1;
+  proc->next = NULL;
+  proc->irep = vm->pc_irep->reps[b];
+
+  regs[a].tt = MRBC_TT_PROC;
+  regs[a].proc = proc;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_DEF
+
+  R(a).newmethod(Syms(b),R(a+1))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  assert( regs[a].tt == MRBC_TT_CLASS );
+  assert( regs[a+1].tt == MRBC_TT_PROC );
+
+  mrbc_class *cls = regs[a].cls;
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  mrbc_sym sym_id = str_to_symid(sym_name);
+
+  mrbc_proc *proc = regs[a+1].proc;
+  proc->sym_id = sym_id;
+
+#ifdef MRBC_DEBUG
+  proc->names = sym_name;
+#endif
+
+  proc->ref_count++;
+  proc->next = cls->procs;
+  cls->procs = proc;
 
   return 0;
 }
@@ -715,6 +809,10 @@ int mrbc_vm_run( struct VM *vm )
 
     // Dispatch
     uint8_t op = *vm->inst++;
+
+    // for DEBUG
+    // console_printf("(OP=%02x)\n", op);
+
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
     case OP_MOVE:       ret = op_move      (vm, regs); break;
@@ -735,11 +833,19 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_SEND:       ret = op_send      (vm, regs); break;
 
+    case OP_ENTER:      ret = op_enter     (vm, regs); break;
+
     case OP_RETURN:     ret = op_return    (vm, regs); break;
       
     case OP_ADDI:       ret = op_addi      (vm, regs); break;
 
     case OP_MUL:        ret = op_mul       (vm, regs); break;
+
+    case OP_STRING:     ret = op_string    (vm, regs); break;
+
+    case OP_METHOD:     ret = op_method    (vm, regs); break;
+
+    case OP_DEF:        ret = op_def       (vm, regs); break;
 
     case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
 

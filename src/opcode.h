@@ -64,13 +64,19 @@ enum OPCODE {
   OP_SEND      = 0x2e,
   OP_SENDB     = 0x2f,
 
+  OP_ENTER     = 0x33,
+
   OP_RETURN    = 0x37,
   
   OP_ADDI      = 0x3c,
 
   OP_MUL       = 0x3f,
 
+  OP_STRING    = 0x4f,
+
   OP_METHOD    = 0x56,
+
+  OP_DEF       = 0x5d,
 
   OP_TCLASS    = 0x61,
 
