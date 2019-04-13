@@ -69,7 +69,8 @@ enum OPCODE {
   OP_ENTER     = 0x33,
 
   OP_RETURN    = 0x37,
-  
+
+  OP_ADD       = 0x3b,
   OP_ADDI      = 0x3c,
 
   OP_SUBI      = 0x3e,

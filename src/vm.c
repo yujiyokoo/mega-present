@@ -466,6 +466,52 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_ADD
+
+  R(a) = R(a)+R(a+1)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_add( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Fixnum, Fixnum
+      regs[a].i += regs[a+1].i;
+      return 0;
+    }
+#if MRBC_USE_FLOAT
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Fixnum, Float
+      regs[a].tt = MRBC_TT_FLOAT;
+      regs[a].d = regs[a].i + regs[a+1].d;
+      return 0;
+    }
+  }
+  if( regs[a].tt == MRBC_TT_FLOAT ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Float, Fixnum
+      regs[a].d += regs[a+1].i;
+      return 0;
+    }
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Float, Float
+      regs[a].d += regs[a+1].d;
+      return 0;
+    }
+#endif
+  }
+
+  not_supported();
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_ADDI
 
   R(a) = R(a)+mrb_int(b)
@@ -947,7 +993,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_ENTER:      ret = op_enter     (vm, regs); break;
 
     case OP_RETURN:     ret = op_return    (vm, regs); break;
-      
+
+    case OP_ADD:        ret = op_add       (vm, regs); break;
     case OP_ADDI:       ret = op_addi      (vm, regs); break;
 
     case OP_SUBI:       ret = op_subi      (vm, regs); break;
