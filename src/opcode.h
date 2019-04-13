@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 
-#define PEEK_B(pc) (*(pc))
+#define PEEK_B(pc) ((pc)[0])
 #define PEEK_S(pc) ((pc)[0]<<8|(pc)[1])
 #define PEEK_W(pc) ((pc)[0]<<16|(pc)[1]<<8|(pc)[2])
 
@@ -72,6 +72,7 @@ enum OPCODE {
   
   OP_ADDI      = 0x3c,
 
+  OP_SUBI      = 0x3e,
   OP_MUL       = 0x3f,
 
   OP_LE        = 0x43,

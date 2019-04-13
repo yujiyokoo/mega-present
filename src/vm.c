@@ -325,7 +325,7 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs )
 
   if( regs[a].tt <= MRBC_TT_FALSE ) {
     //    vm->pc += b - 1;
-    vm->inst += b;
+    vm->inst = vm->pc_irep->code + b;
   }
 
   return 0;
@@ -500,6 +500,40 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_SUBI
+
+  R(a) = R(a)-mrb_int(b)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_subi( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+    regs[a].i -= b;
+    return 0;
+  }
+
+#if MRBC_USE_FLOAT
+  if( regs[a].tt == MRBC_TT_FLOAT ) {
+    regs[a].d -= b;
+    return 0;
+  }
+#endif
+
+  not_supported();
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_MUL
 
   R(a) = R(a)*R(a+1)
@@ -570,7 +604,7 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
       result = regs[a].i <= regs[a+1].i;      // in case of Fixnum, Fixnum
       goto DONE;
     }
-    #if MRBC_USE_FLOAT
+#if MRBC_USE_FLOAT
     if( regs[a+1].tt == MRBC_TT_FLOAT ) {
       result = regs[a].i <= regs[a+1].d;      // in case of Fixnum, Float
       goto DONE;
@@ -585,14 +619,11 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
       result = regs[a].d <= regs[a+1].d;      // in case of Float, Float
       goto DONE;
     }
-    #endif
-
+#endif
   }
 
-  // other case
-  //  op_send(vm, code, regs);
-  // mrbc_release(&regs[a+1]);
-  // return 0;
+  // TODO: other cases
+  //
 
  DONE:
   regs[a].tt = result ? MRBC_TT_TRUE : MRBC_TT_FALSE;
@@ -919,6 +950,7 @@ int mrbc_vm_run( struct VM *vm )
       
     case OP_ADDI:       ret = op_addi      (vm, regs); break;
 
+    case OP_SUBI:       ret = op_subi      (vm, regs); break;
     case OP_MUL:        ret = op_mul       (vm, regs); break;
 
     case OP_LE:         ret = op_le        (vm, regs); break;
