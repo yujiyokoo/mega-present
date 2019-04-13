@@ -310,6 +310,31 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_JMPNOT
+
+  if !R(b) pc=a
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BS();
+
+  if( regs[a].tt <= MRBC_TT_FALSE ) {
+    //    vm->pc += b - 1;
+    vm->inst += b;
+  }
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_SEND
 
   R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
@@ -521,6 +546,59 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
 
 
 
+
+
+//================================================================
+/*!@brief
+  Execute OP_LE
+
+  R(a) = R(a)<=R(a+1)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  int result;
+
+  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
+      result = regs[a].i <= regs[a+1].i;      // in case of Fixnum, Fixnum
+      goto DONE;
+    }
+    #if MRBC_USE_FLOAT
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
+      result = regs[a].i <= regs[a+1].d;      // in case of Fixnum, Float
+      goto DONE;
+    }
+  }
+  if( regs[a].tt == MRBC_TT_FLOAT ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
+      result = regs[a].d <= regs[a+1].i;      // in case of Float, Fixnum
+      goto DONE;
+    }
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
+      result = regs[a].d <= regs[a+1].d;      // in case of Float, Float
+      goto DONE;
+    }
+    #endif
+
+  }
+
+  // other case
+  //  op_send(vm, code, regs);
+  // mrbc_release(&regs[a+1]);
+  // return 0;
+
+ DONE:
+  regs[a].tt = result ? MRBC_TT_TRUE : MRBC_TT_FALSE;
+
+  return 0;
+}
 
 
 
@@ -831,6 +909,8 @@ int mrbc_vm_run( struct VM *vm )
       
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
 
+    case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
+
     case OP_SEND:       ret = op_send      (vm, regs); break;
 
     case OP_ENTER:      ret = op_enter     (vm, regs); break;
@@ -840,6 +920,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_ADDI:       ret = op_addi      (vm, regs); break;
 
     case OP_MUL:        ret = op_mul       (vm, regs); break;
+
+    case OP_LE:         ret = op_le        (vm, regs); break;
 
     case OP_STRING:     ret = op_string    (vm, regs); break;
 

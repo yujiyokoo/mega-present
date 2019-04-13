@@ -34,8 +34,8 @@ extern "C" {
 #define FETCH_B() uint32_t a=READ_B()
 #define FETCH_BB() uint32_t a=READ_B(); uint16_t b=READ_B()
 #define FETCH_BBB() uint32_t a=READ_B(); uint16_t b=READ_B(); uint8_t c=READ_B()
-#define FETCH_BS() uint32_t a=READ_B(); uint16_t b=READ_S()
-#define FETCH_S() uint32_t a=READ_S()
+#define FETCH_BS() uint32_t a=READ_B(); int16_t b=READ_S()
+#define FETCH_S() int32_t a=READ_S()
 #define FETCH_W() uint32_t a=READ_W()
 
   
@@ -61,6 +61,8 @@ enum OPCODE {
   
   OP_LOADSELF  = 0x10,
 
+  OP_JMPNOT    = 0x23,
+
   OP_SEND      = 0x2e,
   OP_SENDB     = 0x2f,
 
@@ -71,6 +73,8 @@ enum OPCODE {
   OP_ADDI      = 0x3c,
 
   OP_MUL       = 0x3f,
+
+  OP_LE        = 0x43,
 
   OP_STRING    = 0x4f,
 
