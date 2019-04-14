@@ -310,6 +310,52 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_LOADF
+
+  R(a) = false
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_loadt( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_release(&regs[a]);
+  regs[a].tt = MRBC_TT_TRUE;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_LOADF
+
+  R(a) = false
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_loadf( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_release(&regs[a]);
+  regs[a].tt = MRBC_TT_FALSE;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_GETGV
 
   R(a) = getglobal(Syms(b))
@@ -1101,7 +1147,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
       
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
-
+    case OP_LOADT:      ret = op_loadt     (vm, regs); break;
+    case OP_LOADF:      ret = op_loadf     (vm, regs); break;
     case OP_GETGV:      ret = op_getgv     (vm, regs); break;
     case OP_SETGV:      ret = op_setgv     (vm, regs); break;
 

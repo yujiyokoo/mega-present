@@ -60,7 +60,8 @@ enum OPCODE {
   OP_LOADI_7   = 0x0d,
   
   OP_LOADSELF  = 0x10,
-
+  OP_LOADT     = 0x11,
+  OP_LOADF     = 0x12,
   OP_GETGV     = 0x13,
   OP_SETGV     = 0x14,
 
