@@ -287,6 +287,29 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_LOADNIL
+
+  R(a) = nil
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_release(&regs[a]);
+  regs[a].tt = MRBC_TT_NIL;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_LOADSELF
 
   R(a) = self
@@ -472,6 +495,28 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_JMP
+
+  pc=a
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_S();
+
+  vm->inst = vm->pc_irep->code + a;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_JMPNOT
 
   if !R(b) pc=a
@@ -486,7 +531,6 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   if( regs[a].tt <= MRBC_TT_FALSE ) {
-    //    vm->pc += b - 1;
     vm->inst = vm->pc_irep->code + b;
   }
 
@@ -1154,7 +1198,7 @@ int mrbc_vm_run( struct VM *vm )
     uint8_t op = *vm->inst++;
 
     // for DEBUG
-    // console_printf("(OP=%02x)\n", op);
+    console_printf("(OP=%02x)\n", op);
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
@@ -1172,6 +1216,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADI_6:
     case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
       
+    case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
     case OP_LOADT:      ret = op_loadt     (vm, regs); break;
     case OP_LOADF:      ret = op_loadf     (vm, regs); break;
@@ -1180,6 +1225,8 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_GETCONST:   ret = op_getconst  (vm, regs); break;
     case OP_SETCONST:   ret = op_setconst  (vm, regs); break;
+
+    case OP_JMP:        ret = op_jmp       (vm, regs); break;
 
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
 
