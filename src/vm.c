@@ -367,6 +367,65 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_GETCONST
+
+  R(a) = constget(Syms(b))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  mrbc_sym sym_id = str_to_symid(sym_name);
+
+  mrbc_release(&regs[a]);
+  mrbc_value *v = mrbc_get_const(sym_id);
+  if( v == NULL ) {             // raise?
+    console_printf( "NameError: uninitialized constant %s\n",
+		    symid_to_str( sym_id ));
+    return 0;
+  }
+
+  mrbc_dup(v);
+  regs[a] = *v;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_SETCONST
+
+  constset(Syms(b),R(a))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  mrbc_sym sym_id = str_to_symid(sym_name);
+  mrbc_dup(&regs[a]);
+  mrbc_set_const(sym_id, &regs[a]);
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_JMPNOT
 
   if !R(b) pc=a
@@ -1045,6 +1104,9 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_GETGV:      ret = op_getgv     (vm, regs); break;
     case OP_SETGV:      ret = op_setgv     (vm, regs); break;
+
+    case OP_GETCONST:   ret = op_getconst  (vm, regs); break;
+    case OP_SETCONST:   ret = op_setconst  (vm, regs); break;
 
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
 

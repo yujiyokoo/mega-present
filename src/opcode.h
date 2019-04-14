@@ -64,6 +64,9 @@ enum OPCODE {
   OP_GETGV     = 0x13,
   OP_SETGV     = 0x14,
 
+  OP_GETCONST  = 0x1b,
+  OP_SETCONST  = 0x1c,
+
   OP_JMPNOT    = 0x23,
 
   OP_SEND      = 0x2e,
