@@ -58,7 +58,8 @@ enum OPCODE {
   OP_LOADI_5   = 0x0b,
   OP_LOADI_6   = 0x0c,
   OP_LOADI_7   = 0x0d,
-  
+
+  OP_LOADNIL   = 0x0f,
   OP_LOADSELF  = 0x10,
   OP_LOADT     = 0x11,
   OP_LOADF     = 0x12,
@@ -67,6 +68,8 @@ enum OPCODE {
 
   OP_GETCONST  = 0x1b,
   OP_SETCONST  = 0x1c,
+
+  OP_JMP       = 0x21,
 
   OP_JMPNOT    = 0x23,
 
