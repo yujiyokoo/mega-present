@@ -792,6 +792,32 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_EQ
+
+  R(a) = R(a)==R(a+1)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_eq( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  int result = mrbc_compare(&regs[a], &regs[a+1]);
+
+  mrbc_release(&regs[a+1]);
+  mrbc_release(&regs[a]);
+  regs[a].tt = result ? MRBC_TT_FALSE : MRBC_TT_TRUE;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_LE
 
   R(a) = R(a)<=R(a+1)
@@ -1168,6 +1194,8 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_SUBI:       ret = op_subi      (vm, regs); break;
     case OP_MUL:        ret = op_mul       (vm, regs); break;
+
+    case OP_EQ:         ret = op_eq        (vm, regs); break;
 
     case OP_LE:         ret = op_le        (vm, regs); break;
 

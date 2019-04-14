@@ -83,6 +83,8 @@ enum OPCODE {
   OP_SUBI      = 0x3e,
   OP_MUL       = 0x3f,
 
+  OP_EQ        = 0x41,
+
   OP_LE        = 0x43,
 
   OP_STRING    = 0x4f,
