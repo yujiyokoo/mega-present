@@ -287,6 +287,33 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_LOADSYM
+
+  R(a) = Syms(b)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  mrbc_sym sym_id = str_to_symid(sym_name);
+
+  mrbc_release(&regs[a]);
+  regs[a].tt = MRBC_TT_SYMBOL;
+  regs[a].i = sym_id;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_LOADNIL
 
   R(a) = nil
@@ -1301,7 +1328,7 @@ int mrbc_vm_run( struct VM *vm )
     uint8_t op = *vm->inst++;
 
     // for DEBUG
-    // console_printf("(OP=%02x)\n", op);
+    console_printf("(OP=%02x)\n", op);
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
@@ -1318,7 +1345,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADI_5:
     case OP_LOADI_6:
     case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
-      
+    case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
     case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
     case OP_LOADT:      ret = op_loadt     (vm, regs); break;
