@@ -95,6 +95,9 @@ enum OPCODE {
 
   OP_METHOD    = 0x56,
 
+  OP_CLASS     = 0x5a,
+
+  OP_EXEC      = 0x5c,
   OP_DEF       = 0x5d,
 
   OP_TCLASS    = 0x61,

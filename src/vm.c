@@ -1017,6 +1017,73 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_CLASS
+
+  R(a) = newclass(R(a),Syms(b),R(a+1))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  mrbc_irep *cur_irep = vm->pc_irep;
+  const char *sym_name = mrbc_get_irep_symbol(cur_irep->ptr_to_sym, b);
+  mrbc_class *super = (regs[a+1].tt == MRBC_TT_CLASS) ? regs[a+1].cls : mrbc_class_object;
+
+  mrbc_class *cls = mrbc_define_class(vm, sym_name, super);
+
+  mrbc_value ret = {.tt = MRBC_TT_CLASS};
+  ret.cls = cls;
+
+  regs[a] = ret;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_EXEC
+
+  R(a) = blockexec(R(a),SEQ[b])
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  mrbc_value recv = regs[a];
+
+  // prepare callinfo
+  mrbc_push_callinfo(vm, 0, 0);
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = vm->irep->reps[b];
+  vm->inst = vm->pc_irep->code;
+
+  // new regs
+  vm->current_regs += a;
+
+  vm->target_class = find_class_by_object(vm, &recv);
+
+  return 0;
+}
+
+
+
+
+//================================================================
+/*!@brief
   Execute OP_DEF
 
   R(a).newmethod(Syms(b),R(a+1))
@@ -1287,6 +1354,9 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_METHOD:     ret = op_method    (vm, regs); break;
 
+    case OP_CLASS:      ret = op_class     (vm, regs); break;
+
+    case OP_EXEC:       ret = op_exec      (vm, regs); break;
     case OP_DEF:        ret = op_def       (vm, regs); break;
 
     case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
