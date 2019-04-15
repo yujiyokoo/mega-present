@@ -937,9 +937,45 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
   mrbc_release(&regs[a]);
   regs[a] = value;
 
-  #else
+#else
   not_supported();
-  #endif
+#endif
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_STRCAT
+
+  str_cat(R(a),R(a+1))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+#if MRBC_USE_STRING
+  // call "to_s"
+  mrbc_sym sym_id = str_to_symid("to_s");
+  mrbc_proc *m = find_method(vm, &regs[a+1], sym_id);
+  if( m && m->c_func ){
+    m->func(vm, regs+a, 0);
+  }
+
+  mrbc_value v = mrbc_string_add(vm, &regs[a], &regs[a+1]);
+  mrbc_release(&regs[a]);
+  regs[a] = v;
+
+#else
+  not_supported();
+#endif
 
   return 0;
 }
@@ -1247,6 +1283,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LE:         ret = op_le        (vm, regs); break;
 
     case OP_STRING:     ret = op_string    (vm, regs); break;
+    case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
 
     case OP_METHOD:     ret = op_method    (vm, regs); break;
 
