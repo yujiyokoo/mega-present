@@ -88,7 +88,7 @@ enum OPCODE {
   OP_MUL       = 0x3f,
   OP_DIV       = 0x40,
   OP_EQ        = 0x41,
-
+  OP_LT        = 0x42,
   OP_LE        = 0x43,
 
   OP_STRING    = 0x4f,
