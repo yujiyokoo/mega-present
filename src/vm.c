@@ -827,6 +827,52 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_SUB
+
+  R(a) = R(a)-R(a+1)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_sub( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Fixnum, Fixnum
+      regs[a].i -= regs[a+1].i;
+      return 0;
+    }
+#if MRBC_USE_FLOAT
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Fixnum, Float
+      regs[a].tt = MRBC_TT_FLOAT;
+      regs[a].d = regs[a].i - regs[a+1].d;
+      return 0;
+    }
+  }
+  if( regs[a].tt == MRBC_TT_FLOAT ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Float, Fixnum
+      regs[a].d -= regs[a+1].i;
+      return 0;
+    }
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Float, Float
+      regs[a].d -= regs[a+1].d;
+      return 0;
+    }
+#endif
+  }
+
+  not_supported();
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_SUBI
 
   R(a) = R(a)-mrb_int(b)
@@ -898,6 +944,56 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
     #endif
   }
   
+  // other case
+  //op_send(vm, code, regs);
+  mrbc_release(&regs[a+1]);
+
+  return 0;
+}
+
+
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_DIV
+
+  R(a) = R(a)/R(a+1)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_div( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Fixnum, Fixnum
+      regs[a].i /= regs[a+1].i;
+      return 0;
+    }
+    #if MRBC_USE_FLOAT
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Fixnum, Float
+      regs[a].tt = MRBC_TT_FLOAT;
+      regs[a].d = regs[a].i / regs[a+1].d;
+      return 0;
+    }
+  }
+  if( regs[a].tt == MRBC_TT_FLOAT ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Float, Fixnum
+      regs[a].d /= regs[a+1].i;
+      return 0;
+    }
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Float, Float
+      regs[a].d /= regs[a+1].d;
+      return 0;
+    }
+    #endif
+  }
+
   // other case
   //op_send(vm, code, regs);
   mrbc_release(&regs[a+1]);
@@ -1417,10 +1513,10 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_ADD:        ret = op_add       (vm, regs); break;
     case OP_ADDI:       ret = op_addi      (vm, regs); break;
-
+    case OP_SUB:        ret = op_sub       (vm, regs); break;
     case OP_SUBI:       ret = op_subi      (vm, regs); break;
     case OP_MUL:        ret = op_mul       (vm, regs); break;
-
+    case OP_DIV:        ret = op_div       (vm, regs); break;
     case OP_EQ:         ret = op_eq        (vm, regs); break;
 
     case OP_LE:         ret = op_le        (vm, regs); break;

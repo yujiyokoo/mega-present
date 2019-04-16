@@ -83,10 +83,10 @@ enum OPCODE {
 
   OP_ADD       = 0x3b,
   OP_ADDI      = 0x3c,
-
+  OP_SUB       = 0x3d,
   OP_SUBI      = 0x3e,
   OP_MUL       = 0x3f,
-
+  OP_DIV       = 0x40,
   OP_EQ        = 0x41,
 
   OP_LE        = 0x43,
