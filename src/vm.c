@@ -1135,6 +1135,36 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_ARRAY
+
+  R(a) = ary_new(R(a),R(a+1)..R(a+b))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_array( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  mrbc_value value = mrbc_array_new(vm, b);
+  if( value.array == NULL ) return -1;  // ENOMEM
+
+  memcpy( value.array->data, &regs[a], sizeof(mrbc_value) * b );
+  memset( &regs[a], 0, sizeof(mrbc_value) * b );
+  value.array->n_stored = b;
+
+  mrbc_release(&regs[a]);
+  regs[a] = value;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_STRING
 
   R(a) = str_dup(Lit(b))
@@ -1523,7 +1553,7 @@ int mrbc_vm_run( struct VM *vm )
     uint8_t op = *vm->inst++;
 
     // for DEBUG
-    console_printf("(OP=%02x)\n", op);
+    // console_printf("(OP=%02x)\n", op);
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
@@ -1571,6 +1601,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_EQ:         ret = op_eq        (vm, regs); break;
     case OP_LT:         ret = op_lt        (vm, regs); break;
     case OP_LE:         ret = op_le        (vm, regs); break;
+
+    case OP_ARRAY:      ret = op_array     (vm, regs); break;
 
     case OP_STRING:     ret = op_string    (vm, regs); break;
     case OP_STRCAT:     ret = op_strcat    (vm, regs); break;

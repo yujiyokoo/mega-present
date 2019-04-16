@@ -91,6 +91,8 @@ enum OPCODE {
   OP_LT        = 0x42,
   OP_LE        = 0x43,
 
+  OP_ARRAY     = 0x46,
+
   OP_STRING    = 0x4f,
   OP_STRCAT    = 0x50,
 
