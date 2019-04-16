@@ -544,6 +544,30 @@ static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_JMPIF
+
+  if R(b) pc=a
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BS();
+
+  if( regs[a].tt > MRBC_TT_FALSE ) {
+    vm->inst = vm->pc_irep->code + b;
+  }
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_JMPNOT
 
   if !R(b) pc=a
@@ -558,6 +582,30 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   if( regs[a].tt <= MRBC_TT_FALSE ) {
+    vm->inst = vm->pc_irep->code + b;
+  }
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_JMPNIL
+
+  if R(b)==nil pc=a
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BS();
+
+  if( regs[a].tt == MRBC_TT_NIL ) {
     vm->inst = vm->pc_irep->code + b;
   }
 
@@ -1357,8 +1405,9 @@ int mrbc_vm_run( struct VM *vm )
     case OP_SETCONST:   ret = op_setconst  (vm, regs); break;
 
     case OP_JMP:        ret = op_jmp       (vm, regs); break;
-
+    case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
+    case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
 
     case OP_SEND:       ret = op_send      (vm, regs); break;
 
