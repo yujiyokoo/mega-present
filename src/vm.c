@@ -1163,6 +1163,108 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_GT
+
+  R(a) = R(a)>R(a+1)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_gt( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  int result;
+
+  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
+      result = regs[a].i > regs[a+1].i;      // in case of Fixnum, Fixnum
+      goto DONE;
+    }
+#if MRBC_USE_FLOAT
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
+      result = regs[a].i > regs[a+1].d;      // in case of Fixnum, Float
+      goto DONE;
+    }
+  }
+  if( regs[a].tt == MRBC_TT_FLOAT ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
+      result = regs[a].d > regs[a+1].i;      // in case of Float, Fixnum
+      goto DONE;
+    }
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
+      result = regs[a].d > regs[a+1].d;      // in case of Float, Float
+      goto DONE;
+    }
+#endif
+  }
+
+  // TODO: other cases
+  //
+
+ DONE:
+  regs[a].tt = result ? MRBC_TT_TRUE : MRBC_TT_FALSE;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_GE
+
+  R(a) = R(a)>=R(a+1)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_ge( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  int result;
+
+  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
+      result = regs[a].i >= regs[a+1].i;      // in case of Fixnum, Fixnum
+      goto DONE;
+    }
+#if MRBC_USE_FLOAT
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
+      result = regs[a].i >= regs[a+1].d;      // in case of Fixnum, Float
+      goto DONE;
+    }
+  }
+  if( regs[a].tt == MRBC_TT_FLOAT ) {
+    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
+      result = regs[a].d >= regs[a+1].i;      // in case of Float, Fixnum
+      goto DONE;
+    }
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
+      result = regs[a].d >= regs[a+1].d;      // in case of Float, Float
+      goto DONE;
+    }
+#endif
+  }
+
+  // TODO: other cases
+  //
+
+ DONE:
+  regs[a].tt = result ? MRBC_TT_TRUE : MRBC_TT_FALSE;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_ARRAY
 
   R(a) = ary_new(R(a),R(a+1)..R(a+b))
@@ -1699,7 +1801,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_EQ:         ret = op_eq        (vm, regs); break;
     case OP_LT:         ret = op_lt        (vm, regs); break;
     case OP_LE:         ret = op_le        (vm, regs); break;
-
+    case OP_GT:         ret = op_gt        (vm, regs); break;
+    case OP_GE:         ret = op_ge        (vm, regs); break;
     case OP_ARRAY:      ret = op_array     (vm, regs); break;
 
     case OP_AREF:       ret = op_aref      (vm, regs); break;
