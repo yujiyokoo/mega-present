@@ -1236,6 +1236,37 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_HASH
+
+  R(a) = hash_new(R(a),R(a+1)..R(a+b))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_hash( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  mrbc_value value = mrbc_hash_new(vm, b);
+  if( value.hash == NULL ) return -1;   // ENOMEM
+
+  b *= 2;
+  memcpy( value.hash->data, &regs[a], sizeof(mrbc_value) * b );
+  memset( &regs[a], 0, sizeof(mrbc_value) * b );
+  value.hash->n_stored = b;
+
+  mrbc_release(&regs[a]);
+  regs[a] = value;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_METHOD
 
   R(a) = lambda(SEQ[b],L_METHOD)
@@ -1606,6 +1637,7 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_STRING:     ret = op_string    (vm, regs); break;
     case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
+    case OP_HASH:       ret = op_hash      (vm, regs); break;
 
     case OP_METHOD:     ret = op_method    (vm, regs); break;
 
