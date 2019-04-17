@@ -665,6 +665,65 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
 
 
 
+
+//================================================================
+/*!@brief
+  Method call by symbol id
+
+  @param  vm    pointer of VM.
+  @param  method_name  method name
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_send_by_name( mrbc_vm *vm, const char *method_name, mrbc_value *regs, uint8_t a, uint8_t b, uint8_t c )
+{
+  mrbc_value recv = regs[a];
+
+  int bidx = a + c + 1;
+  mrbc_release( &regs[bidx] );
+  regs[bidx].tt = MRBC_TT_NIL;
+
+  mrbc_sym sym_id = str_to_symid(method_name);
+  mrbc_proc *m = find_method(vm, &recv, sym_id);
+
+  if( m == 0 ) {
+    mrb_class *cls = find_class_by_object( vm, &recv );
+    console_printf("No method. Class:%s Method:%s\n",
+		   symid_to_str(cls->sym_id), method_name );
+    return 0;
+  }
+
+  // m is C func
+  if( m->c_func ) {
+    m->func(vm, regs + a, c);
+    if( m->func == c_proc_call ) return 0;
+
+    int release_reg = a+1;
+    while( release_reg <= bidx ) {
+      mrbc_release(&regs[release_reg]);
+      release_reg++;
+    }
+    return 0;
+  }
+
+  // m is Ruby method.
+  // callinfo
+  mrbc_push_callinfo(vm, sym_id, c);
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = m->irep;
+  vm->inst = m->irep->code;
+
+  // new regs
+  vm->current_regs += a;
+
+  return 0;
+}
+
+
+
+
 //================================================================
 /*!@brief
   Execute OP_SEND
@@ -835,8 +894,8 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs )
 #endif
   }
 
-  not_supported();
-
+  // other case
+  op_send_by_name(vm, "+", regs, a, 0, 1);
   return 0;
 }
 
