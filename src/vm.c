@@ -288,6 +288,29 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_LOADNEG
+
+  R(a) = mrb_int(-b)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_loadneg( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  mrbc_release(&regs[a]);
+  regs[a] = mrbc_fixnum_value(-b);
+  return 0;
+}
+
+
+
+
+//================================================================
+/*!@brief
   Execute OP_LOADI_n (n=-1,0,1..7)
 
   R(a) = R(a)+mrb_int(n)
@@ -1760,7 +1783,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_MOVE:       ret = op_move      (vm, regs); break;
     case OP_LOADL:      ret = op_loadl     (vm, regs); break;
     case OP_LOADI:      ret = op_loadi     (vm, regs); break;
-
+    case OP_LOADNEG:    ret = op_loadneg   (vm, regs); break;
     case OP_LOADI__1:
     case OP_LOADI_0:
     case OP_LOADI_1:

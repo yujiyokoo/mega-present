@@ -48,7 +48,7 @@ enum OPCODE {
   OP_MOVE      = 0x01,
   OP_LOADL     = 0x02,
   OP_LOADI     = 0x03,
-
+  OP_LOADNEG   = 0x04,
   OP_LOADI__1  = 0x05,
   OP_LOADI_0   = 0x06,
   OP_LOADI_1   = 0x07,
