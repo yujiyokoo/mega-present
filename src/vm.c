@@ -1218,7 +1218,7 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
   mrbc_sym sym_id = str_to_symid("to_s");
   mrbc_proc *m = find_method(vm, &regs[a+1], sym_id);
   if( m && m->c_func ){
-    m->func(vm, regs+a, 0);
+    m->func(vm, regs+a+1, 0);
   }
 
   mrbc_value v = mrbc_string_add(vm, &regs[a], &regs[a+1]);
