@@ -1165,6 +1165,45 @@ static inline int op_array( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_AREF
+
+  R(a) = R(b)[c]
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_aref( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BBB();
+
+  mrbc_value *src = &regs[b];
+  mrbc_value *dst = &regs[a];
+
+  mrbc_release( dst );
+
+  if( src->tt == MRBC_TT_ARRAY ){
+    // src is Array
+    *dst = mrbc_array_get(src, c);
+    mrbc_dup(dst);
+  } else {
+    // src is not Array
+    if( c == 0 ){
+      mrbc_dup(src);
+      *dst = *src;
+    } else {
+      dst->tt = MRBC_TT_NIL;
+    }
+  }
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_STRING
 
   R(a) = str_dup(Lit(b))
@@ -1634,6 +1673,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LE:         ret = op_le        (vm, regs); break;
 
     case OP_ARRAY:      ret = op_array     (vm, regs); break;
+
+    case OP_AREF:       ret = op_aref      (vm, regs); break;
 
     case OP_STRING:     ret = op_string    (vm, regs); break;
     case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
