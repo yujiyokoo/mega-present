@@ -46,7 +46,7 @@ extern "C" {
 enum OPCODE {
   OP_NOP       = 0x00,
   OP_MOVE      = 0x01,
-  
+  OP_LOADL     = 0x02,
   OP_LOADI     = 0x03,
 
   OP_LOADI__1  = 0x05,

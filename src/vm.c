@@ -235,6 +235,34 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
+
+
+//================================================================
+/*!@brief
+  Execute OP_LOADL
+
+  R(a) = Pool(b)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  mrbc_release(&regs[a]);
+
+  mrbc_object *pool_obj = vm->pc_irep->pools[b];
+  regs[a] = *pool_obj;
+
+  return 0;
+}
+
+
+
+
 //================================================================
 /*!@brief
   Execute OP_LOADI
@@ -1628,7 +1656,7 @@ int mrbc_vm_run( struct VM *vm )
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
     case OP_MOVE:       ret = op_move      (vm, regs); break;
-
+    case OP_LOADL:      ret = op_loadl     (vm, regs); break;
     case OP_LOADI:      ret = op_loadi     (vm, regs); break;
 
     case OP_LOADI__1:
