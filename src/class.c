@@ -705,6 +705,12 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
 
+  SET_RETURN(new_obj);
+  return 0;
+
+  // TODO
+  //  call initialize
+
   char syms[]="______initialize";
   uint32_to_bin( 1,(uint8_t*)&syms[0]);
   uint16_to_bin(10,(uint8_t*)&syms[4]);
