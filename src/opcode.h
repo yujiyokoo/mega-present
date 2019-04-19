@@ -93,6 +93,7 @@ enum OPCODE {
   OP_GT        = 0x44,
   OP_GE        = 0x45,
   OP_ARRAY     = 0x46,
+  OP_ARRAY2    = 0x47,
 
   OP_AREF      = 0x4b,
 

@@ -1389,6 +1389,39 @@ static inline int op_array( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_ARRAY2
+
+  R(a) = ary_new(R(b),R(b+1)..R(b+c))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_array2( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BBB();
+
+  mrbc_value value = mrbc_array_new(vm, c);
+  if( value.array == NULL ) return -1;  // ENOMEM
+
+  int i;
+  for( i=0 ; i<c ; i++ ){
+    mrbc_dup( &regs[b+i] );
+    value.array->data[i] = regs[b+i];
+  }
+  value.array->n_stored = c;
+
+  mrbc_release(&regs[a]);
+  regs[a] = value;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_AREF
 
   R(a) = R(b)[c]
@@ -1442,7 +1475,6 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BBB();
 
   mrbc_value src = regs[a];
-  mrbc_dup( &regs[a] );
   if( src.tt != MRBC_TT_ARRAY ){
     src = mrbc_array_new(vm, 1);
     src.array->data[0] = regs[a];
@@ -1452,13 +1484,12 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
   int post = c;
   int len = src.array->n_stored;
 
-  mrbc_release( &regs[a] );
   if( len >= pre + post ){
     int ary_size = len-pre-post+1;
     regs[a] = mrbc_array_new(vm, ary_size);
     // copy elements
     for( int i=0 ; i<ary_size ; i++ ){
-      regs[a].array->data[i] = src.array->data[i+pre];
+      regs[a].array->data[i] = src.array->data[pre+i];
     }
     regs[a].array->n_stored = ary_size;
   } else {
@@ -1943,6 +1974,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_GT:         ret = op_gt        (vm, regs); break;
     case OP_GE:         ret = op_ge        (vm, regs); break;
     case OP_ARRAY:      ret = op_array     (vm, regs); break;
+    case OP_ARRAY2:     ret = op_array2    (vm, regs); break;
 
     case OP_AREF:       ret = op_aref      (vm, regs); break;
 
