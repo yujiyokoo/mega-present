@@ -1478,18 +1478,20 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
   if( src.tt != MRBC_TT_ARRAY ){
     src = mrbc_array_new(vm, 1);
     src.array->data[0] = regs[a];
+    src.array->n_stored = 1;
   }
 
   int pre  = b;
   int post = c;
   int len = src.array->n_stored;
 
-  if( len >= pre + post ){
-    int ary_size = len-pre-post+1;
+  if( len > pre + post ){
+    int ary_size = len-pre-post;
     regs[a] = mrbc_array_new(vm, ary_size);
     // copy elements
     for( int i=0 ; i<ary_size ; i++ ){
       regs[a].array->data[i] = src.array->data[pre+i];
+      mrbc_dup( &regs[a].array->data[i] );
     }
     regs[a].array->n_stored = ary_size;
   } else {
