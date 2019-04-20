@@ -1422,6 +1422,28 @@ static inline int op_array2( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_ARYDUP
+
+  R(a) = ary_dup(R(a))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_arydup( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_dup( &regs[a] );
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_AREF
 
   R(a) = R(b)[c]
@@ -1978,6 +2000,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_ARRAY:      ret = op_array     (vm, regs); break;
     case OP_ARRAY2:     ret = op_array2    (vm, regs); break;
 
+    case OP_ARYDUP:     ret = op_arydup    (vm, regs); break;
     case OP_AREF:       ret = op_aref      (vm, regs); break;
 
     case OP_APOST:      ret = op_apost     (vm, regs); break;
