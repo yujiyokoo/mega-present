@@ -1422,6 +1422,45 @@ static inline int op_array2( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_ARYCAT
+
+  ary_cat(R(a),R(a+1))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  assert( regs[a  ].tt == MRBC_TT_ARRAY );
+  assert( regs[a+1].tt == MRBC_TT_ARRAY );
+
+  int size_1 = regs[a  ].array->n_stored;
+  int size_2 = regs[a+1].array->n_stored;
+  int new_size = size_1 + regs[a+1].array->n_stored;
+
+  // need resize?
+  if( regs[a].array->data_size < new_size ){
+    mrbc_array_resize(&regs[a], new_size);
+  }
+
+  for( int i=0 ; i<size_2 ; i++ ){
+    mrbc_dup( &regs[a+1].array->data[i] );
+    regs[a].array->data[size_1+i] = regs[a+1].array->data[i];
+  }
+  regs[a].array->n_stored = new_size;
+
+  return 0;
+}
+
+
+
+
+//================================================================
+/*!@brief
   Execute OP_ARYDUP
 
   R(a) = ary_dup(R(a))
@@ -1999,6 +2038,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_GE:         ret = op_ge        (vm, regs); break;
     case OP_ARRAY:      ret = op_array     (vm, regs); break;
     case OP_ARRAY2:     ret = op_array2    (vm, regs); break;
+    case OP_ARYCAT:     ret = op_arycat    (vm, regs); break;
 
     case OP_ARYDUP:     ret = op_arydup    (vm, regs); break;
     case OP_AREF:       ret = op_aref      (vm, regs); break;

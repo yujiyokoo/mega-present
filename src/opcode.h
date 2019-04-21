@@ -94,6 +94,7 @@ enum OPCODE {
   OP_GE        = 0x45,
   OP_ARRAY     = 0x46,
   OP_ARRAY2    = 0x47,
+  OP_ARYCAT    = 0x48,
 
   OP_ARYDUP    = 0x4a,
   OP_AREF      = 0x4b,
