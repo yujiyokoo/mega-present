@@ -731,6 +731,29 @@ static inline int op_send_by_name( mrbc_vm *vm, const char *method_name, mrbc_va
 
 
 
+
+//================================================================
+/*!@brief
+  Execute OP_SENDV
+
+  R(a) = call(R(a),Syms(b),*R(a+1))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_sendv( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+
+  return 0;
+}
+
+
+
 //================================================================
 /*!@brief
   Execute OP_SEND
@@ -775,10 +798,24 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_W();
 
-  int m1 = MRB_ASPEC_REQ(a);
+  int m1 = MRB_ASPEC_REQ(a);   // # of required parameters
+  int o  = MRB_ASPEC_OPT(a);   // # of optional parameters
+  int r  = MRB_ASPEC_REST(a);  // rest is exists?
 
   int argc = vm->callinfo_tail->n_args;
   vm->inst += (argc - m1) * 3;
+
+  // rest param exists?
+  if( r ){
+    int rest_size = argc - m1 - o;
+    if( rest_size < 0 ) rest_size = 0;
+    mrb_value rest = mrbc_array_new(vm, rest_size);
+    for( int i = 0 ; i<rest_size ; i++ ){
+      rest.array->data[i] = regs[1+m1+o+i];
+    }
+    rest.array->n_stored = rest_size;
+    regs[m1+o+1] = rest;
+  }
 
   return 0;
 }
@@ -852,7 +889,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
   mrbc_release(&regs[a]);
   mrbc_dup( &regs[offset+1] );
   regs[a] = regs[offset+1];
-  
+
   return 0;
 }
 
@@ -2006,7 +2043,7 @@ void output_opcode( uint8_t opcode )
     "",        "JMP",     "JMPIF",   "JMPNOT",
     "JMPNIL",  "",        "",        "",
     "",        "",        "",        "",
-    "",        "",        "SEND",    "SENDB",
+    "SENDV",   "",        "SEND",    "SENDB",
     // 0x30
     "",        "",        "",        "ENTER",
     "",        "",        "",        "RETURN",
@@ -2056,7 +2093,7 @@ int mrbc_vm_run( struct VM *vm )
     uint8_t op = *vm->inst++;
 
 #ifdef MRBC_DEBUG
-    //    output_opcode( op );
+    // output_opcode( op );
 #endif
 
     switch( op ) {
@@ -2065,14 +2102,14 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADL:      ret = op_loadl     (vm, regs); break;
     case OP_LOADI:      ret = op_loadi     (vm, regs); break;
     case OP_LOADNEG:    ret = op_loadneg   (vm, regs); break;
-    case OP_LOADI__1:
-    case OP_LOADI_0:
-    case OP_LOADI_1:
-    case OP_LOADI_2:
-    case OP_LOADI_3:
-    case OP_LOADI_4:
-    case OP_LOADI_5:
-    case OP_LOADI_6:
+    case OP_LOADI__1:   // fall through
+    case OP_LOADI_0:    // fall through
+    case OP_LOADI_1:    // fall through
+    case OP_LOADI_2:    // fall through
+    case OP_LOADI_3:    // fall through
+    case OP_LOADI_4:    // fall through
+    case OP_LOADI_5:    // fall through
+    case OP_LOADI_6:    // fall through
     case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
     case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
     case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
@@ -2090,7 +2127,9 @@ int mrbc_vm_run( struct VM *vm )
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
     case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
 
-    case OP_SEND:       ret = op_send      (vm, regs); break;
+      //    case OP_SENDV:      ret = op_sendv     (vm, regs); break;
+
+    case OP_SEND:       // fall through
     case OP_SENDB:      ret = op_send      (vm, regs); break;
 
     case OP_ENTER:      ret = op_enter     (vm, regs); break;

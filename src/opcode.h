@@ -74,6 +74,8 @@ enum OPCODE {
   OP_JMPNOT    = 0x23,
   OP_JMPNIL    = 0x24,
 
+  OP_SENDV     = 0x2c,
+
   OP_SEND      = 0x2e,
   OP_SENDB     = 0x2f,
 
