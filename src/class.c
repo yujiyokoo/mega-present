@@ -966,7 +966,7 @@ static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
   char buf[32];
   mrbc_printf pf;
 
-  mrbc_printf_init( &pf, buf, sizeof(buf), "<#Proc:%08x>" );
+  mrbc_printf_init( &pf, buf, sizeof(buf), "#<Proc:%08x>" );
   while( mrbc_printf_main( &pf ) > 0 ) {
     mrbc_printf_int( &pf, (uint32_t)v->proc, 16 );
   }
