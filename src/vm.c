@@ -1787,6 +1787,27 @@ static inline int op_method( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
 }
 
 
+
+//================================================================
+/*!@brief
+  Execute OP_TCLASS
+
+  R(A) := R(B).singleton_class
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+static inline int op_sclass( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
+{
+  // currently, not supported
+  
+  return 0;
+}
+
+
+
 //================================================================
 /*!@brief
   Execute OP_TCLASS
@@ -2018,6 +2039,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_CLASS:      ret = op_class     (vm, code, regs); break;
     case OP_EXEC:       ret = op_exec      (vm, code, regs); break;
     case OP_METHOD:     ret = op_method    (vm, code, regs); break;
+    case OP_SCLASS:     ret = op_sclass    (vm, code, regs); break;
     case OP_TCLASS:     ret = op_tclass    (vm, code, regs); break;
     case OP_STOP:       ret = op_stop      (vm, code, regs); break;
     case OP_ABORT:      ret = op_stop      (vm, code, regs); break;  // reuse

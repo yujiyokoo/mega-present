@@ -109,7 +109,7 @@ enum OPCODE {
 
   OP_EXEC      = 0x45,
   OP_METHOD    = 0x46,
-
+  OP_SCLASS    = 0x47,
   OP_TCLASS    = 0x48,
 
   OP_STOP      = 0x4a,
