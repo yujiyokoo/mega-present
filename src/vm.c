@@ -1880,6 +1880,29 @@ static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_EXT1, OP_EXT2, OP_EXT3
+
+  if OP_EXT1, make 1st operand 16bit
+  if OP_EXT2, make 2nd operand 16bit
+  if OP_EXT3, make 1st and 2nd operand 16bit
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval -1  No error and exit from vm.
+*/
+static inline int op_ext( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_Z();
+
+  vm->ext_flag = vm->inst[-2] - OP_EXT1 + 1;
+
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
   Execute OP_STOP
 
   stop VM
@@ -2061,7 +2084,7 @@ void output_opcode( uint8_t opcode )
     "EXEC",    "DEF",     "",        "",
     // 0x60
     "",        "TCLASS",  "",        "",
-    "",        "",        "",        "STOP",
+    "EXT1",    "EXT2",    "EXT3",    "STOP",
   };
 
   if( opcode < sizeof(n)/sizeof(char *) ){
@@ -2161,7 +2184,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
     case OP_HASH:       ret = op_hash      (vm, regs); break;
 
-    case OP_BLOCK:
+    case OP_BLOCK:      // fall through
     case OP_METHOD:     ret = op_method    (vm, regs); break;
 
     case OP_CLASS:      ret = op_class     (vm, regs); break;
@@ -2170,6 +2193,10 @@ int mrbc_vm_run( struct VM *vm )
     case OP_DEF:        ret = op_def       (vm, regs); break;
 
     case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
+
+    case OP_EXT1:       // fall through
+    case OP_EXT2:       // fall through
+    case OP_EXT3:       ret = op_ext       (vm, regs); break;
 
     case OP_STOP:       ret = op_stop      (vm, regs); break;
       
