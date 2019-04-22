@@ -668,20 +668,27 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
-  Method call by symbol id
+  Method call by method name
 
   @param  vm    pointer of VM.
   @param  method_name  method name
   @param  regs  pointer to regs
+  @param  a     operand a
+  @param  b     operand b
+  @param  c     operand c
+  @param  is_sendb  Is called from OP_SENDB?
   @retval 0  No error.
 */
-static inline int op_send_by_name( mrbc_vm *vm, const char *method_name, mrbc_value *regs, uint8_t a, uint8_t b, uint8_t c )
+static inline int op_send_by_name( mrbc_vm *vm, const char *method_name, mrbc_value *regs, uint8_t a, uint8_t b, uint8_t c, int is_sendb )
 {
   mrbc_value recv = regs[a];
 
+  // if not OP_SENDB, blcok does not exist
   int bidx = a + c + 1;
-  mrbc_release( &regs[bidx] );
-  regs[bidx].tt = MRBC_TT_NIL;
+  if( !is_sendb ){
+    mrbc_release( &regs[bidx] );
+    regs[bidx].tt = MRBC_TT_NIL;
+  }
 
   mrbc_sym sym_id = str_to_symid(method_name);
   mrbc_proc *m = find_method(vm, &recv, sym_id);
@@ -741,7 +748,7 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
 
-  return op_send_by_name( vm, sym_name, regs, a, b, c);
+  return op_send_by_name( vm, sym_name, regs, a, b, c, (vm->inst[-4] == OP_SENDB) );
 }
 
 
@@ -827,6 +834,32 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_BLKPUSH
+
+  R(a) = block (16=m5:r1:m5:d1:lv4)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BS();
+
+  int offset = b >> 11;  // get m5 where m5:r1:m5:d1:lv4
+
+  mrbc_release(&regs[a]);
+  mrbc_dup( &regs[offset+1] );
+  regs[a] = regs[offset+1];
+  
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_ADD
 
   R(a) = R(a)+R(a+1)
@@ -865,7 +898,7 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  op_send_by_name(vm, "+", regs, a, 0, 1);
+  op_send_by_name(vm, "+", regs, a, 0, 1, 0);
   return 0;
 }
 
@@ -1627,6 +1660,27 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_BLOCK
+
+  R(a) = lambda(SEQ[b],L_BLOCK)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_block( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  return 0;
+}
+
+
+
+
+//================================================================
+/*!@brief
   Execute OP_METHOD
 
   R(a) = lambda(SEQ[b],L_METHOD)
@@ -1925,6 +1979,64 @@ void mrbc_vm_end( struct VM *vm )
 }
 
 
+
+
+
+//================================================================
+/*!@brief
+  output op for debug
+
+  @param  opcode   opcode
+*/
+#ifdef MRBC_DEBUG
+void output_opcode( uint8_t opcode )
+{
+  const char *n[] = {
+    // 0x00
+    "NOT",     "MOVE",    "LOADL",   "LOADI",
+    "LOADNEG", "LOADI__1","LOADI_0", "LOADI_1",
+    "LOADI_2", "LOADI_3", "LOADI_4", "LOADI_5",
+    "LOADI_6", "LOADI_7", "LOADSYM", "LOADNIL",
+    // 0x10
+    "LOADSELF","LOADT",   "LOADF",   "GETGV",
+    "",        "",        "",        "",
+    "",        "",        "",        "GETCONST",
+    "SETCONST","",        "",        "",
+    // 0x20
+    "",        "JMP",     "JMPIF",   "JMPNOT",
+    "JMPNIL",  "",        "",        "",
+    "",        "",        "",        "",
+    "",        "",        "SEND",    "SENDB",
+    // 0x30
+    "",        "",        "",        "ENTER",
+    "",        "",        "",        "RETURN",
+    "",        "",        "BLKPUSH", "ADD",
+    "ADDI",    "SUB",     "SUBI",    "MUL",
+    // 0x40
+    "DIV",     "EQ",      "LT",      "LE",
+    "GT",      "GE",      "ARRAY",   "ARRAY2",
+    "ARYCAT",  "",        "ARYDUP",  "AREF",
+    "",        "APOST",   "",        "STRING",
+    // 0x50
+    "STRCAT",  "HASH",    "",        "",
+    "",        "BLOCK",   "METHOD",  "",
+    "",        "",        "CLASS",   "",
+    "EXEC",    "DEF",     "",        "",
+    // 0x60
+    "",        "TCLASS",  "",        "",
+    "",        "",        "",        "STOP",
+  };
+
+  if( opcode < sizeof(n)/sizeof(char *) ){
+    console_printf("(OP_%s)\n", n[opcode]);
+  } else {
+    console_printf("(OP=%02x)\n", opcode);
+  }
+}
+#endif
+
+
+
 //================================================================
 /*!@brief
   Fetch a bytecode and execute
@@ -1943,8 +2055,9 @@ int mrbc_vm_run( struct VM *vm )
     // Dispatch
     uint8_t op = *vm->inst++;
 
-    // for DEBUG
-    // console_printf("(OP=%02x)\n", op);
+#ifdef MRBC_DEBUG
+    //    output_opcode( op );
+#endif
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
@@ -1978,11 +2091,13 @@ int mrbc_vm_run( struct VM *vm )
     case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
 
     case OP_SEND:       ret = op_send      (vm, regs); break;
+    case OP_SENDB:      ret = op_send      (vm, regs); break;
 
     case OP_ENTER:      ret = op_enter     (vm, regs); break;
 
     case OP_RETURN:     ret = op_return    (vm, regs); break;
 
+    case OP_BLKPUSH:    ret = op_blkpush   (vm, regs); break;
     case OP_ADD:        ret = op_add       (vm, regs); break;
     case OP_ADDI:       ret = op_addi      (vm, regs); break;
     case OP_SUB:        ret = op_sub       (vm, regs); break;
@@ -2007,6 +2122,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
     case OP_HASH:       ret = op_hash      (vm, regs); break;
 
+    case OP_BLOCK:
     case OP_METHOD:     ret = op_method    (vm, regs); break;
 
     case OP_CLASS:      ret = op_class     (vm, regs); break;

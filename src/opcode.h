@@ -81,6 +81,7 @@ enum OPCODE {
 
   OP_RETURN    = 0x37,
 
+  OP_BLKPUSH   = 0x3a,
   OP_ADD       = 0x3b,
   OP_ADDI      = 0x3c,
   OP_SUB       = 0x3d,
@@ -105,6 +106,7 @@ enum OPCODE {
   OP_STRCAT    = 0x50,
   OP_HASH      = 0x51,
 
+  OP_BLOCK     = 0x55,
   OP_METHOD    = 0x56,
 
   OP_CLASS     = 0x5a,

@@ -960,8 +960,9 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
   mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
 
   // target irep
-  vm->pc = 0;
   vm->pc_irep = v[0].proc->irep;
+  vm->pc = 0;
+  vm->inst = vm->pc_irep->code;
 
   vm->current_regs = v;
 }
