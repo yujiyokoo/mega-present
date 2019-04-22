@@ -1882,6 +1882,56 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_ALIAS
+
+  alias_method(target_class,Syms(a),Syms(b))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name_a = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, a);
+  mrbc_sym sym_id_a = str_to_symid(sym_name_a);
+  const char *sym_name_b = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b); 
+  mrbc_sym sym_id_b = str_to_symid(sym_name_b);
+
+  // find method only in this class.
+  mrb_proc *proc = vm->target_class->procs;
+  while( proc != NULL ) {
+    if( proc->sym_id == sym_id_b ) break;
+    proc = proc->next;
+  }
+  if( !proc ) {
+    console_printf("NameError: undefined_method '%s'\n", sym_name_b);
+    return 0;
+  }
+
+  // copy the Proc object
+  mrbc_proc *proc_alias = mrbc_alloc(0, sizeof(mrbc_proc));
+  if( !proc_alias ) return 0;		// ENOMEM
+  memcpy( proc_alias, proc, sizeof(mrbc_proc) );
+  if( !proc->c_func ) proc->irep->ref_count++;
+
+  // register procs link.
+  proc_alias->sym_id = sym_id_a;
+#if defined(MRBC_DEBUG)
+  proc_alias->names = sym_name_a;
+#endif
+  proc_alias->next = vm->target_class->procs;
+  vm->target_class->procs = proc_alias;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_TCLASS
 
   R(a) = target_class
@@ -2217,6 +2267,7 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_EXEC:       ret = op_exec      (vm, regs); break;
     case OP_DEF:        ret = op_def       (vm, regs); break;
+    case OP_ALIAS:      ret = op_alias     (vm, regs); break;
 
     case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
 

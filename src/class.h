@@ -81,6 +81,7 @@ void mrbc_instance_delete(mrbc_value *v);
 void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v);
 mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id);
 mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj);
+mrbc_proc *find_method_by_class(struct VM *vm, const mrbc_class *cls, mrbc_sym sym_id);
 mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id);
 mrbc_class *mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super);
 mrbc_class *mrbc_get_class_by_name(const char *name);

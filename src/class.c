@@ -190,17 +190,15 @@ mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
 
 //================================================================
 /*!@brief
-  find method from
+  find method from class
 
-  @param  vm
-  @param  recv
-  @param  sym_id
+  @param  vm       pointer to vm
+  @param  cls      pointer to class
+  @param  sym_id   sym_id of method
   @return
 */
-mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
+mrbc_proc *find_method_by_class(struct VM *vm, const mrbc_class *cls, mrbc_sym sym_id)
 {
-  mrbc_class *cls = find_class_by_object(vm, recv);
-
   while( cls != 0 ) {
     mrbc_proc *proc = cls->procs;
     while( proc != 0 ) {
@@ -211,7 +209,25 @@ mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
     }
     cls = cls->super;
   }
+
   return 0;
+}
+
+
+//================================================================
+/*!@brief
+  find method from object
+
+  @param  vm
+  @param  recv
+  @param  sym_id
+  @return
+*/
+mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
+{
+  mrbc_class *cls = find_class_by_object(vm, recv);
+
+  return find_method_by_class(vm, cls, sym_id);
 }
 
 
