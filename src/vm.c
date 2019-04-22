@@ -1095,8 +1095,7 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
   }
   
   // other case
-  //op_send(vm, code, regs);
-  mrbc_release(&regs[a+1]);
+  op_send_by_name(vm, "*", regs, a, 0, 1, 0);
 
   return 0;
 }
