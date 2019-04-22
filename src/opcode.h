@@ -104,7 +104,7 @@ enum OPCODE {
   OP_AREF      = 0x4b,
 
   OP_APOST     = 0x4d,
-
+  OP_INTERN    = 0x4e,
   OP_STRING    = 0x4f,
   OP_STRCAT    = 0x50,
   OP_HASH      = 0x51,

@@ -1595,6 +1595,32 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_INTERN
+
+  R(a) = intern(R(a))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_intern( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  assert( regs[a].tt == MRBC_TT_STRING );
+
+  mrbc_value sym_id = mrbc_symbol_new(vm, regs[a].string->data);
+
+  mrbc_release( &regs[a] );
+  regs[a] = sym_id;
+
+  return 0;
+}
+
+
+//================================================================
+/*!@brief
   Execute OP_STRING
 
   R(a) = str_dup(Lit(b))
@@ -2179,7 +2205,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_AREF:       ret = op_aref      (vm, regs); break;
 
     case OP_APOST:      ret = op_apost     (vm, regs); break;
-
+    case OP_INTERN:     ret = op_intern    (vm, regs); break;
     case OP_STRING:     ret = op_string    (vm, regs); break;
     case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
     case OP_HASH:       ret = op_hash      (vm, regs); break;
