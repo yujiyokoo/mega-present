@@ -719,14 +719,56 @@ static void c_object_class(struct VM *vm, mrbc_value v[], int argc)
 // Object.new
 static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 {
+  char syms[] = "______initialize";
+  uint32_to_bin( 1,(uint8_t*)&syms[0]);
+  uint16_to_bin(10,(uint8_t*)&syms[4]);
+
+  uint8_t code[] = {
+    OP_SEND, 0, 0, argc,
+    OP_ABORT,
+  };
+  mrbc_irep irep = {
+    0,     // ref_count
+    0,     // nlocals
+    0,     // nregs
+    0,     // rlen
+    sizeof(code)/sizeof(uint8_t),     // ilen
+    0,     // plen
+    (uint8_t *)code,   // iseq
+    NULL,  // pools
+    (uint8_t *)syms,  // ptr_to_sym
+    NULL,  // reps
+  };
+
   mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
 
-  SET_RETURN(new_obj);
-  return 0;
+  mrbc_release(&v[0]);
+  v[0] = new_obj;
+  mrbc_dup(&new_obj);
+
+  mrbc_irep *org_pc_irep = vm->pc_irep;
+  uint16_t  org_pc = vm->pc;
+  mrbc_value* org_regs = vm->current_regs;
+  uint8_t *org_inst = vm->inst;
+
+  vm->pc = 0;
+  vm->pc_irep = &irep;
+  vm->current_regs = v;
+  vm->inst = irep.code;
+
+  while( mrbc_vm_run(vm) == 0 )
+    ;
+
+  vm->pc = org_pc;
+  vm->pc_irep = org_pc_irep;
+  vm->inst = org_inst;
+  vm->current_regs = org_regs;
+
+  return;
 
   // TODO
   //  call initialize
-
+#if 0
   char syms[]="______initialize";
   uint32_to_bin( 1,(uint8_t*)&syms[0]);
   uint16_to_bin(10,(uint8_t*)&syms[4]);
@@ -767,6 +809,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   vm->current_regs = org_regs;
 
   SET_RETURN(new_obj);
+#endif
 }
 
 //================================================================

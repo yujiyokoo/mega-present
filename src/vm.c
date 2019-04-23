@@ -2006,6 +2006,27 @@ static inline int op_stop( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_ABORT
+
+  stop VM
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval -1  No error and exit from vm.
+*/
+static inline int op_abort( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_Z();
+
+  vm->flag_preemption = 1;
+
+  return -1;
+}
+
+
+//================================================================
+/*!@brief
   Open the VM.
 
   @param vm     Pointer to mrbc_vm or NULL.
@@ -2275,7 +2296,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_EXT3:       ret = op_ext       (vm, regs); break;
 
     case OP_STOP:       ret = op_stop      (vm, regs); break;
-      
+    case OP_ABORT:      ret = op_abort     (vm, regs); break;
     default:
       console_printf("Skip OP=%02x\n", op);
       break;
