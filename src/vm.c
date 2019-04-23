@@ -228,9 +228,12 @@ static inline int op_nop( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
-  mrbc_release(&regs[a]);
-  mrbc_dup(&regs[b]);
-  regs[a] = regs[b];
+
+  if( a != b ){
+    mrbc_release(&regs[a]);
+    mrbc_dup(&regs[b]);
+    regs[a] = regs[b];
+  }
   return 0;
 }
 
