@@ -517,6 +517,60 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_GETIV
+
+  R(a) = ivget(Syms(b))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
+
+  mrbc_value val = mrbc_instance_getiv(&regs[0], sym_id);
+
+  mrbc_release(&regs[a]);
+  regs[a] = val;
+
+  return 0;
+}
+
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_SETIV
+
+  ivset(Syms(b),R(a))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
+
+  mrbc_instance_setiv(&regs[0], sym_id, &regs[a]);
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_GETCONST
 
   R(a) = constget(Syms(b))
@@ -2266,38 +2320,43 @@ void output_opcode( uint8_t opcode )
     "LOADI_6", "LOADI_7", "LOADSYM", "LOADNIL",
     // 0x10
     "LOADSELF","LOADT",   "LOADF",   "GETGV",
-    "",        "",        "",        "",
-    "",        "",        "",        "GETCONST",
-    "SETCONST","",        "",        "GETUPVAR",
+    0,         0,         0,         "GETIV",
+    "SETIV",   0,         0,         "GETCONST",
+    "SETCONST",0,         0,        "GETUPVAR",
     // 0x20
     "SETUPVAR","JMP",     "JMPIF",   "JMPNOT",
-    "JMPNIL",  "",        "",        "",
-    "",        "",        "",        "",
-    "SENDV",   "",        "SEND",    "SENDB",
+    "JMPNIL",  0,         0,         0,
+    0,         0,         0,         0,
+    "SENDV",   0,         "SEND",    "SENDB",
     // 0x30
-    "",        "",        "",        "ENTER",
-    "",        "",        "",        "RETURN",
-    "",        "",        "BLKPUSH", "ADD",
+    0,         0,         0,         "ENTER",
+    0,         0,         0,         "RETURN",
+    0,         0,         "BLKPUSH", "ADD",
     "ADDI",    "SUB",     "SUBI",    "MUL",
     // 0x40
     "DIV",     "EQ",      "LT",      "LE",
     "GT",      "GE",      "ARRAY",   "ARRAY2",
     "ARYCAT",  "",        "ARYDUP",  "AREF",
-    "",        "APOST",   "",        "STRING",
+    0,         "APOST",   0,         "STRING",
     // 0x50
-    "STRCAT",  "HASH",    "",        "",
-    "",        "BLOCK",   "METHOD",  "",
-    "",        "",        "CLASS",   "",
-    "EXEC",    "DEF",     "",        "",
+    "STRCAT",  "HASH",    0,         0,
+    0,         "BLOCK",   "METHOD",  0,
+    0,         0,         "CLASS",   0,
+    "EXEC",    "DEF",     0,         0,
     // 0x60
     "",        "TCLASS",  "",        "",
     "EXT1",    "EXT2",    "EXT3",    "STOP",
+    "ABORT",
   };
 
   if( opcode < sizeof(n)/sizeof(char *) ){
-    console_printf("(OP_%s)\n", n[opcode]);
+    if( n[opcode] ){
+      console_printf("(OP_%s)\n", n[opcode]);
+    } else {
+      console_printf("(OP=%02x)\n", opcode);
+    }
   } else {
-    console_printf("(OP=%02x)\n", opcode);
+    console_printf("(ERROR=%02x)\n", opcode);
   }
 }
 #endif
@@ -2348,6 +2407,9 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADF:      ret = op_loadf     (vm, regs); break;
     case OP_GETGV:      ret = op_getgv     (vm, regs); break;
     case OP_SETGV:      ret = op_setgv     (vm, regs); break;
+
+    case OP_GETIV:      ret = op_getiv     (vm, regs); break;
+    case OP_SETIV:      ret = op_setiv     (vm, regs); break;
 
     case OP_GETCONST:   ret = op_getconst  (vm, regs); break;
     case OP_SETCONST:   ret = op_setconst  (vm, regs); break;

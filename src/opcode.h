@@ -67,6 +67,9 @@ enum OPCODE {
   OP_GETGV     = 0x13,
   OP_SETGV     = 0x14,
 
+  OP_GETIV     = 0x17,
+  OP_SETIV     = 0x18,
+
   OP_GETCONST  = 0x1b,
   OP_SETCONST  = 0x1c,
 
@@ -129,7 +132,8 @@ enum OPCODE {
   OP_EXT3      = 0x66,
 
   OP_STOP      = 0x67,
-  OP_ABORT     = 0xff,
+
+  OP_ABORT     = 0x68,
 };
 
 //================================================================
