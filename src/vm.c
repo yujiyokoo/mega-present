@@ -1852,6 +1852,37 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_RANGE_INC, OP_RANGE_EXC
+
+  R(a) = range_new(R(a),R(a+1),FALSE)
+  R(a) = range_new(R(a),R(a+1),TRUE)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_range( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_value value;
+  if( vm->inst[-2] == OP_RANGE_INC ){
+    value = mrbc_range_new(vm, &regs[a], &regs[a+1], 0);
+  } else {
+    value = mrbc_range_new(vm, &regs[a], &regs[a+1], 1);
+  }
+
+  mrbc_release( &regs[a] );
+  regs[a] = value;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_CLASS
 
   R(a) = newclass(R(a),Syms(b),R(a+1))
@@ -2364,6 +2395,8 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_BLOCK:      // fall through
     case OP_METHOD:     ret = op_method    (vm, regs); break;
+    case OP_RANGE_INC:  // fall through
+    case OP_RANGE_EXC:  ret = op_range     (vm, regs); break;
 
     case OP_CLASS:      ret = op_class     (vm, regs); break;
 

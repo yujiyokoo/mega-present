@@ -113,6 +113,8 @@ enum OPCODE {
 
   OP_BLOCK     = 0x55,
   OP_METHOD    = 0x56,
+  OP_RANGE_INC = 0x57,
+  OP_RANGE_EXC = 0x58,
 
   OP_CLASS     = 0x5a,
 
