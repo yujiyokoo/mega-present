@@ -2046,7 +2046,7 @@ static inline int op_ext( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_Z();
 
-  vm->ext_flag = vm->inst[-2] - OP_EXT1 + 1;
+  vm->ext_flag = vm->inst[-1] - OP_EXT1 + 1;
 
   return 0;
 }
@@ -2067,7 +2067,7 @@ static inline int op_stop( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_Z();
 
-  if( GET_OPCODE(code) == OP_STOP ) {
+  if( vm->inst[-1] == OP_STOP ) {
     int i;
     for( i = 0; i < MAX_REGS_SIZE; i++ ) {
       mrbc_release(&vm->regs[i]);
