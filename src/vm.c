@@ -95,9 +95,7 @@ const char * mrbc_get_irep_symbol( const uint8_t *p, int n )
 */
 const char *mrbc_get_callee_name( struct VM *vm )
 {
-  // uint32_t code = bin_to_uint32(vm->pc_irep->code + (vm->pc - 1) * 4);
-  // int rb = GETARG_B(code);  // index of method sym
-  int rb = 0;
+  uint8_t rb = vm->inst[-2];
   return mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
 }
 
