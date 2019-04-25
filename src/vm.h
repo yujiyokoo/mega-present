@@ -85,6 +85,10 @@ typedef struct VM {
 
   mrbc_class *target_class;
 
+#ifdef MRBC_DEBUG
+  uint8_t flag_debug_mode;
+#endif
+
   int32_t error_code;
 
   volatile int8_t flag_preemption;

@@ -576,6 +576,76 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_GETUPVAR
+
+  R(a) = uvget(b,c)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BBB();
+
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+
+  // find callinfo
+  int n = c * 2 + 1;
+  while( n > 0 ){
+    callinfo = callinfo->prev;
+    n--;
+  }
+
+  mrbc_value *up_regs = callinfo->current_regs;
+
+  mrbc_release( &regs[a] );
+  mrbc_dup( &up_regs[b] );
+  regs[a] = up_regs[b];
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_SETUPVAR
+
+  uvset(b,c,R(a))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BBB();
+
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+
+  // find callinfo
+  int n = c * 2 + 1;
+  while( n > 0 ){
+    callinfo = callinfo->prev;
+    n--;
+  }
+
+  mrbc_value *up_regs = callinfo->current_regs;
+
+  mrbc_release( &up_regs[b] );
+  mrbc_dup( &regs[a] );
+  up_regs[b] = regs[a];
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_JMP
 
   pc=a
@@ -806,7 +876,10 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   int r  = MRB_ASPEC_REST(a);  // rest is exists?
 
   int argc = vm->callinfo_tail->n_args;
-  vm->inst += (argc - m1) * 3;
+  // default args
+  if( m1 > 0 ){
+    vm->inst += (argc - m1) * 3;
+  }
 
   // rest param exists?
   if( r ){
@@ -1868,12 +1941,12 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_proc *proc = regs[a+1].proc;
   proc->sym_id = sym_id;
-
 #ifdef MRBC_DEBUG
   proc->names = sym_name;
 #endif
 
   proc->ref_count++;
+  proc->irep->ref_count++;
   proc->next = cls->procs;
   cls->procs = proc;
 
@@ -1994,12 +2067,12 @@ static inline int op_stop( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_Z();
 
-  //  if( GET_OPCODE(code) == OP_STOP ) {
-  //   int i;
-  //  for( i = 0; i < MAX_REGS_SIZE; i++ ) {
-  //    mrbc_release(&vm->regs[i]);
-  //  }
-  // }
+  if( GET_OPCODE(code) == OP_STOP ) {
+    int i;
+    for( i = 0; i < MAX_REGS_SIZE; i++ ) {
+      mrbc_release(&vm->regs[i]);
+    }
+  }
 
   vm->flag_preemption = 1;
 
@@ -2065,6 +2138,10 @@ mrbc_vm *mrbc_vm_open( struct VM *vm_arg )
   memset(vm, 0, sizeof(mrbc_vm));	// caution: assume NULL is zero.
   if( vm_arg == NULL ) vm->flag_need_memfree = 1;
   vm->vm_id = vm_id;
+
+#ifdef MRBC_DEBUG
+  vm->flag_debug_mode = 1;
+#endif
 
   return vm;
 }
@@ -2152,7 +2229,7 @@ void output_opcode( uint8_t opcode )
 {
   const char *n[] = {
     // 0x00
-    "NOT",     "MOVE",    "LOADL",   "LOADI",
+    "NOP",     "MOVE",    "LOADL",   "LOADI",
     "LOADNEG", "LOADI__1","LOADI_0", "LOADI_1",
     "LOADI_2", "LOADI_3", "LOADI_4", "LOADI_5",
     "LOADI_6", "LOADI_7", "LOADSYM", "LOADNIL",
@@ -2160,9 +2237,9 @@ void output_opcode( uint8_t opcode )
     "LOADSELF","LOADT",   "LOADF",   "GETGV",
     "",        "",        "",        "",
     "",        "",        "",        "GETCONST",
-    "SETCONST","",        "",        "",
+    "SETCONST","",        "",        "GETUPVAR",
     // 0x20
-    "",        "JMP",     "JMPIF",   "JMPNOT",
+    "SETUPVAR","JMP",     "JMPIF",   "JMPNOT",
     "JMPNIL",  "",        "",        "",
     "",        "",        "",        "",
     "SENDV",   "",        "SEND",    "SENDB",
@@ -2215,7 +2292,7 @@ int mrbc_vm_run( struct VM *vm )
     uint8_t op = *vm->inst++;
 
 #ifdef MRBC_DEBUG
-    // output_opcode( op );
+    // if( vm->flag_debug_mode )output_opcode( op );
 #endif
 
     switch( op ) {
@@ -2244,6 +2321,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_GETCONST:   ret = op_getconst  (vm, regs); break;
     case OP_SETCONST:   ret = op_setconst  (vm, regs); break;
 
+    case OP_GETUPVAR:   ret = op_getupvar  (vm, regs); break;
+    case OP_SETUPVAR:   ret = op_setupvar  (vm, regs); break;
     case OP_JMP:        ret = op_jmp       (vm, regs); break;
     case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
