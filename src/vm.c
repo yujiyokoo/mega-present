@@ -928,8 +928,15 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   int r  = MRB_ASPEC_REST(a);  // rest is exists?
 
   int argc = vm->callinfo_tail->n_args;
-  // default args
-  if( m1 > 0 ){
+
+  // arg check
+  if( argc < m1 ){
+    console_printf("ArgumentError\n");  // raise
+    return 0;
+  }
+
+  // default args, skip bytecode
+  if( o > 0 && argc > m1 ){
     vm->inst += (argc - m1) * 3;
   }
 
