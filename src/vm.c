@@ -1061,6 +1061,42 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_BREAK
+
+  break R(a)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  // pop until bytecode is OP_SENDB
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  while( callinfo ){
+    if( callinfo->inst[-4-callinfo->n_args] == OP_SENDB ){
+      // found then return to callinfo
+      vm->callinfo_tail = callinfo->prev;
+      vm->current_regs = callinfo->current_regs;
+      vm->pc_irep = callinfo->pc_irep;
+      vm->pc = callinfo->pc;
+      vm->inst = callinfo->inst;
+      vm->target_class = callinfo->target_class;
+      break;
+    }
+    callinfo = callinfo->prev;
+  }
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_BLKPUSH
 
   R(a) = block (16=m5:r1:m5:d1:lv4)
@@ -2491,6 +2527,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_ENTER:      ret = op_enter     (vm, regs); break;
 
     case OP_RETURN:     ret = op_return    (vm, regs); break;
+
+    case OP_BREAK:      ret = op_break     (vm, regs); break;
 
     case OP_BLKPUSH:    ret = op_blkpush   (vm, regs); break;
     case OP_ADD:        ret = op_add       (vm, regs); break;
