@@ -903,6 +903,61 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_SUPER
+
+  R(a) = super(R(a+1),... ,R(a+b+1))
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+
+  int id = callinfo->inst[-2-callinfo->n_args];
+  const char *sym_name = mrbc_get_irep_symbol(callinfo->pc_irep->ptr_to_sym, id);
+
+  mrbc_dup( &regs[0] );
+  mrbc_release( &regs[a] );
+  regs[a] = regs[0];
+
+  regs[a].instance->cls = regs[a].instance->cls->super;
+
+  return op_send_by_name(vm, sym_name, regs, a, 0, b, 0);
+}
+
+
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_ARGARY
+
+  R(a) = argument array (16=m5:r1:m5:d1:lv4)
+
+  @param  vm    pointer of VM.
+  @param  inst  pointer to instruction
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BS();
+
+  // Not yet implemented, call super with array parameters
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_ENTER
 
   arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1)
@@ -2431,6 +2486,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_SEND:       // fall through
     case OP_SENDB:      ret = op_send      (vm, regs); break;
 
+    case OP_SUPER:      ret = op_super     (vm, regs); break;
+    case OP_ARGARY:     ret = op_argary    (vm, regs); break;
     case OP_ENTER:      ret = op_enter     (vm, regs); break;
 
     case OP_RETURN:     ret = op_return    (vm, regs); break;
