@@ -765,54 +765,11 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   vm->current_regs = org_regs;
 
   SET_RETURN( new_obj );
-  
+
   return;
-
-  // TODO
-  //  call initialize
-#if 0
-  char syms[]="______initialize";
-  uint32_to_bin( 1,(uint8_t*)&syms[0]);
-  uint16_to_bin(10,(uint8_t*)&syms[4]);
-
-  uint32_t code[2] = {
-    MKOPCODE(OP_SEND) | MKARG_A(0) | MKARG_B(0) | MKARG_C(argc),
-    MKOPCODE(OP_ABORT)
-    };
-   mrbc_irep irep = {
-    0,     // ref_count
-    0,     // nlocals
-    0,     // nregs
-    0,     // rlen
-    2,     // ilen
-    0,     // plen
-    (uint8_t *)code,   // iseq
-    NULL,  // pools
-    (uint8_t *)syms,  // ptr_to_sym
-    NULL,  // reps
-  };
-
-  mrbc_release(&v[0]);
-  v[0] = new_obj;
-  mrbc_dup(&new_obj);
-
-  mrbc_irep *org_pc_irep = vm->pc_irep;
-  uint16_t  org_pc = vm->pc;
-  mrbc_value* org_regs = vm->current_regs;
-  vm->pc = 0;
-  vm->pc_irep = &irep;
-  vm->current_regs = v;
-
-  while( mrbc_vm_run(vm) == 0 )
-    ;
-
-  vm->pc = org_pc;
-  vm->pc_irep = org_pc_irep;
-  vm->current_regs = org_regs;
-
-  SET_RETURN(new_obj);
-#endif
 }
+
+
 
 //================================================================
 /*! (method) instance variable getter
