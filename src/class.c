@@ -764,6 +764,8 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   vm->inst = org_inst;
   vm->current_regs = org_regs;
 
+  SET_RETURN( new_obj );
+  
   return;
 
   // TODO
