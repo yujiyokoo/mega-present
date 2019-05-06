@@ -918,7 +918,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_callinfo *callinfo = vm->callinfo_tail;
 
-  int id = callinfo->inst[-2-callinfo->n_args];
+  int id = callinfo->inst[-3];
   const char *sym_name = mrbc_get_irep_symbol(callinfo->pc_irep->ptr_to_sym, id);
 
   mrbc_dup( &regs[0] );
@@ -1113,8 +1113,13 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
   int offset = b >> 11;  // get m5 where m5:r1:m5:d1:lv4
 
   mrbc_release(&regs[a]);
-  mrbc_dup( &regs[offset+1] );
-  regs[a] = regs[offset+1];
+  if( b ){
+    mrbc_dup( &regs[0] );
+    regs[a] = regs[0];
+  } else {
+    mrbc_dup( &regs[offset+1] );
+    regs[a] = regs[offset+1];
+  }
 
   return 0;
 }
@@ -2425,7 +2430,7 @@ void output_opcode( uint8_t opcode )
     0,         0,         0,         0,
     "SENDV",   0,         "SEND",    "SENDB",
     // 0x30
-    0,         0,         0,         "ENTER",
+    0,         "SUPER",   "ARGARY",  "ENTER",
     0,         0,         0,         "RETURN",
     0,         0,         "BLKPUSH", "ADD",
     "ADDI",    "SUB",     "SUBI",    "MUL",

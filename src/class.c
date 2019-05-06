@@ -734,7 +734,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
     0,     // rlen
     sizeof(code)/sizeof(uint8_t),     // ilen
     0,     // plen
-    (uint8_t *)code,   // iseq
+    (uint8_t *)code,   // code
     NULL,  // pools
     (uint8_t *)syms,  // ptr_to_sym
     NULL,  // reps
