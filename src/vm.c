@@ -872,7 +872,10 @@ static inline int op_sendv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  a = a;
+  b = b;
+  
+  //  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
 
   return 0;
 }
@@ -927,6 +930,19 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
 
   regs[a].instance->cls = regs[a].instance->cls->super;
 
+  if( b == 127 ){
+    // expand array
+    assert( regs[a+1].tt == MRBC_TT_ARRAY );
+
+    mrbc_value value = regs[a+1];
+    mrbc_dup( &value );
+    int argc = value.array->n_stored;
+    for( int i=0 ; i<argc ; i++ ){
+      mrbc_release( &regs[a+1+i] );
+      regs[a+1+i] = value.array->data[i];
+    }
+    b = argc;
+  }
   return op_send_by_name(vm, sym_name, regs, a, 0, b, 0);
 }
 
@@ -949,7 +965,20 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BS();
 
-  // Not yet implemented, call super with array parameters
+  int m1 = (b>>11)&0x3f;
+  int r = (b >> 10) & 0x01;
+
+  if( r == 0 ){
+    int array_size = m1;
+    mrbc_value value = mrbc_array_new(vm, array_size);
+    memcpy( value.array->data, &regs[1], sizeof(mrbc_value) * array_size );
+    memset( &regs[1], 0, sizeof(mrbc_value) * array_size );
+    value.array->n_stored = array_size;
+
+    mrbc_release(&regs[a]);
+    regs[a] = value;
+
+  }
 
   return 0;
 }
@@ -1074,6 +1103,8 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  a = a;
+  
   // pop until bytecode is OP_SENDB
   mrbc_callinfo *callinfo = vm->callinfo_tail;
   while( callinfo ){
@@ -1840,7 +1871,7 @@ static inline int op_intern( mrbc_vm *vm, mrbc_value *regs )
 
   assert( regs[a].tt == MRBC_TT_STRING );
 
-  mrbc_value sym_id = mrbc_symbol_new(vm, regs[a].string->data);
+  mrbc_value sym_id = mrbc_symbol_new(vm, (const char*)regs[a].string->data);
 
   mrbc_release( &regs[a] );
   regs[a] = sym_id;
@@ -1966,6 +1997,9 @@ static inline int op_block( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
+  a = a;
+  b = b;
+  
   return 0;
 }
 
