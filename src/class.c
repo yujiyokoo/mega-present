@@ -906,6 +906,28 @@ static void c_object_instance_methods(struct VM *vm, mrbc_value v[], int argc)
 
   SET_NIL_RETURN();
 }
+
+
+static void c_object_instance_variables(struct VM *vm, mrbc_value v[], int argc)
+{
+  // temporary code for operation check.
+#if 1
+  mrbc_kv_handle *kvh = &v[0].instance->ivar;
+
+  console_printf( "n = %d/%d ", kvh->n_stored, kvh->data_size );
+  console_printf( "[" );
+
+  int i;
+  for( i = 0; i < kvh->n_stored; i++ ) {
+    console_printf( "%s:@%s", (i == 0 ? "" : ", "),
+		    symid_to_str( kvh->data[i].sym_id ));
+  }
+
+  console_printf( "]\n" );
+#endif
+  SET_NIL_RETURN();
+}
+
 #endif
 
 
@@ -941,6 +963,7 @@ static void mrbc_init_class_object(struct VM *vm)
 
 #ifdef MRBC_DEBUG
   mrbc_define_method(vm, mrbc_class_object, "instance_methods", c_object_instance_methods);
+  mrbc_define_method(vm, mrbc_class_object, "instance_variables", c_object_instance_variables);
 #endif
 }
 
