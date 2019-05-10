@@ -874,7 +874,7 @@ static inline int op_sendv( mrbc_vm *vm, mrbc_value *regs )
 
   a = a;
   b = b;
-  
+
   //  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
 
   return 0;
@@ -921,13 +921,14 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_callinfo *callinfo = vm->callinfo_tail;
 
-  int id = callinfo->inst[-3];
-  const char *sym_name = mrbc_get_irep_symbol(callinfo->pc_irep->ptr_to_sym, id);
+  int id = callinfo->mid;
+  const char *sym_name = symid_to_str(id);
 
   mrbc_dup( &regs[0] );
   mrbc_release( &regs[a] );
   regs[a] = regs[0];
 
+  // fing super class
   regs[a].instance->cls = regs[a].instance->cls->super;
 
   if( b == 127 ){
@@ -1104,7 +1105,7 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   a = a;
-  
+
   // pop until bytecode is OP_SENDB
   mrbc_callinfo *callinfo = vm->callinfo_tail;
   while( callinfo ){
@@ -1999,7 +2000,7 @@ static inline int op_block( mrbc_vm *vm, mrbc_value *regs )
 
   a = a;
   b = b;
-  
+
   return 0;
 }
 
