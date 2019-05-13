@@ -740,6 +740,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
     NULL,  // reps
   };
 
+  mrbc_class *cls = v->cls;
   mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
 
   mrbc_release(&v[0]);
@@ -763,6 +764,8 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   vm->pc_irep = org_pc_irep;
   vm->inst = org_inst;
   vm->current_regs = org_regs;
+
+  new_obj.instance->cls = cls;
 
   SET_RETURN( new_obj );
 
