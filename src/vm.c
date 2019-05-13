@@ -2456,7 +2456,7 @@ void output_opcode( uint8_t opcode )
     "LOADI_6", "LOADI_7", "LOADSYM", "LOADNIL",
     // 0x10
     "LOADSELF","LOADT",   "LOADF",   "GETGV",
-    0,         0,         0,         "GETIV",
+    "SETGV",   0,         0,         "GETIV",
     "SETIV",   0,         0,         "GETCONST",
     "SETCONST",0,         0,        "GETUPVAR",
     // 0x20
