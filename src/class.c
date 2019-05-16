@@ -164,6 +164,8 @@ mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
 {
   mrbc_class *cls;
 
+  assert( obj->tt != MRBC_TT_EMPTY );
+
   switch( obj->tt ) {
   case MRBC_TT_TRUE:	cls = mrbc_class_true;		break;
   case MRBC_TT_FALSE:	cls = mrbc_class_false; 	break;
@@ -986,6 +988,9 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
   vm->inst = vm->pc_irep->code;
 
   vm->current_regs = v;
+
+  v[0].tt = MRBC_TT_CLASS;
+  v[0].cls = vm->target_class;
 }
 
 
