@@ -1005,6 +1005,19 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
 {
+  // new proc
+  mrbc_proc *proc = mrbc_rproc_alloc(vm, "");
+  if( !proc ) return 0;	// ENOMEM
+  proc->c_func = 0;
+  proc->sym_id = -1;
+  proc->next = NULL;
+  proc->irep = v[1].proc->irep;
+
+  mrbc_value value;
+  value.tt = MRBC_TT_PROC;
+  value.proc = proc;
+
+  SET_RETURN(value);
 }
 
 
