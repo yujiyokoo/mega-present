@@ -979,6 +979,12 @@ static void mrbc_init_class_object(struct VM *vm)
 
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
+  // set receiver
+  mrbc_value recv;
+  int offset = -argc-1;
+  recv = vm->current_regs[offset];
+  mrbc_dup( &recv );
+
   // push callinfo, but not release regs
   mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
 
@@ -989,8 +995,7 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 
   vm->current_regs = v;
 
-  v[0].tt = MRBC_TT_CLASS;
-  v[0].cls = vm->target_class;
+  v[0] = recv;
 }
 
 

@@ -1152,17 +1152,22 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
   mrbc_release(&regs[a]);
 
   int offset = m1+r+m2+kd+1;
+  mrbc_value *stack;
   if( lv== 0 ){
     // current env
-    mrbc_dup( &regs[offset] );
-    regs[a] = regs[offset];
+    stack = regs + offset;
   } else {
     // upper env
+    --lv;
     mrbc_callinfo *callinfo = vm->callinfo_tail;
-    mrbc_value *stack = callinfo->current_regs + 1;
-    mrbc_dup( &stack[0] );
-    regs[a] = stack[0];
+    while( lv > 0 ){
+      callinfo = callinfo->prev;
+      --lv;
+    }
+    stack = callinfo->current_regs + 1 - offset;
   }
+  mrbc_dup( stack );
+  regs[a] = *stack;
 
   return 0;
 }
