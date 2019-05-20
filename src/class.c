@@ -999,6 +999,16 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
+/*! Proc#new
+
+*/
+static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
+{
+}
+
+
+
 #if MRBC_USE_STRING
 static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
@@ -1022,6 +1032,7 @@ static void mrbc_init_class_proc(struct VM *vm)
   mrbc_class_proc= mrbc_define_class(vm, "Proc", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_proc, "call", c_proc_call);
+  mrbc_define_method(vm, mrbc_class_proc, "new", c_proc_new);
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_proc, "inspect", c_proc_to_s);
   mrbc_define_method(vm, mrbc_class_proc, "to_s", c_proc_to_s);

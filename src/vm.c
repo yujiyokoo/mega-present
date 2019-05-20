@@ -2014,8 +2014,18 @@ static inline int op_block( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  a = a;
-  b = b;
+  mrbc_release(&regs[a]);
+
+  // new proc
+  mrbc_proc *proc = mrbc_rproc_alloc(vm, "");
+  if( !proc ) return 0;	// ENOMEM
+  proc->c_func = 0;
+  proc->sym_id = -1;
+  proc->next = NULL;
+  proc->irep = vm->pc_irep->reps[b];
+
+  regs[a].tt = MRBC_TT_PROC;
+  regs[a].proc = proc;
 
   return 0;
 }
