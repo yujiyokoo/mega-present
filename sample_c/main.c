@@ -55,6 +55,11 @@ void mrubyc(uint8_t *mrbbuf)
   }
 
   mrbc_vm_begin(vm);
+
+#ifdef MRBC_DEBUG
+  vm->flag_debug_mode = 1;
+#endif
+
   mrbc_vm_run(vm);
   mrbc_vm_end(vm);
   mrbc_vm_close(vm);

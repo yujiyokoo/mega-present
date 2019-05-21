@@ -54,6 +54,7 @@ typedef struct CALLINFO {
   mrbc_sym mid;
   mrbc_irep *pc_irep;
   uint16_t  pc;
+  uint8_t *inst;
   mrbc_value *current_regs;
   mrbc_class *target_class;
   uint8_t   n_args;     // num of args
@@ -71,8 +72,10 @@ typedef struct VM {
   uint8_t        vm_id; // vm_id : 1..n
   const uint8_t *mrb;   // bytecode
 
-  mrbc_irep *pc_irep;    // PC
-  uint16_t  pc;         // PC
+  mrbc_irep *pc_irep;   // PC
+  uint16_t pc;          // PC, soon remove
+  uint8_t *inst;        // instruction
+  uint8_t ext_flag;     // 1:EXT1, 2:EXT2, 3:EXT3, 0:otherwize
 
   //  uint16_t     reg_top;
   mrbc_value    regs[MAX_REGS_SIZE];
@@ -80,6 +83,10 @@ typedef struct VM {
   mrbc_callinfo *callinfo_tail;
 
   mrbc_class *target_class;
+
+#ifdef MRBC_DEBUG
+  uint8_t flag_debug_mode;
+#endif
 
   int32_t error_code;
 

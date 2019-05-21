@@ -97,6 +97,9 @@ typedef enum {
   E_NOTIMP_ERROR,
   E_FLOATDOMAIN_ERROR,
   E_KEY_ERROR,
+
+  // Internal Error
+  E_BYTECODE_ERROR,
 } mrbc_error_code;
 
 

@@ -22,14 +22,132 @@ extern "C" {
 #endif
 
 
-#define GET_OPCODE(code)	((code) & 0x7f)			// 7bit
-#define GETARG_A(code)		(((code) >> 23) & 0x1ff)	// 9bit
-#define GETARG_B(code)		(((code) >> 14) & 0x1ff)	// 9bit
-#define GETARG_C(code)		(((code) >>  7) & 0x7f)		// 7bit
-#define GETARG_Ax(code)		(((code) >>  7) & 0x1ffffff)	// 25bit
-#define GETARG_Bx(code)		(((code) >>  7) & 0xffff)	// 16bit
-#define GETARG_Bz(code)		(((code) >>  9) & 0x3fff)	// 14bit
-#define GETARG_sBx(code)	(GETARG_Bx(code)-0x7fff)
+#define PEEK_B(pc) ((pc)[0])
+#define PEEK_S(pc) ((pc)[0]<<8|(pc)[1])
+#define PEEK_W(pc) ((pc)[0]<<16|(pc)[1]<<8|(pc)[2])
+
+#define READ_B() (vm->inst+=1, PEEK_B(vm->inst-1))
+#define READ_S() (vm->inst+=2, PEEK_S(vm->inst-2))
+#define READ_W() (vm->inst+=3, PEEK_W(vm->inst-3))
+
+#define EXT_CLEAR() vm->ext_flag = 0
+#define FETCH_Z() EXT_CLEAR()
+#define FETCH_B() uint32_t a = (vm->ext_flag & 1) ? READ_S() : READ_B(); EXT_CLEAR()
+#define FETCH_BB() uint32_t a,b; a = (vm->ext_flag & 1) ? READ_S() : READ_B(); b = (vm->ext_flag & 2)? READ_S() : READ_B(); EXT_CLEAR()
+#define FETCH_BBB() uint32_t a,b,c; a = (vm->ext_flag & 1) ? READ_S() : READ_B(); b = (vm->ext_flag & 2)? READ_S() : READ_B(); c=READ_B(); EXT_CLEAR()
+#define FETCH_BS() uint32_t a,b; a = (vm->ext_flag & 1) ? READ_S() : READ_B(); b=READ_S(); EXT_CLEAR()
+#define FETCH_S() uint32_t a=READ_S(); EXT_CLEAR()
+#define FETCH_W() uint32_t a=READ_W(); EXT_CLEAR()
+
+  
+//================================================================
+/*!@brief
+
+*/
+enum OPCODE {
+  OP_NOP       = 0x00,
+  OP_MOVE      = 0x01,
+  OP_LOADL     = 0x02,
+  OP_LOADI     = 0x03,
+  OP_LOADNEG   = 0x04,
+  OP_LOADI__1  = 0x05,
+  OP_LOADI_0   = 0x06,
+  OP_LOADI_1   = 0x07,
+  OP_LOADI_2   = 0x08,
+  OP_LOADI_3   = 0x09,
+  OP_LOADI_4   = 0x0a,
+  OP_LOADI_5   = 0x0b,
+  OP_LOADI_6   = 0x0c,
+  OP_LOADI_7   = 0x0d,
+  OP_LOADSYM   = 0x0e,
+  OP_LOADNIL   = 0x0f,
+  OP_LOADSELF  = 0x10,
+  OP_LOADT     = 0x11,
+  OP_LOADF     = 0x12,
+  OP_GETGV     = 0x13,
+  OP_SETGV     = 0x14,
+
+  OP_GETIV     = 0x17,
+  OP_SETIV     = 0x18,
+
+  OP_GETCONST  = 0x1b,
+  OP_SETCONST  = 0x1c,
+
+  OP_GETUPVAR  = 0x1f,
+  OP_SETUPVAR  = 0x20,
+  OP_JMP       = 0x21,
+  OP_JMPIF     = 0x22,
+  OP_JMPNOT    = 0x23,
+  OP_JMPNIL    = 0x24,
+
+  OP_SENDV     = 0x2c,
+
+  OP_SEND      = 0x2e,
+  OP_SENDB     = 0x2f,
+
+  OP_SUPER     = 0x31,
+  OP_ARGARY    = 0x32,
+  OP_ENTER     = 0x33,
+
+  OP_RETURN    = 0x37,
+
+  OP_BREAK     = 0x39,
+
+  OP_BLKPUSH   = 0x3a,
+  OP_ADD       = 0x3b,
+  OP_ADDI      = 0x3c,
+  OP_SUB       = 0x3d,
+  OP_SUBI      = 0x3e,
+  OP_MUL       = 0x3f,
+  OP_DIV       = 0x40,
+  OP_EQ        = 0x41,
+  OP_LT        = 0x42,
+  OP_LE        = 0x43,
+  OP_GT        = 0x44,
+  OP_GE        = 0x45,
+  OP_ARRAY     = 0x46,
+  OP_ARRAY2    = 0x47,
+  OP_ARYCAT    = 0x48,
+
+  OP_ARYDUP    = 0x4a,
+  OP_AREF      = 0x4b,
+
+  OP_APOST     = 0x4d,
+  OP_INTERN    = 0x4e,
+  OP_STRING    = 0x4f,
+  OP_STRCAT    = 0x50,
+  OP_HASH      = 0x51,
+
+  OP_BLOCK     = 0x55,
+  OP_METHOD    = 0x56,
+  OP_RANGE_INC = 0x57,
+  OP_RANGE_EXC = 0x58,
+
+  OP_CLASS     = 0x5a,
+
+  OP_EXEC      = 0x5c,
+  OP_DEF       = 0x5d,
+  OP_ALIAS     = 0x5e,
+
+  OP_TCLASS    = 0x61,
+
+  OP_EXT1      = 0x64,
+  OP_EXT2      = 0x65,
+  OP_EXT3      = 0x66,
+
+  OP_STOP      = 0x67,
+
+  OP_ABORT     = 0x68,
+};
+
+//================================================================
+/*!@brief
+  OP_RETURN parameter
+
+*/
+#define OP_R_NORMAL 0
+#define OP_R_BREAK  1
+#define OP_R_RETURN 2
 
 
 #if defined(MRBC_LITTLE_ENDIAN)
@@ -45,88 +163,7 @@ extern "C" {
 #define MKARG_C(x)   ((uint32_t)(x) << 7)
 #endif
 
-
-//================================================================
-/*!@brief
-
-*/
-enum OPCODE {
-  OP_NOP       = 0x00,
-  OP_MOVE      = 0x01,
-  OP_LOADL     = 0x02,
-  OP_LOADI     = 0x03,
-  OP_LOADSYM   = 0x04,
-  OP_LOADNIL   = 0x05,
-  OP_LOADSELF  = 0x06,
-  OP_LOADT     = 0x07,
-  OP_LOADF     = 0x08,
-  OP_GETGLOBAL = 0x09,
-  OP_SETGLOBAL = 0x0a,
-
-  OP_GETIV     = 0x0d,
-  OP_SETIV     = 0x0e,
-
-  OP_GETCONST  = 0x11,
-  OP_SETCONST  = 0x12,
-  OP_GETMCNST  = 0x13,
-
-  OP_GETUPVAR  = 0x15,
-  OP_SETUPVAR  = 0x16,
-  OP_JMP       = 0x17,
-  OP_JMPIF     = 0x18,
-  OP_JMPNOT    = 0x19,
-  OP_SEND      = 0x20,
-  OP_SENDB     = 0x21,
-
-  OP_CALL      = 0x23,
-  OP_SUPER     = 0x24,
-  OP_ARGARY    = 0x25,
-  OP_ENTER     = 0x26,
-
-  OP_RETURN    = 0x29,
-
-  OP_BLKPUSH   = 0x2b,
-  OP_ADD       = 0x2c,
-  OP_ADDI      = 0x2d,
-  OP_SUB       = 0x2e,
-  OP_SUBI      = 0x2f,
-  OP_MUL       = 0x30,
-  OP_DIV       = 0x31,
-  OP_EQ        = 0x32,
-  OP_LT        = 0x33,
-  OP_LE        = 0x34,
-  OP_GT        = 0x35,
-  OP_GE        = 0x36,
-  OP_ARRAY     = 0x37,
-
-  OP_STRING    = 0x3d,
-  OP_STRCAT    = 0x3e,
-  OP_HASH      = 0x3f,
-  OP_LAMBDA    = 0x40,
-  OP_RANGE     = 0x41,
-
-  OP_CLASS     = 0x43,
-
-  OP_EXEC      = 0x45,
-  OP_METHOD    = 0x46,
-  OP_SCLASS    = 0x47,
-  OP_TCLASS    = 0x48,
-
-  OP_STOP      = 0x4a,
-
-  OP_ABORT     = 0x50,  // using OP_ABORT inside mruby/c only
-};
-
-//================================================================
-/*!@brief
-  OP_RETURN parameter
-
-*/
-#define OP_R_NORMAL 0
-#define OP_R_BREAK  1
-#define OP_R_RETURN 2
-
-
+  
 #ifdef __cplusplus
 }
 #endif

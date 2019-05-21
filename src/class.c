@@ -164,6 +164,8 @@ mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
 {
   mrbc_class *cls;
 
+  assert( obj->tt != MRBC_TT_EMPTY );
+
   switch( obj->tt ) {
   case MRBC_TT_TRUE:	cls = mrbc_class_true;		break;
   case MRBC_TT_FALSE:	cls = mrbc_class_false; 	break;
@@ -190,17 +192,15 @@ mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
 
 //================================================================
 /*!@brief
-  find method from
+  find method from class
 
-  @param  vm
-  @param  recv
-  @param  sym_id
+  @param  vm       pointer to vm
+  @param  cls      pointer to class
+  @param  sym_id   sym_id of method
   @return
 */
-mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
+mrbc_proc *find_method_by_class(struct VM *vm, const mrbc_class *cls, mrbc_sym sym_id)
 {
-  mrbc_class *cls = find_class_by_object(vm, recv);
-
   while( cls != 0 ) {
     mrbc_proc *proc = cls->procs;
     while( proc != 0 ) {
@@ -211,7 +211,25 @@ mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
     }
     cls = cls->super;
   }
+
   return 0;
+}
+
+
+//================================================================
+/*!@brief
+  find method from object
+
+  @param  vm
+  @param  recv
+  @param  sym_id
+  @return
+*/
+mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
+{
+  mrbc_class *cls = find_class_by_object(vm, recv);
+
+  return find_method_by_class(vm, cls, sym_id);
 }
 
 
@@ -702,27 +720,29 @@ static void c_object_class(struct VM *vm, mrbc_value v[], int argc)
 // Object.new
 static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
-
-  char syms[]="______initialize";
+  char syms[] = "______initialize";
   uint32_to_bin( 1,(uint8_t*)&syms[0]);
   uint16_to_bin(10,(uint8_t*)&syms[4]);
 
-  uint32_t code[2] = {
-    MKOPCODE(OP_SEND) | MKARG_A(0) | MKARG_B(0) | MKARG_C(argc),
-    MKOPCODE(OP_ABORT)
-    };
-   mrbc_irep irep = {
+  uint8_t code[] = {
+    OP_SEND, 0, 0, argc,
+    OP_ABORT,
+  };
+  mrbc_irep irep = {
+    0,     // ref_count
     0,     // nlocals
     0,     // nregs
     0,     // rlen
-    2,     // ilen
+    sizeof(code)/sizeof(uint8_t),     // ilen
     0,     // plen
-    (uint8_t *)code,   // iseq
+    (uint8_t *)code,   // code
     NULL,  // pools
     (uint8_t *)syms,  // ptr_to_sym
     NULL,  // reps
   };
+
+  mrbc_class *cls = v->cls;
+  mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
 
   mrbc_release(&v[0]);
   v[0] = new_obj;
@@ -731,19 +751,29 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   mrbc_irep *org_pc_irep = vm->pc_irep;
   uint16_t  org_pc = vm->pc;
   mrbc_value* org_regs = vm->current_regs;
+  uint8_t *org_inst = vm->inst;
+
   vm->pc = 0;
   vm->pc_irep = &irep;
   vm->current_regs = v;
+  vm->inst = irep.code;
 
   while( mrbc_vm_run(vm) == 0 )
     ;
 
   vm->pc = org_pc;
   vm->pc_irep = org_pc_irep;
+  vm->inst = org_inst;
   vm->current_regs = org_regs;
 
-  SET_RETURN(new_obj);
+  new_obj.instance->cls = cls;
+
+  SET_RETURN( new_obj );
+
+  return;
 }
+
+
 
 //================================================================
 /*! (method) instance variable getter
@@ -971,15 +1001,47 @@ static void mrbc_init_class_object(struct VM *vm)
 
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
+  // set receiver
+  mrbc_value recv;
+  int offset = -argc-1;
+  recv = vm->current_regs[offset];
+  mrbc_dup( &recv );
+
   // push callinfo, but not release regs
   mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
 
   // target irep
-  vm->pc = 0;
   vm->pc_irep = v[0].proc->irep;
+  vm->pc = 0;
+  vm->inst = vm->pc_irep->code;
 
   vm->current_regs = v;
+
+  v[0] = recv;
 }
+
+
+//================================================================
+/*! Proc#new
+
+*/
+static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
+{
+  // new proc
+  mrbc_proc *proc = mrbc_rproc_alloc(vm, "");
+  if( !proc ) return;	// ENOMEM
+  proc->c_func = 0;
+  proc->sym_id = -1;
+  proc->next = NULL;
+  proc->irep = v[1].proc->irep;
+
+  mrbc_value value;
+  value.tt = MRBC_TT_PROC;
+  value.proc = proc;
+
+  SET_RETURN(value);
+}
+
 
 
 #if MRBC_USE_STRING
@@ -1005,6 +1067,7 @@ static void mrbc_init_class_proc(struct VM *vm)
   mrbc_class_proc= mrbc_define_class(vm, "Proc", mrbc_class_object);
   // Methods
   mrbc_define_method(vm, mrbc_class_proc, "call", c_proc_call);
+  mrbc_define_method(vm, mrbc_class_proc, "new", c_proc_new);
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_proc, "inspect", c_proc_to_s);
   mrbc_define_method(vm, mrbc_class_proc, "to_s", c_proc_to_s);

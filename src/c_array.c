@@ -581,7 +581,9 @@ static void c_array_set(struct VM *vm, mrbc_value v[], int argc)
   */
   if( argc == 2 && v[1].tt == MRBC_TT_FIXNUM ) {
     mrbc_array_set(v, v[1].i, &v[2]);	// raise? IndexError or ENOMEM
-    v[2].tt = MRBC_TT_EMPTY;
+    SET_RETURN( v[2] );
+
+    mrbc_release( &v[2] );
     return;
   }
 
