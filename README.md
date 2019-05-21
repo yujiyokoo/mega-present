@@ -1,5 +1,7 @@
 # mruby/c
 
+[![Build Status](https://travis-ci.com/mrubyc/mrubyc.svg?branch=master)](https://travis-ci.com/mrubyc/mrubyc)
+
 [![Join the chat at https://gitter.im/mrubyc/mrubyc](https://badges.gitter.im/mrubyc/mrubyc.svg)](https://gitter.im/mrubyc/mrubyc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 mruby/c is an another implementation of mruby.
@@ -32,4 +34,4 @@ mruby/c is released under the Revised BSD License(aka 3-clause license).
 
 ## Related work
 
-- memory allocation alloc(http://github.com/kaz0505/alloc)
+- Device classes for mruby/c (https://github.com/mrubyc/dev)

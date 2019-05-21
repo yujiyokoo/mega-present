@@ -1,16 +1,16 @@
 #
 # mruby/c  sample_c/Makefile
 #
-# Copyright (C) 2015-2018 Kyushu Institute of Technology.
-# Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+# Copyright (C) 2015-2019 Kyushu Institute of Technology.
+# Copyright (C) 2015-2019 Shimane IT Open-Innovation Center.
 #
 #  This file is distributed under BSD 3-Clause License.
 #
 
 TARGETS = mrubyc mrubyc_sample mrubyc_concurrent mrubyc_myclass
-CFLAGS += -g -I ../src -I ../ext -Wall -Wpointer-arith
-LDFLAGS += -L ../src
-LIBMRUBYC = ../src/libmrubyc.a 
+CFLAGS += -g -I ../src -Wall -Wpointer-arith
+LDFLAGS +=
+LIBMRUBYC = ../src/libmrubyc.a
 
 all: $(TARGETS)
 
@@ -27,4 +27,4 @@ mrubyc_myclass: main_myclass.c $(LIBMRUBYC)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ main_myclass.c $(LIBMRUBYC)
 
 clean:
-	@rm -f $(TARGETS) *~
+	@rm -rf $(TARGETS) *.o *.dSYM *~

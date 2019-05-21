@@ -142,10 +142,7 @@ void mrbc_irep_free(mrbc_irep *irep)
 
   // release child ireps.
   for( i = 0; i < irep->rlen; i++ ) {
-    if( irep->reps[i]->ref_count == 0 ) {
-      mrbc_irep_free( irep->reps[i] );
-    }
-
+    mrbc_irep_free( irep->reps[i] );
   }
   if( irep->rlen ) mrbc_raw_free( irep->reps );
 
@@ -2247,6 +2244,26 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
   proc_alias->next = vm->target_class->procs;
   vm->target_class->procs = proc_alias;
 
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_TCLASS
+
+  R(A) := R(B).singleton_class
+
+  @param  vm    A pointer of VM.
+  @param  code  bytecode
+  @param  regs  vm->regs + vm->reg_top
+  @retval 0  No error.
+*/
+static inline int op_sclass( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
+{
+  // currently, not supported
+  
   return 0;
 }
 

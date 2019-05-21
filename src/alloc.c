@@ -499,6 +499,33 @@ void * mrbc_raw_realloc(void *ptr, unsigned int size)
 }
 
 
+//================================================================
+/*! Check if the pointer points allocated memory.
+
+  @param  tgt	Pointer to check.
+  @retval int	result in boolean.
+*/
+int is_allocated_memory(void *tgt)
+{
+#if 1
+  // check simply.
+  return ((void *)memory_pool < tgt) &&
+    (tgt < (void *)(memory_pool + memory_pool_size));
+
+#else
+  // check strictly.
+  USED_BLOCK *target = (USED_BLOCK *)((uint8_t *)tgt - sizeof(USED_BLOCK));
+  USED_BLOCK *ptr = (USED_BLOCK *)memory_pool;
+
+  while( 1 ) {
+    if( ptr->f == FLAG_USED_BLOCK && ptr == target ) return 1;
+    if( ptr->t == FLAG_TAIL_BLOCK ) return 0;
+    ptr = (USED_BLOCK *)PHYS_NEXT(ptr);
+  }
+#endif
+}
+
+
 
 //// for mruby/c
 

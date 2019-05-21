@@ -205,9 +205,10 @@ int mrbc_kv_set(mrbc_kv_handle *kvh, mrbc_sym sym_id, mrbc_value *set_val)
     if( mrbc_kv_resize(kvh, kvh->data_size + MRBC_KV_SIZE_INCREMENT) != 0 ) {
       return E_NOMEMORY_ERROR;		// ENOMEM
     }
+  }
 
   // need move data?
-  } else if( idx < kvh->n_stored ) {
+  if( idx < kvh->n_stored ) {
     int size = sizeof(mrbc_kv) * (kvh->n_stored - idx);
     memmove( &kvh->data[idx+1], &kvh->data[idx], size );
   }

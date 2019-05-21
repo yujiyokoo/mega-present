@@ -607,7 +607,6 @@ static void c_object_alias_method(struct VM *vm, mrbc_value v[], int argc)
   mrbc_proc *proc_alias = mrbc_alloc(0, sizeof(mrbc_proc));
   if( !proc_alias ) return;		// ENOMEM
   memcpy( proc_alias, proc, sizeof(mrbc_proc) );
-  if( !proc->c_func ) proc->irep->ref_count++;
 
   // register procs link.
   proc_alias->sym_id = v[1].i;
@@ -937,6 +936,28 @@ static void c_object_instance_methods(struct VM *vm, mrbc_value v[], int argc)
 
   SET_NIL_RETURN();
 }
+
+
+static void c_object_instance_variables(struct VM *vm, mrbc_value v[], int argc)
+{
+  // temporary code for operation check.
+#if 1
+  mrbc_kv_handle *kvh = &v[0].instance->ivar;
+
+  console_printf( "n = %d/%d ", kvh->n_stored, kvh->data_size );
+  console_printf( "[" );
+
+  int i;
+  for( i = 0; i < kvh->n_stored; i++ ) {
+    console_printf( "%s:@%s", (i == 0 ? "" : ", "),
+		    symid_to_str( kvh->data[i].sym_id ));
+  }
+
+  console_printf( "]\n" );
+#endif
+  SET_NIL_RETURN();
+}
+
 #endif
 
 
@@ -972,6 +993,7 @@ static void mrbc_init_class_object(struct VM *vm)
 
 #ifdef MRBC_DEBUG
   mrbc_define_method(vm, mrbc_class_object, "instance_methods", c_object_instance_methods);
+  mrbc_define_method(vm, mrbc_class_object, "instance_variables", c_object_instance_variables);
 #endif
 }
 
@@ -1029,7 +1051,7 @@ static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
   char buf[32];
   mrbc_printf pf;
 
-  mrbc_printf_init( &pf, buf, sizeof(buf), "<#Proc:%08x>" );
+  mrbc_printf_init( &pf, buf, sizeof(buf), "#<Proc:%08x>" );
   while( mrbc_printf_main( &pf ) > 0 ) {
     mrbc_printf_int( &pf, (uint32_t)v->proc, 16 );
   }
@@ -1220,7 +1242,6 @@ static void mrbc_run_mrblib(void)
   // not necessary to call mrbc_vm_end()
 
   // instead of mrbc_vm_close()
-  mrbc_irep_free( vm->irep );
   mrbc_raw_free( vm );
 }
 
