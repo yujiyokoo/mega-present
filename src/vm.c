@@ -2241,6 +2241,8 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 #endif
   proc_alias->next = vm->target_class->procs;
   vm->target_class->procs = proc_alias;
+
+  return 0;
 }
 
 
@@ -2652,7 +2654,6 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_STOP:       ret = op_stop      (vm, regs); break;
     case OP_ABORT:      ret = op_abort     (vm, regs); break;
-
     default:
       console_printf("Skip OP=%02x\n", op);
       break;
