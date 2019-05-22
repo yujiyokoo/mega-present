@@ -4,5 +4,5 @@ test_tmp_dir: test/tmp
 mrubyc_src_dir: src
 mrubyc_mrblib_dir: mrblib
 mruby_lib_dir: test
-mruby_version: mruby-1.4.1
+mruby_version: mruby-2.0.1
 cruby_version: 2.6.2
