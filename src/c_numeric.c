@@ -42,6 +42,15 @@ static void c_fixnum_bitref(struct VM *vm, mrbc_value v[], int argc)
 
 
 //================================================================
+/*! (operator) unary +
+*/
+static void c_fixnum_positive(struct VM *vm, mrbc_value v[], int argc)
+{
+  // do nothing
+}
+
+
+//================================================================
 /*! (operator) unary -
 */
 static void c_fixnum_negative(struct VM *vm, mrbc_value v[], int argc)
@@ -229,6 +238,7 @@ void mrbc_init_class_fixnum(struct VM *vm)
   mrbc_class_fixnum = mrbc_define_class(vm, "Fixnum", mrbc_class_object);
 
   mrbc_define_method(vm, mrbc_class_fixnum, "[]", c_fixnum_bitref);
+  mrbc_define_method(vm, mrbc_class_fixnum, "+@", c_fixnum_positive);
   mrbc_define_method(vm, mrbc_class_fixnum, "-@", c_fixnum_negative);
   mrbc_define_method(vm, mrbc_class_fixnum, "**", c_fixnum_power);
   mrbc_define_method(vm, mrbc_class_fixnum, "%", c_fixnum_mod);
@@ -253,6 +263,15 @@ void mrbc_init_class_fixnum(struct VM *vm)
 
 // Float
 #if MRBC_USE_FLOAT
+
+//================================================================
+/*! (operator) unary +
+*/
+static void c_float_positive(struct VM *vm, mrbc_value v[], int argc)
+{
+  // do nothing
+}
+
 
 //================================================================
 /*! (operator) unary -
@@ -326,6 +345,7 @@ void mrbc_init_class_float(struct VM *vm)
   // Float
   mrbc_class_float = mrbc_define_class(vm, "Float", mrbc_class_object);
 
+  mrbc_define_method(vm, mrbc_class_float, "+@", c_float_positive);
   mrbc_define_method(vm, mrbc_class_float, "-@", c_float_negative);
 #if MRBC_USE_MATH
   mrbc_define_method(vm, mrbc_class_float, "**", c_float_power);
