@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "mrubyc.h"
 
-#define MEMORY_SIZE (1024*32)
+#define MEMORY_SIZE (1024*40)
 static uint8_t memory_pool[MEMORY_SIZE];
 
 uint8_t * load_mrb_file(const char *filename)
