@@ -2259,7 +2259,9 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 */
 static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs )
 {
+  FETCH_B();
   // currently, not supported
+  a = a;
   
   return 0;
 }
