@@ -2450,9 +2450,24 @@ void mrbc_vm_begin( struct VM *vm )
   }
 
   // set self to reg[0]
-  vm->regs[0].tt = MRBC_TT_CLASS;
-  vm->regs[0].cls = mrbc_class_object;
+  // create instance of Object
+  mrbc_value v;
+  v.tt = MRBC_TT_OBJECT;
+  v.instance = (mrbc_instance *)mrbc_alloc(vm, sizeof(mrbc_instance));
+  if( v.instance == NULL ) return;	// ENOMEM
 
+  if( mrbc_kv_init_handle(vm, &v.instance->ivar, 0) != 0 ) {
+    mrbc_raw_free(v.instance);
+    v.instance = NULL;
+    return;
+  }
+
+  v.instance->ref_count = 1;
+  v.instance->tt = MRBC_TT_OBJECT;	// for debug only.
+  v.instance->cls = mrbc_class_object;
+  vm->regs[0] = v;
+
+  // Empty callinfo
   vm->callinfo_tail = NULL;
 
   // target_class
