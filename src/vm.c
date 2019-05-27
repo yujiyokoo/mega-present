@@ -2248,7 +2248,7 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
-  Execute OP_TCLASS
+  Execute OP_SCLASS
 
   R(A) := R(B).singleton_class
 
@@ -2257,7 +2257,7 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
   @param  regs  vm->regs + vm->reg_top
   @retval 0  No error.
 */
-static inline int op_sclass( mrbc_vm *vm, uint32_t code, mrbc_value *regs )
+static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs )
 {
   // currently, not supported
   
@@ -2661,6 +2661,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_DEF:        ret = op_def       (vm, regs); break;
     case OP_ALIAS:      ret = op_alias     (vm, regs); break;
 
+    case OP_SCLASS:     ret = op_sclass    (vm, regs); break;
     case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
 
     case OP_EXT1:       // fall through

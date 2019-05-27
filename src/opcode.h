@@ -129,6 +129,7 @@ enum OPCODE {
   OP_DEF       = 0x5d,
   OP_ALIAS     = 0x5e,
 
+  OP_SCLASS    = 0x60,
   OP_TCLASS    = 0x61,
 
   OP_EXT1      = 0x64,
