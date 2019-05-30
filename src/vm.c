@@ -178,10 +178,12 @@ void mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
 void mrbc_pop_callinfo( struct VM *vm )
 {
   mrbc_callinfo *callinfo = vm->callinfo_tail;
+  if( !callinfo ) return;
   vm->callinfo_tail = callinfo->prev;
   vm->current_regs = callinfo->current_regs;
   vm->pc_irep = callinfo->pc_irep;
   vm->pc = callinfo->pc;
+  vm->inst = callinfo->inst;
   vm->target_class = callinfo->target_class;
 
   mrbc_free(vm, callinfo);
@@ -1046,7 +1048,6 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   return R(a) (normal)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1062,15 +1063,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   int nregs = vm->pc_irep->nregs;
 
   // restore irep,pc,regs
-  mrbc_callinfo *callinfo = vm->callinfo_tail;
-  if( callinfo ){
-    vm->callinfo_tail = callinfo->prev;
-    vm->current_regs = callinfo->current_regs;
-    vm->pc_irep = callinfo->pc_irep;
-    vm->pc = callinfo->pc;
-    vm->inst = callinfo->inst;
-    vm->target_class = callinfo->target_class;
-  }
+  mrbc_pop_callinfo(vm);
   
   // clear stacked arguments
   int i;
@@ -1078,9 +1071,52 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
     mrbc_release( &regs[i] );
   }
 
-  // release callinfo
-  if( callinfo ) mrbc_free(vm, callinfo);
-  
+  return 0;
+}
+
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_RETURN_BLK
+
+  return R(a) (normal)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_release(&regs[0]);
+  regs[0] = regs[a];
+  regs[a].tt = MRBC_TT_EMPTY;
+
+  int nregs = vm->pc_irep->nregs;
+
+  if( vm->callinfo_tail->mid == 0 ){
+    // nested block?
+    uint8_t *inst = vm->callinfo_tail->inst;
+    while( vm->callinfo_tail->inst == inst ){
+      nregs += vm->callinfo_tail->n_args;
+      mrbc_pop_callinfo(vm);
+      nregs += vm->callinfo_tail->n_args;
+      mrbc_pop_callinfo(vm);
+    }
+  } else {
+    // simple return
+    mrbc_pop_callinfo(vm);
+  }
+
+  // clear stacked arguments
+  int i;
+  for( i = 1; i < nregs; i++ ) {
+    mrbc_release( &regs[i] );
+  }
+
   return 0;
 }
 
@@ -2515,7 +2551,7 @@ void output_opcode( uint8_t opcode )
     "LOADSELF","LOADT",   "LOADF",   "GETGV",
     "SETGV",   0,         0,         "GETIV",
     "SETIV",   0,         0,         "GETCONST",
-    "SETCONST",0,         0,        "GETUPVAR",
+    "SETCONST",0,         0,         "GETUPVAR",
     // 0x20
     "SETUPVAR","JMP",     "JMPIF",   "JMPNOT",
     "JMPNIL",  0,         0,         0,
@@ -2524,7 +2560,7 @@ void output_opcode( uint8_t opcode )
     // 0x30
     0,         "SUPER",   "ARGARY",  "ENTER",
     0,         0,         0,         "RETURN",
-    0,         0,         "BLKPUSH", "ADD",
+    "RETRUN_BLK","BREAK", "BLKPUSH", "ADD",
     "ADDI",    "SUB",     "SUBI",    "MUL",
     // 0x40
     "DIV",     "EQ",      "LT",      "LE",
@@ -2624,7 +2660,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_ENTER:      ret = op_enter     (vm, regs); break;
 
     case OP_RETURN:     ret = op_return    (vm, regs); break;
-
+    case OP_RETURN_BLK: ret = op_return_blk(vm, regs); break;
     case OP_BREAK:      ret = op_break     (vm, regs); break;
 
     case OP_BLKPUSH:    ret = op_blkpush   (vm, regs); break;
