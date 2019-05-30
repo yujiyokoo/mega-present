@@ -24,29 +24,37 @@
 
 // Layer 1st(f) and 2nd(s) model
 // last 4bit is ignored
-// f : size
-// 0 : 0000-007f
-// 1 : 0080-00ff
-// 2 : 0100-01ff
-// 3 : 0200-03ff
-// 4 : 0400-07ff
-// 5 : 0800-0fff
-// 6 : 1000-1fff
-// 7 : 2000-3fff
-// 8 : 4000-7fff
-// 9 : 8000-ffff
+//  f : size
+//  0 : 000000-00007f
+//  1 : 000080-0000ff
+//  2 : 000100-0001ff
+//  3 : 000200-0003ff
+//  4 : 000400-0007ff
+//  5 : 000800-000fff
+//  6 : 001000-001fff
+//  7 : 002000-003fff
+//  8 : 004000-007fff
+//  9 : 008000-00ffff
+// 10 : 010000-01ffff
+// 11 : 020000-03ffff
+// 12 : 040000-07ffff
+// 13 : 080000-0fffff
+// 14 : 100000-1fffff
+// 15 : 200000-3fffff
+// 16 : 400000-7fffff
+// 17 : 800000-ffffff
 
-#ifndef MRBC_ALLOC_FLI_BIT_WIDTH	// 0000 0000 0000 0000
-# define MRBC_ALLOC_FLI_BIT_WIDTH 9	// ~~~~~~~~~~~
+#ifndef MRBC_ALLOC_FLI_BIT_WIDTH      // 0000 0000 0000 0000 0000 0000
+# define MRBC_ALLOC_FLI_BIT_WIDTH 17  // ~~~~~~~~~~~~~~~~~~~~~
 #endif
-#ifndef MRBC_ALLOC_SLI_BIT_WIDTH	// 0000 0000 0000 0000
-# define MRBC_ALLOC_SLI_BIT_WIDTH 3	//            ~~~
+#ifndef MRBC_ALLOC_SLI_BIT_WIDTH      // 0000 0000 0000 0000 0000 0000
+# define MRBC_ALLOC_SLI_BIT_WIDTH 3   //                      ~~~
 #endif
-#ifndef MRBC_ALLOC_IGNORE_LSBS		// 0000 0000 0000 0000
-# define MRBC_ALLOC_IGNORE_LSBS	  4	//                ~~~~
+#ifndef MRBC_ALLOC_IGNORE_LSBS        // 0000 0000 0000 0000 0000 0000
+# define MRBC_ALLOC_IGNORE_LSBS   4   //                          ~~~~
 #endif
 #ifndef MRBC_ALLOC_MEMSIZE_T
-# define MRBC_ALLOC_MEMSIZE_T     uint16_t
+# define MRBC_ALLOC_MEMSIZE_T     uint32_t
 #endif
 
 #define FLI(x) (((x) >> MRBC_ALLOC_SLI_BIT_WIDTH) & ((1 << MRBC_ALLOC_FLI_BIT_WIDTH) - 1))
@@ -61,21 +69,23 @@
 
 // memory block header
 typedef struct USED_BLOCK {
-  unsigned int         t : 1;       //!< FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK
-  unsigned int         f : 1;       //!< FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE
-  uint8_t              vm_id;       //!< mruby/c VM ID
+  uint32_t t            : 1;        //!< FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK
+  uint32_t f            : 1;        //!< FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE
+  uint32_t padding      : 6;
+  uint32_t size         : 24;       //!< block size, header included
 
-  MRBC_ALLOC_MEMSIZE_T size;        //!< block size, header included
-  MRBC_ALLOC_MEMSIZE_T prev_offset; //!< offset of previous physical block
+  uint32_t vm_id        : 8;        //!< mruby/c VM ID
+  uint32_t prev_offset  : 24;       //!< offset of previous physical block
 } USED_BLOCK;
 
 typedef struct FREE_BLOCK {
-  unsigned int         t : 1;       //!< FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK
-  unsigned int         f : 1;       //!< FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE
-  uint8_t              vm_id;       //!< dummy
+  uint32_t t            : 1;        //!< FLAG_TAIL_BLOCK or FLAG_NOT_TAIL_BLOCK
+  uint32_t f            : 1;        //!< FLAG_FREE_BLOCK or BLOCK_IS_NOT_FREE
+  uint32_t padding      : 6;
+  uint32_t size         : 24;       //!< block size, header included
 
-  MRBC_ALLOC_MEMSIZE_T size;        //!< block size, header included
-  MRBC_ALLOC_MEMSIZE_T prev_offset; //!< offset of previous physical block
+  uint32_t vm_id        : 8;        //!< dummy
+  uint32_t prev_offset  : 24;       //!< offset of previous physical block
 
   struct FREE_BLOCK *next_free;
   struct FREE_BLOCK *prev_free;
@@ -102,9 +112,9 @@ static MRBC_ALLOC_MEMSIZE_T memory_pool_size;
 static FREE_BLOCK *free_blocks[SIZE_FREE_BLOCKS + 1];
 
 // free memory bitmap
-#define MSB_BIT1 0x8000
-static uint16_t free_fli_bitmap;
-static uint16_t free_sli_bitmap[MRBC_ALLOC_FLI_BIT_WIDTH + 2]; // + sentinel
+#define MSB_BIT1 0x800000
+static uint32_t free_fli_bitmap;
+static uint32_t free_sli_bitmap[MRBC_ALLOC_FLI_BIT_WIDTH + 2]; // + sentinel
 
 
 //================================================================
@@ -113,15 +123,16 @@ static uint16_t free_sli_bitmap[MRBC_ALLOC_FLI_BIT_WIDTH + 2]; // + sentinel
   @param  x	target (16bit unsigned)
   @retval int	nlz value
 */
-static inline int nlz16(uint16_t x)
+static inline int nlz24(uint32_t x)
 {
-  if( x == 0 ) return 16;
+  if (x == 0) return 24;
 
   int n = 1;
-  if((x >>  8) == 0 ) { n += 8; x <<= 8; }
-  if((x >> 12) == 0 ) { n += 4; x <<= 4; }
-  if((x >> 14) == 0 ) { n += 2; x <<= 2; }
-  return n - (x >> 15);
+  if ((x >>  8) == 0) {n += 8; x <<= 8;}
+  if ((x >> 16) == 0) {n += 8; x <<= 8;}
+  if ((x >> 20) == 0) {n += 4; x <<= 4;}
+  if ((x >> 22) == 0) {n += 2; x <<= 2;}
+  return n - (x >> 23);
 }
 
 
@@ -141,8 +152,8 @@ static int calc_index(unsigned int alloc_size)
   }
 
   // calculate First Level Index.
-  int fli = 16 -
-    nlz16( alloc_size >> (MRBC_ALLOC_SLI_BIT_WIDTH + MRBC_ALLOC_IGNORE_LSBS) );
+  int fli = 24 -
+    nlz24( alloc_size >> (MRBC_ALLOC_SLI_BIT_WIDTH + MRBC_ALLOC_IGNORE_LSBS) );
 
   // calculate Second Level Index.
   int shift = (fli == 0) ? (fli + MRBC_ALLOC_IGNORE_LSBS) :
@@ -282,7 +293,7 @@ static void merge_block(FREE_BLOCK *ptr1, FREE_BLOCK *ptr2)
 void mrbc_init_alloc(void *ptr, unsigned int size)
 {
   assert( size != 0 );
-  assert( size <= (MRBC_ALLOC_MEMSIZE_T)(~0) );
+  assert( size <= (1 << 24) - 1);
   if( memory_pool != NULL ) return;
 
   memory_pool      = ptr;
@@ -346,15 +357,15 @@ void * mrbc_raw_alloc(unsigned int size)
 
   if( target == NULL ) {
     // uses free_fli/sli_bitmap table.
-    uint16_t masked = free_sli_bitmap[fli] & ((MSB_BIT1 >> sli) - 1);
+    uint32_t masked = free_sli_bitmap[fli] & ((MSB_BIT1 >> sli) - 1);
     if( masked != 0 ) {
-      sli = nlz16(masked);
+      sli = nlz24(masked);
     }
     else {
       masked = free_fli_bitmap & ((MSB_BIT1 >> fli) - 1);
       if( masked != 0 ) {
-	fli = nlz16(masked);
-	sli = nlz16(free_sli_bitmap[fli]);
+	fli = nlz24(masked);
+	sli = nlz24(free_sli_bitmap[fli]);
       }
       else {
 	// out of memory
