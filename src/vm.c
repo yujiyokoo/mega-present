@@ -1199,7 +1199,6 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     }
     stack = callinfo->current_regs + 1 - offset;
   }
-  mrbc_dup( stack );
   regs[a] = *stack;
 
   return 0;
