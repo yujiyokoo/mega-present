@@ -867,17 +867,17 @@ static inline int op_send_by_name( mrbc_vm *vm, const char *method_name, mrbc_va
   @param  regs  pointer to regs
   @retval 0  No error.
 */
-static inline int op_sendv( mrbc_vm *vm, mrbc_value *regs )
-{
-  FETCH_BB();
+// static inline int op_sendv( mrbc_vm *vm, mrbc_value *regs )
+// {
+//   FETCH_BB();
 
-  a = a;
-  b = b;
+//   a = a;
+//   b = b;
 
-  //  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+//   //  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
 
-  return 0;
-}
+//   return 0;
+// }
 
 
 
@@ -1137,7 +1137,7 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  a = a;
+  (void)a;
 
   // pop until bytecode is OP_SENDB
   mrbc_callinfo *callinfo = vm->callinfo_tail;
@@ -1506,7 +1506,7 @@ static inline int op_lt( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  int result;
+  int result = 0;
 
   if( regs[a].tt == MRBC_TT_FIXNUM ) {
     if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
@@ -1557,7 +1557,7 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  int result;
+  int result = 0;
 
   if( regs[a].tt == MRBC_TT_FIXNUM ) {
     if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
@@ -1608,7 +1608,7 @@ static inline int op_gt( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  int result;
+  int result = 0;
 
   if( regs[a].tt == MRBC_TT_FIXNUM ) {
     if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
@@ -1659,7 +1659,7 @@ static inline int op_ge( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  int result;
+  int result = 0;
 
   if( regs[a].tt == MRBC_TT_FIXNUM ) {
     if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
@@ -2042,25 +2042,25 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs )
   @param  regs  pointer to regs
   @retval 0  No error.
 */
-static inline int op_block( mrbc_vm *vm, mrbc_value *regs )
-{
-  FETCH_BB();
+// static inline int op_block( mrbc_vm *vm, mrbc_value *regs )
+// {
+//   FETCH_BB();
 
-  mrbc_release(&regs[a]);
+//   mrbc_release(&regs[a]);
 
-  // new proc
-  mrbc_proc *proc = mrbc_rproc_alloc(vm, "");
-  if( !proc ) return 0;	// ENOMEM
-  proc->c_func = 0;
-  proc->sym_id = -1;
-  proc->next = NULL;
-  proc->irep = vm->pc_irep->reps[b];
+//   // new proc
+//   mrbc_proc *proc = mrbc_rproc_alloc(vm, "");
+//   if( !proc ) return 0;	// ENOMEM
+//   proc->c_func = 0;
+//   proc->sym_id = -1;
+//   proc->next = NULL;
+//   proc->irep = vm->pc_irep->reps[b];
 
-  regs[a].tt = MRBC_TT_PROC;
-  regs[a].proc = proc;
+//   regs[a].tt = MRBC_TT_PROC;
+//   regs[a].proc = proc;
 
-  return 0;
-}
+//   return 0;
+// }
 
 
 
@@ -2296,7 +2296,7 @@ static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
   // currently, not supported
-  a = a;
+  (void)a;
   
   return 0;
 }
