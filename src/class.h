@@ -93,6 +93,7 @@ int mrbc_print_sub(const mrbc_value *v);
 int mrbc_puts_sub(const mrbc_value *v);
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc);
 void c_ineffect(struct VM *vm, mrbc_value v[], int argc);
+void mrbc_run_mrblib(const uint8_t bytecode[]);
 void mrbc_init_class(void);
 
 

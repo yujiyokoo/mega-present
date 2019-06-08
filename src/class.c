@@ -1226,16 +1226,14 @@ void c_ineffect(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! Run mrblib, which is mruby bytecode
 */
-static void mrbc_run_mrblib(void)
+void mrbc_run_mrblib(const uint8_t bytecode[])
 {
-  extern const uint8_t mrblib_bytecode[];
-
   // instead of mrbc_vm_open()
   mrbc_vm *vm = mrbc_alloc( 0, sizeof(mrbc_vm) );
   if( !vm ) return;	// ENOMEM
   memset(vm, 0, sizeof(mrbc_vm));
 
-  mrbc_load_mrb(vm, mrblib_bytecode);
+  mrbc_load_mrb(vm, bytecode);
   mrbc_vm_begin(vm);
   mrbc_vm_run(vm);
 
@@ -1253,6 +1251,8 @@ static void mrbc_run_mrblib(void)
 
 void mrbc_init_class(void)
 {
+  extern const uint8_t mrblib_bytecode[];
+
   mrbc_init_class_object(0);
   mrbc_init_class_nil(0);
   mrbc_init_class_proc(0);
@@ -1274,5 +1274,5 @@ void mrbc_init_class(void)
   mrbc_init_class_range(0);
   mrbc_init_class_hash(0);
 
-  mrbc_run_mrblib();
+  mrbc_run_mrblib(mrblib_bytecode);
 }
