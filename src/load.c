@@ -21,6 +21,7 @@
 #include "load.h"
 #include "value.h"
 #include "alloc.h"
+#include "console.h"
 
 //
 // This is a dummy code for raise
