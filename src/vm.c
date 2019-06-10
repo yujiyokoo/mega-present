@@ -2568,8 +2568,8 @@ void output_opcode( uint8_t opcode )
     0,         "APOST",   0,         "STRING",
     // 0x50
     "STRCAT",  "HASH",    0,         0,
-    0,         "BLOCK",   "METHOD",  0,
-    0,         0,         "CLASS",   0,
+    0,         "BLOCK",   "METHOD",  "RANGE_INC",
+    "RANGE_EXC", 0,       "CLASS",   0,
     "EXEC",    "DEF",     0,         0,
     // 0x60
     "",        "TCLASS",  "",        "",
