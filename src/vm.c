@@ -1091,25 +1091,21 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_release(&regs[0]);
-  regs[0] = regs[a];
-  regs[a].tt = MRBC_TT_EMPTY;
-
   int nregs = vm->pc_irep->nregs;
+  mrbc_irep *caller = vm->irep;
 
-  if( vm->callinfo_tail->mid == 0 ){
-    // nested block?
-    uint8_t *inst = vm->callinfo_tail->inst;
-    while( vm->callinfo_tail->inst == inst ){
-      nregs += vm->callinfo_tail->n_args;
-      mrbc_pop_callinfo(vm);
-      nregs += vm->callinfo_tail->n_args;
-      mrbc_pop_callinfo(vm);
-    }
-  } else {
-    // simple return
+  // trace back to caller
+  while( vm->callinfo_tail->pc_irep != caller ){
+    nregs += vm->callinfo_tail->n_args;
     mrbc_pop_callinfo(vm);
   }
+  mrbc_release(&vm->current_regs[0]);
+
+  // ret value
+  vm->current_regs[0] = regs[a];
+  regs[a].tt = MRBC_TT_EMPTY;
+
+  mrbc_pop_callinfo(vm);
 
   // clear stacked arguments
   int i;
