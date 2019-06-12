@@ -729,7 +729,6 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
     OP_ABORT,
   };
   mrbc_irep irep = {
-    0,     // ref_count
     0,     // nlocals
     0,     // nregs
     0,     // rlen

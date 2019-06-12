@@ -400,7 +400,7 @@ static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
-  
+
   mrbc_release(&regs[a]);
   mrbc_dup(&regs[0]);
   regs[a] = regs[0];
@@ -1058,13 +1058,13 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   mrbc_release(&regs[0]);
   regs[0] = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
-  
+
   // nregs to release
   int nregs = vm->pc_irep->nregs;
 
   // restore irep,pc,regs
   mrbc_pop_callinfo(vm);
-  
+
   // clear stacked arguments
   int i;
   for( i = 1; i < nregs; i++ ) {
@@ -1400,7 +1400,7 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
     }
     #endif
   }
-  
+
   // other case
   op_send_by_name(vm, "*", regs, a, 0, 1, 0);
 
@@ -2213,17 +2213,19 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
   mrbc_class *cls = regs[a].cls;
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
-
   mrbc_proc *proc = regs[a+1].proc;
+
+  mrbc_set_vm_id(proc, 0);
   proc->sym_id = sym_id;
 #ifdef MRBC_DEBUG
   proc->names = sym_name;
 #endif
 
-  proc->ref_count++;
+  // add to class
   proc->next = cls->procs;
   cls->procs = proc;
 
+  regs[a+1].tt = MRBC_TT_EMPTY;
   return 0;
 }
 
@@ -2246,7 +2248,7 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name_a = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, a);
   mrbc_sym sym_id_a = str_to_symid(sym_name_a);
-  const char *sym_name_b = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b); 
+  const char *sym_name_b = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
   mrbc_sym sym_id_b = str_to_symid(sym_name_b);
 
   // find method only in this class.
@@ -2293,7 +2295,7 @@ static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
   // currently, not supported
   (void)a;
-  
+
   return 0;
 }
 
