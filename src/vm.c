@@ -200,7 +200,6 @@ void mrbc_pop_callinfo( struct VM *vm )
   No operation
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -218,7 +217,6 @@ static inline int op_nop( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(b)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -244,7 +242,6 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
   R(a) = Pool(b)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -270,7 +267,6 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs )
   R(a) = mrb_int(b)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -293,7 +289,6 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
   R(a) = mrb_int(-b)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -316,9 +311,8 @@ static inline int op_loadneg( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)+mrb_int(n)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
-  @retval -1  No error and exit from vm.
+  @retval 0  No error and exit from vm.
 */
 static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
 {
@@ -343,7 +337,6 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
   R(a) = Syms(b)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -370,7 +363,6 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
   R(a) = nil
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -393,7 +385,6 @@ static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs )
   R(a) = self
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -416,7 +407,6 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
   R(a) = false
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -439,7 +429,6 @@ static inline int op_loadt( mrbc_vm *vm, mrbc_value *regs )
   R(a) = false
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -462,7 +451,6 @@ static inline int op_loadf( mrbc_vm *vm, mrbc_value *regs )
   R(a) = getglobal(Syms(b))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -494,7 +482,6 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs )
   setglobal(Syms(b), R(a))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -519,7 +506,6 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs )
   R(a) = ivget(Syms(b))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -548,7 +534,6 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
   ivset(Syms(b),R(a))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -573,7 +558,6 @@ static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs )
   R(a) = constget(Syms(b))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -607,7 +591,6 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
   constset(Syms(b),R(a))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -632,7 +615,6 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
   R(a) = uvget(b,c)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -667,7 +649,6 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs )
   uvset(b,c,R(a))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -702,7 +683,6 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
   pc=a
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -724,7 +704,6 @@ static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs )
   if R(b) pc=a
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -748,7 +727,6 @@ static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs )
   if !R(b) pc=a
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -772,7 +750,6 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs )
   if R(b)==nil pc=a
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -863,7 +840,6 @@ static inline int op_send_by_name( mrbc_vm *vm, const char *method_name, mrbc_va
   R(a) = call(R(a),Syms(b),*R(a+1))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -888,7 +864,6 @@ static inline int op_send_by_name( mrbc_vm *vm, const char *method_name, mrbc_va
   R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -910,7 +885,6 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
   R(a) = super(R(a+1),... ,R(a+b+1))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -957,7 +931,6 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   R(a) = argument array (16=m5:r1:m5:d1:lv4)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -992,7 +965,6 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
   arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1125,7 +1097,6 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
   break R(a)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1163,7 +1134,6 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
   R(a) = block (16=m5:r1:m5:d1:lv4)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1209,7 +1179,6 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)+R(a+1)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1255,7 +1224,6 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)+mrb_int(b)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1289,7 +1257,6 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)-R(a+1)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1335,7 +1302,6 @@ static inline int op_sub( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)-mrb_int(b)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1369,7 +1335,6 @@ static inline int op_subi( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)*R(a+1)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1418,7 +1383,6 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)/R(a+1)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1468,7 +1432,6 @@ static inline int op_div( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)==R(a+1)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1494,7 +1457,6 @@ static inline int op_eq( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)<R(a+1)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1545,7 +1507,6 @@ static inline int op_lt( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)<=R(a+1)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1596,7 +1557,6 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)>R(a+1)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1647,7 +1607,6 @@ static inline int op_gt( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(a)>=R(a+1)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1698,7 +1657,6 @@ static inline int op_ge( mrbc_vm *vm, mrbc_value *regs )
   R(a) = ary_new(R(a),R(a+1)..R(a+b))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1728,7 +1686,6 @@ static inline int op_array( mrbc_vm *vm, mrbc_value *regs )
   R(a) = ary_new(R(b),R(b+1)..R(b+c))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1761,7 +1718,6 @@ static inline int op_array2( mrbc_vm *vm, mrbc_value *regs )
   ary_cat(R(a),R(a+1))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1800,7 +1756,6 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
   R(a) = ary_dup(R(a))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1822,7 +1777,6 @@ static inline int op_arydup( mrbc_vm *vm, mrbc_value *regs )
   R(a) = R(b)[c]
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1861,7 +1815,6 @@ static inline int op_aref( mrbc_vm *vm, mrbc_value *regs )
   *R(a),R(a+1)..R(a+c) = R(a)[b..]
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1906,7 +1859,6 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
   R(a) = intern(R(a))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1932,7 +1884,6 @@ static inline int op_intern( mrbc_vm *vm, mrbc_value *regs )
   R(a) = str_dup(Lit(b))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -1967,7 +1918,6 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
   str_cat(R(a),R(a+1))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -2003,7 +1953,6 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
   R(a) = hash_new(R(a),R(a+1)..R(a+b))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -2034,7 +1983,6 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs )
   R(a) = lambda(SEQ[b],L_BLOCK)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -2068,7 +2016,6 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs )
   R(a) = lambda(SEQ[b],L_METHOD)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -2102,7 +2049,6 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
   R(a) = range_new(R(a),R(a+1),TRUE)
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -2132,7 +2078,6 @@ static inline int op_range( mrbc_vm *vm, mrbc_value *regs )
   R(a) = newclass(R(a),Syms(b),R(a+1))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -2163,7 +2108,6 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
   R(a) = blockexec(R(a),SEQ[b])
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -2199,7 +2143,6 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
   R(a).newmethod(Syms(b),R(a+1))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -2238,7 +2181,6 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
   alias_method(target_class,Syms(a),Syms(b))
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -2308,7 +2250,6 @@ static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs )
   R(a) = target_class
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval 0  No error.
 */
@@ -2334,7 +2275,6 @@ static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs )
   if OP_EXT3, make 1st and 2nd operand 16bit
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval -1  No error and exit from vm.
 */
@@ -2355,7 +2295,6 @@ static inline int op_ext( mrbc_vm *vm, mrbc_value *regs )
   stop VM
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval -1  No error and exit from vm.
 */
@@ -2383,7 +2322,6 @@ static inline int op_stop( mrbc_vm *vm, mrbc_value *regs )
   stop VM
 
   @param  vm    pointer of VM.
-  @param  inst  pointer to instruction
   @param  regs  pointer to regs
   @retval -1  No error and exit from vm.
 */
