@@ -766,6 +766,24 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
 
 
 
+//================================================================
+/*!@brief
+  Execute OP_ONERR
+
+  rescue_push(a)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_onerr( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_S();
+
+  return 0;
+}
+
+
 
 //================================================================
 /*!@brief
@@ -2584,6 +2602,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
     case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
+
+    case OP_ONERR:      ret = op_onerr     (vm, regs); break;
 
       //    case OP_SENDV:      ret = op_sendv     (vm, regs); break;
 
