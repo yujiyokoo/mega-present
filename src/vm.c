@@ -284,7 +284,7 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
-  Execute OP_LOADNEG
+  Execute OP_LOADINEG
 
   R(a) = mrb_int(-b)
 
@@ -292,7 +292,7 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
   @param  regs  pointer to regs
   @retval 0  No error.
 */
-static inline int op_loadneg( mrbc_vm *vm, mrbc_value *regs )
+static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
@@ -2497,7 +2497,7 @@ void output_opcode( uint8_t opcode )
   const char *n[] = {
     // 0x00
     "NOP",     "MOVE",    "LOADL",   "LOADI",
-    "LOADNEG", "LOADI__1","LOADI_0", "LOADI_1",
+    "LOADINEG","LOADI__1","LOADI_0", "LOADI_1",
     "LOADI_2", "LOADI_3", "LOADI_4", "LOADI_5",
     "LOADI_6", "LOADI_7", "LOADSYM", "LOADNIL",
     // 0x10
@@ -2572,7 +2572,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_MOVE:       ret = op_move      (vm, regs); break;
     case OP_LOADL:      ret = op_loadl     (vm, regs); break;
     case OP_LOADI:      ret = op_loadi     (vm, regs); break;
-    case OP_LOADNEG:    ret = op_loadneg   (vm, regs); break;
+    case OP_LOADINEG:   ret = op_loadineg  (vm, regs); break;
     case OP_LOADI__1:   // fall through
     case OP_LOADI_0:    // fall through
     case OP_LOADI_1:    // fall through
