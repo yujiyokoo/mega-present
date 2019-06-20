@@ -2186,6 +2186,17 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
   proc->next = cls->procs;
   cls->procs = proc;
 
+  // checking same method
+  for( ;proc->next != NULL; proc = proc->next ) {
+    if( proc->next->sym_id == sym_id ) {
+      // Found it. Unchain it in linked list and remove.
+      mrbc_proc *del_proc = proc->next;
+      proc->next = proc->next->next;
+      mrbc_raw_free( del_proc );
+      break;
+    }
+  }
+
   regs[a+1].tt = MRBC_TT_EMPTY;
   return 0;
 }
