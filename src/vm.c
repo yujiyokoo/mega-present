@@ -780,6 +780,8 @@ static inline int op_onerr( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
+  (void)a;
+
   return 0;
 }
 
