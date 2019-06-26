@@ -93,7 +93,7 @@ void hal_init(void)
 */
 void hal_enable_irq(void)
 {
-  taskEXIT_CRITICAL(&mux);
+  portEXIT_CRITICAL(&mux);
 }
 
 
@@ -104,7 +104,7 @@ void hal_enable_irq(void)
 */
 void hal_disable_irq(void)
 {
-  taskENTER_CRITICAL(&mux);
+  portENTER_CRITICAL(&mux);
 }
 
 
