@@ -931,7 +931,8 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
     mrbc_value value = regs[a+1];
     mrbc_dup( &value );
     int argc = value.array->n_stored;
-    for( int i=0 ; i<argc ; i++ ){
+    int i;
+    for( i = 0; i < argc; i++ ) {
       mrbc_release( &regs[a+1+i] );
       regs[a+1+i] = value.array->data[i];
     }
@@ -1021,7 +1022,8 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     int rest_size = argc - m1 - o;
     if( rest_size < 0 ) rest_size = 0;
     mrb_value rest = mrbc_array_new(vm, rest_size);
-    for( int i = 0 ; i<rest_size ; i++ ){
+    int i;
+    for( i = 0; i < rest_size; i++ ) {
       rest.array->data[i] = regs[1+m1+o+i];
     }
     rest.array->n_stored = rest_size;
@@ -1757,7 +1759,8 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
     mrbc_array_resize(&regs[a], new_size);
   }
 
-  for( int i=0 ; i<size_2 ; i++ ){
+  int i;
+  for( i = 0; i < size_2; i++ ) {
     mrbc_dup( &regs[a+1].array->data[i] );
     regs[a].array->data[size_1+i] = regs[a+1].array->data[i];
   }
@@ -1857,7 +1860,8 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
     int ary_size = len-pre-post;
     regs[a] = mrbc_array_new(vm, ary_size);
     // copy elements
-    for( int i=0 ; i<ary_size ; i++ ){
+    int i;
+    for( i = 0; i < ary_size; i++ ) {
       regs[a].array->data[i] = src.array->data[pre+i];
       mrbc_dup( &regs[a].array->data[i] );
     }
