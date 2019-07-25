@@ -38,11 +38,29 @@ uint8_t * load_mrb_file(const char *filename)
 
 void mrubyc(uint8_t *mrbbuf)
 {
-  mrbc_init(memory_pool, MEMORY_SIZE);
+  mrbc_init_alloc(memory_pool, MEMORY_SIZE);
+  init_static();
 
-  if( mrbc_create_task(mrbbuf, 0) != NULL ){
-    mrbc_run();
+  struct VM *vm = mrbc_vm_open(NULL);
+  if( vm == 0 ) {
+    fprintf(stderr, "Error: Can't open VM.\n");
+    return;
   }
+
+  if( mrbc_load_mrb(vm, mrbbuf) != 0 ) {
+    fprintf(stderr, "Error: Illegal bytecode.\n");
+    return;
+  }
+
+  mrbc_vm_begin(vm);
+
+  #ifdef MRBC_DEBUG
+  vm->flag_debug_mode = 1;
+  #endif
+
+  mrbc_vm_run(vm);
+  mrbc_vm_end(vm);
+  mrbc_vm_close(vm);
 }
 
 
