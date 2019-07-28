@@ -1,12 +1,14 @@
 /*
- * Sample Main Program
+ * This sample program executes ONE mruby/c program.
+ * By this sample, you can know about mruby/c vm setup and execution.
+ * The function mrubyc executes a bytecode pointed by mrbbuf.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "mrubyc.h"
 
-#define MEMORY_SIZE (1024*30)
+#define MEMORY_SIZE (1024*40)
 static uint8_t memory_pool[MEMORY_SIZE];
 
 uint8_t * load_mrb_file(const char *filename)
@@ -36,28 +38,12 @@ uint8_t * load_mrb_file(const char *filename)
 }
 
 
-// Sample code for making a mruby/c class
-static void c_myclass_func(mrb_vm *vm, mrb_value *v, int argc)
-{
-  printf("MyClass - func\n");
-}
-
-void make_class(mrb_vm *vm)
-{
-  mrb_class *cls = mrbc_define_class(vm, "MyClass", mrbc_class_object);
-  mrbc_define_method(vm, cls, "func", c_myclass_func);
-}
-
-
-
 void mrubyc(uint8_t *mrbbuf)
 {
-  struct VM *vm;
-
   mrbc_init_alloc(memory_pool, MEMORY_SIZE);
   init_static();
 
-  vm = mrbc_vm_open(NULL);
+  struct VM *vm = mrbc_vm_open(NULL);
   if( vm == 0 ) {
     fprintf(stderr, "Error: Can't open VM.\n");
     return;
@@ -70,7 +56,9 @@ void mrubyc(uint8_t *mrbbuf)
 
   mrbc_vm_begin(vm);
 
-  make_class(vm);
+  #ifdef MRBC_DEBUG
+  vm->flag_debug_mode = 1;
+  #endif
 
   mrbc_vm_run(vm);
   mrbc_vm_end(vm);

@@ -1,5 +1,5 @@
 #
-# mrbc -E -Bary sample01.rb
+# mrbc -E -Bary sample_include_bytecode.rb
 #
 
 while true

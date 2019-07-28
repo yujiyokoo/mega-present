@@ -1,6 +1,5 @@
 /*
- * Sample Main Program
- *  Multitask version. (using mruby/c scheduler)
+ * This sample program executes multiple mruby/c programs concurrently.
  */
 
 #include <stdio.h>

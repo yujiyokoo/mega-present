@@ -1,8 +1,8 @@
 # Executables
-mrubyc
-mrubyc_sample
-mrubyc_concurrent
-mrubyc_myclass
+sample_scheduler
+sample_include
+sample_concurrent
+sample_myclass
 
 # Object files
 *.o
