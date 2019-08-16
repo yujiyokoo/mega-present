@@ -88,6 +88,9 @@ typedef struct VM {
   uint8_t flag_debug_mode;
 #endif
 
+  int16_t exception_idx;
+  int16_t exceptions[MAX_EXCEPTION_COUNT];
+  
   int32_t error_code;
 
   volatile int8_t flag_preemption;
