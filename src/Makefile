@@ -9,7 +9,7 @@
 
 CFLAGS += -Wall -Wpointer-arith -g  # -std=c99 -pedantic -pedantic-errors
 
-COMMON_SRCS = alloc.c class.c console.c global.c keyvalue.c load.c rrt0.c static.c symbol.c value.c vm.c hal/hal.c
+COMMON_SRCS = alloc.c class.c console.c error.c global.c keyvalue.c load.c rrt0.c static.c symbol.c value.c vm.c hal/hal.c
 RUBY_LIB_SRCS = c_array.c c_hash.c c_numeric.c c_math.c c_range.c c_string.c mrblib.c
 
 TARGET = libmrubyc.a
@@ -45,8 +45,10 @@ global.o: global.c vm_config.h value.h static.h class.h global.h mrubyc.h \
   c_range.h c_string.h load.h console.h hal/hal.h rrt0.h
 
 class.o: class.c vm_config.h value.h alloc.h class.h vm.h keyvalue.h \
-  static.h symbol.h global.h console.h hal/hal.h opcode.h load.h \
+  static.h symbol.h global.h console.h hal/hal.h opcode.h load.h error.h \
   c_array.h c_hash.h c_numeric.h c_math.h c_string.h c_range.h
+
+error.o: error.c vm_config.h value.h vm.h static.h
 
 symbol.o: symbol.c vm_config.h value.h vm.h class.h alloc.h static.h \
   symbol.h c_string.h c_array.h console.h hal/hal.h

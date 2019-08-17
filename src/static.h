@@ -33,6 +33,7 @@ extern struct RClass *mrbc_class_range;
 extern struct RClass *mrbc_class_hash;
 extern struct RClass *mrbc_class_proc;
 extern struct RClass *mrbc_class_math;
+extern struct RClass *mrbc_class_exception;
 
 void mrbc_init_static(void);
 void mrbc_cleanup_static(void);

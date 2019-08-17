@@ -28,6 +28,7 @@ struct RClass *mrbc_class_range;
 struct RClass *mrbc_class_hash;
 struct RClass *mrbc_class_proc;
 struct RClass *mrbc_class_math;
+struct RClass *mrbc_class_exception;
 
 
 //================================================================
