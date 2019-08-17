@@ -88,6 +88,7 @@ typedef struct VM {
   uint8_t flag_debug_mode;
 #endif
 
+  mrbc_class *exc;
   int16_t exception_idx;
   int16_t exceptions[MAX_EXCEPTION_COUNT];
   

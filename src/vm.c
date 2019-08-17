@@ -801,7 +801,36 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  // currently support raise only ( not yet raise "string", raise Exception ) 
+  mrbc_release( &regs[a] );
+  regs[a].tt = MRBC_TT_CLASS;
+  regs[a].cls = vm->exc;
 
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_RESCUE
+
+  R(b) = R(a).isa?(R(b))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  (void)b;
+  
+  // TODO: need to support subclass of Exception
+  // Current implementation is always caught by OP_RESCUE, wrong!
+  mrbc_release( &regs[a] );
+  regs[a] = mrbc_true_value();
 
   return 0;
 }
@@ -2664,7 +2693,7 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_ONERR:      ret = op_onerr     (vm, regs); break;
     case OP_EXCEPT:     ret = op_except    (vm, regs); break;
-
+    case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
     case OP_POPERR:     ret = op_poperr    (vm, regs); break;
 
       //    case OP_SENDV:      ret = op_sendv     (vm, regs); break;

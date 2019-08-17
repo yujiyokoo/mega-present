@@ -888,6 +888,10 @@ static void c_object_nil(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
+  // set exception
+  vm->exc = mrbc_class_exception;
+  
+  // raise
   if( argc == 0 ){    // raise
     // for test
     uint16_t line = vm->exceptions[--vm->exception_idx];
