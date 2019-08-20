@@ -825,12 +825,20 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  (void)b;
-  
-  // TODO: need to support subclass of Exception
-  // Current implementation is always caught by OP_RESCUE, wrong!
-  mrbc_release( &regs[a] );
-  regs[a] = mrbc_true_value();
+  assert( regs[a].tt == MRBC_TT_CLASS );
+  assert( regs[b].tt == MRBC_TT_CLASS );
+  mrbc_class *cls = regs[a].cls;
+  while( cls != NULL ){
+    if( regs[b].cls == cls ){
+      mrbc_release( &regs[b] );
+      regs[b] = mrbc_true_value();
+      return 0;
+    }
+    cls = cls->super;
+  }
+
+  mrbc_release( &regs[b] );
+  regs[b] = mrbc_false_value();
 
   return 0;
 }
@@ -852,6 +860,47 @@ static inline int op_poperr( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   vm->exception_idx -= a;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_EPUSH
+
+  ensure_push(SEQ[a])
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_epush( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  vm->ensures[vm->ensure_idx++] = vm->pc_irep->reps[a];
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_EPOP
+
+  A.times{ensure_pop().call}
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
 
   return 0;
 }
@@ -2695,6 +2744,9 @@ int mrbc_vm_run( struct VM *vm )
     case OP_EXCEPT:     ret = op_except    (vm, regs); break;
     case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
     case OP_POPERR:     ret = op_poperr    (vm, regs); break;
+
+    case OP_EPUSH:      ret = op_epush     (vm, regs); break;
+    case OP_EPOP:       ret = op_epop      (vm, regs); break;
 
       //    case OP_SENDV:      ret = op_sendv     (vm, regs); break;
 

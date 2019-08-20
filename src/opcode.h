@@ -95,7 +95,9 @@ enum OPCODE {
   OP_EXCEPT	= 0x26,	//!< B    R(a) = exc
   OP_RESCUE	= 0x27,	//!< BB   R(b) = R(a).isa?(R(b))
   OP_POPERR	= 0x28,	//!< B    a.times{rescue_pop()}
-  
+
+  OP_EPUSH	= 0x2a,	//!< B    ensure_push(SEQ[a])
+  OP_EPOP	= 0x2b,	//!< B    A.times{ensure_pop().call}
   OP_SENDV	= 0x2c,	//!< BB   R(a) = call(R(a),Syms(b),*R(a+1))
 
   OP_SEND	= 0x2e,	//!< BBB  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
@@ -159,8 +161,6 @@ enum OPCODE {
 //OP_GETMCNST	= 0x1d,	//!< BB   R(a) = R(a)::Syms(b)
 //OP_SETMCNST	= 0x1e,	//!< BB   R(a+1)::Syms(b) = R(a)
 //OP_RAISE	= 0x29,	//!< B    raise(R(a))
-//OP_EPUSH	= 0x2a,	//!< B    ensure_push(SEQ[a])
-//OP_EPOP	= 0x2b,	//!< B    A.times{ensure_pop().call}
 //OP_SENDVB	= 0x2d,	//!< BB   R(a) = call(R(a),Syms(b),*R(a+1),&R(a+2))
 //OP_CALL	= 0x30,	//!< Z    R(0) = self.call(frame.argc, frame.argv)
 //OP_KEY_P	= 0x34,	//!< BB   R(a) = kdict.key?(Syms(b))                      # todo

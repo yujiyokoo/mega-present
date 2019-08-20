@@ -90,7 +90,9 @@ typedef struct VM {
 
   mrbc_class *exc;
   int16_t exception_idx;
-  int16_t exceptions[MAX_EXCEPTION_COUNT];
+  int16_t exceptions[MAX_EXCEPTION_COUNT];   // entry point to "rescue"
+  int16_t ensure_idx;
+  mrbc_irep *ensures[MAX_EXCEPTION_COUNT];   // enrty point to "ensure"
   
   int32_t error_code;
 

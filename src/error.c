@@ -24,7 +24,9 @@ void mrbc_init_class_exception(struct VM *vm)
 {
   mrbc_class_exception = mrbc_define_class(vm, "Exception", mrbc_class_object);
 
-  mrbc_define_class(vm, "StandardError", mrbc_class_exception);
+  mrbc_class_standarderror = mrbc_define_class(vm, "StandardError", mrbc_class_exception);
+  mrbc_class_runtimeerror = mrbc_define_class(vm, "RuntimeError", mrbc_class_standarderror);
+  mrbc_class_zerodivisionerror = mrbc_define_class(vm, "ZeroDivisionError", mrbc_class_standarderror);
 }
 
 

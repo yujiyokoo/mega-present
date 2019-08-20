@@ -29,6 +29,9 @@ struct RClass *mrbc_class_hash;
 struct RClass *mrbc_class_proc;
 struct RClass *mrbc_class_math;
 struct RClass *mrbc_class_exception;
+struct RClass *mrbc_class_standarderror;
+struct RClass *mrbc_class_runtimeerror;
+struct RClass *mrbc_class_zerodivisionerror;
 
 
 //================================================================
