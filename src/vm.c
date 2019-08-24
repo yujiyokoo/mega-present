@@ -868,6 +868,27 @@ static inline int op_poperr( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*!@brief
+  Execute OP_RAISE
+
+  raise(R(a))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_raise( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  vm->exc = regs[a].cls;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
   Execute OP_EPUSH
 
   ensure_push(SEQ[a])
@@ -901,6 +922,7 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  (void)a;
 
   return 0;
 }
@@ -2739,12 +2761,11 @@ int mrbc_vm_run( struct VM *vm )
     case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
     case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
-
     case OP_ONERR:      ret = op_onerr     (vm, regs); break;
     case OP_EXCEPT:     ret = op_except    (vm, regs); break;
     case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
     case OP_POPERR:     ret = op_poperr    (vm, regs); break;
-
+    case OP_RAISE:      ret = op_raise     (vm, regs); break;
     case OP_EPUSH:      ret = op_epush     (vm, regs); break;
     case OP_EPOP:       ret = op_epop      (vm, regs); break;
 
