@@ -38,6 +38,9 @@ extern struct RClass *mrbc_class_exception;
 extern struct RClass *mrbc_class_standarderror;
 extern struct RClass *mrbc_class_runtimeerror;
 extern struct RClass *mrbc_class_zerodivisionerror;
+extern struct RClass *mrbc_class_argumenterror;
+extern struct RClass *mrbc_class_indexerror;
+extern struct RClass *mrbc_class_typeerror;
   
 void mrbc_init_static(void);
 void mrbc_cleanup_static(void);

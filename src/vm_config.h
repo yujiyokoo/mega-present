@@ -87,7 +87,9 @@
 // Debug code.
 #if !defined(MRBC_DEBUG)
 #define MRBC_DEBUG
+#define MRBC_NO_TIMER
 #endif
+
 
 
 #endif

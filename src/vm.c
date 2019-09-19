@@ -881,6 +881,8 @@ static inline int op_raise( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   vm->exc = regs[a].cls;
+  uint16_t line = vm->exceptions[--vm->exception_idx];
+  vm->inst = vm->pc_irep->code + line;
 
   return 0;
 }
