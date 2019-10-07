@@ -924,7 +924,22 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  (void)a;
+  (void)a;   // EPOP <a>
+
+  mrb_irep *block = vm->ensures[--vm->ensure_idx];
+
+  // same as OP_EXEC
+  mrbc_push_callinfo(vm, 0, 0);
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = block;
+  vm->inst = block->code;
+
+  // new regs
+  //  vm->current_regs += a;
+
+  vm->target_class = find_class_by_object(vm, &regs[0]);
 
   return 0;
 }
