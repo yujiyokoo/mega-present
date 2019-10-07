@@ -88,15 +88,15 @@ enum OPCODE {
   OP_GETUPVAR	= 0x1f,	//!< BBB  R(a) = uvget(b,c)
   OP_SETUPVAR	= 0x20,	//!< BBB  uvset(b,c,R(a))
   OP_JMP	= 0x21,	//!< S    pc=a
-  OP_JMPIF	= 0x22,	//!< BS   if R(b) pc=a
-  OP_JMPNOT	= 0x23,	//!< BS   if !R(b) pc=a
-  OP_JMPNIL	= 0x24,	//!< BS   if R(b)==nil pc=a
+  OP_JMPIF	= 0x22,	//!< BS   if R(a) pc=b
+  OP_JMPNOT	= 0x23,	//!< BS   if !R(a) pc=b
+  OP_JMPNIL	= 0x24,	//!< BS   if R(a)==nil pc=b
   OP_ONERR	= 0x25,	//!< S    rescue_push(a)
 
   OP_SENDV	= 0x2c,	//!< BB   R(a) = call(R(a),Syms(b),*R(a+1))
 
   OP_SEND	= 0x2e,	//!< BBB  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
-  OP_SENDB	= 0x2f,	//!< BBB  R(a) = call(R(a),Syms(Bx),R(a+1),...,R(a+c),&R(a+c+1))
+  OP_SENDB	= 0x2f,	//!< BBB  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c),&R(a+c+1))
 
   OP_SUPER	= 0x31,	//!< BB   R(a) = super(R(a+1),... ,R(a+b+1))
   OP_ARGARY	= 0x32,	//!< BS   R(a) = argument array (16=m5:r1:m5:d1:lv4)
@@ -107,9 +107,9 @@ enum OPCODE {
   OP_BREAK	= 0x39,	//!< B    break R(a)
   OP_BLKPUSH	= 0x3a,	//!< BS   R(a) = block (16=m5:r1:m5:d1:lv4)
   OP_ADD	= 0x3b,	//!< B    R(a) = R(a)+R(a+1)
-  OP_ADDI	= 0x3c,	//!< BB   R(a) = R(a)+mrb_int(c)
+  OP_ADDI	= 0x3c,	//!< BB   R(a) = R(a)+mrb_int(b)
   OP_SUB	= 0x3d,	//!< B    R(a) = R(a)-R(a+1)
-  OP_SUBI	= 0x3e,	//!< BB   R(a) = R(a)-C
+  OP_SUBI	= 0x3e,	//!< BB   R(a) = R(a)-mrb_int(b)
   OP_MUL	= 0x3f,	//!< B    R(a) = R(a)*R(a+1)
   OP_DIV	= 0x40,	//!< B    R(a) = R(a)/R(a+1)
   OP_EQ		= 0x41,	//!< B    R(a) = R(a)==R(a+1)
