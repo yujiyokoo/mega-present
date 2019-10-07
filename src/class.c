@@ -882,9 +882,9 @@ static void c_object_nil(struct VM *vm, mrbc_value v[], int argc)
 
 //================================================================
 /*! (method) raise
- *    raise
- *    raise "string"
- *    raise Exception
+ *    1. raise
+ *    2. raise "string"
+ *    3. raise Exception
  */
 static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
@@ -892,9 +892,10 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
   vm->exc = mrbc_class_runtimeerror;
   
   // raise
-  if( argc == 0 ){    // raise
+  if( argc == 0 ){    // 1. raise
     // for test
-    uint16_t line = vm->exceptions[--vm->exception_idx];
+    int idx = --vm->exception_idx;
+    uint16_t line = vm->exceptions[idx];
     vm->inst = vm->pc_irep->code + line;
   } else {
     console_printf("Not supported\n");
