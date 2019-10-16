@@ -656,6 +656,7 @@ static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
   } else {
     console_putchar('\n');
   }
+  SET_NIL_RETURN();
 }
 
 

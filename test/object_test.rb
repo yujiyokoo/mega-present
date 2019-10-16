@@ -13,5 +13,6 @@ class ObjectTest < MrubycTestCase
     assert_equal true,  nil.nil?
     assert_equal false, true.nil?
     assert_equal false, false.nil?
+    assert_equal nil, puts("Hello World!")
   end
 end
