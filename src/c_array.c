@@ -524,6 +524,24 @@ static void c_array_add(struct VM *vm, mrbc_value v[], int argc)
 static void c_array_get(struct VM *vm, mrbc_value v[], int argc)
 {
   /*
+    in case of Array[...] -> Array
+  */
+  if( v[0].tt == MRBC_TT_CLASS ) {
+    mrbc_value ret = mrbc_array_new(vm, argc);
+    if( ret.array == NULL ) return;	// ENOMEM
+
+    memcpy( ret.array->data, &v[1], sizeof(mrbc_value) * argc );
+    int i;
+    for( i = 1; i <= argc; i++ ) {
+      v[i].tt = MRBC_TT_EMPTY;
+    }
+    ret.array->n_stored = argc;
+
+    SET_RETURN(ret);
+    return;
+  }
+
+  /*
     in case of self[nth] -> object | nil
   */
   if( argc == 1 && v[1].tt == MRBC_TT_FIXNUM ) {
