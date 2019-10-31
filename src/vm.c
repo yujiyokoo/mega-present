@@ -801,7 +801,7 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  // currently support raise only ( not yet raise "string", raise Exception ) 
+  // currently support raise only ( not yet raise "string", raise Exception )
   mrbc_release( &regs[a] );
   regs[a].tt = MRBC_TT_CLASS;
   regs[a].cls = vm->exc;
@@ -1081,6 +1081,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   regs[a] = regs[0];
 
   // fing super class
+  mrbc_class *orig_class = regs[a].instance->cls;
   regs[a].instance->cls = regs[a].instance->cls->super;
 
   if( b == 127 ){
@@ -1097,7 +1098,10 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
     }
     b = argc;
   }
-  return op_send_by_name(vm, sym_name, regs, a, 0, b, 0);
+  op_send_by_name(vm, sym_name, regs, a, 0, b, 0);
+  regs[a].instance->cls = orig_class;
+
+  return 0;
 }
 
 
