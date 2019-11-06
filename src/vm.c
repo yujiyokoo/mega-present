@@ -780,8 +780,9 @@ static inline int op_onerr( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
-  vm->exceptions[vm->exception_idx++] = a;
-
+  int idx = vm->exception_idx++;
+  vm->exceptions[idx] = a;
+  vm->exc_callinfo[idx] = vm->callinfo_tail;
   return 0;
 }
 
@@ -2687,7 +2688,7 @@ void output_opcode( uint8_t opcode )
     "SETCONST",0,         0,         "GETUPVAR",
     // 0x20
     "SETUPVAR","JMP",     "JMPIF",   "JMPNOT",
-    "JMPNIL",  0,         0,         0,
+    "JMPNIL",  "ONERR",   0,         0,
     0,         0,         0,         0,
     "SENDV",   0,         "SEND",    "SENDB",
     // 0x30
@@ -2743,9 +2744,8 @@ int mrbc_vm_run( struct VM *vm )
     // Dispatch
     uint8_t op = *vm->inst++;
 
-#ifdef MRBC_DEBUG
-    // if( vm->flag_debug_mode )output_opcode( op );
-#endif
+    // output OP_XXX for debug 
+    //if( vm->flag_debug_mode )output_opcode( op );
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;

@@ -896,6 +896,10 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     // for test
     int idx = --vm->exception_idx;
     uint16_t line = vm->exceptions[idx];
+    mrbc_callinfo *callinfo = vm->exc_callinfo[idx];
+    while( vm->callinfo_tail != callinfo ){
+      mrbc_pop_callinfo(vm);
+    }
     vm->inst = vm->pc_irep->code + line;
   } else {
     console_printf("Not supported\n");
