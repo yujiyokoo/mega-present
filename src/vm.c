@@ -571,8 +571,7 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
   mrbc_release(&regs[a]);
   mrbc_value *v = mrbc_get_const(sym_id);
   if( v == NULL ) {             // raise?
-    console_printf( "NameError: uninitialized constant %s\n",
-		    symid_to_str( sym_id ));
+    console_printf( "NameError: uninitialized constant %s\n", sym_name );
     return 0;
   }
 
@@ -600,8 +599,77 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
+  mrbc_class *cls = find_class_by_object( vm, &regs[0] );
+
+  // supports class constants up to 1 level.
+  if( cls != mrbc_class_object ) {
+    mrbc_sym id = cls->sym_id;
+    char buf[10];
+    int i;
+    for( i = 3; i >= 0; i-- ) {
+      buf[i] = '0' + (id & 0x0f);
+      id >>= 4;
+    }
+    id = sym_id;
+    for( i = 7; i >= 4; i-- ) {
+      buf[i] = '0' + (id & 0x0f);
+      id >>= 4;
+    }
+    buf[8] = 0;
+
+    sym_id = mrbc_symbol_new( vm, buf ).i;
+  }
+
   mrbc_dup(&regs[a]);
   mrbc_set_const(sym_id, &regs[a]);
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_GETMCNST
+
+  R(a) = R(a)::Syms(b)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  mrbc_class *cls = regs[a].cls;
+  mrbc_sym id = cls->sym_id;
+  char buf[10];
+  int i;
+  for( i = 3; i >= 0; i-- ) {
+    buf[i] = '0' + (id & 0x0f);
+    id >>= 4;
+  }
+  id = str_to_symid(sym_name);
+  for( i = 7; i >= 4; i-- ) {
+    buf[i] = '0' + (id & 0x0f);
+    id >>= 4;
+  }
+  buf[8] = 0;
+
+  mrbc_sym sym_id = str_to_symid(buf);
+
+  mrbc_release(&regs[a]);
+  mrbc_value *v = mrbc_get_const(sym_id);
+  if( v == NULL ) {             // raise?
+    console_printf( "NameError: uninitialized constant %s::%s\n",
+		    symid_to_str( cls->sym_id ), sym_name );
+    return 0;
+  }
+
+  mrbc_dup(v);
+  regs[a] = *v;
 
   return 0;
 }
@@ -2612,6 +2680,7 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_GETCONST:   ret = op_getconst  (vm, regs); break;
     case OP_SETCONST:   ret = op_setconst  (vm, regs); break;
+    case OP_GETMCNST:   ret = op_getmcnst  (vm, regs); break;
 
     case OP_GETUPVAR:   ret = op_getupvar  (vm, regs); break;
     case OP_SETUPVAR:   ret = op_setupvar  (vm, regs); break;
