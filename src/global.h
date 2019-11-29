@@ -26,6 +26,7 @@ mrbc_value *mrbc_get_const(mrbc_sym sym_id);
 int mrbc_set_global(mrbc_sym sym_id, mrbc_value *v);
 mrbc_value *mrbc_get_global(mrbc_sym sym_id);
 void mrbc_global_clear_vm_id(void);
+void mrbc_global_debug_dump(void);
 
 
 #ifdef __cplusplus

@@ -106,3 +106,39 @@ void mrbc_global_clear_vm_id(void)
     mrbc_clear_vm_id( &p->value );
   }
 }
+
+
+#ifdef MRBC_DEBUG
+#include "class.h"
+#include "symbol.h"
+
+//================================================================
+/*! clear vm_id in global object for process terminated.
+*/
+void mrbc_global_debug_dump(void)
+{
+  int i;
+  console_print("<< Const table dump. >>\n(s_id:identifier = value)\n");
+  for( i = 0; i < handle_const.n_stored; i++ ) {
+    mrbc_sym sym_id = handle_const.data[i].sym_id;
+    mrbc_value *v = &handle_const.data[i].value;
+    const char *s = symid_to_str( sym_id );
+
+    console_printf(" %04x:%s = ", sym_id, s );
+    mrbc_p_sub( v );
+    console_printf(" .tt=%d\n", v->tt);
+  }
+
+  console_print("<< Global table dump. >>\n(s_id:identifier = value)\n");
+  for( i = 0; i < handle_global.n_stored; i++ ) {
+    mrbc_sym sym_id = handle_global.data[i].sym_id;
+    mrbc_value *v = &handle_global.data[i].value;
+    const char *s = symid_to_str( sym_id );
+
+    console_printf(" %04x:%s = ", sym_id, s );
+    mrbc_p_sub( v );
+    console_printf(" .tt=%d\n", v->tt);
+  }
+}
+
+#endif
