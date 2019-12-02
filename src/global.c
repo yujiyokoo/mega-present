@@ -117,27 +117,24 @@ void mrbc_global_clear_vm_id(void)
 */
 void mrbc_global_debug_dump(void)
 {
-  int i;
   console_print("<< Const table dump. >>\n(s_id:identifier = value)\n");
-  for( i = 0; i < handle_const.n_stored; i++ ) {
-    mrbc_sym sym_id = handle_const.data[i].sym_id;
-    mrbc_value *v = &handle_const.data[i].value;
-    const char *s = symid_to_str( sym_id );
+  mrbc_kv_iterator ite = mrbc_kv_iterator_new( &handle_const );
+  while( mrbc_kv_i_has_next( &ite ) ) {
+    mrbc_kv *kv = mrbc_kv_i_next( &ite );
 
-    console_printf(" %04x:%s = ", sym_id, s );
-    mrbc_p_sub( v );
-    console_printf(" .tt=%d\n", v->tt);
+    console_printf(" %04x:%s = ", kv->sym_id, symid_to_str(kv->sym_id));
+    mrbc_p_sub( &kv->value );
+    console_printf(" .tt=%d\n", kv->value.tt);
   }
 
   console_print("<< Global table dump. >>\n(s_id:identifier = value)\n");
-  for( i = 0; i < handle_global.n_stored; i++ ) {
-    mrbc_sym sym_id = handle_global.data[i].sym_id;
-    mrbc_value *v = &handle_global.data[i].value;
-    const char *s = symid_to_str( sym_id );
+  ite = mrbc_kv_iterator_new( &handle_global );
+  while( mrbc_kv_i_has_next( &ite ) ) {
+    mrbc_kv *kv = mrbc_kv_i_next( &ite );
 
-    console_printf(" %04x:%s = ", sym_id, s );
-    mrbc_p_sub( v );
-    console_printf(" .tt=%d\n", v->tt);
+    console_printf(" %04x:%s = ", kv->sym_id, symid_to_str(kv->sym_id));
+    mrbc_p_sub( &kv->value );
+    console_printf(" .tt=%d\n", kv->value.tt);
   }
 }
 
