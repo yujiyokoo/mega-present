@@ -46,7 +46,7 @@ void hal_disable_irq(void);
 # define hal_init()        ((void)0)
 # define hal_enable_irq()  ((void)0)
 # define hal_disable_irq() ((void)0)
-# define hal_idle_cpu()    (usleep(1000), mrbc_tick())
+# define hal_idle_cpu()    (usleep(MRBC_TICK_UNIT * 1000), mrbc_tick())
 
 #endif
 

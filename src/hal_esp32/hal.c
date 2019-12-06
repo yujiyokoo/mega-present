@@ -24,6 +24,7 @@
 
 
 /***** Local headers ********************************************************/
+#include "../vm_config.h"
 #include "hal.h"
 
 
@@ -78,7 +79,7 @@ void hal_init(void)
 
   timer_init(TIMER_GROUP_0, TIMER_0, &config);
   timer_set_counter_value(TIMER_GROUP_0, TIMER_0, 0x00000000ULL);
-  timer_set_alarm_value(TIMER_GROUP_0, TIMER_0, 1000); /* 1ms */
+  timer_set_alarm_value(TIMER_GROUP_0, TIMER_0, MRBC_TICK_UNIT * 1000);
   timer_enable_intr(TIMER_GROUP_0, TIMER_0);
   timer_isr_register(TIMER_GROUP_0, TIMER_0, on_timer, NULL, 0, NULL);
 

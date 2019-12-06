@@ -18,6 +18,7 @@
 
 
 /***** Local headers ********************************************************/
+#include "../vm_config.h"
 #include "hal.h"
 
 
@@ -72,7 +73,7 @@ void hal_init(void)
   // タイマー設定
   struct itimerval tval;
   int sec  = 0;
-  int usec = 1000; // 1ms
+  int usec = MRBC_TICK_UNIT * 1000;
   tval.it_interval.tv_sec  = sec;
   tval.it_interval.tv_usec = usec;
   tval.it_value.tv_sec     = sec;
