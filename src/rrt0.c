@@ -570,7 +570,8 @@ void mrbc_sleep_ms(mrbc_tcb *tcb, uint32_t ms)
   tcb->timeslice   = 0;
   tcb->state       = TASKSTATE_WAITING;
   tcb->reason      = TASKREASON_SLEEP;
-  tcb->wakeup_tick = tick_ + (ms / MRBC_TICK_UNIT);
+  tcb->wakeup_tick = tick_ + (ms / MRBC_TICK_UNIT) + 1;
+  if( ms % MRBC_TICK_UNIT ) tcb->wakeup_tick++;
   q_insert_task(tcb);
   hal_enable_irq();
 
