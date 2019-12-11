@@ -27,6 +27,7 @@ extern "C" {
 #include <libpic30.h>
 
 /***** Local headers ********************************************************/
+#include "../vm_config.h"
 #include "../mcc_generated_files/clock.h"
 
 /***** Constant values ******************************************************/
