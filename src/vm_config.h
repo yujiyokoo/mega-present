@@ -38,7 +38,7 @@
 #if !defined(MRBC_TICK_UNIT)
 #define MRBC_TICK_UNIT_1_MS   1
 #define MRBC_TICK_UNIT_2_MS   2
-#define MRBC_TICK_UNIT_5_MS   5
+#define MRBC_TICK_UNIT_4_MS   4
 #define MRBC_TICK_UNIT_10_MS 10
 // You may have to configure 2 ms or larger if you use
 // POSIX or microcontroller whose native tick time is
