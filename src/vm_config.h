@@ -34,27 +34,6 @@
 //  MRBC_ALLOC_16BIT or MRBC_ALLOC_24BIT
 #define MRBC_ALLOC_16BIT
 
-// tick time
-#if !defined(MRBC_TICK_UNIT)
-#define MRBC_TICK_UNIT_1_MS   1
-#define MRBC_TICK_UNIT_2_MS   2
-#define MRBC_TICK_UNIT_4_MS   4
-#define MRBC_TICK_UNIT_10_MS 10
-// You may have to configure 2 ms or larger if you use
-// POSIX or microcontroller whose native tick time is
-// larger than 1 ms in order to reduce CPU load.
-//
-// Especially, if you use ESP32 whose portTICK_PERIOD_MS
-// == 10 as a default, you should configure MRBC_TICK_UNIT_10_MS
-// so that Watchdog can work as RTOS expects.
-#define MRBC_TICK_UNIT MRBC_TICK_UNIT_1_MS
-// Substantial timeslice value (millisecond) will be
-// MRBC_TICK_UNIT * MRBC_TIMESLICE_TICK_COUNT (+ Jitter).
-// MRBC_TIMESLICE_TICK_COUNT must be natural number
-// (recommended value is from 1 to 10).
-#define MRBC_TIMESLICE_TICK_COUNT 10
-#endif
-
 
 /* Configure environment
    0: NOT USE
