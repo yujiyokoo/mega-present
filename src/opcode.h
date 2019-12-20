@@ -84,6 +84,7 @@ enum OPCODE {
 
   OP_GETCONST	= 0x1b,	//!< BB   R(a) = constget(Syms(b))
   OP_SETCONST	= 0x1c,	//!< BB   constset(Syms(b),R(a))
+  OP_GETMCNST	= 0x1d,	//!< BB   R(a) = R(a)::Syms(b)
 
   OP_GETUPVAR	= 0x1f,	//!< BBB  R(a) = uvget(b,c)
   OP_SETUPVAR	= 0x20,	//!< BBB  uvset(b,c,R(a))
@@ -153,7 +154,7 @@ enum OPCODE {
 //OP_SETSV	= 0x16,	//!< BB   Special[Syms(b)] = R(a)
 //OP_GETCV	= 0x19,	//!< BB   R(a) = cvget(Syms(b))
 //OP_SETCV	= 0x1a,	//!< BB   cvset(Syms(b),R(a))
-//OP_GETMCNST	= 0x1d,	//!< BB   R(a) = R(a)::Syms(b)
+
 //OP_SETMCNST	= 0x1e,	//!< BB   R(a+1)::Syms(b) = R(a)
 //OP_EXCEPT	= 0x26,	//!< B    R(a) = exc
 //OP_RESCUE	= 0x27,	//!< BB   R(b) = R(a).isa?(R(b))
