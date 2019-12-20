@@ -30,6 +30,12 @@
 #define MAX_SYMBOLS_COUNT 300
 #endif
 
+// maximum number of exception depth
+#if !defined(MAX_EXCEPTION_COUNT)
+#define MAX_EXCEPTION_COUNT 16
+#endif
+
+
 // memory management
 //  MRBC_ALLOC_16BIT or MRBC_ALLOC_24BIT
 #define MRBC_ALLOC_16BIT
@@ -82,6 +88,7 @@
 #if !defined(MRBC_DEBUG)
 #define MRBC_DEBUG
 #endif
+
 
 
 #endif

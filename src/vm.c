@@ -848,7 +848,167 @@ static inline int op_onerr( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
-  (void)a;
+  int idx = vm->exception_idx++;
+  vm->exceptions[idx] = a;
+  vm->exc_callinfo[idx] = vm->callinfo_tail;
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_EXCEPT
+
+  R(a) = exc
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  // currently support raise only ( not yet raise "string", raise Exception )
+  mrbc_release( &regs[a] );
+  regs[a].tt = MRBC_TT_CLASS;
+  regs[a].cls = vm->exc;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_RESCUE
+
+  R(b) = R(a).isa?(R(b))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  assert( regs[a].tt == MRBC_TT_CLASS );
+  assert( regs[b].tt == MRBC_TT_CLASS );
+  mrbc_class *cls = regs[a].cls;
+  while( cls != NULL ){
+    if( regs[b].cls == cls ){
+      mrbc_release( &regs[b] );
+      regs[b] = mrbc_true_value();
+      return 0;
+    }
+    cls = cls->super;
+  }
+
+  mrbc_release( &regs[b] );
+  regs[b] = mrbc_false_value();
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_POPERR
+
+  a.times{rescue_pop()}
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_poperr( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  vm->exception_idx -= a;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_RAISE
+
+  raise(R(a))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_raise( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  vm->exc = regs[a].cls;
+  uint16_t line = vm->exceptions[--vm->exception_idx];
+  vm->inst = vm->pc_irep->code + line;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_EPUSH
+
+  ensure_push(SEQ[a])
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_epush( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  vm->ensures[vm->ensure_idx++] = vm->pc_irep->reps[a];
+
+  return 0;
+}
+
+
+
+//================================================================
+/*!@brief
+  Execute OP_EPOP
+
+  A.times{ensure_pop().call}
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  (void)a;   // EPOP <a>
+
+  mrb_irep *block = vm->ensures[--vm->ensure_idx];
+
+  // same as OP_EXEC
+  mrbc_push_callinfo(vm, 0, 0);
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = block;
+  vm->inst = block->code;
+
+  // new regs
+  //  vm->current_regs += a;
+
+  vm->target_class = find_class_by_object(vm, &regs[0]);
 
   return 0;
 }
@@ -990,6 +1150,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   regs[a] = regs[0];
 
   // fing super class
+  mrbc_class *orig_class = regs[a].instance->cls;
   regs[a].instance->cls = regs[a].instance->cls->super;
 
   if( b == 127 ){
@@ -1006,7 +1167,10 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
     }
     b = argc;
   }
-  return op_send_by_name(vm, sym_name, regs, a, 0, b, 0);
+  op_send_by_name(vm, sym_name, regs, a, 0, b, 0);
+  regs[a].instance->cls = orig_class;
+
+  return 0;
 }
 
 
@@ -2592,7 +2756,7 @@ void output_opcode( uint8_t opcode )
     "SETCONST",0,         0,         "GETUPVAR",
     // 0x20
     "SETUPVAR","JMP",     "JMPIF",   "JMPNOT",
-    "JMPNIL",  0,         0,         0,
+    "JMPNIL",  "ONERR",   0,         0,
     0,         0,         0,         0,
     "SENDV",   0,         "SEND",    "SENDB",
     // 0x30
@@ -2648,9 +2812,8 @@ int mrbc_vm_run( struct VM *vm )
     // Dispatch
     uint8_t op = *vm->inst++;
 
-#ifdef MRBC_DEBUG
-    // if( vm->flag_debug_mode )output_opcode( op );
-#endif
+    // output OP_XXX for debug 
+    //if( vm->flag_debug_mode )output_opcode( op );
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
@@ -2688,8 +2851,13 @@ int mrbc_vm_run( struct VM *vm )
     case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
     case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
-
     case OP_ONERR:      ret = op_onerr     (vm, regs); break;
+    case OP_EXCEPT:     ret = op_except    (vm, regs); break;
+    case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
+    case OP_POPERR:     ret = op_poperr    (vm, regs); break;
+    case OP_RAISE:      ret = op_raise     (vm, regs); break;
+    case OP_EPUSH:      ret = op_epush     (vm, regs); break;
+    case OP_EPOP:       ret = op_epop      (vm, regs); break;
 
       //    case OP_SENDV:      ret = op_sendv     (vm, regs); break;
 

@@ -27,6 +27,7 @@
 #include "console.h"
 #include "opcode.h"
 #include "load.h"
+#include "error.h"
 
 #include "c_array.h"
 #include "c_hash.h"
@@ -879,6 +880,36 @@ static void c_object_nil(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
+
+//================================================================
+/*! (method) raise
+ *    1. raise
+ *    2. raise "string"
+ *    3. raise Exception
+ */
+static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
+{
+  // set Runtime Error
+  vm->exc = mrbc_class_runtimeerror;
+  
+  // raise
+  if( argc == 0 ){    // 1. raise
+    // for test
+    int idx = --vm->exception_idx;
+    uint16_t line = vm->exceptions[idx];
+    mrbc_callinfo *callinfo = vm->exc_callinfo[idx];
+    while( vm->callinfo_tail != callinfo ){
+      mrbc_pop_callinfo(vm);
+    }
+    vm->inst = vm->pc_irep->code + line;
+  } else {
+    console_printf("Not supported\n");
+  }
+}
+
+
+
+
 #if MRBC_USE_STRING
 //================================================================
 /*! (method) to_s
@@ -991,6 +1022,7 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "is_a?", c_object_kind_of);
   mrbc_define_method(vm, mrbc_class_object, "kind_of?", c_object_kind_of);
   mrbc_define_method(vm, mrbc_class_object, "nil?", c_object_nil);
+  mrbc_define_method(vm, mrbc_class_object, "raise", c_object_raise);
 
 
 #if MRBC_USE_STRING
@@ -1281,5 +1313,7 @@ void mrbc_init_class(void)
   mrbc_init_class_range(0);
   mrbc_init_class_hash(0);
 
+  mrbc_init_class_exception(0);
+  
   mrbc_run_mrblib(mrblib_bytecode);
 }
