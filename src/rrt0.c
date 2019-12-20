@@ -30,10 +30,6 @@
 #include "hal/hal.h"
 
 
-/***** Constat values *******************************************************/
-const int TIMESLICE_TICK = 10; // 10 * 1ms(HardwareTimer)  255 max
-
-
 /***** Macros ***************************************************************/
 #ifndef MRBC_SCHEDULER_EXIT
 #define MRBC_SCHEDULER_EXIT 0
@@ -357,7 +353,7 @@ void mrbc_tick(void)
     if( t->reason == TASKREASON_SLEEP && t->wakeup_tick == tick_ ) {
       q_delete_task(t);
       t->state     = TASKSTATE_READY;
-      t->timeslice = TIMESLICE_TICK;
+      t->timeslice = MRBC_TIMESLICE_TICK_COUNT;
       q_insert_task(t);
       flag_preemption = 1;
     }
@@ -440,7 +436,7 @@ mrbc_tcb* mrbc_create_task(const uint8_t *vm_code, mrbc_tcb *tcb)
 
     mrbc_init_tcb( tcb );
   }
-  tcb->timeslice           = TIMESLICE_TICK;
+  tcb->timeslice           = MRBC_TIMESLICE_TICK_COUNT;
   tcb->priority_preemption = tcb->priority;
 
   // assign VM ID
@@ -475,7 +471,7 @@ mrbc_tcb* mrbc_create_task(const uint8_t *vm_code, mrbc_tcb *tcb)
 int mrbc_start_task(mrbc_tcb *tcb)
 {
   if( tcb->state != TASKSTATE_DORMANT ) return -1;
-  tcb->timeslice           = TIMESLICE_TICK;
+  tcb->timeslice           = MRBC_TIMESLICE_TICK_COUNT;
   tcb->priority_preemption = tcb->priority;
   mrbc_vm_begin(&tcb->vm);
 
@@ -553,7 +549,7 @@ int mrbc_run(void)
       // タイムスライス終了？
       if( tcb->timeslice == 0 ) {
         q_delete_task(tcb);
-        tcb->timeslice = TIMESLICE_TICK;
+        tcb->timeslice = MRBC_TIMESLICE_TICK_COUNT;
         q_insert_task(tcb); // insert task on queue last.
       }
     }
@@ -574,7 +570,8 @@ void mrbc_sleep_ms(mrbc_tcb *tcb, uint32_t ms)
   tcb->timeslice   = 0;
   tcb->state       = TASKSTATE_WAITING;
   tcb->reason      = TASKREASON_SLEEP;
-  tcb->wakeup_tick = tick_ + ms;
+  tcb->wakeup_tick = tick_ + (ms / MRBC_TICK_UNIT) + 1;
+  if( ms % MRBC_TICK_UNIT ) tcb->wakeup_tick++;
   q_insert_task(tcb);
   hal_enable_irq();
 

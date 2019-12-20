@@ -32,6 +32,22 @@ extern "C" {
 #define MRBC_SCHEDULER_EXIT 1
 #endif
 
+#if !defined(MRBC_TICK_UNIT)
+#define MRBC_TICK_UNIT_1_MS   1
+#define MRBC_TICK_UNIT_2_MS   2
+#define MRBC_TICK_UNIT_4_MS   4
+#define MRBC_TICK_UNIT_10_MS 10
+// portTICK_PERIOD_MS is 10 in ESP-IDF by default.
+// You can configure MRBC_TICK_UNIT less than 10 ms
+// under the understanding of FreeRTOS's tick.
+#define MRBC_TICK_UNIT MRBC_TICK_UNIT_10_MS
+// Substantial timeslice value (millisecond) will be
+// MRBC_TICK_UNIT * MRBC_TIMESLICE_TICK_COUNT (+ Jitter).
+// MRBC_TIMESLICE_TICK_COUNT must be natural number
+// (recommended value is from 1 to 10).
+#define MRBC_TIMESLICE_TICK_COUNT 1
+#endif
+
 
 /***** Typedefs *************************************************************/
 /***** Global variables *****************************************************/
@@ -42,13 +58,16 @@ void mrbc_tick(void);
 void hal_init(void);
 void hal_enable_irq(void);
 void hal_disable_irq(void);
-# define hal_idle_cpu()    float tickUnit = 1/portTICK_PERIOD_MS;vTaskDelay(tickUnit < 1 ? 1 : tickUnit)
+                           // Note: argument of vTaskDelay() should be 1+
+# define hal_idle_cpu()    vTaskDelay(MRBC_TICK_UNIT / portTICK_PERIOD_MS)
 
 #else // MRBC_NO_TIMER
 # define hal_init()        ((void)0)
 # define hal_enable_irq()  ((void)0)
 # define hal_disable_irq() ((void)0)
-# define hal_idle_cpu()    (vTaskDelay(1/portTICK_PERIOD_MS), mrbc_tick())
+                           // Note: argument of vTaskDelay() should be 1+
+# define hal_idle_cpu()    (vTaskDelay(MRBC_TICK_UNIT / portTICK_PERIOD_MS), \
+                             mrbc_tick())
 
 #endif
 
