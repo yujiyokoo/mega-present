@@ -891,20 +891,23 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
   // set Runtime Error
   vm->exc = mrbc_class_runtimeerror;
-  
+  vm->exc_message.tt = MRBC_TT_NIL;
+
   // raise
-  if( argc == 0 ){    // 1. raise
-    // for test
-    int idx = --vm->exception_idx;
-    uint16_t line = vm->exceptions[idx];
-    mrbc_callinfo *callinfo = vm->exc_callinfo[idx];
-    while( vm->callinfo_tail != callinfo ){
-      mrbc_pop_callinfo(vm);
-    }
-    vm->inst = vm->pc_irep->code + line;
+  if( argc == 1 ){
+    mrbc_dup( &v[1] );
+    vm->exc_message = v[1];
   } else {
-    console_printf("Not supported\n");
+    vm->exc_message = mrbc_nil_value();
   }
+
+  int idx = --vm->exception_idx;
+  uint16_t line = vm->exceptions[idx];
+  mrbc_callinfo *callinfo = vm->exc_callinfo[idx];
+  while( vm->callinfo_tail != callinfo ){
+    mrbc_pop_callinfo(vm);
+  }
+  vm->inst = vm->pc_irep->code + line;
 }
 
 
