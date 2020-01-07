@@ -87,6 +87,7 @@ typedef struct VM {
 #endif
 
   mrbc_class *exc;
+  mrbc_value exc_message;  // exception message
   int16_t exception_idx;
   int16_t exceptions[MAX_EXCEPTION_COUNT];       // entry points to "rescue"
   mrbc_callinfo *exc_callinfo[MAX_EXCEPTION_COUNT];  // rescue callinfo

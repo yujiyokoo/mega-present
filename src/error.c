@@ -23,7 +23,8 @@
 
 static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
 {
-  // TODO
+  mrbc_release( &v[0] );
+  v[0] = vm->exc_message;
 }
 
 
