@@ -34,6 +34,14 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
 
 
 
+
+static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
+{
+  // TODO
+}
+
+
+
 void mrbc_init_class_exception(struct VM *vm)
 {
   mrbc_class_exception = mrbc_define_class(vm, "Exception", mrbc_class_object);
