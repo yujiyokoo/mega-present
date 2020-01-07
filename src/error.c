@@ -20,9 +20,18 @@
 #include "error.h"
 #include "static.h"
 
+
+static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
+{
+  // TODO
+}
+
+
+
 void mrbc_init_class_exception(struct VM *vm)
 {
   mrbc_class_exception = mrbc_define_class(vm, "Exception", mrbc_class_object);
+  mrbc_define_method(vm, mrbc_class_exception, "message", c_exception_message);
 
   mrbc_class_standarderror = mrbc_define_class(vm, "StandardError", mrbc_class_exception);
   mrbc_class_runtimeerror = mrbc_define_class(vm, "RuntimeError", mrbc_class_standarderror);
