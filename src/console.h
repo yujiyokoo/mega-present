@@ -18,6 +18,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "hal/hal.h"
+#include "value.h"
 
 #ifdef __cplusplus
 extern "C" {
