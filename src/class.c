@@ -894,9 +894,9 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
   vm->exc_message.tt = MRBC_TT_NIL;
 
   // raise
-  if( argc == 1 ){
-    mrbc_dup( &v[1] );
-    vm->exc_message = v[1];
+  if( argc == 1 || argc == 2 ){
+    mrbc_dup( &v[argc] );
+    vm->exc_message = v[argc];
   } else {
     vm->exc_message = mrbc_nil_value();
   }
