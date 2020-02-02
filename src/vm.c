@@ -1339,7 +1339,6 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
   mrbc_callinfo *callinfo = vm->callinfo_tail;
   while( callinfo ){
     if( callinfo->inst[-4-callinfo->n_args] == OP_SENDB ){
-      // found then return to callinfo
       vm->callinfo_tail = callinfo->prev;
       vm->current_regs = callinfo->current_regs;
       vm->pc_irep = callinfo->pc_irep;
@@ -1348,7 +1347,9 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
       vm->target_class = callinfo->target_class;
       break;
     }
+    mrbc_callinfo *free_callinfo = callinfo;
     callinfo = callinfo->prev;
+    mrbc_free(vm, free_callinfo);
   }
 
   return 0;
