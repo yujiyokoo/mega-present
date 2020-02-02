@@ -1003,6 +1003,21 @@ static void c_object_instance_variables(struct VM *vm, mrbc_value v[], int argc)
   SET_NIL_RETURN();
 }
 
+
+static void c_object_memory_statistics(struct VM *vm, mrbc_value v[], int argc)
+{
+  int total, used, free, frag;
+  mrbc_alloc_statistics(&total, &used, &free, &frag);
+
+  console_printf("Memory Statistics\n");
+  console_printf("  Total: %d\n", total);
+  console_printf("  Used : %d\n", used);
+  console_printf("  Free : %d\n", free);
+  console_printf("  Frag.: %d\n", frag);
+
+  SET_NIL_RETURN();
+}
+
 #endif
 
 
@@ -1041,6 +1056,8 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "object_id", c_object_object_id);
   mrbc_define_method(vm, mrbc_class_object, "instance_methods", c_object_instance_methods);
   mrbc_define_method(vm, mrbc_class_object, "instance_variables", c_object_instance_variables);
+  mrbc_define_method(vm, mrbc_class_object, "memory_statistics", c_object_memory_statistics);
+
 #endif
 }
 
