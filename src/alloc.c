@@ -245,8 +245,8 @@ static unsigned int calc_index(unsigned int alloc_size)
     nlz16( alloc_size >> (MRBC_ALLOC_SLI_BIT_WIDTH + MRBC_ALLOC_IGNORE_LSBS) );
 
   // calculate Second Level Index.
-  int shift = (fli == 0) ? (fli + MRBC_ALLOC_IGNORE_LSBS) :
-			   (fli + MRBC_ALLOC_IGNORE_LSBS - 1);
+  int shift = (fli == 0) ? MRBC_ALLOC_IGNORE_LSBS :
+			  (MRBC_ALLOC_IGNORE_LSBS - 1 + fli);
 
   int sli   = (alloc_size >> shift) & ((1 << MRBC_ALLOC_SLI_BIT_WIDTH) - 1);
   int index = (fli << MRBC_ALLOC_SLI_BIT_WIDTH) + sli;
