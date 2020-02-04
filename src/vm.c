@@ -1338,6 +1338,7 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
   // pop until bytecode is OP_SENDB
   mrbc_callinfo *callinfo = vm->callinfo_tail;
   while( callinfo ){
+    mrbc_callinfo *free_callinfo = callinfo;
     if( callinfo->inst[-4-callinfo->n_args] == OP_SENDB ){
       vm->callinfo_tail = callinfo->prev;
       vm->current_regs = callinfo->current_regs;
@@ -1345,9 +1346,10 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
       vm->pc = callinfo->pc;
       vm->inst = callinfo->inst;
       vm->target_class = callinfo->target_class;
+      callinfo = callinfo->prev;
+      mrbc_free(vm, free_callinfo);
       break;
     }
-    mrbc_callinfo *free_callinfo = callinfo;
     callinfo = callinfo->prev;
     mrbc_free(vm, free_callinfo);
   }
