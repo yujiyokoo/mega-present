@@ -27,7 +27,7 @@
 
 // maximum number of symbols
 #if !defined(MAX_SYMBOLS_COUNT)
-#define MAX_SYMBOLS_COUNT 300
+#define MAX_SYMBOLS_COUNT 255
 #endif
 
 // maximum number of exception depth
