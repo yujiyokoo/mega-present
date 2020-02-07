@@ -3,8 +3,8 @@
   mruby bytecode executor.
 
   <pre>
-  Copyright (C) 2015-2019 Kyushu Institute of Technology.
-  Copyright (C) 2015-2019 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -37,15 +37,6 @@ static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
 
 //================================================================
-/*! cleanup
-*/
-void mrbc_cleanup_vm(void)
-{
-  memset(free_vm_bitmap, 0, sizeof(free_vm_bitmap));
-}
-
-
-//================================================================
 /*! get sym[n] from symbol table in irep
 
   @param  vm	Pointer to VM
@@ -68,6 +59,86 @@ static const char * mrbc_get_irep_symbol( struct VM *vm, int n )
 
 
 //================================================================
+/*! display "not supported" message
+*/
+static void not_supported(void)
+{
+  console_printf("Not supported!\n");
+}
+
+
+//================================================================
+/*! Method call by method name
+
+  @param  vm		pointer of VM.
+  @param  method_name	method name
+  @param  regs		pointer to regs
+  @param  a		operand a
+  @param  c		operand c
+  @param  is_sendb	Is called from OP_SENDB?
+  @retval 0  No error.
+*/
+static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *regs, int a, int c, int is_sendb )
+{
+  mrbc_value *recv = &regs[a];
+
+  // if not OP_SENDB, blcok does not exist
+  int bidx = a + c + 1;
+  if( !is_sendb ){
+    mrbc_release( &regs[bidx] );
+    regs[bidx].tt = MRBC_TT_NIL;
+  }
+
+  mrbc_sym sym_id = str_to_symid(method_name);
+  mrbc_proc *m = find_method(vm, recv, sym_id);
+
+  if( m == 0 ) {
+    mrb_class *cls = find_class_by_object( vm, recv );
+    console_printf("No method. Class:%s Method:%s\n",
+		   symid_to_str(cls->sym_id), method_name );
+    return 0;
+  }
+
+  // m is C func
+  if( m->c_func ) {
+    m->func(vm, regs + a, c);
+    if( m->func == c_proc_call ) return 0;
+
+    int release_reg = a+1;
+    while( release_reg <= bidx ) {
+      mrbc_release(&regs[release_reg]);
+      release_reg++;
+    }
+    return 0;
+  }
+
+  // m is Ruby method.
+  // callinfo
+  mrbc_push_callinfo(vm, sym_id, c);
+
+  // target irep
+  vm->pc = 0;
+  vm->pc_irep = m->irep;
+  vm->inst = m->irep->code;
+
+  // new regs
+  vm->current_regs += a;
+
+  return 0;
+}
+
+
+
+//================================================================
+/*! cleanup
+*/
+void mrbc_cleanup_vm(void)
+{
+  memset(free_vm_bitmap, 0, sizeof(free_vm_bitmap));
+}
+
+
+//================================================================
 /*! get callee name
 
   @param  vm	Pointer to VM
@@ -77,15 +148,6 @@ const char *mrbc_get_callee_name( struct VM *vm )
 {
   uint8_t rb = vm->inst[-2];
   return mrbc_get_irep_symbol(vm, rb);
-}
-
-
-//================================================================
-/*! display "not supported" message
-*/
-static void not_supported(void)
-{
-  console_printf("Not supported!\n");
 }
 
 
@@ -168,11 +230,8 @@ void mrbc_pop_callinfo( struct VM *vm )
 
 
 
-
-
 //================================================================
-/*!@brief
-  Execute OP_NOP
+/*! OP_NOP
 
   No operation
 
@@ -188,8 +247,7 @@ static inline int op_nop( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*!@brief
-  Execute OP_MOVE
+/*! OP_MOVE
 
   R(a) = R(b)
 
@@ -210,11 +268,8 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
 //================================================================
-/*!@brief
-  Execute OP_LOADL
+/*! OP_LOADL
 
   R(a) = Pool(b)
 
@@ -235,11 +290,8 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
 //================================================================
-/*!@brief
-  Execute OP_LOADI
+/*! OP_LOADI
 
   R(a) = mrb_int(b)
 
@@ -257,11 +309,8 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
 //================================================================
-/*!@brief
-  Execute OP_LOADINEG
+/*! OP_LOADINEG
 
   R(a) = mrb_int(-b)
 
@@ -279,11 +328,8 @@ static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
 //================================================================
-/*!@brief
-  Execute OP_LOADI_n (n=-1,0,1..7)
+/*! OP_LOADI_n (n=-1,0,1..7)
 
   R(a) = R(a)+mrb_int(n)
 
@@ -306,10 +352,8 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_LOADSYM
+/*! OP_LOADSYM
 
   R(a) = Syms(b)
 
@@ -332,10 +376,8 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_LOADNIL
+/*! OP_LOADNIL
 
   R(a) = nil
 
@@ -354,10 +396,8 @@ static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_LOADSELF
+/*! OP_LOADSELF
 
   R(a) = self
 
@@ -376,10 +416,8 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_LOADF
+/*! OP_LOADF
 
   R(a) = false
 
@@ -398,10 +436,8 @@ static inline int op_loadt( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_LOADF
+/*! OP_LOADF
 
   R(a) = false
 
@@ -420,10 +456,8 @@ static inline int op_loadf( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_GETGV
+/*! OP_GETGV
 
   R(a) = getglobal(Syms(b))
 
@@ -451,10 +485,8 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_SETGV
+/*! OP_SETGV
 
   setglobal(Syms(b), R(a))
 
@@ -475,10 +507,8 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_GETIV
+/*! OP_GETIV
 
   R(a) = ivget(Syms(b))
 
@@ -502,11 +532,8 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
 //================================================================
-/*!@brief
-  Execute OP_SETIV
+/*! OP_SETIV
 
   ivset(Syms(b),R(a))
 
@@ -527,10 +554,8 @@ static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_GETCONST
+/*! OP_GETCONST
 
   R(a) = constget(Syms(b))
 
@@ -559,10 +584,8 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_SETCONST
+/*! OP_SETCONST
 
   constset(Syms(b),R(a))
 
@@ -604,10 +627,8 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_GETMCNST
+/*! OP_GETMCNST
 
   R(a) = R(a)::Syms(b)
 
@@ -652,10 +673,8 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_GETUPVAR
+/*! OP_GETUPVAR
 
   R(a) = uvget(b,c)
 
@@ -686,10 +705,8 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_SETUPVAR
+/*! OP_SETUPVAR
 
   uvset(b,c,R(a))
 
@@ -720,10 +737,8 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_JMP
+/*! OP_JMP
 
   pc=a
 
@@ -741,10 +756,8 @@ static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_JMPIF
+/*! OP_JMPIF
 
   if R(b) pc=a
 
@@ -764,10 +777,8 @@ static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_JMPNOT
+/*! OP_JMPNOT
 
   if !R(b) pc=a
 
@@ -787,10 +798,8 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_JMPNIL
+/*! OP_JMPNIL
 
   if R(b)==nil pc=a
 
@@ -810,10 +819,8 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_ONERR
+/*! OP_ONERR
 
   rescue_push(a)
 
@@ -832,10 +839,8 @@ static inline int op_onerr( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_EXCEPT
+/*! OP_EXCEPT
 
   R(a) = exc
 
@@ -856,10 +861,8 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_RESCUE
+/*! OP_RESCUE
 
   R(b) = R(a).isa?(R(b))
 
@@ -890,10 +893,8 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_POPERR
+/*! OP_POPERR
 
   a.times{rescue_pop()}
 
@@ -911,10 +912,8 @@ static inline int op_poperr( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_RAISE
+/*! OP_RAISE
 
   raise(R(a))
 
@@ -934,10 +933,8 @@ static inline int op_raise( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_EPUSH
+/*! OP_EPUSH
 
   ensure_push(SEQ[a])
 
@@ -955,10 +952,8 @@ static inline int op_epush( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_EPOP
+/*! OP_EPOP
 
   A.times{ensure_pop().call}
 
@@ -992,70 +987,7 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! Method call by method name
-
-  @param  vm		pointer of VM.
-  @param  method_name	method name
-  @param  regs		pointer to regs
-  @param  a		operand a
-  @param  c		operand c
-  @param  is_sendb	Is called from OP_SENDB?
-  @retval 0  No error.
-*/
-static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *regs, int a, int c, int is_sendb )
-{
-  mrbc_value *recv = &regs[a];
-
-  // if not OP_SENDB, blcok does not exist
-  int bidx = a + c + 1;
-  if( !is_sendb ){
-    mrbc_release( &regs[bidx] );
-    regs[bidx].tt = MRBC_TT_NIL;
-  }
-
-  mrbc_sym sym_id = str_to_symid(method_name);
-  mrbc_proc *m = find_method(vm, recv, sym_id);
-
-  if( m == 0 ) {
-    mrb_class *cls = find_class_by_object( vm, recv );
-    console_printf("No method. Class:%s Method:%s\n",
-		   symid_to_str(cls->sym_id), method_name );
-    return 0;
-  }
-
-  // m is C func
-  if( m->c_func ) {
-    m->func(vm, regs + a, c);
-    if( m->func == c_proc_call ) return 0;
-
-    int release_reg = a+1;
-    while( release_reg <= bidx ) {
-      mrbc_release(&regs[release_reg]);
-      release_reg++;
-    }
-    return 0;
-  }
-
-  // m is Ruby method.
-  // callinfo
-  mrbc_push_callinfo(vm, sym_id, c);
-
-  // target irep
-  vm->pc = 0;
-  vm->pc_irep = m->irep;
-  vm->inst = m->irep->code;
-
-  // new regs
-  vm->current_regs += a;
-
-  return 0;
-}
-
-
-
-//================================================================
-/*!@brief
-  Execute OP_SEND
+/*! OP_SEND
 
   R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
 
@@ -1073,10 +1005,8 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_SUPER
+/*! OP_SUPER
 
   R(a) = super(R(a+1),... ,R(a+b+1))
 
@@ -1122,12 +1052,8 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
-
 //================================================================
-/*!@brief
-  Execute OP_ARGARY
+/*! OP_ARGARY
 
   R(a) = argument array (16=m5:r1:m5:d1:lv4)
 
@@ -1158,10 +1084,8 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_ENTER
+/*! OP_ENTER
 
   arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1)
 
@@ -1215,8 +1139,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*!@brief
-  Execute OP_RETURN
+/*! OP_RETURN
 
   return R(a) (normal)
 
@@ -1248,11 +1171,8 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
 //================================================================
-/*!@brief
-  Execute OP_RETURN_BLK
+/*! OP_RETURN_BLK
 
   return R(a) (normal)
 
@@ -1290,10 +1210,8 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_BREAK
+/*! OP_BREAK
 
   break R(a)
 
@@ -1330,10 +1248,8 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_BLKPUSH
+/*! OP_BLKPUSH
 
   R(a) = block (16=m5:r1:m5:d1:lv4)
 
@@ -1375,10 +1291,8 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_ADD
+/*! OP_ADD
 
   R(a) = R(a)+R(a+1)
 
@@ -1421,10 +1335,8 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_ADDI
+/*! OP_ADDI
 
   R(a) = R(a)+mrb_int(b)
 
@@ -1454,10 +1366,8 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_SUB
+/*! OP_SUB
 
   R(a) = R(a)-R(a+1)
 
@@ -1499,10 +1409,8 @@ static inline int op_sub( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_SUBI
+/*! OP_SUBI
 
   R(a) = R(a)-mrb_int(b)
 
@@ -1532,10 +1440,8 @@ static inline int op_subi( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_MUL
+/*! OP_MUL
 
   R(a) = R(a)*R(a+1)
 
@@ -1578,12 +1484,8 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
-
 //================================================================
-/*!@brief
-  Execute OP_DIV
+/*! OP_DIV
 
   R(a) = R(a)/R(a+1)
 
@@ -1627,12 +1529,8 @@ static inline int op_div( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
-
 //================================================================
-/*!@brief
-  Execute OP_EQ
+/*! OP_EQ
 
   R(a) = R(a)==R(a+1)
 
@@ -1654,10 +1552,8 @@ static inline int op_eq( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_LT
+/*! OP_LT
 
   R(a) = R(a)<R(a+1)
 
@@ -1704,10 +1600,8 @@ static inline int op_lt( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_LE
+/*! OP_LE
 
   R(a) = R(a)<=R(a+1)
 
@@ -1754,10 +1648,8 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_GT
+/*! OP_GT
 
   R(a) = R(a)>R(a+1)
 
@@ -1804,10 +1696,8 @@ static inline int op_gt( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_GE
+/*! OP_GE
 
   R(a) = R(a)>=R(a+1)
 
@@ -1854,10 +1744,8 @@ static inline int op_ge( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_ARRAY
+/*! OP_ARRAY
 
   R(a) = ary_new(R(a),R(a+1)..R(a+b))
 
@@ -1883,10 +1771,8 @@ static inline int op_array( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_ARRAY2
+/*! OP_ARRAY2
 
   R(a) = ary_new(R(b),R(b+1)..R(b+c))
 
@@ -1915,10 +1801,8 @@ static inline int op_array2( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_ARYCAT
+/*! OP_ARYCAT
 
   ary_cat(R(a),R(a+1))
 
@@ -1953,11 +1837,8 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
 //================================================================
-/*!@brief
-  Execute OP_ARYDUP
+/*! OP_ARYDUP
 
   R(a) = ary_dup(R(a))
 
@@ -1975,10 +1856,8 @@ static inline int op_arydup( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_AREF
+/*! OP_AREF
 
   R(a) = R(b)[c]
 
@@ -2013,10 +1892,8 @@ static inline int op_aref( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_APOST
+/*! OP_APOST
 
   *R(a),R(a+1)..R(a+c) = R(a)[b..]
 
@@ -2058,10 +1935,8 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_INTERN
+/*! OP_INTERN
 
   R(a) = intern(R(a))
 
@@ -2085,8 +1960,7 @@ static inline int op_intern( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*!@brief
-  Execute OP_STRING
+/*! OP_STRING
 
   R(a) = str_dup(Lit(b))
 
@@ -2117,10 +1991,8 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_STRCAT
+/*! OP_STRCAT
 
   str_cat(R(a),R(a+1))
 
@@ -2152,10 +2024,8 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_HASH
+/*! OP_HASH
 
   R(a) = hash_new(R(a),R(a+1)..R(a+b))
 
@@ -2182,43 +2052,8 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_BLOCK
-
-  R(a) = lambda(SEQ[b],L_BLOCK)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
-*/
-// static inline int op_block( mrbc_vm *vm, mrbc_value *regs )
-// {
-//   FETCH_BB();
-
-//   mrbc_release(&regs[a]);
-
-//   // new proc
-//   mrbc_proc *proc = mrbc_rproc_alloc(vm, "");
-//   if( !proc ) return 0;	// ENOMEM
-//   proc->c_func = 0;
-//   proc->sym_id = -1;
-//   proc->next = NULL;
-//   proc->irep = vm->pc_irep->reps[b];
-
-//   regs[a].tt = MRBC_TT_PROC;
-//   regs[a].proc = proc;
-
-//   return 0;
-// }
-
-
-
-
-//================================================================
-/*!@brief
-  Execute OP_METHOD
+/*! OP_METHOD
 
   R(a) = lambda(SEQ[b],L_METHOD)
 
@@ -2247,10 +2082,8 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_RANGE_INC, OP_RANGE_EXC
+/*! OP_RANGE_INC, OP_RANGE_EXC
 
   R(a) = range_new(R(a),R(a+1),FALSE)
   R(a) = range_new(R(a),R(a+1),TRUE)
@@ -2277,10 +2110,8 @@ static inline int op_range( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_CLASS
+/*! OP_CLASS
 
   R(a) = newclass(R(a),Syms(b),R(a+1))
 
@@ -2306,10 +2137,8 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_EXEC
+/*! OP_EXEC
 
   R(a) = blockexec(R(a),SEQ[b])
 
@@ -2340,11 +2169,8 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
 //================================================================
-/*!@brief
-  Execute OP_DEF
+/*! OP_DEF
 
   R(a).newmethod(Syms(b),R(a+1))
 
@@ -2390,10 +2216,8 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_ALIAS
+/*! OP_ALIAS
 
   alias_method(target_class,Syms(a),Syms(b))
 
@@ -2439,8 +2263,7 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*!@brief
-  Execute OP_TCLASS
+/*! OP_TCLASS
 
   R(a) = target_class
 
@@ -2460,10 +2283,8 @@ static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Execute OP_EXT1, OP_EXT2, OP_EXT3
+/*! OP_EXT1, OP_EXT2, OP_EXT3
 
   if OP_EXT1, make 1st operand 16bit
   if OP_EXT2, make 2nd operand 16bit
@@ -2484,8 +2305,7 @@ static inline int op_ext( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*!@brief
-  Execute OP_STOP
+/*! OP_STOP
 
   stop VM
 
@@ -2511,8 +2331,7 @@ static inline int op_stop( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*!@brief
-  Execute OP_ABORT
+/*! OP_ABORT
 
   stop VM
 
@@ -2530,10 +2349,8 @@ static inline int op_abort( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Dummy function for unsupported opcode Z
+/*! Dummy function for unsupported opcode Z
 
   @param  str_opcode   opcode string
   @retval -1  No error and exit from vm.
@@ -2548,10 +2365,8 @@ static inline int op_dummy_Z( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Dummy function for unsupported opcode B
+/*! Dummy function for unsupported opcode B
 
   @param  str_opcode   opcode string
   @retval -1  No error and exit from vm.
@@ -2567,11 +2382,8 @@ static inline int op_dummy_B( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-
 //================================================================
-/*!@brief
-  Dummy function for unsupported opcode BB
+/*! Dummy function for unsupported opcode BB
 
   @param  str_opcode   opcode string
   @retval -1  No error and exit from vm.
@@ -2587,10 +2399,8 @@ static inline int op_dummy_BB( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Dummy function for unsupported opcode BBB
+/*! Dummy function for unsupported opcode BBB
 
   @param  str_opcode   opcode string
   @retval -1  No error and exit from vm.
@@ -2672,8 +2482,7 @@ void mrbc_vm_close( struct VM *vm )
 
 
 //================================================================
-/*!@brief
-  VM initializer.
+/*! VM initializer.
 
   @param  vm  Pointer to VM
 */
@@ -2720,8 +2529,7 @@ void mrbc_vm_begin( struct VM *vm )
 
 
 //================================================================
-/*!@brief
-  VM finalizer.
+/*! VM finalizer.
 
   @param  vm  Pointer to VM
 */
@@ -2732,12 +2540,8 @@ void mrbc_vm_end( struct VM *vm )
 }
 
 
-
-
-
 //================================================================
-/*!@brief
-  output op for debug
+/*! output op for debug
 
   @param  opcode   opcode
 */
@@ -2794,10 +2598,8 @@ void output_opcode( uint8_t opcode )
 #endif
 
 
-
 //================================================================
-/*!@brief
-  Fetch a bytecode and execute
+/*! Fetch a bytecode and execute
 
   @param  vm    A pointer of VM.
   @retval 0  No error.
