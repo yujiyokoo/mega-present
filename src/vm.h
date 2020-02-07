@@ -94,7 +94,7 @@ typedef struct VM {
   mrbc_callinfo *exc_callinfo[MAX_EXCEPTION_COUNT];  // rescue callinfo
   int16_t ensure_idx;
   mrbc_irep *ensures[MAX_EXCEPTION_COUNT];   // enrty point to "ensure"
-  
+
   int32_t error_code;
 
   volatile int8_t flag_preemption;
@@ -105,7 +105,6 @@ typedef struct VM mrb_vm;
 
 
 void mrbc_cleanup_vm(void);
-const char *mrbc_get_irep_symbol(const uint8_t *p, int n);
 const char *mrbc_get_callee_name(struct VM *vm);
 mrbc_irep *mrbc_irep_alloc(struct VM *vm);
 void mrbc_irep_free(mrbc_irep *irep);

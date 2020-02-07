@@ -245,21 +245,19 @@ mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
 */
 mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super)
 {
-  if( super == NULL ) super = mrbc_class_object;  // set default to Object.
-
   mrbc_sym sym_id = str_to_symid(name);
   mrbc_object *obj = mrbc_get_const( sym_id );
 
   // create a new class?
   if( obj == NULL ) {
-    mrbc_class *cls = mrbc_alloc( 0, sizeof(mrbc_class) );
+    mrbc_class *cls = mrbc_raw_alloc_no_free( sizeof(mrbc_class) );
     if( !cls ) return cls;	// ENOMEM
 
     cls->sym_id = sym_id;
 #ifdef MRBC_DEBUG
     cls->names = name;	// for debug; delete soon.
 #endif
-    cls->super = super;
+    cls->super = (super == NULL) ? mrbc_class_object : super;
     cls->procs = 0;
 
     // register to global constant.

@@ -33,28 +33,7 @@
 #include "c_hash.h"
 
 
-static uint32_t free_vm_bitmap[MAX_VM_COUNT / 32 + 1];
-#define FREE_BITMAP_WIDTH 32
-#define Num(n) (sizeof(n)/sizeof((n)[0]))
-
-
-//================================================================
-/*! Number of leading zeros.
-
-  @param	x	target (32bit unsined)
-  @retval	int	nlz value
-*/
-static inline int nlz32(uint32_t x)
-{
-  if( x == 0 ) return 32;
-
-  int n = 1;
-  if((x >> 16) == 0 ) { n += 16; x <<= 16; }
-  if((x >> 24) == 0 ) { n +=  8; x <<=  8; }
-  if((x >> 28) == 0 ) { n +=  4; x <<=  4; }
-  if((x >> 30) == 0 ) { n +=  2; x <<=  2; }
-  return n - (x >> 31);
-}
+static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
 
 //================================================================
@@ -69,12 +48,13 @@ void mrbc_cleanup_vm(void)
 //================================================================
 /*! get sym[n] from symbol table in irep
 
-  @param  p	Pointer to IREP SYMS section.
+  @param  vm	Pointer to VM
   @param  n	n th
   @return	symbol name string
 */
-const char * mrbc_get_irep_symbol( const uint8_t *p, int n )
+static const char * mrbc_get_irep_symbol( struct VM *vm, int n )
 {
+  const uint8_t *p = vm->pc_irep->ptr_to_sym;
   int cnt = bin_to_uint32(p);
   if( n >= cnt ) return 0;
   p += 4;
@@ -96,13 +76,12 @@ const char * mrbc_get_irep_symbol( const uint8_t *p, int n )
 const char *mrbc_get_callee_name( struct VM *vm )
 {
   uint8_t rb = vm->inst[-2];
-  return mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, rb);
+  return mrbc_get_irep_symbol(vm, rb);
 }
 
 
 //================================================================
-/*!@brief
-
+/*! display "not supported" message
 */
 static void not_supported(void)
 {
@@ -152,7 +131,6 @@ void mrbc_irep_free(mrbc_irep *irep)
 
 //================================================================
 /*! Push current status to callinfo stack
-
 */
 void mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
 {
@@ -173,7 +151,6 @@ void mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
 
 //================================================================
 /*! Pop current status to callinfo stack
-
 */
 void mrbc_pop_callinfo( struct VM *vm )
 {
@@ -344,7 +321,7 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[a]);
@@ -458,7 +435,7 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[a]);
@@ -489,7 +466,7 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
   mrbc_dup(&regs[a]);
   mrbc_set_global(sym_id, &regs[a]);
@@ -513,7 +490,7 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
 
   mrbc_value val = mrbc_instance_getiv(&regs[0], sym_id);
@@ -541,7 +518,7 @@ static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
 
   mrbc_instance_setiv(&regs[0], sym_id, &regs[a]);
@@ -565,7 +542,7 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
 
   mrbc_release(&regs[a]);
@@ -597,7 +574,7 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
   mrbc_class *cls = find_class_by_object( vm, &regs[0] );
 
@@ -642,7 +619,7 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_class *cls = regs[a].cls;
   mrbc_sym id = cls->sym_id;
   char buf[10];
@@ -1014,23 +991,20 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Method call by method name
+/*! Method call by method name
 
-  @param  vm    pointer of VM.
-  @param  method_name  method name
-  @param  regs  pointer to regs
-  @param  a     operand a
-  @param  b     operand b
-  @param  c     operand c
-  @param  is_sendb  Is called from OP_SENDB?
+  @param  vm		pointer of VM.
+  @param  method_name	method name
+  @param  regs		pointer to regs
+  @param  a		operand a
+  @param  c		operand c
+  @param  is_sendb	Is called from OP_SENDB?
   @retval 0  No error.
 */
-static inline int op_send_by_name( mrbc_vm *vm, const char *method_name, mrbc_value *regs, uint8_t a, uint8_t b, uint8_t c, int is_sendb )
+static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *regs, int a, int c, int is_sendb )
 {
-  mrbc_value recv = regs[a];
+  mrbc_value *recv = &regs[a];
 
   // if not OP_SENDB, blcok does not exist
   int bidx = a + c + 1;
@@ -1040,10 +1014,10 @@ static inline int op_send_by_name( mrbc_vm *vm, const char *method_name, mrbc_va
   }
 
   mrbc_sym sym_id = str_to_symid(method_name);
-  mrbc_proc *m = find_method(vm, &recv, sym_id);
+  mrbc_proc *m = find_method(vm, recv, sym_id);
 
   if( m == 0 ) {
-    mrb_class *cls = find_class_by_object( vm, &recv );
+    mrb_class *cls = find_class_by_object( vm, recv );
     console_printf("No method. Class:%s Method:%s\n",
 		   symid_to_str(cls->sym_id), method_name );
     return 0;
@@ -1079,8 +1053,6 @@ static inline int op_send_by_name( mrbc_vm *vm, const char *method_name, mrbc_va
 
 
 
-
-
 //================================================================
 /*!@brief
   Execute OP_SEND
@@ -1095,9 +1067,9 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BBB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
 
-  return op_send_by_name( vm, sym_name, regs, a, b, c, (vm->inst[-4] == OP_SENDB) );
+  return send_by_name( vm, sym_name, regs, a, c, (vm->inst[-4] == OP_SENDB) );
 }
 
 
@@ -1143,7 +1115,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
     }
     b = argc;
   }
-  op_send_by_name(vm, sym_name, regs, a, 0, b, 0);
+  send_by_name(vm, sym_name, regs, a, b, 0);
   regs[a].instance->cls = orig_class;
 
   return 0;
@@ -1443,7 +1415,8 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  op_send_by_name(vm, "+", regs, a, 0, 1, 0);
+  send_by_name(vm, "+", regs, a, 1, 0);
+
   return 0;
 }
 
@@ -1599,7 +1572,7 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  op_send_by_name(vm, "*", regs, a, 0, 1, 0);
+  send_by_name(vm, "*", regs, a, 1, 0);
 
   return 0;
 }
@@ -2319,8 +2292,7 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_irep *cur_irep = vm->pc_irep;
-  const char *sym_name = mrbc_get_irep_symbol(cur_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_class *super = (regs[a+1].tt == MRBC_TT_CLASS) ? regs[a+1].cls : mrbc_class_object;
 
   mrbc_class *cls = mrbc_define_class(vm, sym_name, super);
@@ -2388,7 +2360,7 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[a+1].tt == MRBC_TT_PROC );
 
   mrbc_class *cls = regs[a].cls;
-  const char *sym_name = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
   mrbc_proc *proc = regs[a+1].proc;
 
@@ -2433,9 +2405,9 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name_a = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, a);
+  const char *sym_name_a = mrbc_get_irep_symbol(vm, a);
   mrbc_sym sym_id_a = str_to_symid(sym_name_a);
-  const char *sym_name_b = mrbc_get_irep_symbol(vm->pc_irep->ptr_to_sym, b);
+  const char *sym_name_b = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id_b = str_to_symid(sym_name_b);
 
   // find method only in this class.
@@ -2634,10 +2606,8 @@ static inline int op_dummy_BBB( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
-/*!@brief
-  Open the VM.
+/*! Open the VM.
 
   @param vm     Pointer to mrbc_vm or NULL.
   @return	Pointer to mrbc_vm.
@@ -2645,28 +2615,30 @@ static inline int op_dummy_BBB( mrbc_vm *vm, mrbc_value *regs )
 */
 mrbc_vm *mrbc_vm_open( struct VM *vm_arg )
 {
-  mrbc_vm *vm;
-  if( (vm = vm_arg) == NULL ) {
+  mrbc_vm *vm = vm_arg;
+
+  if( vm == NULL ) {
     // allocate memory.
     vm = (mrbc_vm *)mrbc_raw_alloc( sizeof(mrbc_vm) );
     if( vm == NULL ) return NULL;
   }
 
   // allocate vm id.
-  int vm_id = 0;
-  int i;
-  for( i = 0; i < Num(free_vm_bitmap); i++ ) {
-    int n = nlz32( ~free_vm_bitmap[i] );
-    if( n < FREE_BITMAP_WIDTH ) {
-      free_vm_bitmap[i] |= (1 << (FREE_BITMAP_WIDTH - n - 1));
-      vm_id = i * FREE_BITMAP_WIDTH + n + 1;
+  int vm_id;
+  for( vm_id = 0; vm_id < MAX_VM_COUNT; vm_id++ ) {
+    int idx = vm_id >> 4;
+    int bit = 1 << (vm_id & 0x0f);
+    if( (free_vm_bitmap[idx] & bit) == 0 ) {
+      free_vm_bitmap[idx] |= bit;		// found
       break;
     }
   }
-  if( vm_id == 0 ) {
+
+  if( vm_id == MAX_VM_COUNT ) {
     if( vm_arg == NULL ) mrbc_raw_free(vm);
     return NULL;
   }
+  vm_id++;
 
   // initialize attributes.
   memset(vm, 0, sizeof(mrbc_vm));	// caution: assume NULL is zero.
@@ -2681,26 +2653,22 @@ mrbc_vm *mrbc_vm_open( struct VM *vm_arg )
 }
 
 
-
 //================================================================
-/*!@brief
-  Close the VM.
+/*! Close the VM.
 
   @param  vm  Pointer to VM
 */
 void mrbc_vm_close( struct VM *vm )
 {
   // free vm id.
-  int i = (vm->vm_id-1) / FREE_BITMAP_WIDTH;
-  int n = (vm->vm_id-1) % FREE_BITMAP_WIDTH;
-  assert( i < Num(free_vm_bitmap) );
-  free_vm_bitmap[i] &= ~(1 << (FREE_BITMAP_WIDTH - n - 1));
+  int idx = (vm->vm_id-1) >> 4;
+  int bit = 1 << ((vm->vm_id-1) & 0x0f);
+  free_vm_bitmap[idx] &= ~bit;
 
   // free irep and vm
   if( vm->irep ) mrbc_irep_free( vm->irep );
   if( vm->flag_need_memfree ) mrbc_raw_free(vm);
 }
-
 
 
 //================================================================
@@ -2845,7 +2813,7 @@ int mrbc_vm_run( struct VM *vm )
     // Dispatch
     uint8_t op = *vm->inst++;
 
-    // output OP_XXX for debug 
+    // output OP_XXX for debug
     //if( vm->flag_debug_mode )output_opcode( op );
 
     switch( op ) {

@@ -31,7 +31,7 @@
   @param  flag_exclude	true: exclude the end object, otherwise include.
   @return		range object.
 */
-mrbc_value mrbc_range_new( struct VM *vm, mrbc_value *first, mrbc_value *last, int flag_exclude)
+mrbc_value mrbc_range_new(struct VM *vm, mrbc_value *first, mrbc_value *last, int flag_exclude)
 {
   mrbc_value value = {.tt = MRBC_TT_RANGE};
 
@@ -39,7 +39,7 @@ mrbc_value mrbc_range_new( struct VM *vm, mrbc_value *first, mrbc_value *last, i
   if( !value.range ) return value;		// ENOMEM
 
   value.range->ref_count = 1;
-  value.range->tt = MRBC_TT_STRING;	// TODO: for DEBUG
+  value.range->tt = MRBC_TT_RANGE;	// TODO: for DEBUG
   value.range->flag_exclude = flag_exclude;
   value.range->first = *first;
   value.range->last = *last;
@@ -55,8 +55,8 @@ mrbc_value mrbc_range_new( struct VM *vm, mrbc_value *first, mrbc_value *last, i
 */
 void mrbc_range_delete(mrbc_value *v)
 {
-  mrbc_release( &v->range->first );
-  mrbc_release( &v->range->last );
+  mrbc_dec_ref_counter( &v->range->first );
+  mrbc_dec_ref_counter( &v->range->last );
 
   mrbc_raw_free( v->range );
 }
