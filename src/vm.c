@@ -2566,11 +2566,12 @@ static inline int op_abort( mrbc_vm *vm, mrbc_value *regs )
   @param  str_opcode   opcode string
   @retval -1  No error and exit from vm.
 */
-static inline int op_dummy_Z( mrbc_vm *vm, const char *str_opcode )
+static inline int op_dummy_Z( mrbc_vm *vm, mrbc_value *regs )
 {
+  uint8_t op = *(vm->inst - 1);
   FETCH_Z();
 
-  console_printf("# Skip OP_%s", str_opcode);
+  console_printf("# Skip OP 0x%02x", op);
   return 0;
 }
 
@@ -2583,14 +2584,16 @@ static inline int op_dummy_Z( mrbc_vm *vm, const char *str_opcode )
   @param  str_opcode   opcode string
   @retval -1  No error and exit from vm.
 */
-static inline int op_dummy_B( mrbc_vm *vm, const char *str_opcode )
+static inline int op_dummy_B( mrbc_vm *vm, mrbc_value *regs )
 {
+  uint8_t op = *(vm->inst - 1);
   FETCH_B();
 
   (void)a;
-  console_printf("# Skip OP_%s", str_opcode);
+  console_printf("# Skip OP 0x%02x", op);
   return 0;
 }
+
 
 
 
@@ -2601,13 +2604,13 @@ static inline int op_dummy_B( mrbc_vm *vm, const char *str_opcode )
   @param  str_opcode   opcode string
   @retval -1  No error and exit from vm.
 */
-static inline int op_dummy_BB( mrbc_vm *vm, const char *str_opcode )
+static inline int op_dummy_BB( mrbc_vm *vm, mrbc_value *regs )
 {
+  uint8_t op = *(vm->inst - 1);
   FETCH_BB();
 
-  (void)a;
-  (void)b;
-  console_printf("# Skip OP_%s", str_opcode);
+  (void)a, (void)b;
+  console_printf("# Skip OP 0x%02x", op);
   return 0;
 }
 
@@ -2620,14 +2623,13 @@ static inline int op_dummy_BB( mrbc_vm *vm, const char *str_opcode )
   @param  str_opcode   opcode string
   @retval -1  No error and exit from vm.
 */
-static inline int op_dummy_BBB( mrbc_vm *vm, const char *str_opcode )
+static inline int op_dummy_BBB( mrbc_vm *vm, mrbc_value *regs )
 {
+  uint8_t op = *(vm->inst - 1);
   FETCH_BBB();
 
-  (void)a;
-  (void)b;
-  (void)c;
-  console_printf("# Skip OP_%s", str_opcode);
+  (void)a, (void)b, (void)c;
+  console_printf("# Skip OP 0x%02x", op);
   return 0;
 }
 
@@ -2868,12 +2870,12 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADF:      ret = op_loadf     (vm, regs); break;
     case OP_GETGV:      ret = op_getgv     (vm, regs); break;
     case OP_SETGV:      ret = op_setgv     (vm, regs); break;
-    case OP_GETSV:      ret = op_dummy_BB(vm, "GETSV");    break;
-    case OP_SETSV:      ret = op_dummy_BB(vm, "SETSV");    break;
+    case OP_GETSV:      ret = op_dummy_BB  (vm, regs); break;
+    case OP_SETSV:      ret = op_dummy_BB  (vm, regs); break;
     case OP_GETIV:      ret = op_getiv     (vm, regs); break;
     case OP_SETIV:      ret = op_setiv     (vm, regs); break;
-    case OP_GETCV:      ret = op_dummy_BB(vm, "GETCV");    break;
-    case OP_SETCV:      ret = op_dummy_BB(vm, "SETCV");    break;
+    case OP_GETCV:      ret = op_dummy_BB  (vm, regs); break;
+    case OP_SETCV:      ret = op_dummy_BB  (vm, regs); break;
     case OP_GETCONST:   ret = op_getconst  (vm, regs); break;
     case OP_SETCONST:   ret = op_setconst  (vm, regs); break;
     case OP_GETMCNST:   ret = op_getmcnst  (vm, regs); break;
@@ -2891,17 +2893,17 @@ int mrbc_vm_run( struct VM *vm )
     case OP_RAISE:      ret = op_raise     (vm, regs); break;
     case OP_EPUSH:      ret = op_epush     (vm, regs); break;
     case OP_EPOP:       ret = op_epop      (vm, regs); break;
-    case OP_SENDV:      ret = op_dummy_BB(vm, "SENDV");    break;
-    case OP_SENDVB:     ret = op_dummy_BB(vm, "SENDVB");   break;
+    case OP_SENDV:      ret = op_dummy_BB  (vm, regs); break;
+    case OP_SENDVB:     ret = op_dummy_BB  (vm, regs); break;
     case OP_SEND:       // fall through
     case OP_SENDB:      ret = op_send      (vm, regs); break;
-    case OP_CALL:       ret = op_dummy_Z(vm, "CALL");      break;
+    case OP_CALL:       ret = op_dummy_Z   (vm, regs); break;
     case OP_SUPER:      ret = op_super     (vm, regs); break;
     case OP_ARGARY:     ret = op_argary    (vm, regs); break;
     case OP_ENTER:      ret = op_enter     (vm, regs); break;
-    case OP_KEY_P:      ret = op_dummy_BB(vm, "KEY_P");    break;
-    case OP_KEYEND:     ret = op_dummy_Z(vm, "KEYEND");    break;
-    case OP_KARG:       ret = op_dummy_BB(vm, "KARG");     break;
+    case OP_KEY_P:      ret = op_dummy_BB  (vm, regs); break;
+    case OP_KEYEND:     ret = op_dummy_Z   (vm, regs); break;
+    case OP_KARG:       ret = op_dummy_BB  (vm, regs); break;
     case OP_RETURN:     ret = op_return    (vm, regs); break;
     case OP_RETURN_BLK: ret = op_return_blk(vm, regs); break;
     case OP_BREAK:      ret = op_break     (vm, regs); break;
@@ -2920,33 +2922,33 @@ int mrbc_vm_run( struct VM *vm )
     case OP_ARRAY:      ret = op_array     (vm, regs); break;
     case OP_ARRAY2:     ret = op_array2    (vm, regs); break;
     case OP_ARYCAT:     ret = op_arycat    (vm, regs); break;
-    case OP_ARYPUSH:    ret = op_dummy_B(vm, "ARYPUSH");   break;
+    case OP_ARYPUSH:    ret = op_dummy_B   (vm, regs); break;
     case OP_ARYDUP:     ret = op_arydup    (vm, regs); break;
     case OP_AREF:       ret = op_aref      (vm, regs); break;
-    case OP_ASET:       ret = op_dummy_BBB(vm, "ASET");    break;
+    case OP_ASET:       ret = op_dummy_BBB (vm, regs); break;
     case OP_APOST:      ret = op_apost     (vm, regs); break;
     case OP_INTERN:     ret = op_intern    (vm, regs); break;
     case OP_STRING:     ret = op_string    (vm, regs); break;
     case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
     case OP_HASH:       ret = op_hash      (vm, regs); break;
-    case OP_HASHADD:    ret = op_dummy_BB(vm, "HASHADD");  break;
-    case OP_HASHCAT:    ret = op_dummy_B(vm, "HASHCAT");   break;
-    case OP_LAMBDA:     ret = op_dummy_BB(vm, "LAMBDA");   break;
+    case OP_HASHADD:    ret = op_dummy_BB  (vm, regs); break;
+    case OP_HASHCAT:    ret = op_dummy_B   (vm, regs); break;
+    case OP_LAMBDA:     ret = op_dummy_BB  (vm, regs); break;
     case OP_BLOCK:      // fall through
     case OP_METHOD:     ret = op_method    (vm, regs); break;
     case OP_RANGE_INC:  // fall through
     case OP_RANGE_EXC:  ret = op_range     (vm, regs); break;
-    case OP_OCLASS:     ret = op_dummy_B(vm, "OCLASS");    break;
+    case OP_OCLASS:     ret = op_dummy_B   (vm, regs); break;
     case OP_CLASS:      ret = op_class     (vm, regs); break;
-    case OP_MODULE:     ret = op_dummy_BB(vm, "MODULE");   break;
+    case OP_MODULE:     ret = op_dummy_BB  (vm, regs); break;
     case OP_EXEC:       ret = op_exec      (vm, regs); break;
     case OP_DEF:        ret = op_def       (vm, regs); break;
     case OP_ALIAS:      ret = op_alias     (vm, regs); break;
-    case OP_UNDEF:      ret = op_dummy_B(vm, "UNDEF");     break;
-    case OP_SCLASS:     ret = op_dummy_B(vm, "SCLASS");    break;
+    case OP_UNDEF:      ret = op_dummy_B   (vm, regs); break;
+    case OP_SCLASS:     ret = op_dummy_B   (vm, regs); break;
     case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
-    case OP_DEBUG:      ret = op_dummy_BBB(vm, "DEBUG");   break;
-    case OP_ERR:        ret = op_dummy_B(vm, "ERR");       break;
+    case OP_DEBUG:      ret = op_dummy_BBB (vm, regs); break;
+    case OP_ERR:        ret = op_dummy_B   (vm, regs); break;
     case OP_EXT1:       // fall through
     case OP_EXT2:       // fall through
     case OP_EXT3:       ret = op_ext       (vm, regs); break;
