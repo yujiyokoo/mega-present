@@ -32,12 +32,12 @@ extern "C" {
 
 #define EXT_CLEAR() vm->ext_flag = 0
 #define FETCH_Z() EXT_CLEAR()
-#define FETCH_B() uint32_t a = (vm->ext_flag & 1) ? READ_S() : READ_B(); EXT_CLEAR()
-#define FETCH_BB() uint32_t a,b; a = (vm->ext_flag & 1) ? READ_S() : READ_B(); b = (vm->ext_flag & 2)? READ_S() : READ_B(); EXT_CLEAR()
-#define FETCH_BBB() uint32_t a,b,c; a = (vm->ext_flag & 1) ? READ_S() : READ_B(); b = (vm->ext_flag & 2)? READ_S() : READ_B(); c=READ_B(); EXT_CLEAR()
-#define FETCH_BS() uint32_t a,b; a = (vm->ext_flag & 1) ? READ_S() : READ_B(); b=READ_S(); EXT_CLEAR()
-#define FETCH_S() uint32_t a=READ_S(); EXT_CLEAR()
-#define FETCH_W() uint32_t a=READ_W(); EXT_CLEAR()
+#define FETCH_B() uint32_t a = (vm->ext_flag & 1) ? READ_S() : READ_B(); EXT_CLEAR(); (void)a
+#define FETCH_BB() uint32_t a,b; a = (vm->ext_flag & 1) ? READ_S() : READ_B(); b = (vm->ext_flag & 2)? READ_S() : READ_B(); EXT_CLEAR(); (void)a, (void)b
+#define FETCH_BBB() uint32_t a,b,c; a = (vm->ext_flag & 1) ? READ_S() : READ_B(); b = (vm->ext_flag & 2)? READ_S() : READ_B(); c=READ_B(); EXT_CLEAR(); (void)a, (void)b, (void)c
+#define FETCH_BS() uint32_t a,b; a = (vm->ext_flag & 1) ? READ_S() : READ_B(); b=READ_S(); EXT_CLEAR(); (void)a, (void)b
+#define FETCH_S() uint32_t a=READ_S(); EXT_CLEAR(); (void)a
+#define FETCH_W() uint32_t a=READ_W(); EXT_CLEAR(); (void)a
 
 
 //================================================================

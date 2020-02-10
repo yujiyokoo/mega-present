@@ -965,8 +965,6 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  (void)a;   // EPOP <a>
-
   mrb_irep *block = vm->ensures[--vm->ensure_idx];
 
   // same as OP_EXEC
@@ -1222,8 +1220,6 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
-
-  (void)a;
 
   // pop until bytecode is OP_SENDB
   mrbc_callinfo *callinfo = vm->callinfo_tail;
@@ -2263,6 +2259,23 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
+/*! OP_SCLASS
+
+  R(a) = R(a).singleton_class
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs )
+{
+  // currently, not supported
+  FETCH_B();
+  return 0;
+}
+
+
+//================================================================
 /*! OP_TCLASS
 
   R(a) = target_class
@@ -2360,7 +2373,7 @@ static inline int op_dummy_Z( mrbc_vm *vm, mrbc_value *regs )
   uint8_t op = *(vm->inst - 1);
   FETCH_Z();
 
-  console_printf("# Skip OP 0x%02x", op);
+  console_printf("# Skip OP 0x%02x\n", op);
   return 0;
 }
 
@@ -2376,8 +2389,7 @@ static inline int op_dummy_B( mrbc_vm *vm, mrbc_value *regs )
   uint8_t op = *(vm->inst - 1);
   FETCH_B();
 
-  (void)a;
-  console_printf("# Skip OP 0x%02x", op);
+  console_printf("# Skip OP 0x%02x\n", op);
   return 0;
 }
 
@@ -2393,8 +2405,7 @@ static inline int op_dummy_BB( mrbc_vm *vm, mrbc_value *regs )
   uint8_t op = *(vm->inst - 1);
   FETCH_BB();
 
-  (void)a, (void)b;
-  console_printf("# Skip OP 0x%02x", op);
+  console_printf("# Skip OP 0x%02x\n", op);
   return 0;
 }
 
@@ -2410,8 +2421,7 @@ static inline int op_dummy_BBB( mrbc_vm *vm, mrbc_value *regs )
   uint8_t op = *(vm->inst - 1);
   FETCH_BBB();
 
-  (void)a, (void)b, (void)c;
-  console_printf("# Skip OP 0x%02x", op);
+  console_printf("# Skip OP 0x%02x\n", op);
   return 0;
 }
 
@@ -2715,7 +2725,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_DEF:        ret = op_def       (vm, regs); break;
     case OP_ALIAS:      ret = op_alias     (vm, regs); break;
     case OP_UNDEF:      ret = op_dummy_B   (vm, regs); break;
-    case OP_SCLASS:     ret = op_dummy_B   (vm, regs); break;
+    case OP_SCLASS:     ret = op_sclass    (vm, regs); break;
     case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
     case OP_DEBUG:      ret = op_dummy_BBB (vm, regs); break;
     case OP_ERR:        ret = op_dummy_B   (vm, regs); break;
@@ -2726,7 +2736,7 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_ABORT:      ret = op_abort     (vm, regs); break;
     default:
-      console_printf("Skip OP=%02x\n", op);
+      console_printf("Unknown OP 0x%02x\n", op);
       break;
     }
   } while( !vm->flag_preemption );
