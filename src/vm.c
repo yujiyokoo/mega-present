@@ -93,9 +93,9 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   mrbc_proc *m = find_method(vm, recv, sym_id);
 
   if( m == 0 ) {
-    mrb_class *cls = find_class_by_object( vm, recv );
-    console_printf("No method. Class:%s Method:%s\n",
-		   symid_to_str(cls->sym_id), method_name );
+    console_printf("Undefined local variable or method '%s' for %s\n",
+		   method_name,
+		   symid_to_str( find_class_by_object( vm, recv )->sym_id ));
     return 0;
   }
 
