@@ -782,6 +782,26 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 
 
 //================================================================
+/*! (method) dup
+ */
+static void c_object_dup(struct VM *vm, mrbc_value v[], int argc)
+{
+  if( v->tt == MRBC_TT_OBJECT ) {
+    mrbc_value new_obj = mrbc_instance_new(vm, v->instance->cls, 0);
+    mrbc_kv_dup( &v->instance->ivar, &new_obj.instance->ivar );
+
+    mrbc_release( v );
+    *v = new_obj;
+    return;
+  }
+
+
+  // TODO: need support TT_PROC and TT_RANGE. but really need?
+  return;
+}
+
+
+//================================================================
 /*! (method) instance variable getter
  */
 static void c_object_getiv(struct VM *vm, mrbc_value v[], int argc)
@@ -1037,6 +1057,7 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "===", c_object_equal3);
   mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
   mrbc_define_method(vm, mrbc_class_object, "new", c_object_new);
+  mrbc_define_method(vm, mrbc_class_object, "dup", c_object_dup);
   mrbc_define_method(vm, mrbc_class_object, "attr_reader", c_object_attr_reader);
   mrbc_define_method(vm, mrbc_class_object, "attr_accessor", c_object_attr_accessor);
   mrbc_define_method(vm, mrbc_class_object, "is_a?", c_object_kind_of);
