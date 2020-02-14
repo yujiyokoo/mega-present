@@ -16,13 +16,16 @@
   MEMORY BLOCK LINK
       with USED flag and PREV_IN_USE flag in size member's bit 0 and 1.
 
-   (used block)       (free block)                       (used block)
-   [size| (contents) ][size,*next,*prev| (empty)  | *top][size| (contents)...
- USED: 1                  0                                  1
- PREV: 1                  1                                  0
+   |  USED_BLOCK     |  FREE_BLOCK                     |  USED_BLOCK     |...
+   |size: (contents) |size,*next,*prev: (empty)   :*top|size: (contents) |
+ USED  1:            |   0            :           :    |   1:            |
+ PREV  1:            |   1            :           :    |   0:            |
 
     Sentinel block at the link tail.
-      ...][size| (contents) ]
+      ... |  USED_BLOCK     |
+          |size: (contents) |
+ USED     |   1:            |
+ PREV     |   ?:            |
 
     size : block size.
     *next: linked list, pointer to the next free block of same block size.
@@ -134,8 +137,8 @@ typedef struct FREE_BLOCK {
   MRBC_ALLOC_MEMSIZE_T size;
 #endif
 
-  struct FREE_BLOCK * next_free;
-  struct FREE_BLOCK * prev_free;
+  struct FREE_BLOCK *next_free;
+  struct FREE_BLOCK *prev_free;
   struct FREE_BLOCK *top_adrs;		//!< dummy for calculate sizeof(FREE_BLOCK)
 } FREE_BLOCK;
 
@@ -343,7 +346,7 @@ static inline FREE_BLOCK* split_block(FREE_BLOCK *target, unsigned int size)
   FREE_BLOCK *split = (FREE_BLOCK *)((uint8_t *)target + size);
 
   split->size  = BLOCK_SIZE(target) - size;
-  target->size = size | (target->size & 0x03);	// w/ save flags.
+  target->size = size | (target->size & 0x03);	// copy a size with flags.
 
   return split;
 }
@@ -361,7 +364,7 @@ static inline void merge_block(FREE_BLOCK *target, FREE_BLOCK *next)
   assert(target < next);
 
   // merge target and next
-  target->size += BLOCK_SIZE(next);		// w/ save flags.
+  target->size += BLOCK_SIZE(next);		// copy a size but save flags.
 }
 
 
