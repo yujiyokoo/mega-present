@@ -469,6 +469,13 @@ int mrbc_p_sub(const mrbc_value *v)
     break;
   }
 
+#if 0
+  // display reference counter
+  if( v->tt >= MRBC_TT_OBJECT ) {
+    console_printf("(%d)", v->instance->ref_count);
+  }
+#endif
+
   return 0;
 }
 

@@ -1996,15 +1996,10 @@ static inline int op_range( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_value value;
-  if( vm->inst[-2] == OP_RANGE_INC ){
-    value = mrbc_range_new(vm, &regs[a], &regs[a+1], 0);
-  } else {
-    value = mrbc_range_new(vm, &regs[a], &regs[a+1], 1);
-  }
-
-  mrbc_release( &regs[a] );
+  mrbc_value value = mrbc_range_new(vm, &regs[a], &regs[a+1],
+				    (vm->inst[-2] == OP_RANGE_EXC));
   regs[a] = value;
+  regs[a+1].tt = MRBC_TT_EMPTY;
 
   return 0;
 }
