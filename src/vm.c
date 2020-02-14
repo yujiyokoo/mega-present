@@ -128,7 +128,6 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
 }
 
 
-
 //================================================================
 /*! cleanup
 */
@@ -1455,7 +1454,7 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
       regs[a].i *= regs[a+1].i;
       return 0;
     }
-    #if MRBC_USE_FLOAT
+#if MRBC_USE_FLOAT
     if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Fixnum, Float
       regs[a].tt = MRBC_TT_FLOAT;
       regs[a].d = regs[a].i * regs[a+1].d;
@@ -1471,7 +1470,7 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
       regs[a].d *= regs[a+1].d;
       return 0;
     }
-    #endif
+#endif
   }
 
   // other case
@@ -1499,7 +1498,7 @@ static inline int op_div( mrbc_vm *vm, mrbc_value *regs )
       regs[a].i /= regs[a+1].i;
       return 0;
     }
-    #if MRBC_USE_FLOAT
+#if MRBC_USE_FLOAT
     if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Fixnum, Float
       regs[a].tt = MRBC_TT_FLOAT;
       regs[a].d = regs[a].i / regs[a+1].d;
@@ -1515,7 +1514,7 @@ static inline int op_div( mrbc_vm *vm, mrbc_value *regs )
       regs[a].d /= regs[a+1].d;
       return 0;
     }
-    #endif
+#endif
   }
 
   // other case
@@ -1538,6 +1537,7 @@ static inline int op_eq( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  // TODO: case OBJECT == OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
   mrbc_release(&regs[a+1]);
@@ -1561,36 +1561,12 @@ static inline int op_lt( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  int result = 0;
+  // TODO: case OBJECT < OBJECT is not supported.
+  int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  if( regs[a].tt == MRBC_TT_FIXNUM ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
-      result = regs[a].i < regs[a+1].i;      // in case of Fixnum, Fixnum
-      goto DONE;
-    }
-#if MRBC_USE_FLOAT
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
-      result = regs[a].i < regs[a+1].d;      // in case of Fixnum, Float
-      goto DONE;
-    }
-  }
-  if( regs[a].tt == MRBC_TT_FLOAT ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
-      result = regs[a].d < regs[a+1].i;      // in case of Float, Fixnum
-      goto DONE;
-    }
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
-      result = regs[a].d < regs[a+1].d;      // in case of Float, Float
-      goto DONE;
-    }
-#endif
-  }
-
-  // TODO: other cases
-  //
-
- DONE:
-  regs[a].tt = result ? MRBC_TT_TRUE : MRBC_TT_FALSE;
+  mrbc_release(&regs[a+1]);
+  mrbc_release(&regs[a]);
+  regs[a].tt = result < 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
   return 0;
 }
@@ -1609,36 +1585,12 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  int result = 0;
+  // TODO: case OBJECT <= OBJECT is not supported.
+  int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  if( regs[a].tt == MRBC_TT_FIXNUM ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
-      result = regs[a].i <= regs[a+1].i;      // in case of Fixnum, Fixnum
-      goto DONE;
-    }
-#if MRBC_USE_FLOAT
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
-      result = regs[a].i <= regs[a+1].d;      // in case of Fixnum, Float
-      goto DONE;
-    }
-  }
-  if( regs[a].tt == MRBC_TT_FLOAT ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
-      result = regs[a].d <= regs[a+1].i;      // in case of Float, Fixnum
-      goto DONE;
-    }
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
-      result = regs[a].d <= regs[a+1].d;      // in case of Float, Float
-      goto DONE;
-    }
-#endif
-  }
-
-  // TODO: other cases
-  //
-
- DONE:
-  regs[a].tt = result ? MRBC_TT_TRUE : MRBC_TT_FALSE;
+  mrbc_release(&regs[a+1]);
+  mrbc_release(&regs[a]);
+  regs[a].tt = result <= 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
   return 0;
 }
@@ -1657,36 +1609,12 @@ static inline int op_gt( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  int result = 0;
+  // TODO: case OBJECT > OBJECT is not supported.
+  int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  if( regs[a].tt == MRBC_TT_FIXNUM ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
-      result = regs[a].i > regs[a+1].i;      // in case of Fixnum, Fixnum
-      goto DONE;
-    }
-#if MRBC_USE_FLOAT
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
-      result = regs[a].i > regs[a+1].d;      // in case of Fixnum, Float
-      goto DONE;
-    }
-  }
-  if( regs[a].tt == MRBC_TT_FLOAT ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
-      result = regs[a].d > regs[a+1].i;      // in case of Float, Fixnum
-      goto DONE;
-    }
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
-      result = regs[a].d > regs[a+1].d;      // in case of Float, Float
-      goto DONE;
-    }
-#endif
-  }
-
-  // TODO: other cases
-  //
-
- DONE:
-  regs[a].tt = result ? MRBC_TT_TRUE : MRBC_TT_FALSE;
+  mrbc_release(&regs[a+1]);
+  mrbc_release(&regs[a]);
+  regs[a].tt = result > 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
   return 0;
 }
@@ -1705,36 +1633,12 @@ static inline int op_ge( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  int result = 0;
+  // TODO: case OBJECT >= OBJECT is not supported.
+  int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  if( regs[a].tt == MRBC_TT_FIXNUM ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
-      result = regs[a].i >= regs[a+1].i;      // in case of Fixnum, Fixnum
-      goto DONE;
-    }
-#if MRBC_USE_FLOAT
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
-      result = regs[a].i >= regs[a+1].d;      // in case of Fixnum, Float
-      goto DONE;
-    }
-  }
-  if( regs[a].tt == MRBC_TT_FLOAT ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {
-      result = regs[a].d >= regs[a+1].i;      // in case of Float, Fixnum
-      goto DONE;
-    }
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {
-      result = regs[a].d >= regs[a+1].d;      // in case of Float, Float
-      goto DONE;
-    }
-#endif
-  }
-
-  // TODO: other cases
-  //
-
- DONE:
-  regs[a].tt = result ? MRBC_TT_TRUE : MRBC_TT_FALSE;
+  mrbc_release(&regs[a+1]);
+  mrbc_release(&regs[a]);
+  regs[a].tt = result >= 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
   return 0;
 }
