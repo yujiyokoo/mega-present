@@ -3,8 +3,8 @@
   mruby/c Symbol class
 
   <pre>
-  Copyright (C) 2015-2019 Kyushu Institute of Technology.
-  Copyright (C) 2015-2019 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -14,6 +14,7 @@
 #include "vm_config.h"
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
 #include <assert.h>
 
 #include "value.h"
@@ -31,7 +32,9 @@
 #define MRBC_SYMBOL_SEARCH_BTREE
 #endif
 
-#ifndef MRBC_SYMBOL_TABLE_INDEX_TYPE
+#if MAX_SYMBOLS_COUNT <= UCHAR_MAX
+#define MRBC_SYMBOL_TABLE_INDEX_TYPE	uint8_t
+#else
 #define MRBC_SYMBOL_TABLE_INDEX_TYPE	uint16_t
 #endif
 
@@ -47,6 +50,24 @@ struct SYM_INDEX {
 
 static struct SYM_INDEX sym_index[MAX_SYMBOLS_COUNT];
 static int sym_index_pos;	// point to the last(free) sym_index array.
+
+
+//================================================================
+/*! Calculate hash value.
+
+  @param  str		Target string.
+  @return uint16_t	Hash value.
+*/
+static inline uint16_t calc_hash(const char *str)
+{
+  uint16_t h = 0;
+
+  while( *str != '\0' ) {
+    h = h * 37 + *str;
+    str++;
+  }
+  return h;
+}
 
 
 //================================================================
@@ -98,7 +119,7 @@ static int add_index( uint16_t hash, const char *str )
 {
   // check overflow.
   if( sym_index_pos >= MAX_SYMBOLS_COUNT ) {
-    console_printf( "Overflow %s for '%s'\n", "MAX_SYMBOLS_COUNT", str );
+    console_printf( "Overflow MAX_SYMBOLS_COUNT for '%s'\n", str );
     return -1;
   }
 
@@ -129,6 +150,7 @@ static int add_index( uint16_t hash, const char *str )
     }
   }
 #endif
+
   return sym_id;
 }
 
@@ -153,31 +175,13 @@ mrbc_value mrbc_symbol_new(struct VM *vm, const char *str)
 
   // create symbol object dynamically.
   int size = strlen(str) + 1;
-  char *buf = mrbc_raw_alloc(size);
+  char *buf = mrbc_raw_alloc_no_free(size);
   if( buf == NULL ) return ret;		// ENOMEM raise?
 
   memcpy(buf, str, size);
   ret.i = add_index( h, buf );
 
   return ret;
-}
-
-
-//================================================================
-/*! Calculate hash value.
-
-  @param  str		Target string.
-  @return uint16_t	Hash value.
-*/
-uint16_t calc_hash(const char *str)
-{
-  uint16_t h = 0;
-
-  while( *str != '\0' ) {
-    h = h * 37 + *str;
-    str++;
-  }
-  return h;
 }
 
 
@@ -211,7 +215,6 @@ const char * symid_to_str(mrbc_sym sym_id)
 
   return sym_index[sym_id].cstr;
 }
-
 
 
 //================================================================

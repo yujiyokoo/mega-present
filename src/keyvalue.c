@@ -114,7 +114,7 @@ void mrbc_kv_delete(mrbc_kv_handle *kvh)
 
 
 //================================================================
-/*! delete all datas
+/*! delete all datas and free data memory.
 
   @param  kvh	pointer to key-value handle.
 */
@@ -123,6 +123,7 @@ void mrbc_kv_delete_data(mrbc_kv_handle *kvh)
   if( kvh->data_size == 0 ) return;
 
   mrbc_kv_clear(kvh);
+  kvh->data_size = 0;
   mrbc_raw_free(kvh->data);
 }
 
@@ -332,4 +333,22 @@ void mrbc_kv_clear(mrbc_kv_handle *kvh)
   }
 
   kvh->n_stored = 0;
+}
+
+
+//================================================================
+/*! duplicate
+
+  @param  src		pointer to key-value handle source.
+  @param  dst		pointer to key-value handle destination.
+*/
+void mrbc_kv_dup(const mrbc_kv_handle *src, mrbc_kv_handle *dst)
+{
+  mrbc_kv_iterator ite = mrbc_kv_iterator_new( src );
+
+  while( mrbc_kv_i_has_next( &ite ) ) {
+    mrbc_kv *kv = mrbc_kv_i_next( &ite );
+    mrbc_dup( &kv->value );
+    mrbc_kv_set( dst, kv->sym_id, &kv->value );
+  }
 }

@@ -27,7 +27,7 @@
 
 // maximum number of symbols
 #if !defined(MAX_SYMBOLS_COUNT)
-#define MAX_SYMBOLS_COUNT 300
+#define MAX_SYMBOLS_COUNT 255
 #endif
 
 // maximum number of exception depth
@@ -38,8 +38,7 @@
 
 // memory management
 //  MRBC_ALLOC_16BIT or MRBC_ALLOC_24BIT
-#define MRBC_ALLOC_16BIT
-
+#define MRBC_ALLOC_24BIT
 
 /* Configure environment
    0: NOT USE
@@ -85,7 +84,7 @@
 // #define MRBC_REQUIRE_32BIT_ALIGNMENT
 
 // Debug code.
-#if !defined(MRBC_DEBUG)
+#if !defined(NDEBUG)
 #define MRBC_DEBUG
 #endif
 
