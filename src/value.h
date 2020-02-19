@@ -36,11 +36,6 @@ typedef double mrbc_float;
 typedef int16_t mrbc_sym;
 typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 
-/* aspec access ? */
-#define MRB_ASPEC_REQ(a)          (((a) >> 18) & 0x1f)
-#define MRB_ASPEC_OPT(a)          (((a) >> 13) & 0x1f)
-#define MRB_ASPEC_REST(a)         (((a) >> 12) & 0x1)
-#define MRB_ASPEC_POST(a)         (((a) >> 7) & 0x1f)
 
 #define MRBC_OBJECT_HEADER \
   uint16_t ref_count; \

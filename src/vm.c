@@ -1090,46 +1090,76 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
   @param  regs  pointer to regs
   @retval 0  No error.
 */
-#define MRB_ASPEC_REQ(a)          (((a) >> 18) & 0x1f)
-#define MRB_ASPEC_OPT(a)          (((a) >> 13) & 0x1f)
-#define MRB_ASPEC_REST(a)         (((a) >> 12) & 0x1)
-#define MRB_ASPEC_POST(a)         (((a) >> 7) & 0x1f)
-#define MRB_ASPEC_KEY(a)          (((a) >> 2) & 0x1f)
-#define MRB_ASPEC_KDICT(a)        ((a) & (1<<1))
-#define MRB_ASPEC_BLOCK(a)        ((a) & 1)
 static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_W();
 
-  int m1 = MRB_ASPEC_REQ(a);   // # of required parameters
-  int o  = MRB_ASPEC_OPT(a);   // # of optional parameters
-  int r  = MRB_ASPEC_REST(a);  // rest is exists?
-
+  int m1 = (a >> 18) & 0x1f;	// # of required parameters 1
+  int o  = (a >> 13) & 0x1f;	// # of optional parameters
+  int r  = (a >> 12) & 0x01;	// rest parameter is exists?
+  int m2 = (a >>  7) & 0x1f;	// # of required parameters 2
+  // NOTE: Keyword parameters are not supported.
+  int d  = (a >>  1) & 0x01;	// dictionary parameter is exists?
   int argc = vm->callinfo_tail->n_args;
 
-  // arg check
-  if( argc < m1 ){
-    console_printf("ArgumentError\n");  // raise
-    return 0;
+  // dictionary parameter if exists.
+  mrbc_value dict;
+  if( d ) {
+    if( (argc - m1 - m2) > 0 && regs[argc].tt == MRBC_TT_HASH ) {
+      dict = regs[argc];
+      regs[argc--].tt = MRBC_TT_EMPTY;
+    } else {
+      dict = mrbc_hash_new( vm, 0 );
+    }
   }
 
-  // default args, skip bytecode
-  if( o > 0 && argc > m1 ){
-    vm->inst += (argc - m1) * 3;
-  }
-
-  // rest param exists?
-  if( r ){
-    int rest_size = argc - m1 - o;
+  // rest parameter if exists.
+  mrbc_value rest;
+  if( r ) {
+    int rest_size = argc - m1 - m2 - o;
     if( rest_size < 0 ) rest_size = 0;
-    mrb_value rest = mrbc_array_new(vm, rest_size);
+    rest = mrbc_array_new(vm, rest_size);
+    if( !rest.array ) return 0;	// ENOMEM raise?
+
+    int rest_reg = m1 + o + 1;
     int i;
     for( i = 0; i < rest_size; i++ ) {
-      rest.array->data[i] = regs[1+m1+o+i];
+      mrbc_array_push( &rest, &regs[rest_reg] );
+      regs[rest_reg++].tt = MRBC_TT_EMPTY;
     }
-    rest.array->n_stored = rest_size;
-    regs[m1+o+1] = rest;
   }
+
+  // move mandatory2 values
+  if( m2 ) {
+    int r_s = argc - m2 + 1;
+    int r_d = m1 + o + r + 1;
+    if( r_s > r_d ) {
+      int i;
+      for( i = 0; i < m2; i++ ) {
+	regs[r_d + i] = regs[r_s + i];
+	regs[r_s + i].tt = MRBC_TT_EMPTY;
+      }
+    } else if( r_s < r_d ) {
+      int i;
+      for( i = m2-1; i >= 0; i-- ) {
+	regs[r_d + i] = regs[r_s + i];
+	regs[r_s + i].tt = MRBC_TT_EMPTY;
+      }
+    }
+  }
+
+  if( d ) regs[m1 + o + r + m2 + 1] = dict;
+  if( r ) regs[m1 + o + 1] = rest;
+
+  // prepare for get default arguments.
+  int jmp_ofs = argc - m1 - m2;
+  if( jmp_ofs < 0 ) {
+    console_printf("ArgumentError?\n");
+    jmp_ofs = 0;
+  } else if( jmp_ofs > o ) {
+    jmp_ofs = o;
+  }
+  vm->inst += jmp_ofs * 3;	// 3 = bytecode size of OP_JMP
 
   return 0;
 }
