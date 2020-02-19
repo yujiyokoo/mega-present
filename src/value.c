@@ -3,8 +3,8 @@
   mruby/c value definitions
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -139,8 +139,7 @@ void mrbc_dup(mrbc_value *v)
 
 
 //================================================================
-/*!@brief
-  Release object related memory
+/*! Release object related memory
 
   @param   v     Pointer to target mrbc_value
 */
@@ -152,8 +151,7 @@ void mrbc_release(mrbc_value *v)
 
 
 //================================================================
-/*!@brief
-  Decrement reference counter
+/*! Decrement reference counter
 
   @param   v     Pointer to target mrbc_value
 */
@@ -196,8 +194,7 @@ void mrbc_dec_ref_counter(mrbc_value *v)
 
 
 //================================================================
-/*!@brief
-  clear vm id
+/*! clear vm id
 
   @param   v     Pointer to target mrbc_value
 */
@@ -219,9 +216,7 @@ void mrbc_clear_vm_id(mrbc_value *v)
 
 
 //================================================================
-/*!@brief
-
-  convert ASCII string to integer mruby/c version
+/*! convert ASCII string to integer mruby/c version
 
   @param  s	source string.
   @param  base	n base.

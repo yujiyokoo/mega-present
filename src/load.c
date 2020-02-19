@@ -3,8 +3,8 @@
   mruby bytecode loader.
 
   <pre>
-  Copyright (C) 2015-2017 Kyushu Institute of Technology.
-  Copyright (C) 2015-2017 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -31,8 +31,7 @@
 
 
 //================================================================
-/*!@brief
-  Parse header section.
+/*! Parse header section.
 
   @param  vm    A pointer of VM.
   @param  pos	A pointer of pointer of RITE header.
@@ -77,8 +76,7 @@ static int load_header(struct VM *vm, const uint8_t **pos)
 
 
 //================================================================
-/*!@brief
-  read one irep section.
+/*! read one irep section.
 
   @param  vm    A pointer of VM.
   @param  pos	A pointer of pointer of IREP section.
@@ -204,8 +202,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
 
 
 //================================================================
-/*!@brief
-  read all irep section.
+/*! read all irep section.
 
   @param  vm    A pointer of VM.
   @param  pos	A pointer of pointer of IREP section.
@@ -227,8 +224,7 @@ static mrbc_irep * load_irep_0(struct VM *vm, const uint8_t **pos)
 
 
 //================================================================
-/*!@brief
-  Parse IREP section.
+/*! Parse IREP section.
 
   @param  vm    A pointer of VM.
   @param  pos	A pointer of pointer of IREP section.
@@ -263,8 +259,7 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
 
 
 //================================================================
-/*!@brief
-  Parse LVAR section.
+/*! Parse LVAR section.
 
   @param  vm    A pointer of VM.
   @param  pos	A pointer of pointer of LVAR section.
@@ -282,8 +277,7 @@ static int load_lvar(struct VM *vm, const uint8_t **pos)
 
 
 //================================================================
-/*!@brief
-  Load the VM bytecode.
+/*! Load the VM bytecode.
 
   @param  vm    Pointer to VM.
   @param  ptr	Pointer to bytecode.

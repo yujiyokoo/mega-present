@@ -2293,9 +2293,6 @@ static inline int op_abort( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*! Dummy function for unsupported opcode Z
-
-  @param  str_opcode   opcode string
-  @retval -1  No error and exit from vm.
 */
 static inline int op_dummy_Z( mrbc_vm *vm, mrbc_value *regs )
 {
@@ -2309,9 +2306,6 @@ static inline int op_dummy_Z( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*! Dummy function for unsupported opcode B
-
-  @param  str_opcode   opcode string
-  @retval -1  No error and exit from vm.
 */
 static inline int op_dummy_B( mrbc_vm *vm, mrbc_value *regs )
 {
@@ -2325,9 +2319,6 @@ static inline int op_dummy_B( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*! Dummy function for unsupported opcode BB
-
-  @param  str_opcode   opcode string
-  @retval -1  No error and exit from vm.
 */
 static inline int op_dummy_BB( mrbc_vm *vm, mrbc_value *regs )
 {
@@ -2341,9 +2332,6 @@ static inline int op_dummy_BB( mrbc_vm *vm, mrbc_value *regs )
 
 //================================================================
 /*! Dummy function for unsupported opcode BBB
-
-  @param  str_opcode   opcode string
-  @retval -1  No error and exit from vm.
 */
 static inline int op_dummy_BBB( mrbc_vm *vm, mrbc_value *regs )
 {
@@ -2358,7 +2346,7 @@ static inline int op_dummy_BBB( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! Open the VM.
 
-  @param vm     Pointer to mrbc_vm or NULL.
+  @param vm_arg	Pointer to mrbc_vm or NULL.
   @return	Pointer to mrbc_vm.
   @retval NULL	error.
 */

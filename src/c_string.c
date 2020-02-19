@@ -3,8 +3,8 @@
   mruby/c String object
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -161,8 +161,7 @@ void mrbc_string_clear_vm_id(mrbc_value *str)
 /*! duplicate string
 
   @param  vm	pointer to VM.
-  @param  s1	pointer to target value 1
-  @param  s2	pointer to target value 2
+  @param  s1	pointer to target value
   @return	new string as s1 + s2
 */
 mrbc_value mrbc_string_dup(struct VM *vm, mrbc_value *s1)
@@ -206,7 +205,7 @@ mrbc_value mrbc_string_add(struct VM *vm, const mrbc_value *s1, const mrbc_value
 
   @param  s1	pointer to target value 1
   @param  s2	pointer to target value 2
-  @param	mrbc_error_code
+  @return	mrbc_error_code
 */
 int mrbc_string_append(mrbc_value *s1, const mrbc_value *s2)
 {
@@ -235,7 +234,7 @@ int mrbc_string_append(mrbc_value *s1, const mrbc_value *s2)
 
   @param  s1	pointer to target value 1
   @param  s2	pointer to char (c_str)
-  @param	mrbc_error_code
+  @return	mrbc_error_code
 */
 int mrbc_string_append_cstr(mrbc_value *s1, const char *s2)
 {
@@ -738,7 +737,7 @@ static void c_string_split(struct VM *vm, mrbc_value v[], int argc)
   if( sep_len == 0 ) sep_len++;
 
   while( 1 ) {
-    int pos, len;
+    int pos, len = 0;
 
     if( flag_strip ) {
       for( ; offset < mrbc_string_size(&v[0]); offset++ ) {

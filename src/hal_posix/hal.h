@@ -4,8 +4,8 @@
         for POSIX
 
   <pre>
-  Copyright (C) 2016 Kyushu Institute of Technology.
-  Copyright (C) 2016 Shimane IT Open-Innovation Center.
+  Copyright (C) 2016-2020 Kyushu Institute of Technology.
+  Copyright (C) 2016-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -79,7 +79,7 @@ void hal_disable_irq(void);
 */
 inline static int hal_write(int fd, const void *buf, int nbytes)
 {
-  return write(1, buf, nbytes);
+  return (int)write(1, buf, nbytes);
 }
 
 

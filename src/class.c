@@ -3,8 +3,8 @@
   mruby/c Object, Proc, Nil, False and True class and class specific functions.
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -154,12 +154,11 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
 
 
 //================================================================
-/*!@brief
-  find class by object
+/*! find class by object
 
-  @param  vm
-  @param  obj
-  @return pointer to mrbc_class
+  @param  vm	pointer to vm
+  @param  obj	pointer to object
+  @return	pointer to mrbc_class
 */
 mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
 {
@@ -192,13 +191,12 @@ mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
 
 
 //================================================================
-/*!@brief
-  find method from class
+/*! find method from class
 
   @param  vm       pointer to vm
   @param  cls      pointer to class
   @param  sym_id   sym_id of method
-  @return
+  @return	pointer to mrbc_proc or NULL
 */
 mrbc_proc *find_method_by_class(struct VM *vm, const mrbc_class *cls, mrbc_sym sym_id)
 {
@@ -218,13 +216,12 @@ mrbc_proc *find_method_by_class(struct VM *vm, const mrbc_class *cls, mrbc_sym s
 
 
 //================================================================
-/*!@brief
-  find method from object
+/*! find method from object
 
-  @param  vm
-  @param  recv
-  @param  sym_id
-  @return
+  @param  vm		pointer to vm
+  @param  recv		pointer to receiver object.
+  @param  sym_id	symbol id.
+  @return		pointer to proc or NULL.
 */
 mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
 {
@@ -236,12 +233,12 @@ mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
 
 
 //================================================================
-/*!@brief
-  define class
+/*! define class
 
   @param  vm		pointer to vm.
   @param  name		class name.
   @param  super		super class.
+  @return		pointer to defined class.
 */
 mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super)
 {
@@ -294,8 +291,7 @@ mrbc_class * mrbc_get_class_by_name( const char *name )
 
 
 //================================================================
-/*!@brief
-  define class method or instance method.
+/*! define class method or instance method.
 
   @param  vm		pointer to vm.
   @param  cls		pointer to class.
@@ -321,8 +317,7 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 // v[0]: receiver
 // v[1..]: params
 //================================================================
-/*!@brief
-  call a method with params
+/*! call a method with params
 
   @param  vm		pointer to vm
   @param  name		method name
@@ -363,7 +358,7 @@ void mrbc_funcall(struct VM *vm, const char *name, mrbc_value *v, int argc)
   @param  v		see bellow example.
   @param  reg_ofs	see bellow example.
   @param  recv		pointer to receiver.
-  @param  name		method name.
+  @param  method	method name.
   @param  argc		num of params.
 
   @example
