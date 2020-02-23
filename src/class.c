@@ -1029,6 +1029,7 @@ static void c_object_instance_variables(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
+#if !defined(MRBC_ALLOC_LIBC)
 static void c_object_memory_statistics(struct VM *vm, mrbc_value v[], int argc)
 {
   int total, used, free, frag;
@@ -1042,6 +1043,7 @@ static void c_object_memory_statistics(struct VM *vm, mrbc_value v[], int argc)
 
   SET_NIL_RETURN();
 }
+#endif
 
 #endif
 
@@ -1082,7 +1084,9 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "object_id", c_object_object_id);
   mrbc_define_method(vm, mrbc_class_object, "instance_methods", c_object_instance_methods);
   mrbc_define_method(vm, mrbc_class_object, "instance_variables", c_object_instance_variables);
+#if !defined(MRBC_ALLOC_LIBC)
   mrbc_define_method(vm, mrbc_class_object, "memory_statistics", c_object_memory_statistics);
+#endif
 
 #endif
 }
