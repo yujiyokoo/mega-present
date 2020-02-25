@@ -909,6 +909,7 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
     if( regs[b].cls == cls ){
       mrbc_release( &regs[b] );
       regs[b] = mrbc_true_value();
+      vm->exc = 0;
       return 0;
     }
     cls = cls->super;
@@ -2612,7 +2613,7 @@ int mrbc_vm_run( struct VM *vm )
     uint8_t op = *vm->inst++;
 
     // output OP_XXX for debug
-    //if( vm->flag_debug_mode )output_opcode( op );
+    //<if( vm->flag_debug_mode )output_opcode( op );
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
