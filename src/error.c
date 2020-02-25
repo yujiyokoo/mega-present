@@ -19,12 +19,17 @@
 #include "vm.h"
 #include "error.h"
 #include "static.h"
+#include "c_string.h"
 
 
 static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_release( &v[0] );
-  v[0] = vm->exc_message;
+  if( vm->exc_message.tt == MRBC_TT_NIL ){
+    v[0] = mrbc_string_new(vm, "", 0);
+  } else {
+    v[0] = vm->exc_message;
+  }
 }
 
 
