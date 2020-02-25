@@ -883,13 +883,13 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     if( argc == 0 ){
       // 1. raise
       vm->exc = mrbc_class_runtimeerror;
-      vm->exc_message = mrbc_nil_value();
+      vm->exc_message = mrbc_string_new(vm, "", 0);
     } else if( argc == 1 ){
       if( v[1].tt == MRBC_TT_CLASS ){
 	// 3. raise Exception
 	vm->exc = v[1].cls;
 	const char *s = symid_to_str( v[1].cls->sym_id );
-	vm->exc_message = mrbc_nil_value();
+	vm->exc_message = mrbc_string_new(vm, s, strlen(s));
       } else {
 	// 2. raise "param"
 	mrbc_dup( &v[1] );
