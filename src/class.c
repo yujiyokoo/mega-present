@@ -902,20 +902,38 @@ static void c_object_nil(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (method) raise
  *    1. raise
- *    2. raise "string"
+ *    2. raise "param"
  *    3. raise Exception
+ *    4. raise Exception, "param"
  */
 static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
-  // set Runtime Error
-  vm->exc = mrbc_class_runtimeerror;
-
-  // raise
-  if( argc == 1 || argc == 2 ){
-    mrbc_dup( &v[argc] );
-    vm->exc_message = v[argc];
+  if( !vm->exc ){
+    // raise exception
+    if( argc == 0 ){
+      // 1. raise
+      vm->exc = mrbc_class_runtimeerror;
+      vm->exc_message = mrbc_string_new(vm, "", 0);
+    } else if( argc == 1 ){
+      if( v[1].tt == MRBC_TT_CLASS ){
+	// 3. raise Exception
+	vm->exc = v[1].cls;
+	const char *s = symid_to_str( v[1].cls->sym_id );
+	vm->exc_message = mrbc_string_new(vm, s, strlen(s));
+      } else {
+	// 2. raise "param"
+	mrbc_dup( &v[1] );
+	vm->exc = mrbc_class_runtimeerror;
+	vm->exc_message = v[1];
+      }
+    } else if( argc == 2 ){
+      // 4. raise Exception, "param"
+      mrbc_dup( &v[2] );
+      vm->exc = v[1].cls;
+      vm->exc_message = v[2];
+    }
   } else {
-    vm->exc_message = mrbc_nil_value();
+    // in exception
   }
 
   int idx = --vm->exception_idx;
