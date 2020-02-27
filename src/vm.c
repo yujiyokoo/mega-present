@@ -1102,6 +1102,10 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   int d  = (a >>  1) & 0x01;	// dictionary parameter is exists?
   int argc = vm->callinfo_tail->n_args;
 
+  // save proc object.
+  mrbc_value proc = regs[argc + 1];
+  regs[argc + 1].tt = MRBC_TT_EMPTY;
+
   // dictionary parameter if exists.
   mrbc_value dict;
   if( d ) {
@@ -1148,8 +1152,16 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     }
   }
 
-  if( d ) regs[m1 + o + r + m2 + 1] = dict;
-  if( r ) regs[m1 + o + 1] = rest;
+  // return rest,dict and proc values to the required register.
+  int i = m1 + o + 1;
+  if( r ) {
+    regs[i++] = rest;
+  }
+  i += m2;
+  if( d ) {
+    regs[i++] = dict;
+  }
+  regs[i] = proc;
 
   // prepare for get default arguments.
   int jmp_ofs = argc - m1 - m2;
@@ -1159,7 +1171,9 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   } else if( jmp_ofs > o ) {
     jmp_ofs = o;
   }
-  vm->inst += jmp_ofs * 3;	// 3 = bytecode size of OP_JMP
+  if( jmp_ofs != 0 ) {
+    vm->inst += jmp_ofs * 3;	// 3 = bytecode size of OP_JMP
+  }
 
   return 0;
 }
@@ -1302,11 +1316,9 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     stack = regs + offset;
   } else {
     // upper env
-    --lv;
     mrbc_callinfo *callinfo = vm->callinfo_tail;
-    while( lv > 0 ){
+    while( --lv > 0 ){
       callinfo = callinfo->prev;
-      --lv;
     }
     stack = callinfo->current_regs + 1 - offset;
   }
