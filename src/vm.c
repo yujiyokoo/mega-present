@@ -1792,7 +1792,9 @@ static inline int op_arydup( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_dup( &regs[a] );
+  mrbc_value ret = mrbc_array_dup( vm, &regs[a] );
+  mrbc_release(&regs[a]);
+  regs[a] = ret;
 
   return 0;
 }

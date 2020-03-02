@@ -53,6 +53,7 @@
     mrbc_array_clear
     mrbc_array_compare
     mrbc_array_minmax
+    mrbc_array_dup
 */
 
 
@@ -432,6 +433,33 @@ void mrbc_array_minmax(mrbc_value *ary, mrbc_value **pp_min_value, mrbc_value **
 
 
 //================================================================
+/*! duplicate (shallow copy)
+
+  @param  vm	pointer to VM.
+  @param  ary	source
+  @return	result
+*/
+mrbc_value mrbc_array_dup(struct VM *vm, const mrbc_value *ary)
+{
+  mrbc_array *sh = ary->array;
+
+  mrbc_value dv = mrbc_array_new(vm, sh->n_stored);
+  if( dv.array == NULL ) return dv;		// ENOMEM
+
+  memcpy( dv.array->data, sh->data, sizeof(mrbc_value) * sh->n_stored );
+  dv.array->n_stored = sh->n_stored;
+
+  mrbc_value *p1 = dv.array->data;
+  const mrbc_value *p2 = p1 + dv.array->n_stored;
+  while( p1 < p2 ) {
+    mrbc_dup(p1++);
+  }
+
+  return dv;
+}
+
+
+//================================================================
 /*! method new
 */
 static void c_array_new(struct VM *vm, mrbc_value v[], int argc)
@@ -787,23 +815,8 @@ static void c_array_shift(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_array_dup(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_array *h = v[0].array;
-
-  mrbc_value value = mrbc_array_new(vm, h->n_stored);
-  if( value.array == NULL ) return;		// ENOMEM
-
-  memcpy( value.array->data, h->data, sizeof(mrbc_value) * h->n_stored );
-  value.array->n_stored = h->n_stored;
-
-  mrbc_value *p1 = value.array->data;
-  const mrbc_value *p2 = p1 + value.array->n_stored;
-  while( p1 < p2 ) {
-    mrbc_dup(p1++);
-  }
-
-  SET_RETURN(value);
+  SET_RETURN( mrbc_array_dup( vm, &v[0] ) );
 }
-
 
 
 //================================================================
