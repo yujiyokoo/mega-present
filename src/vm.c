@@ -984,7 +984,7 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! OP_SEND
+/*! OP_SEND, OP_SENDB
 
   R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
 
@@ -1310,19 +1310,23 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
   mrbc_release(&regs[a]);
 
   int offset = m1+r+m2+kd+1;
-  mrbc_value *stack;
-  if( lv== 0 ){
+  mrbc_value *blk;
+
+  if( lv == 0 ) {
     // current env
-    stack = regs + offset;
+    blk = regs + offset;
   } else {
     // upper env
     mrbc_callinfo *callinfo = vm->callinfo_tail;
-    while( --lv > 0 ){
+    while( --lv > 0 ) {
       callinfo = callinfo->prev;
     }
-    stack = callinfo->current_regs + 1 - offset;
+    blk = callinfo->current_regs + 1 - offset;
   }
-  regs[a] = *stack;
+  assert( blk->tt == MRBC_TT_PROC );
+
+  mrbc_dup(blk);
+  regs[a] = *blk;
 
   return 0;
 }
@@ -1997,7 +2001,7 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! OP_METHOD
+/*! OP_BLOCK, OP_METHOD
 
   R(a) = lambda(SEQ[b],L_METHOD)
 
@@ -2011,16 +2015,10 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_release(&regs[a]);
 
-  // new proc
-  mrbc_proc *proc = mrbc_rproc_alloc(vm, "");
-  if( !proc ) return 0;	// ENOMEM
-  proc->c_func = 0;
-  proc->sym_id = -1;
-  proc->next = NULL;
-  proc->irep = vm->pc_irep->reps[b];
+  mrbc_value val = mrbc_proc_new( vm, vm->pc_irep->reps[b] );
+  if( !val.proc ) return -1;	// ENOMEM
 
-  regs[a].tt = MRBC_TT_PROC;
-  regs[a].proc = proc;
+  regs[a] = val;
 
   return 0;
 }
