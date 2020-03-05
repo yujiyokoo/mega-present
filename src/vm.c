@@ -193,20 +193,23 @@ void mrbc_irep_free(mrbc_irep *irep)
 //================================================================
 /*! Push current status to callinfo stack
 */
-void mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
+mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
 {
   mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
-  if( !callinfo ) return;
+  if( !callinfo ) return callinfo;
 
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->pc = vm->pc;
   callinfo->inst = vm->inst;
+  callinfo->reg_offset = 0;
   callinfo->mid = mid;
   callinfo->n_args = n_args;
   callinfo->target_class = vm->target_class;
   callinfo->prev = vm->callinfo_tail;
   vm->callinfo_tail = callinfo;
+
+  return callinfo;
 }
 
 
@@ -685,20 +688,24 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BBB();
 
-  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  assert( regs[0].tt == MRBC_TT_PROC );
+  mrbc_callinfo *callinfo = regs[0].proc->callinfo;
 
-  // find callinfo
-  int n = c * 2 + 1;
-  while( n > 0 ){
+  int i;
+  for( i = 0; i < c; i++ ) {
     callinfo = callinfo->prev;
-    n--;
   }
 
-  mrbc_value *up_regs = callinfo->current_regs;
+  mrbc_value *p_val;
+  if( callinfo == 0 ) {
+    p_val = vm->regs + b;
+  } else {
+    p_val = callinfo->current_regs + callinfo->reg_offset + b;
+  }
+  mrbc_dup( p_val );
 
   mrbc_release( &regs[a] );
-  mrbc_dup( &up_regs[b] );
-  regs[a] = up_regs[b];
+  regs[a] = *p_val;
 
   return 0;
 }
@@ -717,20 +724,24 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BBB();
 
-  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  assert( regs[0].tt == MRBC_TT_PROC );
+  mrbc_callinfo *callinfo = regs[0].proc->callinfo;
 
-  // find callinfo
-  int n = c * 2 + 1;
-  while( n > 0 ){
+  int i;
+  for( i = 0; i < c; i++ ) {
     callinfo = callinfo->prev;
-    n--;
   }
 
-  mrbc_value *up_regs = callinfo->current_regs;
+  mrbc_value *p_val;
+  if( callinfo == 0 ) {
+    p_val = vm->regs + b;
+  } else {
+    p_val = callinfo->current_regs + callinfo->reg_offset + b;
+  }
+  mrbc_release( p_val );
 
-  mrbc_release( &up_regs[b] );
   mrbc_dup( &regs[a] );
-  up_regs[b] = regs[a];
+  *p_val = regs[a];
 
   return 0;
 }

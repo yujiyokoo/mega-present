@@ -289,6 +289,7 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
   proc->names = name;	// for debug; delete soon.
 #endif
   proc->next = cls->procs;
+  proc->callinfo = 0;
   proc->func = cfunc;
 
   cls->procs = proc;
@@ -1099,6 +1100,7 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep )
   val.proc->names = NULL;	// for debug; delete soon
 #endif
   val.proc->next = 0;
+  val.proc->callinfo = vm->callinfo_tail;
   val.proc->irep = irep;
 
   return val;
@@ -1136,13 +1138,15 @@ static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
 */
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
+  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
+  if( !callinfo ) return;
 
   // target irep
   vm->pc_irep = v[0].proc->irep;
   vm->pc = 0;
   vm->inst = vm->pc_irep->code;
 
+  callinfo->reg_offset = v - vm->current_regs;
   vm->current_regs = v;
 }
 

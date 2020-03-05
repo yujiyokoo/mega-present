@@ -3,8 +3,8 @@
   mruby/c Object, Proc, Nil, False and True class and class specific functions.
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -64,6 +64,8 @@ typedef struct RProc {
   const char *names;		// for debug; delete soon
 #endif
   struct RProc *next;
+  struct CALLINFO *callinfo;
+
   union {
     struct IREP *irep;
     mrbc_func_t func;
