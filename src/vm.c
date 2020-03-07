@@ -114,7 +114,8 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
 
   // m is Ruby method.
   // callinfo
-  mrbc_push_callinfo(vm, sym_id, c);
+  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, sym_id, c);
+  callinfo->reg_offset = a;
 
   // target irep
   vm->pc = 0;
