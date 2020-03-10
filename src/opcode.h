@@ -87,6 +87,7 @@ enum OPCODE {
   OP_GETCONST	= 0x1b,	//!< BB   R(a) = constget(Syms(b))
   OP_SETCONST	= 0x1c,	//!< BB   constset(Syms(b),R(a))
   OP_GETMCNST	= 0x1d,	//!< BB   R(a) = R(a)::Syms(b)
+  OP_SETMCNST	= 0x1e, //!< BB   R(a+1)::Syms(b) = R(a)
   OP_GETUPVAR	= 0x1f,	//!< BBB  R(a) = uvget(b,c)
   OP_SETUPVAR	= 0x20,	//!< BBB  uvset(b,c,R(a))
   OP_JMP	= 0x21,	//!< S    pc=a

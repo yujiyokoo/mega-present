@@ -1164,7 +1164,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     }
   }
 
-  // return rest,dict and proc values to the required register.
+  // set the rest,dict and proc values to the required register.
   int i = m1 + o + 1;
   if( r ) {
     regs[i++] = rest;
@@ -1312,16 +1312,15 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BS();
 
-  // get m5 where m5:r1:m5:d1:lv4
   int m1 = (b >> 11) & 0x3f;
   int r  = (b >> 10) & 0x01;
   int m2 = (b >>  5) & 0x1f;
-  int kd = (b >>  4) & 0x01;
+  int d  = (b >>  4) & 0x01;
   int lv = (b      ) & 0x0f;
 
   mrbc_release(&regs[a]);
 
-  int offset = m1+r+m2+kd+1;
+  int offset = m1+r+m2+d+1;
   mrbc_value *blk;
 
   if( lv == 0 ) {
@@ -1329,11 +1328,14 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     blk = regs + offset;
   } else {
     // upper env
-    mrbc_callinfo *callinfo = vm->callinfo_tail;
+    assert( regs[0].tt == MRBC_TT_PROC );
+
+    mrbc_callinfo *callinfo = regs[0].proc->callinfo;
     while( --lv > 0 ) {
       callinfo = callinfo->prev;
     }
-    blk = callinfo->current_regs + 1 - offset;
+
+    blk = callinfo->current_regs + callinfo->reg_offset + offset;
   }
   assert( blk->tt == MRBC_TT_PROC );
 
@@ -2600,7 +2602,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_GETCONST:   ret = op_getconst  (vm, regs); break;
     case OP_SETCONST:   ret = op_setconst  (vm, regs); break;
     case OP_GETMCNST:   ret = op_getmcnst  (vm, regs); break;
-
+    case OP_SETMCNST:   ret = op_dummy_BB  (vm, regs); break;
     case OP_GETUPVAR:   ret = op_getupvar  (vm, regs); break;
     case OP_SETUPVAR:   ret = op_setupvar  (vm, regs); break;
     case OP_JMP:        ret = op_jmp       (vm, regs); break;
@@ -2616,8 +2618,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_EPOP:       ret = op_epop      (vm, regs); break;
     case OP_SENDV:      ret = op_dummy_BB  (vm, regs); break;
     case OP_SENDVB:     ret = op_dummy_BB  (vm, regs); break;
-    case OP_SEND:       // fall through
-    case OP_SENDB:      ret = op_send      (vm, regs); break;
+    case OP_SEND:       ret = op_send      (vm, regs); break;
+    case OP_SENDB:      ret = op_send      (vm, regs); break; // to op_send
     case OP_CALL:       ret = op_dummy_Z   (vm, regs); break;
     case OP_SUPER:      ret = op_super     (vm, regs); break;
     case OP_ARGARY:     ret = op_argary    (vm, regs); break;
@@ -2655,7 +2657,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_HASHADD:    ret = op_dummy_BB  (vm, regs); break;
     case OP_HASHCAT:    ret = op_dummy_B   (vm, regs); break;
     case OP_LAMBDA:     ret = op_dummy_BB  (vm, regs); break;
-    case OP_BLOCK:      // fall through
+    case OP_BLOCK:      ret = op_method    (vm, regs); break; // to op_method
     case OP_METHOD:     ret = op_method    (vm, regs); break;
     case OP_RANGE_INC:  // fall through
     case OP_RANGE_EXC:  ret = op_range     (vm, regs); break;
