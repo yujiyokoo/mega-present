@@ -3,8 +3,8 @@
   console output module. (not yet input)
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -144,13 +144,13 @@ int mrbc_printf_main( mrbc_printf *pf )
   }
 
  PARSE_WIDTH:
-  while( (ch = *pf->fstr - '0'), (0 <= ch && ch <= 9)) {	// isdigit()
+  while( (void)(ch = *pf->fstr - '0'), (0 <= ch && ch <= 9)) {	// isdigit()
     pf->fmt.width = pf->fmt.width * 10 + ch;
     pf->fstr++;
   }
   if( *pf->fstr == '.' ) {
     pf->fstr++;
-    while( (ch = *pf->fstr - '0'), (0 <= ch && ch <= 9)) {
+    while( (void)(ch = *pf->fstr - '0'), (0 <= ch && ch <= 9)) {
       pf->fmt.precision = pf->fmt.precision * 10 + ch;
       pf->fstr++;
     }

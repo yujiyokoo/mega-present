@@ -3,8 +3,8 @@
   mruby/c Range object
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -51,7 +51,7 @@ mrbc_value mrbc_range_new(struct VM *vm, mrbc_value *first, mrbc_value *last, in
 //================================================================
 /*! destructor
 
-  @param  target 	pointer to range object.
+  @param  v 	pointer to target.
 */
 void mrbc_range_delete(mrbc_value *v)
 {
@@ -64,6 +64,8 @@ void mrbc_range_delete(mrbc_value *v)
 
 //================================================================
 /*! clear vm_id
+
+  @param  v 	pointer to target.
 */
 void mrbc_range_clear_vm_id(mrbc_value *v)
 {
@@ -75,6 +77,12 @@ void mrbc_range_clear_vm_id(mrbc_value *v)
 
 //================================================================
 /*! compare
+
+  @param  v1	Pointer to target.
+  @param  v2	Pointer to another target.
+  @retval 0	v1 == v2
+  @retval plus	v1 >  v2
+  @retval minus	v1 <  v2
 */
 int mrbc_range_compare(const mrbc_value *v1, const mrbc_value *v2)
 {

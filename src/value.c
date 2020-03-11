@@ -3,8 +3,8 @@
   mruby/c value definitions
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -139,8 +139,7 @@ void mrbc_dup(mrbc_value *v)
 
 
 //================================================================
-/*!@brief
-  Release object related memory
+/*! Release object related memory
 
   @param   v     Pointer to target mrbc_value
 */
@@ -152,8 +151,7 @@ void mrbc_release(mrbc_value *v)
 
 
 //================================================================
-/*!@brief
-  Decrement reference counter
+/*! Decrement reference counter
 
   @param   v     Pointer to target mrbc_value
 */
@@ -180,7 +178,7 @@ void mrbc_dec_ref_counter(mrbc_value *v)
 
   switch( v->tt ) {
   case MRBC_TT_OBJECT:	mrbc_instance_delete(v);	break;
-  case MRBC_TT_PROC:	mrbc_raw_free(v->handle);	break;
+  case MRBC_TT_PROC:	mrbc_proc_delete(v);		break;
   case MRBC_TT_ARRAY:	mrbc_array_delete(v);		break;
 #if MRBC_USE_STRING
   case MRBC_TT_STRING:	mrbc_string_delete(v);		break;
@@ -196,8 +194,7 @@ void mrbc_dec_ref_counter(mrbc_value *v)
 
 
 //================================================================
-/*!@brief
-  clear vm id
+/*! clear vm id
 
   @param   v     Pointer to target mrbc_value
 */
@@ -219,9 +216,7 @@ void mrbc_clear_vm_id(mrbc_value *v)
 
 
 //================================================================
-/*!@brief
-
-  convert ASCII string to integer mruby/c version
+/*! convert ASCII string to integer mruby/c version
 
   @param  s	source string.
   @param  base	n base.

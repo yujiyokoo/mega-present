@@ -204,7 +204,7 @@ mrbc_sym str_to_symid(const char *str)
 //================================================================
 /*! Convert symbol value to string.
 
-  @param  mrbc_sym	Symbol value.
+  @param  sym_id	Symbol value.
   @return const char*	String.
   @retval NULL		Invalid sym_id was given.
 */

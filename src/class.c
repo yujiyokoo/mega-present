@@ -3,8 +3,8 @@
   mruby/c Object, Proc, Nil, False and True class and class specific functions.
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -54,29 +54,6 @@ int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls )
   }
 
   return 0;
-}
-
-
-//================================================================
-/*! mrbc rproc allocator
-
-  @param  vm	Pointer to VM.
-  @param  name	Proc name.
-  @return	Pointer to allocated memory or NULL.
-*/
-mrbc_proc *mrbc_rproc_alloc(struct VM *vm, const char *name)
-{
-  mrbc_proc *proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
-  if( !proc ) return proc;	// ENOMEM
-
-  proc->ref_count = 1;
-  proc->sym_id = str_to_symid(name);
-#ifdef MRBC_DEBUG
-  proc->names = name;	// for debug; delete soon.
-#endif
-  proc->next = 0;
-
-  return proc;
 }
 
 
@@ -154,12 +131,11 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
 
 
 //================================================================
-/*!@brief
-  find class by object
+/*! find class by object
 
-  @param  vm
-  @param  obj
-  @return pointer to mrbc_class
+  @param  vm	pointer to vm
+  @param  obj	pointer to object
+  @return	pointer to mrbc_class
 */
 mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
 {
@@ -192,13 +168,12 @@ mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
 
 
 //================================================================
-/*!@brief
-  find method from class
+/*! find method from class
 
   @param  vm       pointer to vm
   @param  cls      pointer to class
   @param  sym_id   sym_id of method
-  @return
+  @return	pointer to mrbc_proc or NULL
 */
 mrbc_proc *find_method_by_class(struct VM *vm, const mrbc_class *cls, mrbc_sym sym_id)
 {
@@ -218,13 +193,12 @@ mrbc_proc *find_method_by_class(struct VM *vm, const mrbc_class *cls, mrbc_sym s
 
 
 //================================================================
-/*!@brief
-  find method from object
+/*! find method from object
 
-  @param  vm
-  @param  recv
-  @param  sym_id
-  @return
+  @param  vm		pointer to vm
+  @param  recv		pointer to receiver object.
+  @param  sym_id	symbol id.
+  @return		pointer to proc or NULL.
 */
 mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
 {
@@ -236,12 +210,12 @@ mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
 
 
 //================================================================
-/*!@brief
-  define class
+/*! define class
 
   @param  vm		pointer to vm.
   @param  name		class name.
   @param  super		super class.
+  @return		pointer to defined class.
 */
 mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super)
 {
@@ -294,8 +268,7 @@ mrbc_class * mrbc_get_class_by_name( const char *name )
 
 
 //================================================================
-/*!@brief
-  define class method or instance method.
+/*! define class method or instance method.
 
   @param  vm		pointer to vm.
   @param  cls		pointer to class.
@@ -306,13 +279,19 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 {
   if( cls == NULL ) cls = mrbc_class_object;	// set default to Object.
 
-  mrbc_proc *proc = mrbc_rproc_alloc(vm, name);
+  mrbc_proc *proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
   if( !proc ) return;	// ENOMEM
 
-  proc->c_func = 1;  // c-func
+  proc->ref_count = 1;
+  proc->c_func = 1;
+  proc->sym_id = str_to_symid(name);
+#ifdef MRBC_DEBUG
+  proc->names = name;	// for debug; delete soon.
+#endif
+  proc->next = cls->procs;
+  proc->callinfo = 0;
   proc->func = cfunc;
 
-  proc->next = cls->procs;
   cls->procs = proc;
 }
 
@@ -321,8 +300,7 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 // v[0]: receiver
 // v[1..]: params
 //================================================================
-/*!@brief
-  call a method with params
+/*! call a method with params
 
   @param  vm		pointer to vm
   @param  name		method name
@@ -363,7 +341,7 @@ void mrbc_funcall(struct VM *vm, const char *name, mrbc_value *v, int argc)
   @param  v		see bellow example.
   @param  reg_ofs	see bellow example.
   @param  recv		pointer to receiver.
-  @param  name		method name.
+  @param  method	method name.
   @param  argc		num of params.
 
   @example
@@ -468,6 +446,13 @@ int mrbc_p_sub(const mrbc_value *v)
     mrbc_print_sub(v);
     break;
   }
+
+#if 0
+  // display reference counter
+  if( v->tt >= MRBC_TT_OBJECT ) {
+    console_printf("(%d)", v->instance->ref_count);
+  }
+#endif
 
   return 0;
 }
@@ -582,8 +567,10 @@ int mrbc_puts_sub(const mrbc_value *v)
 
 
 
-//================================================================
+//----------------------------------------------------------------
 // Object class
+//----------------------------------------------------------------
+
 //================================================================
 /*! (method) alias_method
 
@@ -716,8 +703,9 @@ static void c_object_class(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
-
-// Object.new
+//================================================================
+/*! (method) new
+ */
 static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
@@ -780,7 +768,6 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
-
 //================================================================
 /*! (method) dup
  */
@@ -830,7 +817,6 @@ static void c_object_setiv(struct VM *vm, mrbc_value v[], int argc)
   mrbc_instance_setiv(&v[0], sym_id, &v[1]);
   mrbc_raw_free(namebuf);
 }
-
 
 
 //================================================================
@@ -1046,6 +1032,7 @@ static void c_object_instance_variables(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
+#if !defined(MRBC_ALLOC_LIBC)
 static void c_object_memory_statistics(struct VM *vm, mrbc_value v[], int argc)
 {
   int total, used, free, frag;
@@ -1059,10 +1046,14 @@ static void c_object_memory_statistics(struct VM *vm, mrbc_value v[], int argc)
 
   SET_NIL_RETURN();
 }
+#endif
 
 #endif
 
 
+//================================================================
+/*! Object class
+*/
 static void mrbc_init_class_object(struct VM *vm)
 {
   // Class
@@ -1099,59 +1090,95 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "object_id", c_object_object_id);
   mrbc_define_method(vm, mrbc_class_object, "instance_methods", c_object_instance_methods);
   mrbc_define_method(vm, mrbc_class_object, "instance_variables", c_object_instance_variables);
+#if !defined(MRBC_ALLOC_LIBC)
   mrbc_define_method(vm, mrbc_class_object, "memory_statistics", c_object_memory_statistics);
+#endif
 
 #endif
 }
 
-// =============== ProcClass
 
+
+//----------------------------------------------------------------
+// Proc class
+//----------------------------------------------------------------
+
+//================================================================
+/*! constructor
+
+  @param  vm		Pointer to VM.
+  @param  irep		Pointer to IREP.
+  @return		mrbc_value of Proc object.
+*/
+mrbc_value mrbc_proc_new(struct VM *vm, void *irep )
+{
+  mrbc_value val = {.tt = MRBC_TT_PROC};
+
+  val.proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
+  if( !val.proc ) return val;	// ENOMEM
+
+  val.proc->ref_count = 1;
+  val.proc->c_func = 0;
+  val.proc->sym_id = -1;
+#ifdef MRBC_DEBUG
+  val.proc->names = NULL;	// for debug; delete soon
+#endif
+  val.proc->next = 0;
+  val.proc->callinfo = vm->callinfo_tail;
+  val.proc->irep = irep;
+
+  return val;
+}
+
+
+//================================================================
+/*! mrbc_instance destructor
+
+  @param  val	pointer to target value
+*/
+void mrbc_proc_delete(mrbc_value *val)
+{
+  mrbc_raw_free(val->proc);
+}
+
+
+//================================================================
+/*! (method) new
+*/
+static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
+{
+  if( v[1].tt != MRBC_TT_PROC ) {
+    console_printf("Not support Proc.new without block.\n");	// raise?
+    return;
+  }
+
+  v[0] = v[1];
+  v[1].tt = MRBC_TT_EMPTY;
+}
+
+
+//================================================================
+/*! (method) call
+*/
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
-  // set receiver
-  mrbc_value recv;
-  int offset = -argc-1;
-  recv = vm->current_regs[offset];
-  mrbc_dup( &recv );
-
-  // push callinfo, but not release regs
-  mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
+  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
+  if( !callinfo ) return;
 
   // target irep
   vm->pc_irep = v[0].proc->irep;
   vm->pc = 0;
   vm->inst = vm->pc_irep->code;
 
+  callinfo->reg_offset = v - vm->current_regs;
   vm->current_regs = v;
-
-  v[0] = recv;
 }
-
-
-//================================================================
-/*! Proc#new
-
-*/
-static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
-{
-  // new proc
-  mrbc_proc *proc = mrbc_rproc_alloc(vm, "");
-  if( !proc ) return;	// ENOMEM
-  proc->c_func = 0;
-  proc->sym_id = -1;
-  proc->next = NULL;
-  proc->irep = v[1].proc->irep;
-
-  mrbc_value value;
-  value.tt = MRBC_TT_PROC;
-  value.proc = proc;
-
-  SET_RETURN(value);
-}
-
 
 
 #if MRBC_USE_STRING
+//================================================================
+/*! (method) to_s
+*/
 static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   // (NOTE) address part assumes 32bit. but enough for this.
@@ -1168,6 +1195,10 @@ static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 }
 #endif
 
+
+//================================================================
+/*! Proc class
+*/
 static void mrbc_init_class_proc(struct VM *vm)
 {
   // Class
@@ -1182,8 +1213,10 @@ static void mrbc_init_class_proc(struct VM *vm)
 }
 
 
-//================================================================
+
+//----------------------------------------------------------------
 // Nil class
+//----------------------------------------------------------------
 
 //================================================================
 /*! (method) to_i
@@ -1266,8 +1299,9 @@ static void mrbc_init_class_nil(struct VM *vm)
 
 
 
-//================================================================
+//----------------------------------------------------------------
 // False class
+//----------------------------------------------------------------
 
 #if MRBC_USE_STRING
 //================================================================
@@ -1295,8 +1329,9 @@ static void mrbc_init_class_false(struct VM *vm)
 
 
 
-//================================================================
+//----------------------------------------------------------------
 // True class
+//----------------------------------------------------------------
 
 #if MRBC_USE_STRING
 //================================================================
@@ -1308,6 +1343,10 @@ static void c_true_to_s(struct VM *vm, mrbc_value v[], int argc)
 }
 #endif
 
+
+//================================================================
+/*! True class
+*/
 static void mrbc_init_class_true(struct VM *vm)
 {
   // Class

@@ -3,8 +3,8 @@
   mruby/c Object, Proc, Nil, False and True class and class specific functions.
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -64,6 +64,8 @@ typedef struct RProc {
   const char *names;		// for debug; delete soon
 #endif
   struct RProc *next;
+  struct CALLINFO *callinfo;
+
   union {
     struct IREP *irep;
     mrbc_func_t func;
@@ -73,9 +75,7 @@ typedef struct RProc {
 typedef struct RProc mrb_proc;
 
 
-
 int mrbc_obj_is_kind_of(const mrbc_value *obj, const mrb_class *cls);
-mrbc_proc *mrbc_rproc_alloc(struct VM *vm, const char *name);
 mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size);
 void mrbc_instance_delete(mrbc_value *v);
 void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v);
@@ -91,6 +91,8 @@ mrbc_value mrbc_send(struct VM *vm, mrbc_value *v, int reg_ofs, mrbc_value *recv
 int mrbc_p_sub(const mrbc_value *v);
 int mrbc_print_sub(const mrbc_value *v);
 int mrbc_puts_sub(const mrbc_value *v);
+mrbc_value mrbc_proc_new(struct VM *vm, void *irep);
+void mrbc_proc_delete(mrbc_value *v);
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc);
 void c_ineffect(struct VM *vm, mrbc_value v[], int argc);
 void mrbc_run_mrblib(const uint8_t bytecode[]);
