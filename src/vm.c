@@ -852,7 +852,6 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  // currently support raise only ( not yet raise "string", raise Exception )
   mrbc_release( &regs[a] );
   regs[a].tt = MRBC_TT_CLASS;
   regs[a].cls = vm->exc;
@@ -980,6 +979,9 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
   //  vm->current_regs += a;
 
   vm->target_class = find_class_by_object(vm, &regs[0]);
+
+  // clear exception
+  vm->exc = 0;
 
   return 0;
 }
