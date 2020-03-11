@@ -70,6 +70,9 @@ void mrubyc(uint8_t *mrbbuf)
   if( vm->exc ){
     printf("unhandled exception\n");
   }
+
+  mrbc_vm_end( vm );
+  mrbc_vm_close( vm );
 }
 
 

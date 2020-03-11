@@ -2632,7 +2632,7 @@ int mrbc_vm_run( struct VM *vm )
     uint8_t op = *vm->inst++;
 
     // output OP_XXX for debug
-    //<if( vm->flag_debug_mode )output_opcode( op );
+    // if( vm->flag_debug_mode )output_opcode( op );
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
