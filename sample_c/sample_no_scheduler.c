@@ -59,6 +59,11 @@ void mrubyc(uint8_t *mrbbuf)
   mrbc_vm_run( vm );
   mrbc_vm_end( vm );
   mrbc_vm_close( vm );
+
+  // catch exception from mruby/c vm
+  if( vm->exc ){
+    printf("unhandled exception\n");
+  }
 }
 
 

@@ -907,6 +907,10 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
   }
 
   int idx = --vm->exception_idx;
+  if( idx < 0 ){
+    // raise in top level
+    return;
+  }
   uint16_t line = vm->exceptions[idx];
   mrbc_callinfo *callinfo = vm->exc_callinfo[idx];
   while( vm->callinfo_tail != callinfo ){

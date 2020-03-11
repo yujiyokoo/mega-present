@@ -2743,6 +2743,10 @@ int mrbc_vm_run( struct VM *vm )
       console_printf("Unknown OP 0x%02x\n", op);
       break;
     }
+
+    // raise in top level
+    // exit vm
+    if( vm->exception_idx < 0 && vm->exc ) return 0;
   } while( !vm->flag_preemption );
 
   vm->flag_preemption = 0;
