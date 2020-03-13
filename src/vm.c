@@ -1114,7 +1114,12 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   int d  = (a >>  1) & 0x01;	// dictionary parameter is exists?
   int argc = vm->callinfo_tail->n_args;
 
-  // save proc object.
+  if( argc < m1 + m2 && regs[0].tt != MRBC_TT_PROC ) {
+    console_printf("ArgumentError\n");
+    return 1;
+  }
+
+  // save proc (or nil) object.
   mrbc_value proc = regs[argc + 1];
   regs[argc + 1].tt = MRBC_TT_EMPTY;
 
@@ -1148,15 +1153,15 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   // move mandatory2 values
   if( m2 ) {
     int r_s = argc - m2 + 1;
+    if( r_s < m1 + 1 ) r_s = m1 + 1;
     int r_d = m1 + o + r + 1;
-    if( r_s > r_d ) {
-      int i;
+    int i;
+    if( r_s > r_d && r ) {
       for( i = 0; i < m2; i++ ) {
 	regs[r_d + i] = regs[r_s + i];
 	regs[r_s + i].tt = MRBC_TT_EMPTY;
       }
     } else if( r_s < r_d ) {
-      int i;
       for( i = m2-1; i >= 0; i-- ) {
 	regs[r_d + i] = regs[r_s + i];
 	regs[r_s + i].tt = MRBC_TT_EMPTY;
@@ -1164,26 +1169,38 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     }
   }
 
-  // set the rest,dict and proc values to the required register.
-  int i = m1 + o + 1;
+  // reorder arguments.
+  int i;
+  if( argc < m1 ) {
+    for( i = argc+1; i <= m1; i++ ) {
+      regs[i].tt = MRBC_TT_NIL;
+    }
+  } else {
+    i = m1 + 1;
+  }
+  i += o;
   if( r ) {
     regs[i++] = rest;
   }
-  i += m2;
+  if( m2 ) {
+    int lim = i + m2;
+    int n = argc - m1;
+    if( n < 0 ) n = 0;
+    if( n > m2 ) n = m2;
+    for( i += n; i < lim; i++ ) {
+	regs[i].tt = MRBC_TT_NIL;
+    }
+  }
   if( d ) {
     regs[i++] = dict;
   }
+  if( argc >= i ) i = argc + 1;
   regs[i] = proc;
 
   // prepare for get default arguments.
   int jmp_ofs = argc - m1 - m2;
-  if( jmp_ofs < 0 ) {
-    console_printf("ArgumentError?\n");
-    jmp_ofs = 0;
-  } else if( jmp_ofs > o ) {
-    jmp_ofs = o;
-  }
-  if( jmp_ofs != 0 ) {
+  if( jmp_ofs > 0 ) {
+    if( jmp_ofs > o ) jmp_ofs = o;
     vm->inst += jmp_ofs * 3;	// 3 = bytecode size of OP_JMP
   }
 
@@ -1242,21 +1259,20 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 
   // trace back to caller
   while( vm->callinfo_tail->pc_irep != caller ){
-    nregs += vm->callinfo_tail->n_args;
     mrbc_pop_callinfo(vm);
   }
-  mrbc_release(&vm->current_regs[0]);
 
   // ret value
-  vm->current_regs[0] = regs[a];
+  mrbc_value *p_reg = vm->current_regs;
+  mrbc_release( p_reg );
+  *p_reg = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
   mrbc_pop_callinfo(vm);
 
   // clear stacked arguments
-  int i;
-  for( i = 1; i < nregs; i++ ) {
-    mrbc_release( &regs[i] );
+  while( ++p_reg < &regs[nregs] ) {
+    mrbc_release( p_reg );
   }
 
   return 0;
