@@ -221,6 +221,7 @@ void mrbc_pop_callinfo( struct VM *vm )
 {
   mrbc_callinfo *callinfo = vm->callinfo_tail;
   if( !callinfo ) return;
+
   vm->callinfo_tail = callinfo->prev;
   vm->current_regs = callinfo->current_regs;
   vm->pc_irep = callinfo->pc_irep;
@@ -1262,7 +1263,7 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
     mrbc_pop_callinfo(vm);
   }
 
-  // ret value
+  // set return value
   mrbc_value *p_reg = vm->current_regs;
   mrbc_release( p_reg );
   *p_reg = regs[a];
@@ -1292,23 +1293,28 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  // pop until bytecode is OP_SENDB
+  assert( regs[0].tt == MRBC_TT_PROC );
+
+  int nregs = vm->pc_irep->nregs;
   mrbc_callinfo *callinfo = vm->callinfo_tail;
-  while( callinfo ){
-    mrbc_callinfo *free_callinfo = callinfo;
-    if( callinfo->inst[-4-callinfo->n_args] == OP_SENDB ){
-      vm->callinfo_tail = callinfo->prev;
-      vm->current_regs = callinfo->current_regs;
-      vm->pc_irep = callinfo->pc_irep;
-      vm->pc = callinfo->pc;
-      vm->inst = callinfo->inst;
-      vm->target_class = callinfo->target_class;
-      callinfo = callinfo->prev;
-      mrbc_free(vm, free_callinfo);
-      break;
-    }
-    callinfo = callinfo->prev;
-    mrbc_free(vm, free_callinfo);
+  mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo;
+  mrbc_value *p_reg;
+
+  // trace back to caller
+  do {
+    p_reg = callinfo->current_regs + callinfo->reg_offset;
+    mrbc_pop_callinfo(vm);
+    callinfo = vm->callinfo_tail;
+  } while( callinfo != caller_callinfo );
+
+  // set return value
+  mrbc_release( p_reg );
+  *p_reg = regs[a];
+  regs[a].tt = MRBC_TT_EMPTY;
+
+  // clear stacked arguments
+  while( ++p_reg < &regs[nregs] ) {
+    mrbc_release( p_reg );
   }
 
   return 0;
