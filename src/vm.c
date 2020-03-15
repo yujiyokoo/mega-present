@@ -215,7 +215,7 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
 
 
 //================================================================
-/*! Pop current status to callinfo stack
+/*! Pop current status from callinfo stack
 */
 void mrbc_pop_callinfo( struct VM *vm )
 {
@@ -1255,16 +1255,20 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  assert( regs[0].tt == MRBC_TT_PROC );
+
   int nregs = vm->pc_irep->nregs;
-  mrbc_irep *caller = vm->irep;
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo;
 
   // trace back to caller
-  while( vm->callinfo_tail->pc_irep != caller ){
+  do {
     mrbc_pop_callinfo(vm);
-  }
+    callinfo = vm->callinfo_tail;
+  } while( callinfo != caller_callinfo );
 
   // set return value
-  mrbc_value *p_reg = vm->current_regs;
+  mrbc_value *p_reg = callinfo->current_regs + callinfo->reg_offset;
   mrbc_release( p_reg );
   *p_reg = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
