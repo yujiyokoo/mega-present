@@ -4,7 +4,6 @@ class MySuperTest < MrubycTestCase
 
   description "MySuper1"
   def super_1_case
-    pend
     obj = MySuper1.new()
     assert_equal 1, obj.a1
     assert_equal 2, obj.a2
