@@ -1101,6 +1101,13 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep )
 #endif
   val.proc->next = 0;
   val.proc->callinfo = vm->callinfo_tail;
+
+  if(vm->current_regs[0].tt == MRBC_TT_PROC) {
+    val.proc->callinfo_self = vm->current_regs[0].proc->callinfo_self;
+  } else {
+    val.proc->callinfo_self = vm->callinfo_tail;
+  }
+
   val.proc->irep = irep;
 
   return val;

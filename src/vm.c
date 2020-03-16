@@ -414,8 +414,21 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_release(&regs[a]);
-  mrbc_dup(&regs[0]);
-  regs[a] = regs[0];
+
+  mrbc_value *self = &regs[0];
+  if( self->tt == MRBC_TT_PROC ) {
+    mrbc_callinfo *callinfo = regs[0].proc->callinfo_self;
+    if( callinfo ) {
+      self = callinfo->current_regs + callinfo->reg_offset;
+    } else {
+      self = &vm->regs[0];
+    }
+    assert( self->tt != MRBC_TT_PROC );
+  }
+
+  mrbc_dup(self);
+  regs[a] = *self;
+
   return 0;
 }
 
@@ -1259,7 +1272,7 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 
   int nregs = vm->pc_irep->nregs;
   mrbc_callinfo *callinfo = vm->callinfo_tail;
-  mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo;
+  mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo_self;
 
   // trace back to caller
   do {
