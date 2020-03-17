@@ -65,6 +65,7 @@ typedef struct RProc {
 #endif
   struct RProc *next;
   struct CALLINFO *callinfo;
+  struct CALLINFO *callinfo_self;
 
   union {
     struct IREP *irep;
