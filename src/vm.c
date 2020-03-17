@@ -2219,31 +2219,40 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name_a = mrbc_get_irep_symbol(vm, a);
-  mrbc_sym sym_id_a = str_to_symid(sym_name_a);
-  const char *sym_name_b = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id_b = str_to_symid(sym_name_b);
+  const char *sym_name_new = mrbc_get_irep_symbol(vm, a);
+  mrbc_sym sym_id_new = str_to_symid(sym_name_new);
+  const char *sym_name_old = mrbc_get_irep_symbol(vm, b);
+  mrbc_sym sym_id_old = str_to_symid(sym_name_old);
 
   // find method only in this class.
-  mrb_proc *proc = vm->target_class->procs;
-  while( proc != NULL ) {
-    if( proc->sym_id == sym_id_b ) break;
-    proc = proc->next;
+  mrb_proc *old_method = NULL;
+  mrbc_class *cls = vm->target_class;
+  while( old_method == NULL && cls != NULL ){
+    mrb_proc *proc = cls->procs;
+    while( proc != NULL ) {
+      if( proc->sym_id == sym_id_old ){
+	old_method = proc;
+	break;
+      }
+      proc = proc->next;
+    }
+    cls = cls->super;
   }
-  if( !proc ) {
-    console_printf("NameError: undefined_method '%s'\n", sym_name_b);
+
+  if( !old_method ) {
+    console_printf("NameError: undefined_method '%s'\n", sym_name_old);
     return 0;
   }
 
   // copy the Proc object
   mrbc_proc *proc_alias = mrbc_alloc(0, sizeof(mrbc_proc));
-  if( !proc_alias ) return 0;		// ENOMEM
-  memcpy( proc_alias, proc, sizeof(mrbc_proc) );
+  if( !proc_alias ) return 0;// ENOMEM
+  memcpy( proc_alias, old_method, sizeof(mrbc_proc) );
 
   // register procs link.
-  proc_alias->sym_id = sym_id_a;
+  proc_alias->sym_id = sym_id_new;
 #if defined(MRBC_DEBUG)
-  proc_alias->names = sym_name_a;
+  proc_alias->names = sym_name_new;
 #endif
   proc_alias->next = vm->target_class->procs;
   vm->target_class->procs = proc_alias;

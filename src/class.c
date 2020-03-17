@@ -1046,7 +1046,7 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
   mrbc_define_method(vm, mrbc_class_object, "<=>", c_object_compare);
   mrbc_define_method(vm, mrbc_class_object, "===", c_object_equal3);
-  mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
+  //  mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
   mrbc_define_method(vm, mrbc_class_object, "new", c_object_new);
   mrbc_define_method(vm, mrbc_class_object, "dup", c_object_dup);
   mrbc_define_method(vm, mrbc_class_object, "attr_reader", c_object_attr_reader);
