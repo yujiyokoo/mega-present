@@ -1129,7 +1129,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   int argc = vm->callinfo_tail->n_args;
 
   if( argc < m1 + m2 && regs[0].tt != MRBC_TT_PROC ) {
-    console_printf("ArgumentError\n");
+    console_printf("ArgumentError: wrong number of arguments.\n");
     return 1;
   }
 
@@ -1214,7 +1214,13 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   // prepare for get default arguments.
   int jmp_ofs = argc - m1 - m2;
   if( jmp_ofs > 0 ) {
-    if( jmp_ofs > o ) jmp_ofs = o;
+    if( jmp_ofs > o ) {
+      if( !r && regs[0].tt != MRBC_TT_PROC ) {
+	console_printf("ArgumentError: wrong number of arguments.\n");
+	return 1;
+      }
+      jmp_ofs = o;
+    }
     vm->inst += jmp_ofs * 3;	// 3 = bytecode size of OP_JMP
   }
 
