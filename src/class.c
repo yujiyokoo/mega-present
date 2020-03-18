@@ -317,14 +317,12 @@ void mrbc_funcall(struct VM *vm, const char *name, mrbc_value *v, int argc)
   mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
-  callinfo->pc = vm->pc;
   callinfo->n_args = 0;
   callinfo->target_class = vm->target_class;
   callinfo->prev = vm->callinfo_tail;
   vm->callinfo_tail = callinfo;
 
   // target irep
-  vm->pc = 0;
   vm->pc_irep = m->irep;
 
   // new regs
@@ -743,11 +741,9 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   mrbc_dup(&new_obj);
 
   mrbc_irep *org_pc_irep = vm->pc_irep;
-  uint16_t  org_pc = vm->pc;
   mrbc_value* org_regs = vm->current_regs;
   uint8_t *org_inst = vm->inst;
 
-  vm->pc = 0;
   vm->pc_irep = &irep;
   vm->current_regs = v;
   vm->inst = irep.code;
@@ -755,7 +751,6 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   while( mrbc_vm_run(vm) == 0 )
     ;
 
-  vm->pc = org_pc;
   vm->pc_irep = org_pc_irep;
   vm->inst = org_inst;
   vm->current_regs = org_regs;
@@ -1038,7 +1033,7 @@ static void mrbc_init_class_object(struct VM *vm)
 
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "initialize", c_ineffect);
-  mrbc_define_method(vm, mrbc_class_object, "alias_method", c_object_alias_method);
+  //  mrbc_define_method(vm, mrbc_class_object, "alias_method", c_object_alias_method);
   mrbc_define_method(vm, mrbc_class_object, "p", c_object_p);
   mrbc_define_method(vm, mrbc_class_object, "print", c_object_print);
   mrbc_define_method(vm, mrbc_class_object, "puts", c_object_puts);
@@ -1046,7 +1041,7 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
   mrbc_define_method(vm, mrbc_class_object, "<=>", c_object_compare);
   mrbc_define_method(vm, mrbc_class_object, "===", c_object_equal3);
-  //  mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
+  mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
   mrbc_define_method(vm, mrbc_class_object, "new", c_object_new);
   mrbc_define_method(vm, mrbc_class_object, "dup", c_object_dup);
   mrbc_define_method(vm, mrbc_class_object, "attr_reader", c_object_attr_reader);
@@ -1150,7 +1145,6 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 
   // target irep
   vm->pc_irep = v[0].proc->irep;
-  vm->pc = 0;
   vm->inst = vm->pc_irep->code;
 
   callinfo->reg_offset = v - vm->current_regs;
