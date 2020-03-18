@@ -1365,11 +1365,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     // upper env
     assert( regs[0].tt == MRBC_TT_PROC );
 
-    mrbc_callinfo *callinfo = regs[0].proc->callinfo;
-    while( --lv > 0 ) {
-      callinfo = callinfo->prev;
-    }
-
+    mrbc_callinfo *callinfo = regs[0].proc->callinfo_self;
     blk = callinfo->current_regs + callinfo->reg_offset + offset;
   }
   assert( blk->tt == MRBC_TT_PROC );
@@ -2135,8 +2131,7 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
-
-  mrbc_value recv = regs[a];
+  assert( regs[a].tt == MRBC_TT_CLASS );
 
   // prepare callinfo
   mrbc_push_callinfo(vm, 0, 0);
@@ -2145,10 +2140,9 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
   vm->pc_irep = vm->irep->reps[b];
   vm->inst = vm->pc_irep->code;
 
-  // new regs
+  // new regs and class
   vm->current_regs += a;
-
-  vm->target_class = find_class_by_object(vm, &recv);
+  vm->target_class = regs[a].cls;
 
   return 0;
 }
