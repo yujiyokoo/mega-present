@@ -118,7 +118,6 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   callinfo->reg_offset = a;
 
   // target irep
-  vm->pc = 0;
   vm->pc_irep = m->irep;
   vm->inst = m->irep->code;
 
@@ -201,7 +200,6 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
 
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
-  callinfo->pc = vm->pc;
   callinfo->inst = vm->inst;
   callinfo->reg_offset = 0;
   callinfo->mid = mid;
@@ -225,7 +223,6 @@ void mrbc_pop_callinfo( struct VM *vm )
   vm->callinfo_tail = callinfo->prev;
   vm->current_regs = callinfo->current_regs;
   vm->pc_irep = callinfo->pc_irep;
-  vm->pc = callinfo->pc;
   vm->inst = callinfo->inst;
   vm->target_class = callinfo->target_class;
 
@@ -996,7 +993,6 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0);
 
   // target irep
-  vm->pc = 0;
   vm->pc_irep = block;
   vm->inst = block->code;
 
@@ -2147,7 +2143,6 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0);
 
   // target irep
-  vm->pc = 0;
   vm->pc_irep = vm->irep->reps[b];
   vm->inst = vm->pc_irep->code;
 

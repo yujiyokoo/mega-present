@@ -53,7 +53,6 @@ typedef struct CALLINFO {
   struct CALLINFO *prev;
   mrbc_sym mid;
   mrbc_irep *pc_irep;
-  uint16_t  pc;
   uint8_t *inst;
   mrbc_value *current_regs;
   mrbc_class *target_class;
