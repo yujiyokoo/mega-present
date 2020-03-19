@@ -285,9 +285,6 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
   proc->ref_count = 1;
   proc->c_func = 1;
   proc->sym_id = str_to_symid(name);
-#ifdef MRBC_DEBUG
-  proc->names = name;	// for debug; delete soon.
-#endif
   proc->next = cls->procs;
   proc->callinfo = 0;
   proc->func = cfunc;
@@ -568,39 +565,6 @@ int mrbc_puts_sub(const mrbc_value *v)
 //----------------------------------------------------------------
 // Object class
 //----------------------------------------------------------------
-
-//================================================================
-/*! (method) alias_method
-
-  note: using the 'alias' keyword, this method will be called.
-*/
-static void c_object_alias_method(struct VM *vm, mrbc_value v[], int argc)
-{
-  // find method only in this class.
-  mrb_proc *proc = v[0].cls->procs;
-  while( proc != NULL ) {
-    if( proc->sym_id == v[2].i ) break;
-    proc = proc->next;
-  }
-  if( !proc ) {
-    console_printf("NameError: undefined_method '%s'\n", symid_to_str(v[2].i));
-    return;
-  }
-
-  // copy the Proc object
-  mrbc_proc *proc_alias = mrbc_alloc(0, sizeof(mrbc_proc));
-  if( !proc_alias ) return;		// ENOMEM
-  memcpy( proc_alias, proc, sizeof(mrbc_proc) );
-
-  // register procs link.
-  proc_alias->sym_id = v[1].i;
-#if defined(MRBC_DEBUG)
-  proc_alias->names = symid_to_str(v[1].i);
-#endif
-  proc_alias->next = v[0].cls->procs;
-  v[0].cls->procs = proc_alias;
-}
-
 
 //================================================================
 /*! (method) p
@@ -1033,7 +997,6 @@ static void mrbc_init_class_object(struct VM *vm)
 
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "initialize", c_ineffect);
-  //  mrbc_define_method(vm, mrbc_class_object, "alias_method", c_object_alias_method);
   mrbc_define_method(vm, mrbc_class_object, "p", c_object_p);
   mrbc_define_method(vm, mrbc_class_object, "print", c_object_print);
   mrbc_define_method(vm, mrbc_class_object, "puts", c_object_puts);
@@ -1091,9 +1054,6 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep )
   val.proc->ref_count = 1;
   val.proc->c_func = 0;
   val.proc->sym_id = -1;
-#ifdef MRBC_DEBUG
-  val.proc->names = NULL;	// for debug; delete soon
-#endif
   val.proc->next = 0;
   val.proc->callinfo = vm->callinfo_tail;
 

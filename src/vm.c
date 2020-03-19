@@ -2177,9 +2177,6 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_set_vm_id(proc, 0);
   proc->sym_id = sym_id;
-#ifdef MRBC_DEBUG
-  proc->names = sym_name;
-#endif
 
   // add to class
   proc->next = cls->procs;
@@ -2246,9 +2243,6 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 
   // register procs link.
   proc_alias->sym_id = sym_id_new;
-#if defined(MRBC_DEBUG)
-  proc_alias->names = sym_name_new;
-#endif
   proc_alias->next = vm->target_class->procs;
   vm->target_class->procs = proc_alias;
 
