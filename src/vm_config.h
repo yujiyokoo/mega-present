@@ -84,7 +84,7 @@
 // #define MRBC_REQUIRE_32BIT_ALIGNMENT
 
 // Debug code.
-#if !defined(MRBC_DEBUG)
+#if !defined(NDEBUG)
 #define MRBC_DEBUG
 #endif
 
