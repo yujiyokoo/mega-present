@@ -705,7 +705,10 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs )
 
   int i;
   for( i = 0; i < c; i++ ) {
-    callinfo = callinfo->prev;
+    assert( callinfo );
+    mrbc_value *regs0 = callinfo->current_regs + callinfo->reg_offset;
+    assert( regs0->tt == MRBC_TT_PROC );
+    callinfo = regs0->proc->callinfo;
   }
 
   mrbc_value *p_val;
@@ -741,7 +744,10 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
 
   int i;
   for( i = 0; i < c; i++ ) {
-    callinfo = callinfo->prev;
+    assert( callinfo );
+    mrbc_value *regs0 = callinfo->current_regs + callinfo->reg_offset;
+    assert( regs0->tt == MRBC_TT_PROC );
+    callinfo = regs0->proc->callinfo;
   }
 
   mrbc_value *p_val;
