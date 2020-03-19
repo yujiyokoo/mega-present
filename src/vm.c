@@ -1204,7 +1204,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     if( n < 0 ) n = 0;
     if( n > m2 ) n = m2;
     for( i += n; i < lim; i++ ) {
-	regs[i].tt = MRBC_TT_NIL;
+      regs[i].tt = MRBC_TT_NIL;
     }
   }
   if( d ) {
@@ -1212,6 +1212,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   }
   if( argc >= i ) i = argc + 1;
   regs[i] = proc;
+  vm->callinfo_tail->n_args = i;
 
   // prepare for get default arguments.
   int jmp_ofs = argc - m1 - m2;

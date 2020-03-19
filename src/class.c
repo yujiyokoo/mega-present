@@ -845,6 +845,31 @@ static void c_object_nil(struct VM *vm, mrbc_value v[], int argc)
 
 
 //================================================================
+/*! (method) block_given?
+ */
+static void c_object_block_given(struct VM *vm, mrbc_value v[], int argc)
+{
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  if( !callinfo ) goto RETURN_FALSE;
+
+  mrbc_value *regs = callinfo->current_regs + callinfo->reg_offset;
+
+  if( regs[0].tt == MRBC_TT_PROC ) {
+    callinfo = regs[0].proc->callinfo_self;
+    if( !callinfo ) goto RETURN_FALSE;
+
+    regs = callinfo->current_regs + callinfo->reg_offset;
+  }
+
+  SET_BOOL_RETURN( regs[callinfo->n_args].tt == MRBC_TT_PROC );
+  return;
+
+ RETURN_FALSE:
+  SET_FALSE_RETURN();
+}
+
+
+//================================================================
 /*! (method) raise
  *    1. raise
  *    2. raise "string"
@@ -1012,8 +1037,8 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "is_a?", c_object_kind_of);
   mrbc_define_method(vm, mrbc_class_object, "kind_of?", c_object_kind_of);
   mrbc_define_method(vm, mrbc_class_object, "nil?", c_object_nil);
+  mrbc_define_method(vm, mrbc_class_object, "block_given?", c_object_block_given);
   mrbc_define_method(vm, mrbc_class_object, "raise", c_object_raise);
-
 
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_object, "inspect", c_object_to_s);
