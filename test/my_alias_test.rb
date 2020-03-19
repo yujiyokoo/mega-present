@@ -14,7 +14,6 @@ class MyAliasTest < MrubycTestCase
   description 'override original method'
   def method2_case
     assert_equal "MyClass#method2_alternate", @obj.method2
-    pend
     assert_equal "MyClass#method2", @obj.method2_alias
   end
 

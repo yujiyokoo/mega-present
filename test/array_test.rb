@@ -214,7 +214,6 @@ class ArrayTest < MrubycTestCase
 
   description "each"
   def each_case
-    pend
 
     a = [1,2,3]
     $cnt = 0
