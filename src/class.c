@@ -285,9 +285,6 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
   proc->ref_count = 1;
   proc->c_func = 1;
   proc->sym_id = str_to_symid(name);
-#ifdef MRBC_DEBUG
-  proc->names = name;	// for debug; delete soon.
-#endif
   proc->next = cls->procs;
   proc->callinfo = 0;
   proc->func = cfunc;
@@ -317,14 +314,12 @@ void mrbc_funcall(struct VM *vm, const char *name, mrbc_value *v, int argc)
   mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
-  callinfo->pc = vm->pc;
   callinfo->n_args = 0;
   callinfo->target_class = vm->target_class;
   callinfo->prev = vm->callinfo_tail;
   vm->callinfo_tail = callinfo;
 
   // target irep
-  vm->pc = 0;
   vm->pc_irep = m->irep;
 
   // new regs
@@ -572,39 +567,6 @@ int mrbc_puts_sub(const mrbc_value *v)
 //----------------------------------------------------------------
 
 //================================================================
-/*! (method) alias_method
-
-  note: using the 'alias' keyword, this method will be called.
-*/
-static void c_object_alias_method(struct VM *vm, mrbc_value v[], int argc)
-{
-  // find method only in this class.
-  mrb_proc *proc = v[0].cls->procs;
-  while( proc != NULL ) {
-    if( proc->sym_id == v[2].i ) break;
-    proc = proc->next;
-  }
-  if( !proc ) {
-    console_printf("NameError: undefined_method '%s'\n", symid_to_str(v[2].i));
-    return;
-  }
-
-  // copy the Proc object
-  mrbc_proc *proc_alias = mrbc_alloc(0, sizeof(mrbc_proc));
-  if( !proc_alias ) return;		// ENOMEM
-  memcpy( proc_alias, proc, sizeof(mrbc_proc) );
-
-  // register procs link.
-  proc_alias->sym_id = v[1].i;
-#if defined(MRBC_DEBUG)
-  proc_alias->names = symid_to_str(v[1].i);
-#endif
-  proc_alias->next = v[0].cls->procs;
-  v[0].cls->procs = proc_alias;
-}
-
-
-//================================================================
 /*! (method) p
  */
 static void c_object_p(struct VM *vm, mrbc_value v[], int argc)
@@ -743,11 +705,9 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   mrbc_dup(&new_obj);
 
   mrbc_irep *org_pc_irep = vm->pc_irep;
-  uint16_t  org_pc = vm->pc;
   mrbc_value* org_regs = vm->current_regs;
   uint8_t *org_inst = vm->inst;
 
-  vm->pc = 0;
   vm->pc_irep = &irep;
   vm->current_regs = v;
   vm->inst = irep.code;
@@ -755,7 +715,6 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   while( mrbc_vm_run(vm) == 0 )
     ;
 
-  vm->pc = org_pc;
   vm->pc_irep = org_pc_irep;
   vm->inst = org_inst;
   vm->current_regs = org_regs;
@@ -883,6 +842,31 @@ static void c_object_nil(struct VM *vm, mrbc_value v[], int argc)
   SET_BOOL_RETURN( v[0].tt == MRBC_TT_NIL );
 }
 
+
+
+//================================================================
+/*! (method) block_given?
+ */
+static void c_object_block_given(struct VM *vm, mrbc_value v[], int argc)
+{
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  if( !callinfo ) goto RETURN_FALSE;
+
+  mrbc_value *regs = callinfo->current_regs + callinfo->reg_offset;
+
+  if( regs[0].tt == MRBC_TT_PROC ) {
+    callinfo = regs[0].proc->callinfo_self;
+    if( !callinfo ) goto RETURN_FALSE;
+
+    regs = callinfo->current_regs + callinfo->reg_offset;
+  }
+
+  SET_BOOL_RETURN( regs[callinfo->n_args].tt == MRBC_TT_PROC );
+  return;
+
+ RETURN_FALSE:
+  SET_FALSE_RETURN();
+}
 
 
 //================================================================
@@ -1062,7 +1046,6 @@ static void mrbc_init_class_object(struct VM *vm)
 
   // Methods
   mrbc_define_method(vm, mrbc_class_object, "initialize", c_ineffect);
-  mrbc_define_method(vm, mrbc_class_object, "alias_method", c_object_alias_method);
   mrbc_define_method(vm, mrbc_class_object, "p", c_object_p);
   mrbc_define_method(vm, mrbc_class_object, "print", c_object_print);
   mrbc_define_method(vm, mrbc_class_object, "puts", c_object_puts);
@@ -1070,7 +1053,7 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "!=", c_object_neq);
   mrbc_define_method(vm, mrbc_class_object, "<=>", c_object_compare);
   mrbc_define_method(vm, mrbc_class_object, "===", c_object_equal3);
-  //  mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
+  mrbc_define_method(vm, mrbc_class_object, "class", c_object_class);
   mrbc_define_method(vm, mrbc_class_object, "new", c_object_new);
   mrbc_define_method(vm, mrbc_class_object, "dup", c_object_dup);
   mrbc_define_method(vm, mrbc_class_object, "attr_reader", c_object_attr_reader);
@@ -1078,8 +1061,8 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_object, "is_a?", c_object_kind_of);
   mrbc_define_method(vm, mrbc_class_object, "kind_of?", c_object_kind_of);
   mrbc_define_method(vm, mrbc_class_object, "nil?", c_object_nil);
+  mrbc_define_method(vm, mrbc_class_object, "block_given?", c_object_block_given);
   mrbc_define_method(vm, mrbc_class_object, "raise", c_object_raise);
-
 
 #if MRBC_USE_STRING
   mrbc_define_method(vm, mrbc_class_object, "inspect", c_object_to_s);
@@ -1120,9 +1103,6 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep )
   val.proc->ref_count = 1;
   val.proc->c_func = 0;
   val.proc->sym_id = -1;
-#ifdef MRBC_DEBUG
-  val.proc->names = NULL;	// for debug; delete soon
-#endif
   val.proc->next = 0;
   val.proc->callinfo = vm->callinfo_tail;
 
@@ -1174,7 +1154,6 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 
   // target irep
   vm->pc_irep = v[0].proc->irep;
-  vm->pc = 0;
   vm->inst = vm->pc_irep->code;
 
   callinfo->reg_offset = v - vm->current_regs;

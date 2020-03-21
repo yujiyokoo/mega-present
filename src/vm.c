@@ -118,7 +118,6 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   callinfo->reg_offset = a;
 
   // target irep
-  vm->pc = 0;
   vm->pc_irep = m->irep;
   vm->inst = m->irep->code;
 
@@ -201,7 +200,6 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
 
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
-  callinfo->pc = vm->pc;
   callinfo->inst = vm->inst;
   callinfo->reg_offset = 0;
   callinfo->mid = mid;
@@ -225,7 +223,6 @@ void mrbc_pop_callinfo( struct VM *vm )
   vm->callinfo_tail = callinfo->prev;
   vm->current_regs = callinfo->current_regs;
   vm->pc_irep = callinfo->pc_irep;
-  vm->pc = callinfo->pc;
   vm->inst = callinfo->inst;
   vm->target_class = callinfo->target_class;
 
@@ -708,7 +705,10 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs )
 
   int i;
   for( i = 0; i < c; i++ ) {
-    callinfo = callinfo->prev;
+    assert( callinfo );
+    mrbc_value *regs0 = callinfo->current_regs + callinfo->reg_offset;
+    assert( regs0->tt == MRBC_TT_PROC );
+    callinfo = regs0->proc->callinfo;
   }
 
   mrbc_value *p_val;
@@ -744,7 +744,10 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
 
   int i;
   for( i = 0; i < c; i++ ) {
-    callinfo = callinfo->prev;
+    assert( callinfo );
+    mrbc_value *regs0 = callinfo->current_regs + callinfo->reg_offset;
+    assert( regs0->tt == MRBC_TT_PROC );
+    callinfo = regs0->proc->callinfo;
   }
 
   mrbc_value *p_val;
@@ -996,7 +999,6 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0);
 
   // target irep
-  vm->pc = 0;
   vm->pc_irep = block;
   vm->inst = block->code;
 
@@ -1132,7 +1134,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   int argc = vm->callinfo_tail->n_args;
 
   if( argc < m1 + m2 && regs[0].tt != MRBC_TT_PROC ) {
-    console_printf("ArgumentError\n");
+    console_printf("ArgumentError: wrong number of arguments.\n");
     return 1;
   }
 
@@ -1205,7 +1207,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     if( n < 0 ) n = 0;
     if( n > m2 ) n = m2;
     for( i += n; i < lim; i++ ) {
-	regs[i].tt = MRBC_TT_NIL;
+      regs[i].tt = MRBC_TT_NIL;
     }
   }
   if( d ) {
@@ -1213,11 +1215,18 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   }
   if( argc >= i ) i = argc + 1;
   regs[i] = proc;
+  vm->callinfo_tail->n_args = i;
 
   // prepare for get default arguments.
   int jmp_ofs = argc - m1 - m2;
   if( jmp_ofs > 0 ) {
-    if( jmp_ofs > o ) jmp_ofs = o;
+    if( jmp_ofs > o ) {
+      if( !r && regs[0].tt != MRBC_TT_PROC ) {
+	console_printf("ArgumentError: wrong number of arguments.\n");
+	return 1;
+      }
+      jmp_ofs = o;
+    }
     vm->inst += jmp_ofs * 3;	// 3 = bytecode size of OP_JMP
   }
 
@@ -1372,11 +1381,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     // upper env
     assert( regs[0].tt == MRBC_TT_PROC );
 
-    mrbc_callinfo *callinfo = regs[0].proc->callinfo;
-    while( --lv > 0 ) {
-      callinfo = callinfo->prev;
-    }
-
+    mrbc_callinfo *callinfo = regs[0].proc->callinfo_self;
     blk = callinfo->current_regs + callinfo->reg_offset + offset;
   }
   assert( blk->tt == MRBC_TT_PROC );
@@ -2142,21 +2147,18 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
-
-  mrbc_value recv = regs[a];
+  assert( regs[a].tt == MRBC_TT_CLASS );
 
   // prepare callinfo
   mrbc_push_callinfo(vm, 0, 0);
 
   // target irep
-  vm->pc = 0;
   vm->pc_irep = vm->irep->reps[b];
   vm->inst = vm->pc_irep->code;
 
-  // new regs
+  // new regs and class
   vm->current_regs += a;
-
-  vm->target_class = find_class_by_object(vm, &recv);
+  vm->target_class = regs[a].cls;
 
   return 0;
 }
@@ -2185,9 +2187,6 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_set_vm_id(proc, 0);
   proc->sym_id = sym_id;
-#ifdef MRBC_DEBUG
-  proc->names = sym_name;
-#endif
 
   // add to class
   proc->next = cls->procs;
@@ -2254,9 +2253,6 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 
   // register procs link.
   proc_alias->sym_id = sym_id_new;
-#if defined(MRBC_DEBUG)
-  proc_alias->names = sym_name_new;
-#endif
   proc_alias->next = vm->target_class->procs;
   vm->target_class->procs = proc_alias;
 
