@@ -1277,20 +1277,26 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  assert( regs[0].tt == MRBC_TT_PROC );
-
   int nregs = vm->pc_irep->nregs;
-  mrbc_callinfo *callinfo = vm->callinfo_tail;
-  mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo_self;
+  mrbc_value *p_reg;
 
-  // trace back to caller
-  do {
-    mrbc_pop_callinfo(vm);
-    callinfo = vm->callinfo_tail;
-  } while( callinfo != caller_callinfo );
+  if( regs[0].tt == MRBC_TT_PROC ) {
+    mrbc_callinfo *callinfo = vm->callinfo_tail;
+    mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo_self;
+
+    // trace back to caller
+    do {
+      mrbc_pop_callinfo(vm);
+      callinfo = vm->callinfo_tail;
+    } while( callinfo != caller_callinfo );
+
+    p_reg = callinfo->current_regs + callinfo->reg_offset;
+
+  } else {
+    p_reg = &regs[0];
+  }
 
   // set return value
-  mrbc_value *p_reg = callinfo->current_regs + callinfo->reg_offset;
   mrbc_release( p_reg );
   *p_reg = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
