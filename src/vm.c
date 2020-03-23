@@ -1132,7 +1132,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 
   if( argc < m1 + m2 && regs[0].tt != MRBC_TT_PROC ) {
     console_printf("ArgumentError: wrong number of arguments.\n");
-    return 1;
+    return 1;		// raise?
   }
 
   // save proc (or nil) object.
@@ -1220,7 +1220,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     if( jmp_ofs > o ) {
       if( !r && regs[0].tt != MRBC_TT_PROC ) {
 	console_printf("ArgumentError: wrong number of arguments.\n");
-	return 1;
+	return 1;	// raise?
       }
       jmp_ofs = o;
     }
@@ -1381,7 +1381,10 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     mrbc_callinfo *callinfo = regs[0].proc->callinfo_self;
     blk = callinfo->current_regs + callinfo->reg_offset + offset;
   }
-  assert( blk->tt == MRBC_TT_PROC );
+  if( blk->tt != MRBC_TT_PROC ) {
+    console_printf("no block given (yield) (LocalJumpError)\n");
+    return 1;	// raise?
+  }
 
   mrbc_dup(blk);
   regs[a] = *blk;
