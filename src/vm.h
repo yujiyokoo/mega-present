@@ -73,7 +73,6 @@ typedef struct VM {
   const uint8_t *mrb;   // bytecode
 
   mrbc_irep *pc_irep;   // PC
-  uint16_t pc;          // PC, soon remove
   uint8_t *inst;        // instruction
   uint8_t ext_flag;     // 1:EXT1, 2:EXT2, 3:EXT3, 0:otherwize
 
