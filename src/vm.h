@@ -50,14 +50,14 @@ typedef struct IREP mrb_irep;
   Call information
 */
 typedef struct CALLINFO {
-  struct CALLINFO *prev;
-  mrbc_sym mid;
-  mrbc_irep *pc_irep;
-  uint8_t *inst;
-  mrbc_value *current_regs;
-  mrbc_class *target_class;
-  uint8_t reg_offset;
-  uint8_t n_args;     // num of args
+  struct CALLINFO *prev;	//!< previous linked list.
+  mrbc_irep *pc_irep;		//!< copy from mrbc_vm.
+  uint8_t *inst;		//!< copy from mrbc_vm.
+  mrbc_value *current_regs;	//!< copy from mrbc_vm.
+  mrbc_class *target_class;	//!< copy from mrbc_vm.
+  mrbc_sym method_id;		//!< called method ID.
+  uint8_t reg_offset;		//!< register offset after call.
+  uint8_t n_args;		//!< # of arguments.
 } mrbc_callinfo;
 typedef struct CALLINFO mrb_callinfo;
 
@@ -76,7 +76,6 @@ typedef struct VM {
   uint8_t *inst;        // instruction
   uint8_t ext_flag;     // 1:EXT1, 2:EXT2, 3:EXT3, 0:otherwize
 
-  //  uint16_t     reg_top;
   mrbc_value    regs[MAX_REGS_SIZE];
   mrbc_value   *current_regs;
   mrbc_callinfo *callinfo_tail;

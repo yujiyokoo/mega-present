@@ -193,7 +193,7 @@ void mrbc_irep_free(mrbc_irep *irep)
 //================================================================
 /*! Push current status to callinfo stack
 */
-mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
+mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int n_args )
 {
   mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
   if( !callinfo ) return callinfo;
@@ -202,7 +202,7 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym mid, int n_args )
   callinfo->pc_irep = vm->pc_irep;
   callinfo->inst = vm->inst;
   callinfo->reg_offset = 0;
-  callinfo->mid = mid;
+  callinfo->method_id = method_id;
   callinfo->n_args = n_args;
   callinfo->target_class = vm->target_class;
   callinfo->prev = vm->callinfo_tail;
@@ -1045,14 +1045,14 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_callinfo *callinfo = vm->callinfo_tail;
 
-  int id = callinfo->mid;
+  int id = callinfo->method_id;
   const char *sym_name = symid_to_str(id);
 
   mrbc_dup( &regs[0] );
   mrbc_release( &regs[a] );
   regs[a] = regs[0];
 
-  // fing super class
+  // find super class
   mrbc_class *orig_class = regs[a].instance->cls;
   regs[a].instance->cls = regs[a].instance->cls->super;
 
@@ -2496,38 +2496,28 @@ void mrbc_vm_begin( struct VM *vm )
 {
   vm->pc_irep = vm->irep;
   vm->inst = vm->pc_irep->code;
-  vm->current_regs = vm->regs;
-  memset(vm->regs, 0, sizeof(vm->regs));
+  vm->ext_flag = 0;
 
-  // clear regs
+  memset(vm->regs, 0, sizeof(vm->regs));
   int i;
   for( i = 1; i < MAX_REGS_SIZE; i++ ) {
     vm->regs[i].tt = MRBC_TT_NIL;
   }
-
   // set self to reg[0]
-  // create instance of Object
-  mrbc_value v;
-  v.tt = MRBC_TT_OBJECT;
-  v.instance = (mrbc_instance *)mrbc_alloc(vm, sizeof(mrbc_instance));
-  if( v.instance == NULL ) return;	// ENOMEM
+  vm->regs[0] = mrbc_instance_new(vm, mrbc_class_object, 0);
+  if( vm->regs[0].instance == NULL ) return;	// ENOMEM
 
-  if( mrbc_kv_init_handle(vm, &v.instance->ivar, 0) != 0 ) {
-    mrbc_raw_free(v.instance);
-    v.instance = NULL;
-    return;
-  }
-
-  v.instance->ref_count = 1;
-  v.instance->tt = MRBC_TT_OBJECT;	// for debug only.
-  v.instance->cls = mrbc_class_object;
-  vm->regs[0] = v;
-
-  // Empty callinfo
+  vm->current_regs = vm->regs;
   vm->callinfo_tail = NULL;
-
-  // target_class
   vm->target_class = mrbc_class_object;
+
+  vm->exc = 0;
+  vm->exception_idx = 0;
+  for( i = 0; i < MAX_EXCEPTION_COUNT; i++ ) {
+    vm->exc_callinfo[i] = 0;
+    vm->ensures[i] = 0;
+  }
+  vm->ensure_idx = 0;
 
   vm->error_code = 0;
   vm->flag_preemption = 0;
