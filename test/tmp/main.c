@@ -4,7 +4,7 @@
 #include "models.c"
 #include "test.c"
 
-#define MEMORY_SIZE (1024*64)-1
+#define MEMORY_SIZE (1024*640)-1
 static uint8_t my_memory_pool[MEMORY_SIZE];
 
 int exit_code;

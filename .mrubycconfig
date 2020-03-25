@@ -5,4 +5,4 @@ mrubyc_src_dir: src
 mrubyc_mrblib_dir: mrblib
 mruby_lib_dir: test
 mruby_version: mruby-2.0.1
-cruby_version: 2.6.3
+cruby_version: 2.7.0
