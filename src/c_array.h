@@ -62,6 +62,18 @@ static inline int mrbc_array_size(const mrbc_value *ary)
 }
 
 
+//================================================================
+/*! delete handle (do not decrement reference counter)
+*/
+static inline void mrbc_array_delete_handle(mrbc_value *ary)
+{
+  mrbc_array *h = ary->array;
+
+  mrbc_raw_free(h->data);
+  mrbc_raw_free(h);
+}
+
+
 #ifdef __cplusplus
 }
 #endif

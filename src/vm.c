@@ -1044,10 +1044,9 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_callinfo *callinfo = vm->callinfo_tail;
+  const char *sym_name = symid_to_str(callinfo->method_id);
 
-  int id = callinfo->method_id;
-  const char *sym_name = symid_to_str(id);
-
+  // set self to new regs[0]
   mrbc_dup( &regs[0] );
   mrbc_release( &regs[a] );
   regs[a] = regs[0];
@@ -1056,21 +1055,28 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   mrbc_class *orig_class = regs[a].instance->cls;
   regs[a].instance->cls = regs[a].instance->cls->super;
 
-  if( b == 127 ){
+  if( b == 127 ) {	// 127 is CALL_MAXARGS in mruby
     // expand array
     assert( regs[a+1].tt == MRBC_TT_ARRAY );
 
-    mrbc_value value = regs[a+1];
-    mrbc_dup( &value );
-    int argc = value.array->n_stored;
-    int i;
-    for( i = 0; i < argc; i++ ) {
-      mrbc_release( &regs[a+1+i] );
-      regs[a+1+i] = value.array->data[i];
+    mrbc_value argary = regs[a+1];
+    regs[a+1].tt = MRBC_TT_EMPTY;
+    mrbc_value proc = regs[a+2];
+    regs[a+2].tt = MRBC_TT_EMPTY;
+
+    int argc = mrbc_array_size(&argary);
+    int i, j;
+    for( i = 0, j = a+1; i < argc; i++, j++ ) {
+      mrbc_release( &regs[j] );
+      regs[j] = argary.array->data[i];
     }
+    mrbc_array_delete_handle(&argary);
+
+    regs[j] = proc;
     b = argc;
   }
-  send_by_name(vm, sym_name, regs, a, b, 0);
+
+  send_by_name(vm, sym_name, regs, a, b, (regs[b+1].tt == MRBC_TT_PROC) );
   regs[a].instance->cls = orig_class;
 
   return 0;
@@ -1090,20 +1096,31 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BS();
 
-  int m1 = (b>>11)&0x3f;
-  int r = (b >> 10) & 0x01;
+  int m1 = (b >> 11) & 0x3f;
+  int r  = (b >> 10) & 0x01;
+  int m2 = (b >>  5) & 0x1f;
+  int d  = (b >>  4) & 0x01;
 
-  if( r == 0 ){
-    int array_size = m1;
-    mrbc_value value = mrbc_array_new(vm, array_size);
-    memcpy( value.array->data, &regs[1], sizeof(mrbc_value) * array_size );
-    memset( &regs[1], 0, sizeof(mrbc_value) * array_size );
-    value.array->n_stored = array_size;
-
-    mrbc_release(&regs[a]);
-    regs[a] = value;
-
+  if( r ) {
+    console_printf("Not supprt\n");
+    return 1;
   }
+
+  int array_size = m1 + m2 + d;
+  mrbc_value val = mrbc_array_new( vm, array_size );
+  if( !val.array ) return 1;	// ENOMEM raise?
+
+  int i;
+  for( i = 0; i < array_size; i++ ) {
+    mrbc_array_push( &val, &regs[i+1] );
+    mrbc_dup( &regs[i+1] );
+  }
+
+  mrbc_release(&regs[a]);
+  regs[a] = val;
+  mrbc_release(&regs[a+1]);
+  regs[a+1] = regs[m1+m2+1];
+  mrbc_dup(&regs[a+1]);
 
   return 0;
 }

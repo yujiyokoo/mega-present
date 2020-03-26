@@ -106,8 +106,7 @@ void mrbc_array_delete(mrbc_value *ary)
     mrbc_dec_ref_counter(p1++);
   }
 
-  mrbc_raw_free(h->data);
-  mrbc_raw_free(h);
+  mrbc_array_delete_handle(ary);
 }
 
 

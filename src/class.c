@@ -1021,7 +1021,6 @@ static void mrbc_init_class_object(struct VM *vm)
   mrbc_class_object->super = 0;		// for in case of repeatedly called.
 
   // Methods
-  mrbc_define_method(vm, mrbc_class_object, "initialize", c_ineffect);
   mrbc_define_method(vm, mrbc_class_object, "p", c_object_p);
   mrbc_define_method(vm, mrbc_class_object, "print", c_object_print);
   mrbc_define_method(vm, mrbc_class_object, "puts", c_object_puts);

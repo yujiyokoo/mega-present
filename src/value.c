@@ -165,6 +165,7 @@ void mrbc_dec_ref_counter(mrbc_value *v)
   case MRBC_TT_RANGE:
   case MRBC_TT_HASH:
     assert( v->instance->ref_count != 0 );
+    assert( v->instance->ref_count != 0xffff );	// check broken data.
     v->instance->ref_count--;
     break;
 
