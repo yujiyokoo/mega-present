@@ -2159,7 +2159,7 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0);
 
   // target irep
-  vm->pc_irep = vm->irep->reps[b];
+  vm->pc_irep = vm->pc_irep->reps[b];
   vm->inst = vm->pc_irep->code;
 
   // new regs and class
