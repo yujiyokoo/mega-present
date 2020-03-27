@@ -230,6 +230,25 @@ void mrbc_pop_callinfo( struct VM *vm )
 }
 
 
+//================================================================
+/*! get the self object
+*/
+static mrbc_value * mrbc_get_self( struct VM *vm, mrbc_value *regs )
+{
+  mrbc_value *self = &regs[0];
+  if( self->tt == MRBC_TT_PROC ) {
+    mrbc_callinfo *callinfo = regs[0].proc->callinfo_self;
+    if( callinfo ) {
+      self = callinfo->current_regs + callinfo->reg_offset;
+    } else {
+      self = &vm->regs[0];
+    }
+    assert( self->tt != MRBC_TT_PROC );
+  }
+
+  return self;
+}
+
 
 //================================================================
 /*! OP_NOP
@@ -410,20 +429,10 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_release(&regs[a]);
-
-  mrbc_value *self = &regs[0];
-  if( self->tt == MRBC_TT_PROC ) {
-    mrbc_callinfo *callinfo = regs[0].proc->callinfo_self;
-    if( callinfo ) {
-      self = callinfo->current_regs + callinfo->reg_offset;
-    } else {
-      self = &vm->regs[0];
-    }
-    assert( self->tt != MRBC_TT_PROC );
-  }
+  mrbc_value *self = mrbc_get_self( vm, regs );
 
   mrbc_dup(self);
+  mrbc_release(&regs[a]);
   regs[a] = *self;
 
   return 0;
@@ -536,8 +545,8 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
-
-  mrbc_value val = mrbc_instance_getiv(&regs[0], sym_id);
+  mrbc_value *self = mrbc_get_self( vm, regs );
+  mrbc_value val = mrbc_instance_getiv(self, sym_id);
 
   mrbc_release(&regs[a]);
   regs[a] = val;
@@ -561,8 +570,8 @@ static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
-
-  mrbc_instance_setiv(&regs[0], sym_id, &regs[a]);
+  mrbc_value *self = mrbc_get_self( vm, regs );
+  mrbc_instance_setiv(self, sym_id, &regs[a]);
 
   return 0;
 }
