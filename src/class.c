@@ -906,18 +906,30 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     // in exception
   }
 
+  int flag_ensure = 0;
+  // push rescue
   int idx = --vm->exception_idx;
-  if( idx < 0 ){
-    // raise in top level
-    return;
-  }
-
   uint16_t line = vm->exceptions[idx];
   mrbc_callinfo *callinfo = vm->exc_callinfo[idx];
   while( vm->callinfo_tail != callinfo ){
     mrbc_pop_callinfo(vm);
+    flag_ensure = 1;
   }
   vm->inst = vm->pc_irep->code + line;
+  if( flag_ensure ){
+    mrb_irep *block = vm->ensures[--vm->ensure_idx];
+    mrbc_push_callinfo(vm, 0, 0);
+    // same as OP_EPOP
+    vm->pc_irep = block;
+    vm->inst = block->code;
+    return;
+  }
+
+  //  int idx = --vm->exception_idx;
+  //if( idx < 0 ){
+    // raise in top level
+  //  return;
+  // }
 }
 
 
