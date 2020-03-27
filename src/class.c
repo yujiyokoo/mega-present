@@ -924,12 +924,6 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     vm->inst = block->code;
     return;
   }
-
-  //  int idx = --vm->exception_idx;
-  //if( idx < 0 ){
-    // raise in top level
-  //  return;
-  // }
 }
 
 
