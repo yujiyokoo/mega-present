@@ -1,5 +1,10 @@
 language: c
 
+arch:
+  - amd64
+  - arm64
+  - ppc64le
+
 cache:
   directories:
     - /home/travis/.rbenv/
