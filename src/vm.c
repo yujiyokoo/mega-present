@@ -974,7 +974,25 @@ static inline int op_epush( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  vm->ensures[vm->ensure_idx++] = vm->pc_irep->reps[a];
+  // similar to mrbc_proc_new function
+  mrbc_proc *proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
+  if( !proc ) return -1;	// ENOMEM
+
+  proc->ref_count = 1;
+  proc->c_func = 0;
+  proc->sym_id = 0;   // lambda
+  proc->callinfo = vm->callinfo_tail;
+
+  if(vm->current_regs[0].tt == MRBC_TT_PROC) {
+    proc->callinfo_self = vm->current_regs[0].proc->callinfo_self;
+  } else {
+    proc->callinfo_self = vm->callinfo_tail;
+  }
+
+  proc->irep = vm->pc_irep->reps[a];
+
+  proc->next = vm->ensure_tail;
+  vm->ensure_tail = proc;
 
   return 0;
 }
@@ -993,14 +1011,15 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrb_irep *block = vm->ensures[--vm->ensure_idx];
+  mrb_proc *proc = vm->ensure_tail;
+  vm->ensure_tail = proc->next;
 
   // same as OP_EXEC
   mrbc_push_callinfo(vm, 0, 0);
 
   // target irep
-  vm->pc_irep = block;
-  vm->inst = block->code;
+  vm->pc_irep = proc->irep;
+  vm->inst = proc->irep->code;
 
   // new regs
   //  vm->current_regs += a;
@@ -2535,9 +2554,8 @@ void mrbc_vm_begin( struct VM *vm )
   vm->exception_idx = 0;
   for( i = 0; i < MAX_EXCEPTION_COUNT; i++ ) {
     vm->exc_callinfo[i] = 0;
-    vm->ensures[i] = 0;
   }
-  vm->ensure_idx = 0;
+  vm->ensure_tail = 0;
 
   vm->error_code = 0;
   vm->flag_preemption = 0;

@@ -906,6 +906,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     // in exception
   }
 
+  #if 0
   // execute ensure
   int flag_ensure = 0;
   int idx = --vm->exception_idx;
@@ -918,7 +919,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     }
     vm->inst = vm->pc_irep->code + line;
     if( flag_ensure ){
-      mrb_irep *block = vm->ensures[--vm->ensure_idx];
+      //      mrb_irep *block = vm->ensures[--vm->ensure_idx];
       mrbc_push_callinfo(vm, 0, 0);
       // same as OP_EPOP
       vm->pc_irep = block;
@@ -933,6 +934,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
       vm->inst = block->code;
     }
   }
+  #endif
 }
 
 

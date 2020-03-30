@@ -91,8 +91,7 @@ typedef struct VM {
   int16_t exception_idx;
   int16_t exceptions[MAX_EXCEPTION_COUNT];       // entry points to "rescue"
   mrbc_callinfo *exc_callinfo[MAX_EXCEPTION_COUNT];  // rescue callinfo
-  int16_t ensure_idx;
-  mrbc_irep *ensures[MAX_EXCEPTION_COUNT];   // enrty point to "ensure"
+  mrbc_proc *ensure_tail;     // ensure proc, linked list
 
   int32_t error_code;
 
