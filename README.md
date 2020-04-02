@@ -22,6 +22,8 @@ mruby/c is an another implementation of mruby.
 
 [How to compile?](doc/compile.md)
 
+[How to run tests?](doc/test.md)
+
 
 ## Developer team
 
