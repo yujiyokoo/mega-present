@@ -7,8 +7,8 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
-MRUBY_VERSION = $(shell grep mruby_version .mrubycconfig | sed 's/mruby_version: *//')
-CRUBY_VERSION = $(shell grep cruby_version .mrubycconfig | sed 's/cruby_version: *//')
+MRUBY_VERSION = `grep mruby_version .mrubycconfig | sed 's/mruby_version: *//'`
+CRUBY_VERSION = `grep cruby_version .mrubycconfig | sed 's/cruby_version: *//'`
 
 all: mrubyc_lib mrubyc_bin
 
