@@ -103,6 +103,7 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   if( m->c_func ) {
     m->func(vm, regs + a, c);
     if( m->func == c_proc_call ) return 0;
+    if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
 
     int release_reg = a+1;
     while( release_reg <= bidx ) {
@@ -860,9 +861,18 @@ static inline int op_onerr( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
-  int idx = vm->exception_idx++;
-  vm->exceptions[idx] = a;
-  vm->exc_callinfo[idx] = vm->callinfo_tail;
+  mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
+
+  callinfo->current_regs = vm->current_regs;
+  callinfo->pc_irep = vm->pc_irep;
+  callinfo->inst = vm->pc_irep->code + a;
+  callinfo->reg_offset = 0;
+  callinfo->method_id = 0x7fff;  // rescue
+  callinfo->n_args = 0;
+  callinfo->target_class = vm->target_class;
+  callinfo->prev = vm->exception_tail;
+  vm->exception_tail = callinfo;
+
   return 0;
 }
 
@@ -882,7 +892,11 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_release( &regs[a] );
   regs[a].tt = MRBC_TT_CLASS;
-  regs[a].cls = vm->exc;
+  if( vm->exc != NULL ){
+    regs[a].cls = vm->exc;
+  } else {
+    regs[a].cls = vm->exc_pending;
+  }
 
   return 0;
 }
@@ -934,7 +948,7 @@ static inline int op_poperr( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  vm->exception_idx -= a;
+  //  vm->rescue_idx -= a;
 
   return 0;
 }
@@ -954,8 +968,16 @@ static inline int op_raise( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   vm->exc = regs[a].cls;
-  uint16_t line = vm->exceptions[--vm->exception_idx];
-  vm->inst = vm->pc_irep->code + line;
+
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  if( callinfo != NULL ){
+    vm->callinfo_tail = callinfo->prev;
+    vm->pc_irep = callinfo->pc_irep;
+    vm->inst = callinfo->inst;
+    mrbc_free(vm, callinfo);
+  }  else {
+    vm->exc = vm->exc_pending;
+  }
 
   return 0;
 }
@@ -974,25 +996,17 @@ static inline int op_epush( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  // similar to mrbc_proc_new function
-  mrbc_proc *proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
-  if( !proc ) return -1;	// ENOMEM
+  mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
 
-  proc->ref_count = 1;
-  proc->c_func = 0;
-  proc->sym_id = 0;   // lambda
-  proc->callinfo = vm->callinfo_tail;
-
-  if(vm->current_regs[0].tt == MRBC_TT_PROC) {
-    proc->callinfo_self = vm->current_regs[0].proc->callinfo_self;
-  } else {
-    proc->callinfo_self = vm->callinfo_tail;
-  }
-
-  proc->irep = vm->pc_irep->reps[a];
-
-  proc->next = vm->ensure_tail;
-  vm->ensure_tail = proc;
+  callinfo->current_regs = vm->current_regs;
+  callinfo->pc_irep = vm->pc_irep->reps[a];
+  callinfo->inst = vm->pc_irep->reps[a]->code;
+  callinfo->reg_offset = 0;
+  callinfo->method_id = 0x7ffe;   // ensure
+  callinfo->n_args = 0;
+  callinfo->target_class = vm->target_class;
+  callinfo->prev = vm->exception_tail;
+  vm->exception_tail = callinfo;
 
   return 0;
 }
@@ -1011,23 +1025,20 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrb_proc *proc = vm->ensure_tail;
-  vm->ensure_tail = proc->next;
+  mrbc_callinfo *callinfo = vm->exception_tail;
+  if( callinfo == NULL ){
+    return 0;
+  }
+  vm->exception_tail = callinfo->prev;
 
   // same as OP_EXEC
   mrbc_push_callinfo(vm, 0, 0);
-
-  // target irep
-  vm->pc_irep = proc->irep;
-  vm->inst = proc->irep->code;
-
-  // new regs
-  //  vm->current_regs += a;
-
-  vm->target_class = find_class_by_object(vm, &regs[0]);
-
-  // clear exception
+  vm->pc_irep = callinfo->pc_irep;
+  vm->inst = vm->pc_irep->code;
+  vm->target_class = callinfo->target_class;
   vm->exc = 0;
+
+  mrbc_free(vm, callinfo);
 
   return 0;
 }
@@ -1290,7 +1301,12 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   // nregs to release
   int nregs = vm->pc_irep->nregs;
 
-  // restore irep,pc,regs
+  // restore irep,pc,reg
+  if( vm->callinfo_tail == NULL ){
+    // OP_RETURN in ensure
+    vm->exc = vm->exc_pending;
+    return 0;
+  }
   mrbc_pop_callinfo(vm);
 
   // clear stacked arguments
@@ -2551,11 +2567,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->target_class = mrbc_class_object;
 
   vm->exc = 0;
-  vm->exception_idx = 0;
-  for( i = 0; i < MAX_EXCEPTION_COUNT; i++ ) {
-    vm->exc_callinfo[i] = 0;
-  }
-  vm->ensure_tail = 0;
+  vm->exception_tail = 0;
 
   vm->error_code = 0;
   vm->flag_preemption = 0;
@@ -2650,7 +2662,7 @@ int mrbc_vm_run( struct VM *vm )
     uint8_t op = *vm->inst++;
 
     // output OP_XXX for debug
-    // if( vm->flag_debug_mode )output_opcode( op );
+    //if( vm->flag_debug_mode )output_opcode( op );
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
@@ -2766,7 +2778,7 @@ int mrbc_vm_run( struct VM *vm )
 
     // raise in top level
     // exit vm
-    if( vm->exception_idx < 0 && vm->exc ) return 0;
+    if( vm->exception_tail == NULL && vm->callinfo_tail == NULL && vm->exc ) return 0;
   } while( !vm->flag_preemption );
 
   vm->flag_preemption = 0;
