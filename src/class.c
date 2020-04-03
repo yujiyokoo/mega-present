@@ -906,35 +906,48 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     // in exception
   }
 
-  #if 0
-  // execute ensure
-  int flag_ensure = 0;
-  int idx = --vm->exception_idx;
-  if( idx >= 0 ){
-    uint16_t line = vm->exceptions[idx];
-    mrbc_callinfo *callinfo = vm->exc_callinfo[idx];
-    while( vm->callinfo_tail != callinfo ){
-      mrbc_pop_callinfo(vm);
-      flag_ensure = 1;
-    }
-    vm->inst = vm->pc_irep->code + line;
-    if( flag_ensure ){
-      //      mrb_irep *block = vm->ensures[--vm->ensure_idx];
-      mrbc_push_callinfo(vm, 0, 0);
-      // same as OP_EPOP
-      vm->pc_irep = block;
-      vm->inst = block->code;
-    }
-  } else {
-    // top level exception
-    if( vm->ensure_idx > 0 ){
-      mrb_irep *block = vm->ensures[--vm->ensure_idx];
-      mrbc_push_callinfo(vm, 0, 0);
-      vm->pc_irep = block;
-      vm->inst = block->code;
+  // do nothing if no rescue, no ensure
+  if( vm->exception_tail == NULL ){
+    return;
+  }
+
+  // NOT to return to OP_SEND
+  mrbc_pop_callinfo(vm);
+
+  mrbc_callinfo *callinfo = vm->exception_tail;
+  if( callinfo != NULL ){
+    if( callinfo->method_id == 0x7fff ){
+      // "rescue"
+      // jump to rescue
+      vm->exception_tail = callinfo->prev;
+      vm->current_regs = callinfo->current_regs;
+      vm->pc_irep = callinfo->pc_irep;
+      vm->inst = callinfo->inst;
+      vm->target_class = callinfo->target_class;
+      mrbc_free(vm, callinfo);
+      callinfo = vm->exception_tail;
+    } else {
+      // "ensure"
+      // jump to ensure
+      vm->exception_tail = callinfo->prev;
+      vm->current_regs = callinfo->current_regs;
+      vm->pc_irep = callinfo->pc_irep;
+      vm->inst = callinfo->inst;
+      vm->target_class = callinfo->target_class;
+      mrbc_free(vm, callinfo);
+      //
+      callinfo = vm->exception_tail;
+      if( callinfo != NULL ){
+	vm->exception_tail = callinfo->prev;
+	callinfo->prev = vm->callinfo_tail;
+	vm->callinfo_tail = callinfo;
+      }
     }
   }
-  #endif
+  if( callinfo == NULL ){
+    vm->exc_pending = vm->exc;
+    vm->exc = 0;
+  }
 }
 
 
