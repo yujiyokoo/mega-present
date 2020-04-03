@@ -7,6 +7,9 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
+MRUBY_VERSION = `grep mruby_version .mrubycconfig | sed 's/mruby_version: *//'`
+CRUBY_VERSION = `grep cruby_version .mrubycconfig | sed 's/cruby_version: *//'`
+
 all: mrubyc_lib mrubyc_bin
 
 
@@ -36,3 +39,18 @@ package: clean
 	cd .. ;\
 	rm -Rf pkg ;\
 	echo Done.
+
+.PHONY: test setup_test
+test:
+	RBENV_VERSION=$(CRUBY_VERSION) \
+	CFLAGS="-DMRBC_USE_MATH=1 -DMAX_SYMBOLS_COUNT=500 $(CFLAGS)" \
+	bundle exec mrubyc-test test --every=100 $(file)
+
+setup_test:
+	@echo MRUBY_VERSION=$(MRUBY_VERSION)
+	@echo CRUBY_VERSION=$(CRUBY_VERSION)
+	rbenv install --skip-existing $(MRUBY_VERSION) ;\
+	rbenv local $(MRUBY_VERSION) ;\
+	rbenv install --skip-existing $(CRUBY_VERSION) ;\
+	RBENV_VERSION=$(CRUBY_VERSION) gem install bundler ;\
+	RBENV_VERSION=$(CRUBY_VERSION) bundle install
