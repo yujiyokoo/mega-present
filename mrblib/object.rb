@@ -9,7 +9,7 @@
 
 class Object
   RUBY_VERSION = "1.9"
-  MRUBYC_VERSION = "2.0"
+  MRUBYC_VERSION = "2.1"
 
   # loop
   def loop
