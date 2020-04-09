@@ -1185,11 +1185,16 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   int o  = (a >> 13) & 0x1f;	// # of optional parameters
   int r  = (a >> 12) & 0x01;	// rest parameter is exists?
   int m2 = (a >>  7) & 0x1f;	// # of required parameters 2
-  // NOTE: Keyword parameters are not supported.
+  int k  = (a >>  2) & 0x1f;	// keyword argument
   int d  = (a >>  1) & 0x01;	// dictionary parameter is exists?
   int argc = vm->callinfo_tail->n_args;
 
-  if( argc < m1 + m2 && regs[0].tt != MRBC_TT_PROC ) {
+  if( m2 || k ) {
+    console_printf("ArgumentError: not support m2 or keyword argument.\n");
+    return 1;		// raise?
+  }
+
+  if( argc < m1 && regs[0].tt != MRBC_TT_PROC ) {
     console_printf("ArgumentError: wrong number of arguments.\n");
     return 1;		// raise?
   }
@@ -1201,7 +1206,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   // dictionary parameter if exists.
   mrbc_value dict;
   if( d ) {
-    if( (argc - m1 - m2) > 0 && regs[argc].tt == MRBC_TT_HASH ) {
+    if( (argc - m1) > 0 && regs[argc].tt == MRBC_TT_HASH ) {
       dict = regs[argc];
       regs[argc--].tt = MRBC_TT_EMPTY;
     } else {
@@ -1212,7 +1217,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   // rest parameter if exists.
   mrbc_value rest;
   if( r ) {
-    int rest_size = argc - m1 - m2 - o;
+    int rest_size = argc - m1 - o;
     if( rest_size < 0 ) rest_size = 0;
     rest = mrbc_array_new(vm, rest_size);
     if( !rest.array ) return 0;	// ENOMEM raise?
@@ -1222,25 +1227,6 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     for( i = 0; i < rest_size; i++ ) {
       mrbc_array_push( &rest, &regs[rest_reg] );
       regs[rest_reg++].tt = MRBC_TT_EMPTY;
-    }
-  }
-
-  // move mandatory2 values
-  if( m2 ) {
-    int r_s = argc - m2 + 1;
-    if( r_s < m1 + 1 ) r_s = m1 + 1;
-    int r_d = m1 + o + r + 1;
-    int i;
-    if( r_s > r_d && r ) {
-      for( i = 0; i < m2; i++ ) {
-	regs[r_d + i] = regs[r_s + i];
-	regs[r_s + i].tt = MRBC_TT_EMPTY;
-      }
-    } else if( r_s < r_d ) {
-      for( i = m2-1; i >= 0; i-- ) {
-	regs[r_d + i] = regs[r_s + i];
-	regs[r_s + i].tt = MRBC_TT_EMPTY;
-      }
     }
   }
 
@@ -1257,15 +1243,6 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   if( r ) {
     regs[i++] = rest;
   }
-  if( m2 ) {
-    int lim = i + m2;
-    int n = argc - m1;
-    if( n < 0 ) n = 0;
-    if( n > m2 ) n = m2;
-    for( i += n; i < lim; i++ ) {
-      regs[i].tt = MRBC_TT_NIL;
-    }
-  }
   if( d ) {
     regs[i++] = dict;
   }
@@ -1274,7 +1251,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   vm->callinfo_tail->n_args = i;
 
   // prepare for get default arguments.
-  int jmp_ofs = argc - m1 - m2;
+  int jmp_ofs = argc - m1;
   if( jmp_ofs > 0 ) {
     if( jmp_ofs > o ) {
       if( !r && regs[0].tt != MRBC_TT_PROC ) {
