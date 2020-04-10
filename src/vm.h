@@ -55,6 +55,7 @@ typedef struct CALLINFO {
   uint8_t *inst;		//!< copy from mrbc_vm.
   mrbc_value *current_regs;	//!< copy from mrbc_vm.
   mrbc_class *target_class;	//!< copy from mrbc_vm.
+  mrbc_class *own_class;	//!< class that owns method.
   mrbc_sym method_id;		//!< called method ID.
   uint8_t reg_offset;		//!< register offset after call.
   uint8_t n_args;		//!< # of arguments.
@@ -103,7 +104,7 @@ void mrbc_cleanup_vm(void);
 const char *mrbc_get_callee_name(struct VM *vm);
 mrbc_irep *mrbc_irep_alloc(struct VM *vm);
 void mrbc_irep_free(mrbc_irep *irep);
-mrbc_callinfo * mrbc_push_callinfo(struct VM *vm, mrbc_sym mid, int n_args);
+mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_offset, int n_args );
 void mrbc_pop_callinfo(struct VM *vm);
 mrbc_vm *mrbc_vm_open(struct VM *vm_arg);
 void mrbc_vm_close(struct VM *vm);

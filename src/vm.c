@@ -90,13 +90,13 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   }
 
   mrbc_sym sym_id = str_to_symid(method_name);
-  mrbc_proc *m = find_method(vm, recv, sym_id);
+  mrbc_class *cls = find_class_by_object(vm, recv);
+  mrbc_proc *m = find_method_by_class(&cls, cls, sym_id);
 
   if( m == 0 ) {
     console_printf("Undefined local variable or method '%s' for %s\n",
-		   method_name,
-		   symid_to_str( find_class_by_object( vm, recv )->sym_id ));
-    return 0;
+		   method_name, symid_to_str( cls->sym_id ));
+    return 1;
   }
 
   // m is C func
@@ -115,8 +115,8 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
 
   // m is Ruby method.
   // callinfo
-  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, sym_id, c);
-  callinfo->reg_offset = a;
+  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, sym_id, a, c);
+  callinfo->own_class = cls;
 
   // target irep
   vm->pc_irep = m->irep;
@@ -194,7 +194,7 @@ void mrbc_irep_free(mrbc_irep *irep)
 //================================================================
 /*! Push current status to callinfo stack
 */
-mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int n_args )
+mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_offset, int n_args )
 {
   mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
   if( !callinfo ) return callinfo;
@@ -202,10 +202,11 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int n_arg
   callinfo->current_regs = vm->current_regs;
   callinfo->pc_irep = vm->pc_irep;
   callinfo->inst = vm->inst;
-  callinfo->reg_offset = 0;
+  callinfo->reg_offset = reg_offset;
   callinfo->method_id = method_id;
   callinfo->n_args = n_args;
   callinfo->target_class = vm->target_class;
+  callinfo->own_class = 0;
   callinfo->prev = vm->callinfo_tail;
   vm->callinfo_tail = callinfo;
 
@@ -879,6 +880,7 @@ static inline int op_onerr( mrbc_vm *vm, mrbc_value *regs )
   callinfo->method_id = 0x7fff;  // rescue
   callinfo->n_args = 0;
   callinfo->target_class = vm->target_class;
+  callinfo->own_class = 0;
   callinfo->prev = vm->exception_tail;
   vm->exception_tail = callinfo;
 
@@ -1014,6 +1016,7 @@ static inline int op_epush( mrbc_vm *vm, mrbc_value *regs )
   callinfo->method_id = 0x7ffe;   // ensure
   callinfo->n_args = 0;
   callinfo->target_class = vm->target_class;
+  callinfo->own_class = 0;
   callinfo->prev = vm->exception_tail;
   vm->exception_tail = callinfo;
 
@@ -1041,7 +1044,7 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
   vm->exception_tail = callinfo->prev;
 
   // same as OP_EXEC
-  mrbc_push_callinfo(vm, 0, 0);
+  mrbc_push_callinfo(vm, 0, 0, 0);
   vm->pc_irep = callinfo->pc_irep;
   vm->inst = vm->pc_irep->code;
   vm->target_class = callinfo->target_class;
@@ -1085,17 +1088,13 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_callinfo *callinfo = vm->callinfo_tail;
-  const char *sym_name = symid_to_str(callinfo->method_id);
-
   // set self to new regs[0]
-  mrbc_dup( &regs[0] );
-  mrbc_release( &regs[a] );
-  regs[a] = regs[0];
+  mrbc_value *recv = mrbc_get_self(vm, regs);
+  assert( recv->tt != MRBC_TT_PROC );
 
-  // find super class
-  mrbc_class *orig_class = regs[a].instance->cls;
-  regs[a].instance->cls = regs[a].instance->cls->super;
+  mrbc_dup( recv );
+  mrbc_release( &regs[a] );
+  regs[a] = *recv;
 
   if( b == 127 ) {	// 127 is CALL_MAXARGS in mruby
     // expand array
@@ -1118,8 +1117,34 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
     b = argc;
   }
 
-  send_by_name(vm, sym_name, regs, a, b, (regs[b+1].tt == MRBC_TT_PROC) );
-  regs[a].instance->cls = orig_class;
+  // find super class
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  mrbc_class *cls = callinfo->own_class;
+  assert( cls );
+  cls = cls->super;
+  assert( cls );
+
+  mrbc_proc *m = find_method_by_class( &cls, cls, callinfo->method_id );
+  if( m == 0 ) {
+    console_printf("Undefined method '%s' for %s\n",
+		   symid_to_str(callinfo->method_id), symid_to_str(cls->sym_id));
+    return 1;
+  }
+
+  if( m->c_func ) {
+    console_printf("Not support.\n");	// TODO
+    return 1;
+  }
+
+  callinfo = mrbc_push_callinfo(vm, callinfo->method_id, a, b);
+  callinfo->own_class = cls;
+
+  // target irep
+  vm->pc_irep = m->irep;
+  vm->inst = m->irep->code;
+
+  // new regs
+  vm->current_regs += a;
 
   return 0;
 }
@@ -1144,7 +1169,7 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
   int d  = (b >>  4) & 0x01;
 
   if( r ) {
-    console_printf("Not supprt\n");
+    console_printf("Not support rest parameter by super.\n");
     return 1;
   }
 
@@ -1202,6 +1227,22 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   // save proc (or nil) object.
   mrbc_value proc = regs[argc + 1];
   regs[argc + 1].tt = MRBC_TT_EMPTY;
+
+  // support yield [...] pattern
+  if( regs[0].tt == MRBC_TT_PROC &&
+      regs[1].tt == MRBC_TT_ARRAY && argc != m1 ) {
+    mrbc_value argary = regs[1];
+    regs[1].tt = MRBC_TT_EMPTY;
+
+    int i;
+    for( i = 0; i < m1; i++ ) {
+      if( mrbc_array_size(&argary) <= i ) break;
+      regs[i+1] = argary.array->data[i];
+      mrbc_dup( &regs[i+1] );
+    }
+    mrbc_array_delete( &argary );
+    argc = i;
+  }
 
   // dictionary parameter if exists.
   mrbc_value dict;
@@ -2197,7 +2238,7 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[a].tt == MRBC_TT_CLASS );
 
   // prepare callinfo
-  mrbc_push_callinfo(vm, 0, 0);
+  mrbc_push_callinfo(vm, 0, 0, 0);
 
   // target irep
   vm->pc_irep = vm->pc_irep->reps[b];

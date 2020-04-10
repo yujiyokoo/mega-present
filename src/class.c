@@ -170,17 +170,18 @@ mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
 //================================================================
 /*! find method from class
 
-  @param  vm       pointer to vm
-  @param  cls      pointer to class
-  @param  sym_id   sym_id of method
-  @return	pointer to mrbc_proc or NULL
+  @param  r_cls		found class return pointer or NULL
+  @param  cls		target class
+  @param  sym_id	sym_id of method
+  @return		pointer to mrbc_proc or NULL
 */
-mrbc_proc *find_method_by_class(struct VM *vm, const mrbc_class *cls, mrbc_sym sym_id)
+mrbc_proc *find_method_by_class( mrbc_class **r_cls, mrbc_class *cls, mrbc_sym sym_id )
 {
   while( cls != 0 ) {
     mrbc_proc *proc = cls->procs;
     while( proc != 0 ) {
       if( proc->sym_id == sym_id ) {
+	if( r_cls ) *r_cls = cls;
         return proc;
       }
       proc = proc->next;
@@ -204,7 +205,7 @@ mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
 {
   mrbc_class *cls = find_class_by_object(vm, recv);
 
-  return find_method_by_class(vm, cls, sym_id);
+  return find_method_by_class(NULL, cls, sym_id);
 }
 
 
@@ -1179,14 +1180,22 @@ static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
 */
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, 0, argc);  // TODO: mid==0 is right?
+  assert( v[0].tt == MRBC_TT_PROC );
+
+  mrbc_callinfo *callinfo_self = v[0].proc->callinfo_self;
+  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm,
+				(callinfo_self ? callinfo_self->method_id : 0),
+				v - vm->current_regs, argc);
   if( !callinfo ) return;
+
+  if( callinfo_self ) {
+    callinfo->own_class = callinfo_self->own_class;
+  }
 
   // target irep
   vm->pc_irep = v[0].proc->irep;
   vm->inst = vm->pc_irep->code;
 
-  callinfo->reg_offset = v - vm->current_regs;
   vm->current_regs = v;
 }
 
