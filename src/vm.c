@@ -1169,11 +1169,16 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
   int d  = (b >>  4) & 0x01;
 
   if( r ) {
+    // TODO: want to support.
     console_printf("Not support rest parameter by super.\n");
     return 1;
   }
+  if( m2 ) {
+    console_printf("ArgumentError: not support m2 or keyword argument.\n");
+    return 1;		// raise?
+  }
 
-  int array_size = m1 + m2 + d;
+  int array_size = m1 + d;
   mrbc_value val = mrbc_array_new( vm, array_size );
   if( !val.array ) return 1;	// ENOMEM raise?
 
@@ -1186,7 +1191,7 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
   mrbc_release(&regs[a]);
   regs[a] = val;
   mrbc_release(&regs[a+1]);
-  regs[a+1] = regs[m1+m2+1];
+  regs[a+1] = regs[m1+1];
   mrbc_dup(&regs[a+1]);
 
   return 0;
@@ -1454,9 +1459,14 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
   int d  = (b >>  4) & 0x01;
   int lv = (b      ) & 0x0f;
 
+  if( m2 ) {
+    console_printf("ArgumentError: not support m2 or keyword argument.\n");
+    return 1;		// raise?
+  }
+
   mrbc_release(&regs[a]);
 
-  int offset = m1+r+m2+d+1;
+  int offset = m1+r+d+1;
   mrbc_value *blk;
 
   if( lv == 0 ) {
