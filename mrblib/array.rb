@@ -70,4 +70,29 @@ class Array
     self
   end
 
+  #
+  # sort!
+  #
+  def sort!(&block)
+    n = self.size
+    (0..(n-2)).each do |i|
+      ((i+1)..(n-1)).each do |j|
+        v_i = self[i]
+        v_j = self[j]
+        cmp = if block then block.call(v_i, v_j) else v_i <=> v_j end
+        if cmp > 0 then
+          self[i] = v_j
+          self[j] = v_i
+        end
+      end
+    end
+    self
+  end
+
+  #
+  # sort
+  #
+  def sort(&block)
+    self.dup.sort!(&block)
+  end
 end
