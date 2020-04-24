@@ -74,17 +74,23 @@ class Array
   # sort!
   #
   def sort!(&block)
-    n = self.size
-    (0..(n-2)).each do |i|
-      ((i+1)..(n-1)).each do |j|
+    n = self.size - 1
+    i = 0
+    while i < n
+      j = i
+      while j < n
+        j += 1
         v_i = self[i]
         v_j = self[j]
-        cmp = if block then block.call(v_i, v_j) else v_i <=> v_j end
-        if cmp > 0 then
-          self[i] = v_j
-          self[j] = v_i
+        if block
+          next if block.call(v_i, v_j) <= 0
+        else
+          next if v_i < v_j
         end
+        self[i] = v_j
+        self[j] = v_i
       end
+      i += 1
     end
     self
   end
