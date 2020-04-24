@@ -79,8 +79,7 @@ class Array
       ((i+1)..(n-1)).each do |j|
         v_i = self[i]
         v_j = self[j]
-        cmp = if block then block.call(v_i, v_j) else v_i <=> v_j end
-        if cmp > 0 then
+        if block ? block.call(v_i, v_j) : (v_i <=> v_j) then
           self[i] = v_j
           self[j] = v_i
         end
