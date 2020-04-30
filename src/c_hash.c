@@ -70,7 +70,6 @@ mrbc_value mrbc_hash_new(struct VM *vm, int size)
   }
 
   h->ref_count = 1;
-  h->tt = MRBC_TT_HASH;
   h->data_size = size * 2;
   h->n_stored = 0;
   h->data = data;

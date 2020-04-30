@@ -39,7 +39,6 @@ mrbc_value mrbc_range_new(struct VM *vm, mrbc_value *first, mrbc_value *last, in
   if( !value.range ) return value;		// ENOMEM
 
   value.range->ref_count = 1;
-  value.range->tt = MRBC_TT_RANGE;	// TODO: for DEBUG
   value.range->flag_exclude = flag_exclude;
   value.range->first = *first;
   value.range->last = *last;

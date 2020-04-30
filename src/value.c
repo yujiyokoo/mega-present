@@ -25,7 +25,11 @@
 #include "c_hash.h"
 
 
-//! function table for object delete.
+//================================================================
+/*! function table for object delete.
+
+  (note) need same order as mrb_vtype.
+*/
 void (* const mrbc_delfunc[])(mrbc_value *) = {
   mrbc_instance_delete,
   mrbc_proc_delete,

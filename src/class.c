@@ -78,7 +78,6 @@ mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size)
   }
 
   v.instance->ref_count = 1;
-  v.instance->tt = MRBC_TT_OBJECT;	// for debug only.
   v.instance->cls = cls;
 
   return v;
@@ -240,14 +239,9 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
     return cls;
   }
 
-  // already?
-  if( obj->tt == MRBC_TT_CLASS ) {
-    return obj->cls;
-  }
-
-  // error.
-  // raise TypeError.
-  assert( !"TypeError" );
+  // already
+  assert( obj->tt == MRBC_TT_CLASS );
+  return obj->cls;
 }
 
 

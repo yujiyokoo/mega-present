@@ -81,7 +81,6 @@ mrbc_value mrbc_array_new(struct VM *vm, int size)
   }
 
   h->ref_count = 1;
-  h->tt = MRBC_TT_ARRAY;
   h->data_size = size;
   h->n_stored = 0;
   h->data = data;
