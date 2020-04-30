@@ -103,7 +103,7 @@ void mrbc_array_delete(mrbc_value *ary)
   mrbc_value *p1 = h->data;
   const mrbc_value *p2 = p1 + h->n_stored;
   while( p1 < p2 ) {
-    mrbc_dec_ref_counter(p1++);
+    mrbc_decref(p1++);
   }
 
   mrbc_array_delete_handle(ary);
@@ -174,7 +174,7 @@ int mrbc_array_set(mrbc_value *ary, int idx, mrbc_value *set_val)
 
   if( idx < h->n_stored ) {
     // release existing data.
-    mrbc_dec_ref_counter( &h->data[idx] );
+    mrbc_decref( &h->data[idx] );
   } else {
     // clear empty cells.
     int i;
@@ -366,7 +366,7 @@ void mrbc_array_clear(mrbc_value *ary)
   mrbc_value *p1 = h->data;
   const mrbc_value *p2 = p1 + h->n_stored;
   while( p1 < p2 ) {
-    mrbc_dec_ref_counter(p1++);
+    mrbc_decref(p1++);
   }
 
   h->n_stored = 0;
@@ -451,7 +451,7 @@ mrbc_value mrbc_array_dup(struct VM *vm, const mrbc_value *ary)
   mrbc_value *p1 = dv.array->data;
   const mrbc_value *p2 = p1 + dv.array->n_stored;
   while( p1 < p2 ) {
-    mrbc_dup(p1++);
+    mrbc_incref(p1++);
   }
 
   return dv;
@@ -498,7 +498,7 @@ static void c_array_new(struct VM *vm, mrbc_value v[], int argc)
 
     int i;
     for( i = 0; i < v[1].i; i++ ) {
-      mrbc_dup(&v[2]);
+      mrbc_incref(&v[2]);
       mrbc_array_set(&ret, i, &v[2]);
     }
     SET_RETURN(ret);
@@ -537,10 +537,10 @@ static void c_array_add(struct VM *vm, mrbc_value v[], int argc)
   mrbc_value *p1 = value.array->data;
   const mrbc_value *p2 = p1 + value.array->n_stored;
   while( p1 < p2 ) {
-    mrbc_dup(p1++);
+    mrbc_incref(p1++);
   }
 
-  mrbc_release(v+1);
+  mrbc_decref_empty(v+1);
   SET_RETURN(value);
 }
 
@@ -573,7 +573,7 @@ static void c_array_get(struct VM *vm, mrbc_value v[], int argc)
   */
   if( argc == 1 && v[1].tt == MRBC_TT_FIXNUM ) {
     mrbc_value ret = mrbc_array_get(v, v[1].i);
-    mrbc_dup(&ret);
+    mrbc_incref(&ret);
     SET_RETURN(ret);
     return;
   }
@@ -597,7 +597,7 @@ static void c_array_get(struct VM *vm, mrbc_value v[], int argc)
     int i;
     for( i = 0; i < size; i++ ) {
       mrbc_value val = mrbc_array_get(v, v[1].i + i);
-      mrbc_dup(&val);
+      mrbc_incref(&val);
       mrbc_array_push(&ret, &val);
     }
 
@@ -717,7 +717,7 @@ static void c_array_index(struct VM *vm, mrbc_value v[], int argc)
 static void c_array_first(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_value val = mrbc_array_get(v, 0);
-  mrbc_dup(&val);
+  mrbc_incref(&val);
   SET_RETURN(val);
 }
 
@@ -728,7 +728,7 @@ static void c_array_first(struct VM *vm, mrbc_value v[], int argc)
 static void c_array_last(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_value val = mrbc_array_get(v, -1);
-  mrbc_dup(&val);
+  mrbc_incref(&val);
   SET_RETURN(val);
 }
 
@@ -833,7 +833,7 @@ static void c_array_min(struct VM *vm, mrbc_value v[], int argc)
     return;
   }
 
-  mrbc_dup(p_min_value);
+  mrbc_incref(p_min_value);
   SET_RETURN(*p_min_value);
 }
 
@@ -853,7 +853,7 @@ static void c_array_max(struct VM *vm, mrbc_value v[], int argc)
     return;
   }
 
-  mrbc_dup(p_max_value);
+  mrbc_incref(p_max_value);
   SET_RETURN(*p_max_value);
 }
 
@@ -873,8 +873,8 @@ static void c_array_minmax(struct VM *vm, mrbc_value v[], int argc)
   if( p_min_value == NULL ) p_min_value = &nil;
   if( p_max_value == NULL ) p_max_value = &nil;
 
-  mrbc_dup(p_min_value);
-  mrbc_dup(p_max_value);
+  mrbc_incref(p_min_value);
+  mrbc_incref(p_max_value);
   mrbc_array_set(&ret, 0, p_min_value);
   mrbc_array_set(&ret, 1, p_max_value);
 
@@ -927,7 +927,7 @@ static void c_array_join_1(struct VM *vm, mrbc_value v[], int argc,
     } else {
       mrbc_value v1 = mrbc_send( vm, v, argc, &src->array->data[i], "to_s", 0 );
       flag_error |= mrbc_string_append( ret, &v1 );
-      mrbc_dec_ref_counter(&v1);
+      mrbc_decref(&v1);
     }
     if( ++i >= mrbc_array_size(src) ) break;	// normal return.
     flag_error |= mrbc_string_append( ret, separator );
@@ -943,7 +943,7 @@ static void c_array_join(struct VM *vm, mrbc_value v[], int argc)
     mrbc_send( vm, v, argc, &v[1], "to_s", 0 );
 
   c_array_join_1(vm, v, argc, &v[0], &ret, &separator );
-  mrbc_dec_ref_counter(&separator);
+  mrbc_decref(&separator);
 
   SET_RETURN(ret);
   return;

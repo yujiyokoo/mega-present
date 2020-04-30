@@ -117,7 +117,7 @@ int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
 
   @param   v     Pointer to mrbc_value
 */
-void mrbc_dup(mrbc_value *v)
+void mrbc_incref(mrbc_value *v)
 {
   switch( v->tt ){
   case MRBC_TT_OBJECT:
@@ -143,9 +143,9 @@ void mrbc_dup(mrbc_value *v)
 
   @param   v     Pointer to target mrbc_value
 */
-void mrbc_release(mrbc_value *v)
+void mrbc_decref_empty(mrbc_value *v)
 {
-  mrbc_dec_ref_counter(v);
+  mrbc_decref(v);
   v->tt = MRBC_TT_EMPTY;
 }
 
@@ -155,7 +155,7 @@ void mrbc_release(mrbc_value *v)
 
   @param   v     Pointer to target mrbc_value
 */
-void mrbc_dec_ref_counter(mrbc_value *v)
+void mrbc_decref(mrbc_value *v)
 {
   switch( v->tt ){
   case MRBC_TT_OBJECT:

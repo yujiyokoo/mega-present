@@ -710,7 +710,7 @@ static void c_string_split(struct VM *vm, mrbc_value v[], int argc)
     limit = v[2].i;
     if( limit == 1 ) {
       mrbc_array_push( &ret, &v[0] );
-      mrbc_dup( &v[0] );
+      mrbc_incref( &v[0] );
       goto DONE;
     }
   }
