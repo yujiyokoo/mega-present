@@ -367,7 +367,7 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
 
   // create call stack.
   mrbc_value *regs = v + reg_ofs + 2;
-  mrbc_decref_empty( &regs[0] );
+  mrbc_decref( &regs[0] );
   regs[0] = *recv;
   mrbc_incref(recv);
 
@@ -375,10 +375,10 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
   va_start(ap, argc);
   int i;
   for( i = 1; i <= argc; i++ ) {
-    mrbc_decref_empty( &regs[i] );
+    mrbc_decref( &regs[i] );
     regs[i] = *va_arg(ap, mrbc_value *);
   }
-  mrbc_decref_empty( &regs[i] );
+  mrbc_decref( &regs[i] );
   regs[i] = mrbc_nil_value();
   va_end(ap);
 
@@ -701,7 +701,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 
   mrbc_class *cls = v->cls;
 
-  mrbc_decref_empty(&v[0]);
+  mrbc_decref(&v[0]);
   v[0] = new_obj;
   mrbc_incref(&new_obj);
 
@@ -737,7 +737,7 @@ static void c_object_dup(struct VM *vm, mrbc_value v[], int argc)
     mrbc_value new_obj = mrbc_instance_new(vm, v->instance->cls, 0);
     mrbc_kv_dup( &v->instance->ivar, &new_obj.instance->ivar );
 
-    mrbc_decref_empty( v );
+    mrbc_decref( v );
     *v = new_obj;
     return;
   }

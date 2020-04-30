@@ -25,6 +25,22 @@
 #include "c_hash.h"
 
 
+//! function table for object delete.
+void (* const mrbc_delfunc[])(mrbc_value *) = {
+  mrbc_instance_delete,
+  mrbc_proc_delete,
+  mrbc_array_delete,
+#if MRBC_USE_STRING
+  mrbc_string_delete,
+#else
+  NULL,
+#endif
+  mrbc_range_delete,
+  mrbc_hash_delete,
+};
+
+
+
 //================================================================
 /*! compare two mrbc_values
 
@@ -83,7 +99,7 @@ int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
   case MRBC_TT_CLASS:
   case MRBC_TT_OBJECT:
   case MRBC_TT_PROC:
-    return -1 + (v1->handle == v2->handle) + (v1->handle > v2->handle)*2;
+    return -1 + (v1->proc == v2->proc) + (v1->proc > v2->proc)*2;
 
   case MRBC_TT_ARRAY:
     return mrbc_array_compare( v1, v2 );
@@ -107,90 +123,6 @@ int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
  CMP_FLOAT:
   return -1 + (d1 == d2) + (d1 > d2)*2;	// caution: NaN == NaN is false
 #endif
-}
-
-
-
-
-//================================================================
-/*! Duplicate mrbc_value
-
-  @param   v     Pointer to mrbc_value
-*/
-void mrbc_incref(mrbc_value *v)
-{
-  switch( v->tt ){
-  case MRBC_TT_OBJECT:
-  case MRBC_TT_PROC:
-  case MRBC_TT_ARRAY:
-  case MRBC_TT_STRING:
-  case MRBC_TT_RANGE:
-  case MRBC_TT_HASH:
-    assert( v->instance->ref_count > 0 );
-    assert( v->instance->ref_count != 0xff );	// check max value.
-    v->instance->ref_count++;
-    break;
-
-  default:
-    // Nothing
-    break;
-  }
-}
-
-
-//================================================================
-/*! Release object related memory
-
-  @param   v     Pointer to target mrbc_value
-*/
-void mrbc_decref_empty(mrbc_value *v)
-{
-  mrbc_decref(v);
-  v->tt = MRBC_TT_EMPTY;
-}
-
-
-//================================================================
-/*! Decrement reference counter
-
-  @param   v     Pointer to target mrbc_value
-*/
-void mrbc_decref(mrbc_value *v)
-{
-  switch( v->tt ){
-  case MRBC_TT_OBJECT:
-  case MRBC_TT_PROC:
-  case MRBC_TT_ARRAY:
-  case MRBC_TT_STRING:
-  case MRBC_TT_RANGE:
-  case MRBC_TT_HASH:
-    assert( v->instance->ref_count != 0 );
-    assert( v->instance->ref_count != 0xffff );	// check broken data.
-    v->instance->ref_count--;
-    break;
-
-  default:
-    // Nothing
-    return;
-  }
-
-  // release memory?
-  if( v->instance->ref_count != 0 ) return;
-
-  switch( v->tt ) {
-  case MRBC_TT_OBJECT:	mrbc_instance_delete(v);	break;
-  case MRBC_TT_PROC:	mrbc_proc_delete(v);		break;
-  case MRBC_TT_ARRAY:	mrbc_array_delete(v);		break;
-#if MRBC_USE_STRING
-  case MRBC_TT_STRING:	mrbc_string_delete(v);		break;
-#endif
-  case MRBC_TT_RANGE:	mrbc_range_delete(v);		break;
-  case MRBC_TT_HASH:	mrbc_hash_delete(v);		break;
-
-  default:
-    // Nothing
-    break;
-  }
 }
 
 
