@@ -281,7 +281,7 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  if( a != b ){
+  if( a != b ) {
     mrbc_decref(&regs[a]);
     mrbc_incref(&regs[b]);
     regs[a] = regs[b];
@@ -304,9 +304,7 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-
-  mrbc_object *pool_obj = vm->pc_irep->pools[b];
-  regs[a] = *pool_obj;
+  regs[a] = *(vm->pc_irep->pools[b]);
 
   return 0;
 }
@@ -326,7 +324,8 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  regs[a] = mrbc_fixnum_value(b);
+  mrbc_set_fixnum(&regs[a], b);
+
   return 0;
 }
 
@@ -345,7 +344,8 @@ static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  regs[a] = mrbc_fixnum_value(-b);
+  mrbc_set_fixnum(&regs[a], -b);
+
   return 0;
 }
 
@@ -368,7 +368,7 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
   int n = opcode - OP_LOADI_0;
 
   mrbc_decref(&regs[a]);
-  regs[a] = mrbc_fixnum_value(n);
+  mrbc_set_fixnum(&regs[a], n);
 
   return 0;
 }
@@ -412,7 +412,7 @@ static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_decref(&regs[a]);
-  regs[a].tt = MRBC_TT_NIL;
+  mrbc_set_nil(&regs[a]);
 
   return 0;
 }
@@ -455,7 +455,7 @@ static inline int op_loadt( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_decref(&regs[a]);
-  regs[a].tt = MRBC_TT_TRUE;
+  mrbc_set_true(&regs[a]);
 
   return 0;
 }
@@ -475,7 +475,7 @@ static inline int op_loadf( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_decref(&regs[a]);
-  regs[a].tt = MRBC_TT_FALSE;
+  mrbc_set_false(&regs[a]);
 
   return 0;
 }
@@ -500,7 +500,7 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs )
   mrbc_decref(&regs[a]);
   mrbc_value *v = mrbc_get_global(sym_id);
   if( v == NULL ) {
-    regs[a] = mrbc_nil_value();
+    mrbc_set_nil(&regs[a]);
   } else {
     mrbc_incref(v);
     regs[a] = *v;
@@ -548,10 +548,8 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
   mrbc_value *self = mrbc_get_self( vm, regs );
-  mrbc_value val = mrbc_instance_getiv(self, sym_id);
-
   mrbc_decref(&regs[a]);
-  regs[a] = val;
+  regs[a] = mrbc_instance_getiv(self, sym_id);
 
   return 0;
 }
@@ -1553,12 +1551,12 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
     return 0;
   }
 
-  #if MRBC_USE_FLOAT
+#if MRBC_USE_FLOAT
   if( regs[a].tt == MRBC_TT_FLOAT ) {
     regs[a].d += b;
     return 0;
   }
-  #endif
+#endif
 
   not_supported();
 
@@ -1745,7 +1743,6 @@ static inline int op_eq( mrbc_vm *vm, mrbc_value *regs )
   // TODO: case OBJECT == OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  mrbc_decref_empty(&regs[a+1]);
   mrbc_decref(&regs[a]);
   regs[a].tt = result ? MRBC_TT_FALSE : MRBC_TT_TRUE;
 
@@ -1769,7 +1766,6 @@ static inline int op_lt( mrbc_vm *vm, mrbc_value *regs )
   // TODO: case OBJECT < OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  mrbc_decref_empty(&regs[a+1]);
   mrbc_decref(&regs[a]);
   regs[a].tt = result < 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
@@ -1793,7 +1789,6 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
   // TODO: case OBJECT <= OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  mrbc_decref_empty(&regs[a+1]);
   mrbc_decref(&regs[a]);
   regs[a].tt = result <= 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
@@ -1817,7 +1812,6 @@ static inline int op_gt( mrbc_vm *vm, mrbc_value *regs )
   // TODO: case OBJECT > OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  mrbc_decref_empty(&regs[a+1]);
   mrbc_decref(&regs[a]);
   regs[a].tt = result > 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
@@ -1841,7 +1835,6 @@ static inline int op_ge( mrbc_vm *vm, mrbc_value *regs )
   // TODO: case OBJECT >= OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  mrbc_decref_empty(&regs[a+1]);
   mrbc_decref(&regs[a]);
   regs[a].tt = result >= 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 

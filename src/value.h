@@ -167,6 +167,14 @@ typedef struct RObject mrbc_value;
 #define mrbc_false_value()	((mrbc_value){.tt = MRBC_TT_FALSE})
 #define mrbc_bool_value(n)	((mrbc_value){.tt = (n)?MRBC_TT_TRUE:MRBC_TT_FALSE})
 
+#define mrbc_set_fixnum(p,n)	(p)->tt = MRBC_TT_FIXNUM; (p)->i = (n)
+#define mrbc_set_float(p,n)	(p)->tt = MRBC_TT_FLOAT; (p)->d = (n)
+#define mrbc_set_nil(p)		(p)->tt = MRBC_TT_NIL
+#define mrbc_set_true(p)	(p)->tt = MRBC_TT_TRUE
+#define mrbc_set_false(p)	(p)->tt = MRBC_TT_FALSE
+#define mrbc_set_bool(p,n)	(p)->tt = (n)? MRBC_TT_TRUE: MRBC_TT_FALSE
+
+
 extern void (* const mrbc_delfunc[])(mrbc_value *);
 int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2);
 void mrbc_clear_vm_id(mrbc_value *v);
