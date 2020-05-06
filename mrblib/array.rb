@@ -70,4 +70,35 @@ class Array
     self
   end
 
+  #
+  # sort!
+  #
+  def sort!(&block)
+    n = self.size - 1
+    i = 0
+    while i < n
+      j = i
+      while j < n
+        j += 1
+        v_i = self[i]
+        v_j = self[j]
+        if block
+          next if block.call(v_i, v_j) <= 0
+        else
+          next if v_i < v_j
+        end
+        self[i] = v_j
+        self[j] = v_i
+      end
+      i += 1
+    end
+    self
+  end
+
+  #
+  # sort
+  #
+  def sort(&block)
+    self.dup.sort!(&block)
+  end
 end
