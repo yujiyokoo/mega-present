@@ -78,7 +78,6 @@ mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size)
   }
 
   v.instance->ref_count = 1;
-  v.instance->tt = MRBC_TT_OBJECT;	// for debug only.
   v.instance->cls = cls;
 
   return v;
@@ -107,7 +106,7 @@ void mrbc_instance_delete(mrbc_value *v)
 */
 void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v)
 {
-  mrbc_dup(v);
+  mrbc_incref(v);
   mrbc_kv_set( &obj->instance->ivar, sym_id, v );
 }
 
@@ -124,7 +123,7 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
   mrbc_value *v = mrbc_kv_get( &obj->instance->ivar, sym_id );
   if( !v ) return mrbc_nil_value();
 
-  mrbc_dup(v);
+  mrbc_incref(v);
   return *v;
 }
 
@@ -240,14 +239,9 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
     return cls;
   }
 
-  // already?
-  if( obj->tt == MRBC_TT_CLASS ) {
-    return obj->cls;
-  }
-
-  // error.
-  // raise TypeError.
-  assert( !"TypeError" );
+  // already
+  assert( obj->tt == MRBC_TT_CLASS );
+  return obj->cls;
 }
 
 
@@ -367,18 +361,18 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
 
   // create call stack.
   mrbc_value *regs = v + reg_ofs + 2;
-  mrbc_release( &regs[0] );
+  mrbc_decref( &regs[0] );
   regs[0] = *recv;
-  mrbc_dup(recv);
+  mrbc_incref(recv);
 
   va_list ap;
   va_start(ap, argc);
   int i;
   for( i = 1; i <= argc; i++ ) {
-    mrbc_release( &regs[i] );
+    mrbc_decref( &regs[i] );
     regs[i] = *va_arg(ap, mrbc_value *);
   }
-  mrbc_release( &regs[i] );
+  mrbc_decref( &regs[i] );
   regs[i] = mrbc_nil_value();
   va_end(ap);
 
@@ -701,9 +695,9 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 
   mrbc_class *cls = v->cls;
 
-  mrbc_release(&v[0]);
+  mrbc_decref(&v[0]);
   v[0] = new_obj;
-  mrbc_dup(&new_obj);
+  mrbc_incref(&new_obj);
 
   mrbc_irep *org_pc_irep = vm->pc_irep;
   mrbc_value* org_regs = vm->current_regs;
@@ -737,7 +731,7 @@ static void c_object_dup(struct VM *vm, mrbc_value v[], int argc)
     mrbc_value new_obj = mrbc_instance_new(vm, v->instance->cls, 0);
     mrbc_kv_dup( &v->instance->ivar, &new_obj.instance->ivar );
 
-    mrbc_release( v );
+    mrbc_decref( v );
     *v = new_obj;
     return;
   }
@@ -889,17 +883,16 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
       if( v[1].tt == MRBC_TT_CLASS ){
 	// 3. raise Exception
 	vm->exc = v[1].cls;
-	const char *s = symid_to_str( v[1].cls->sym_id );
 	vm->exc_message = mrbc_nil_value();
       } else {
 	// 2. raise "param"
-	mrbc_dup( &v[1] );
+	mrbc_incref( &v[1] );
 	vm->exc = mrbc_class_runtimeerror;
 	vm->exc_message = v[1];
       }
     } else if( argc == 2 ){
       // 4. raise Exception, "param"
-      mrbc_dup( &v[2] );
+      mrbc_incref( &v[2] );
       vm->exc = v[1].cls;
       vm->exc_message = v[2];
     }

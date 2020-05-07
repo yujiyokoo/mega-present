@@ -85,7 +85,7 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   // if not OP_SENDB, blcok does not exist
   int bidx = a + c + 1;
   if( !is_sendb ){
-    mrbc_release( &regs[bidx] );
+    mrbc_decref( &regs[bidx] );
     regs[bidx].tt = MRBC_TT_NIL;
   }
 
@@ -107,7 +107,7 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
 
     int release_reg = a+1;
     while( release_reg <= bidx ) {
-      mrbc_release(&regs[release_reg]);
+      mrbc_decref_empty(&regs[release_reg]);
       release_reg++;
     }
     return 0;
@@ -281,9 +281,9 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  if( a != b ){
-    mrbc_release(&regs[a]);
-    mrbc_dup(&regs[b]);
+  if( a != b ) {
+    mrbc_decref(&regs[a]);
+    mrbc_incref(&regs[b]);
     regs[a] = regs[b];
   }
   return 0;
@@ -303,10 +303,8 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_release(&regs[a]);
-
-  mrbc_object *pool_obj = vm->pc_irep->pools[b];
-  regs[a] = *pool_obj;
+  mrbc_decref(&regs[a]);
+  regs[a] = *(vm->pc_irep->pools[b]);
 
   return 0;
 }
@@ -325,8 +323,9 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_release(&regs[a]);
-  regs[a] = mrbc_fixnum_value(b);
+  mrbc_decref(&regs[a]);
+  mrbc_set_fixnum(&regs[a], b);
+
   return 0;
 }
 
@@ -344,8 +343,9 @@ static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_release(&regs[a]);
-  regs[a] = mrbc_fixnum_value(-b);
+  mrbc_decref(&regs[a]);
+  mrbc_set_fixnum(&regs[a], -b);
+
   return 0;
 }
 
@@ -367,8 +367,8 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
   int opcode = vm->inst[-2];
   int n = opcode - OP_LOADI_0;
 
-  mrbc_release(&regs[a]);
-  regs[a] = mrbc_fixnum_value(n);
+  mrbc_decref(&regs[a]);
+  mrbc_set_fixnum(&regs[a], n);
 
   return 0;
 }
@@ -390,7 +390,7 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a].tt = MRBC_TT_SYMBOL;
   regs[a].i = sym_id;
 
@@ -411,8 +411,8 @@ static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_release(&regs[a]);
-  regs[a].tt = MRBC_TT_NIL;
+  mrbc_decref(&regs[a]);
+  mrbc_set_nil(&regs[a]);
 
   return 0;
 }
@@ -433,8 +433,8 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_value *self = mrbc_get_self( vm, regs );
 
-  mrbc_dup(self);
-  mrbc_release(&regs[a]);
+  mrbc_incref(self);
+  mrbc_decref(&regs[a]);
   regs[a] = *self;
 
   return 0;
@@ -454,8 +454,8 @@ static inline int op_loadt( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_release(&regs[a]);
-  regs[a].tt = MRBC_TT_TRUE;
+  mrbc_decref(&regs[a]);
+  mrbc_set_true(&regs[a]);
 
   return 0;
 }
@@ -474,8 +474,8 @@ static inline int op_loadf( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_release(&regs[a]);
-  regs[a].tt = MRBC_TT_FALSE;
+  mrbc_decref(&regs[a]);
+  mrbc_set_false(&regs[a]);
 
   return 0;
 }
@@ -497,12 +497,12 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs )
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   mrbc_value *v = mrbc_get_global(sym_id);
   if( v == NULL ) {
-    regs[a] = mrbc_nil_value();
+    mrbc_set_nil(&regs[a]);
   } else {
-    mrbc_dup(v);
+    mrbc_incref(v);
     regs[a] = *v;
   }
 
@@ -525,7 +525,7 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
-  mrbc_dup(&regs[a]);
+  mrbc_incref(&regs[a]);
   mrbc_set_global(sym_id, &regs[a]);
 
   return 0;
@@ -548,10 +548,8 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
   mrbc_value *self = mrbc_get_self( vm, regs );
-  mrbc_value val = mrbc_instance_getiv(self, sym_id);
-
-  mrbc_release(&regs[a]);
-  regs[a] = val;
+  mrbc_decref(&regs[a]);
+  regs[a] = mrbc_instance_getiv(self, sym_id);
 
   return 0;
 }
@@ -595,14 +593,14 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   mrbc_value *v = mrbc_get_const(sym_id);
   if( v == NULL ) {             // raise?
     console_printf( "NameError: uninitialized constant %s\n", sym_name );
     return 0;
   }
 
-  mrbc_dup(v);
+  mrbc_incref(v);
   regs[a] = *v;
 
   return 0;
@@ -645,7 +643,7 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
     sym_id = mrbc_symbol_new( vm, buf ).i;
   }
 
-  mrbc_dup(&regs[a]);
+  mrbc_incref(&regs[a]);
   mrbc_set_const(sym_id, &regs[a]);
 
   return 0;
@@ -683,7 +681,7 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_sym sym_id = str_to_symid(buf);
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   mrbc_value *v = mrbc_get_const(sym_id);
   if( v == NULL ) {             // raise?
     console_printf( "NameError: uninitialized constant %s::%s\n",
@@ -691,7 +689,7 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
     return 0;
   }
 
-  mrbc_dup(v);
+  mrbc_incref(v);
   regs[a] = *v;
 
   return 0;
@@ -728,9 +726,9 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs )
   } else {
     p_val = callinfo->current_regs + callinfo->reg_offset + b;
   }
-  mrbc_dup( p_val );
+  mrbc_incref( p_val );
 
-  mrbc_release( &regs[a] );
+  mrbc_decref( &regs[a] );
   regs[a] = *p_val;
 
   return 0;
@@ -767,9 +765,9 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
   } else {
     p_val = callinfo->current_regs + callinfo->reg_offset + b;
   }
-  mrbc_release( p_val );
+  mrbc_decref( p_val );
 
-  mrbc_dup( &regs[a] );
+  mrbc_incref( &regs[a] );
   *p_val = regs[a];
 
   return 0;
@@ -901,7 +899,7 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_release( &regs[a] );
+  mrbc_decref( &regs[a] );
   regs[a].tt = MRBC_TT_CLASS;
   if( vm->exc != NULL ){
     regs[a].cls = vm->exc;
@@ -931,7 +929,7 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
   mrbc_class *cls = regs[a].cls;
   while( cls != NULL ){
     if( regs[b].cls == cls ){
-      mrbc_release( &regs[b] );
+      mrbc_decref( &regs[b] );
       regs[b] = mrbc_true_value();
       vm->exc = 0;
       return 0;
@@ -939,7 +937,7 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
     cls = cls->super;
   }
 
-  mrbc_release( &regs[b] );
+  mrbc_decref( &regs[b] );
   regs[b] = mrbc_false_value();
 
   return 0;
@@ -1092,8 +1090,8 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   mrbc_value *recv = mrbc_get_self(vm, regs);
   assert( recv->tt != MRBC_TT_PROC );
 
-  mrbc_dup( recv );
-  mrbc_release( &regs[a] );
+  mrbc_incref( recv );
+  mrbc_decref( &regs[a] );
   regs[a] = *recv;
 
   if( b == 127 ) {	// 127 is CALL_MAXARGS in mruby
@@ -1108,7 +1106,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
     int argc = mrbc_array_size(&argary);
     int i, j;
     for( i = 0, j = a+1; i < argc; i++, j++ ) {
-      mrbc_release( &regs[j] );
+      mrbc_decref( &regs[j] );
       regs[j] = argary.array->data[i];
     }
     mrbc_array_delete_handle(&argary);
@@ -1185,14 +1183,14 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
   int i;
   for( i = 0; i < array_size; i++ ) {
     mrbc_array_push( &val, &regs[i+1] );
-    mrbc_dup( &regs[i+1] );
+    mrbc_incref( &regs[i+1] );
   }
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a] = val;
-  mrbc_release(&regs[a+1]);
+  mrbc_decref(&regs[a+1]);
   regs[a+1] = regs[m1+1];
-  mrbc_dup(&regs[a+1]);
+  mrbc_incref(&regs[a+1]);
 
   return 0;
 }
@@ -1243,7 +1241,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     for( i = 0; i < m1; i++ ) {
       if( mrbc_array_size(&argary) <= i ) break;
       regs[i+1] = argary.array->data[i];
-      mrbc_dup( &regs[i+1] );
+      mrbc_incref( &regs[i+1] );
     }
     mrbc_array_delete( &argary );
     argc = i;
@@ -1326,7 +1324,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_release(&regs[0]);
+  mrbc_decref(&regs[0]);
   regs[0] = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
@@ -1344,7 +1342,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   // clear stacked arguments
   int i;
   for( i = 1; i < nregs; i++ ) {
-    mrbc_release( &regs[i] );
+    mrbc_decref_empty( &regs[i] );
   }
 
   return 0;
@@ -1384,7 +1382,7 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // set return value
-  mrbc_release( p_reg );
+  mrbc_decref( p_reg );
   *p_reg = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
@@ -1392,7 +1390,7 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 
   // clear stacked arguments
   while( ++p_reg < &regs[nregs] ) {
-    mrbc_release( p_reg );
+    mrbc_decref_empty( p_reg );
   }
 
   return 0;
@@ -1427,13 +1425,13 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
   } while( callinfo != caller_callinfo );
 
   // set return value
-  mrbc_release( p_reg );
+  mrbc_decref( p_reg );
   *p_reg = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
   // clear stacked arguments
   while( ++p_reg < &regs[nregs] ) {
-    mrbc_release( p_reg );
+    mrbc_decref_empty( p_reg );
   }
 
   return 0;
@@ -1464,7 +1462,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     return 1;		// raise?
   }
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
 
   int offset = m1+r+d+1;
   mrbc_value *blk;
@@ -1484,7 +1482,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     return 1;	// raise?
   }
 
-  mrbc_dup(blk);
+  mrbc_incref(blk);
   regs[a] = *blk;
 
   return 0;
@@ -1553,12 +1551,12 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
     return 0;
   }
 
-  #if MRBC_USE_FLOAT
+#if MRBC_USE_FLOAT
   if( regs[a].tt == MRBC_TT_FLOAT ) {
     regs[a].d += b;
     return 0;
   }
-  #endif
+#endif
 
   not_supported();
 
@@ -1745,8 +1743,7 @@ static inline int op_eq( mrbc_vm *vm, mrbc_value *regs )
   // TODO: case OBJECT == OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  mrbc_release(&regs[a+1]);
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a].tt = result ? MRBC_TT_FALSE : MRBC_TT_TRUE;
 
   return 0;
@@ -1769,8 +1766,7 @@ static inline int op_lt( mrbc_vm *vm, mrbc_value *regs )
   // TODO: case OBJECT < OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  mrbc_release(&regs[a+1]);
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a].tt = result < 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
   return 0;
@@ -1793,8 +1789,7 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
   // TODO: case OBJECT <= OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  mrbc_release(&regs[a+1]);
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a].tt = result <= 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
   return 0;
@@ -1817,8 +1812,7 @@ static inline int op_gt( mrbc_vm *vm, mrbc_value *regs )
   // TODO: case OBJECT > OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  mrbc_release(&regs[a+1]);
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a].tt = result > 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
   return 0;
@@ -1841,8 +1835,7 @@ static inline int op_ge( mrbc_vm *vm, mrbc_value *regs )
   // TODO: case OBJECT >= OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
 
-  mrbc_release(&regs[a+1]);
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a].tt = result >= 0 ? MRBC_TT_TRUE : MRBC_TT_FALSE;
 
   return 0;
@@ -1869,7 +1862,7 @@ static inline int op_array( mrbc_vm *vm, mrbc_value *regs )
   memset( &regs[a], 0, sizeof(mrbc_value) * b );
   value.array->n_stored = b;
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a] = value;
 
   return 0;
@@ -1894,12 +1887,12 @@ static inline int op_array2( mrbc_vm *vm, mrbc_value *regs )
 
   int i;
   for( i=0 ; i<c ; i++ ){
-    mrbc_dup( &regs[b+i] );
+    mrbc_incref( &regs[b+i] );
     value.array->data[i] = regs[b+i];
   }
   value.array->n_stored = c;
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a] = value;
 
   return 0;
@@ -1933,7 +1926,7 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
 
   int i;
   for( i = 0; i < size_2; i++ ) {
-    mrbc_dup( &regs[a+1].array->data[i] );
+    mrbc_incref( &regs[a+1].array->data[i] );
     regs[a].array->data[size_1+i] = regs[a+1].array->data[i];
   }
   regs[a].array->n_stored = new_size;
@@ -1956,7 +1949,7 @@ static inline int op_arydup( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_value ret = mrbc_array_dup( vm, &regs[a] );
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a] = ret;
 
   return 0;
@@ -1979,16 +1972,16 @@ static inline int op_aref( mrbc_vm *vm, mrbc_value *regs )
   mrbc_value *src = &regs[b];
   mrbc_value *dst = &regs[a];
 
-  mrbc_release( dst );
+  mrbc_decref( dst );
 
   if( src->tt == MRBC_TT_ARRAY ){
     // src is Array
     *dst = mrbc_array_get(src, c);
-    mrbc_dup(dst);
+    mrbc_incref(dst);
   } else {
     // src is not Array
     if( c == 0 ){
-      mrbc_dup(src);
+      mrbc_incref(src);
       *dst = *src;
     } else {
       dst->tt = MRBC_TT_NIL;
@@ -2030,7 +2023,7 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
     int i;
     for( i = 0; i < ary_size; i++ ) {
       regs[a].array->data[i] = src.array->data[pre+i];
-      mrbc_dup( &regs[a].array->data[i] );
+      mrbc_incref( &regs[a].array->data[i] );
     }
     regs[a].array->n_stored = ary_size;
   } else {
@@ -2059,7 +2052,7 @@ static inline int op_intern( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_value sym_id = mrbc_symbol_new(vm, (const char*)regs[a].string->data);
 
-  mrbc_release( &regs[a] );
+  mrbc_decref( &regs[a] );
   regs[a] = sym_id;
 
   return 0;
@@ -2087,7 +2080,7 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
   mrbc_value value = mrbc_string_new(vm, pool_obj->str, len);
   if( value.string == NULL ) return -1;         // ENOMEM
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a] = value;
 
 #else
@@ -2120,7 +2113,7 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
   }
 
   mrbc_value v = mrbc_string_add(vm, &regs[a], &regs[a+1]);
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a] = v;
 
 #else
@@ -2152,7 +2145,7 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs )
   memset( &regs[a], 0, sizeof(mrbc_value) * b );
   value.hash->n_stored = b;
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a] = value;
 
   return 0;
@@ -2172,7 +2165,7 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
 
   mrbc_value val = mrbc_proc_new( vm, vm->pc_irep->reps[b] );
   if( !val.proc ) return -1;	// ENOMEM
@@ -2388,7 +2381,7 @@ static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_release(&regs[a]);
+  mrbc_decref(&regs[a]);
   regs[a].tt = MRBC_TT_CLASS;
   regs[a].cls = vm->target_class;
 
@@ -2433,7 +2426,7 @@ static inline int op_stop( mrbc_vm *vm, mrbc_value *regs )
   if( vm->inst[-1] == OP_STOP ) {
     int i;
     for( i = 0; i < MAX_REGS_SIZE; i++ ) {
-      mrbc_release(&vm->regs[i]);
+      mrbc_decref_empty(&vm->regs[i]);
     }
   }
 
