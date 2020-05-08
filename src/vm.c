@@ -90,7 +90,7 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   }
 
   mrbc_sym sym_id = str_to_symid(method_name);
-  mrbc_class *cls = find_class_by_object(vm, recv);
+  mrbc_class *cls = find_class_by_object(recv);
   mrbc_proc *m = find_method_by_class(&cls, cls, sym_id);
 
   if( m == 0 ) {
@@ -622,7 +622,7 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
-  mrbc_class *cls = find_class_by_object( vm, &regs[0] );
+  mrbc_class *cls = find_class_by_object( &regs[0] );
 
   // supports class constants up to 1 level.
   if( cls != mrbc_class_object ) {

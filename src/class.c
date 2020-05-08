@@ -47,7 +47,7 @@
 */
 int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls )
 {
-  const mrbc_class *c = find_class_by_object( 0, obj );
+  const mrbc_class *c = find_class_by_object( obj );
   while( c != NULL ) {
     if( c == cls ) return 1;
     c = c->super;
@@ -130,44 +130,7 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
 
 
 //================================================================
-/*! find class by object
-
-  @param  vm	pointer to vm
-  @param  obj	pointer to object
-  @return	pointer to mrbc_class
-*/
-mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj)
-{
-  mrbc_class *cls;
-
-  assert( obj->tt != MRBC_TT_EMPTY );
-
-  switch( obj->tt ) {
-  case MRBC_TT_TRUE:	cls = mrbc_class_true;		break;
-  case MRBC_TT_FALSE:	cls = mrbc_class_false; 	break;
-  case MRBC_TT_NIL:	cls = mrbc_class_nil;		break;
-  case MRBC_TT_FIXNUM:	cls = mrbc_class_fixnum;	break;
-  case MRBC_TT_FLOAT:	cls = mrbc_class_float; 	break;
-  case MRBC_TT_SYMBOL:	cls = mrbc_class_symbol;	break;
-
-  case MRBC_TT_OBJECT:	cls = obj->instance->cls;       break;
-  case MRBC_TT_CLASS:   cls = obj->cls;                 break;
-  case MRBC_TT_PROC:	cls = mrbc_class_proc;		break;
-  case MRBC_TT_ARRAY:	cls = mrbc_class_array; 	break;
-  case MRBC_TT_STRING:	cls = mrbc_class_string;	break;
-  case MRBC_TT_RANGE:	cls = mrbc_class_range; 	break;
-  case MRBC_TT_HASH:	cls = mrbc_class_hash;		break;
-
-  default:		cls = mrbc_class_object;	break;
-  }
-
-  return cls;
-}
-
-
-
-//================================================================
-/*! find method from class
+/*! find method by class
 
   @param  r_cls		found class return pointer or NULL
   @param  cls		target class
@@ -202,7 +165,7 @@ mrbc_proc *find_method_by_class( mrbc_class **r_cls, mrbc_class *cls, mrbc_sym s
 */
 mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
 {
-  mrbc_class *cls = find_class_by_object(vm, recv);
+  mrbc_class *cls = find_class_by_object(recv);
 
   return find_method_by_class(NULL, cls, sym_id);
 }
@@ -477,7 +440,7 @@ int mrbc_print_sub(const mrbc_value *v)
 
   case MRBC_TT_OBJECT:
     console_printf( "#<%s:%08x>",
-	symid_to_str( find_class_by_object(0,v)->sym_id ), v->instance );
+	symid_to_str( find_class_by_object(v)->sym_id ), v->instance );
     break;
 
   case MRBC_TT_PROC:
@@ -655,7 +618,7 @@ static void c_object_equal3(struct VM *vm, mrbc_value v[], int argc)
 static void c_object_class(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_value value = {.tt = MRBC_TT_CLASS};
-  value.cls = find_class_by_object( vm, v );
+  value.cls = find_class_by_object( v );
   SET_RETURN( value );
 }
 
@@ -1005,7 +968,7 @@ static void c_object_instance_methods(struct VM *vm, mrbc_value v[], int argc)
   console_printf( "[" );
   int flag_first = 1;
 
-  mrbc_class *cls = find_class_by_object( vm, v );
+  mrbc_class *cls = find_class_by_object( v );
   mrbc_proc *proc = cls->procs;
   while( proc ) {
     console_printf( "%s:%s", (flag_first ? "" : ", "),
