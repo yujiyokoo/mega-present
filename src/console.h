@@ -17,7 +17,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
-#include "hal/hal.h"
+#include "hal_selector.h"
 #include "value.h"
 
 #ifdef __cplusplus
