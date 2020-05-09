@@ -281,11 +281,10 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  if( a != b ) {
-    mrbc_decref(&regs[a]);
-    mrbc_incref(&regs[b]);
-    regs[a] = regs[b];
-  }
+  mrbc_incref(&regs[b]);
+  mrbc_decref(&regs[a]);
+  regs[a] = regs[b];
+
   return 0;
 }
 
@@ -1188,9 +1187,10 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_decref(&regs[a]);
   regs[a] = val;
+
+  mrbc_incref(&regs[m1+1]);
   mrbc_decref(&regs[a+1]);
   regs[a+1] = regs[m1+1];
-  mrbc_incref(&regs[a+1]);
 
   return 0;
 }
