@@ -2741,8 +2741,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_EPOP:       ret = op_epop      (vm, regs); break;
     case OP_SENDV:      ret = op_dummy_BB  (vm, regs); break;
     case OP_SENDVB:     ret = op_dummy_BB  (vm, regs); break;
-    case OP_SEND:       ret = op_send      (vm, regs); break;
-    case OP_SENDB:      ret = op_send      (vm, regs); break; // to op_send
+    case OP_SEND:       // fall through
+    case OP_SENDB:      ret = op_send      (vm, regs); break;
     case OP_CALL:       ret = op_dummy_Z   (vm, regs); break;
     case OP_SUPER:      ret = op_super     (vm, regs); break;
     case OP_ARGARY:     ret = op_argary    (vm, regs); break;
@@ -2780,7 +2780,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_HASHADD:    ret = op_dummy_BB  (vm, regs); break;
     case OP_HASHCAT:    ret = op_dummy_B   (vm, regs); break;
     case OP_LAMBDA:     ret = op_dummy_BB  (vm, regs); break;
-    case OP_BLOCK:      ret = op_method    (vm, regs); break; // to op_method
+    case OP_BLOCK:      // fall through
     case OP_METHOD:     ret = op_method    (vm, regs); break;
     case OP_RANGE_INC:  // fall through
     case OP_RANGE_EXC:  ret = op_range     (vm, regs); break;
