@@ -613,6 +613,15 @@ static void c_string_dup(struct VM *vm, mrbc_value v[], int argc)
 
 
 //================================================================
+/*! (method) empty?
+*/
+static void c_string_empty(struct VM *vm, mrbc_value v[], int argc)
+{
+  SET_BOOL_RETURN( !mrbc_string_size( &v[0] ));
+}
+
+
+//================================================================
 /*! (method) getbyte
 */
 static void c_string_getbyte(struct VM *vm, mrbc_value v[], int argc)
@@ -1294,6 +1303,7 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_string, "chomp",	c_string_chomp);
   mrbc_define_method(vm, mrbc_class_string, "chomp!",	c_string_chomp_self);
   mrbc_define_method(vm, mrbc_class_string, "dup",	c_string_dup);
+  mrbc_define_method(vm, mrbc_class_string, "empty?",	c_string_empty);
   mrbc_define_method(vm, mrbc_class_string, "getbyte",	c_string_getbyte);
   mrbc_define_method(vm, mrbc_class_string, "index",	c_string_index);
   mrbc_define_method(vm, mrbc_class_string, "inspect",	c_string_inspect);
