@@ -704,6 +704,7 @@ int is_allocated_memory(void *tgt)
   @return void * pointer to allocated memory.
   @retval NULL	error.
 */
+#if defined(MRBC_ALLOC_VMID)
 void * mrbc_alloc(const struct VM *vm, unsigned int size)
 {
   uint8_t *ptr = mrbc_raw_alloc(size);
@@ -713,6 +714,7 @@ void * mrbc_alloc(const struct VM *vm, unsigned int size)
 
   return ptr;
 }
+#endif
 
 
 //================================================================

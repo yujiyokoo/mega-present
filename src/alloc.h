@@ -42,7 +42,6 @@ void *mrbc_raw_alloc_no_free(unsigned int size);
 void mrbc_raw_free(void *ptr);
 void *mrbc_raw_realloc(void *ptr, unsigned int size);
 int is_allocated_memory(void *tgt);
-void *mrbc_alloc(const struct VM *vm, unsigned int size);
 void mrbc_free_all(const struct VM *vm);
 void mrbc_set_vm_id(void *ptr, int vm_id);
 int mrbc_get_vm_id(void *ptr);
@@ -83,6 +82,19 @@ static inline void mrbc_free_all(const struct VM *vm) {}
 static inline void mrbc_set_vm_id(void *ptr, int vm_id) {}
 static inline int mrbc_get_vm_id(void *ptr) {
   return 0;
+}
+#endif
+
+
+//================================================================
+/*! allocate memory
+*/
+#if defined(MRBC_ALLOC_VMID)
+void *mrbc_alloc(const struct VM *vm, unsigned int size);
+#else
+static inline void * mrbc_alloc(const struct VM *vm, unsigned int size)
+{
+  return mrbc_raw_alloc(size);
 }
 #endif
 
