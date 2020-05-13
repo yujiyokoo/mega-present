@@ -2162,11 +2162,10 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_decref(&regs[a]);
-
   mrbc_value val = mrbc_proc_new( vm, vm->pc_irep->reps[b] );
   if( !val.proc ) return -1;	// ENOMEM
 
+  mrbc_decref(&regs[a]);
   regs[a] = val;
 
   return 0;
@@ -2210,14 +2209,14 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_class *super = (regs[a+1].tt == MRBC_TT_CLASS) ? regs[a+1].cls : mrbc_class_object;
-
+  mrbc_class *super = (regs[a+1].tt == MRBC_TT_CLASS) ? regs[a+1].cls : 0;
   mrbc_class *cls = mrbc_define_class(vm, sym_name, super);
+  if( !cls ) return -1;		// ENOMEM
 
-  mrbc_value ret = {.tt = MRBC_TT_CLASS};
-  ret.cls = cls;
-
-  regs[a] = ret;
+  // (note)
+  //  regs[a] was set to NIL by compiler. So, no need to release regs[a].
+  regs[a].tt = MRBC_TT_CLASS;
+  regs[a].cls = cls;
 
   return 0;
 }
