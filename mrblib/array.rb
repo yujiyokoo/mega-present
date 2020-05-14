@@ -83,7 +83,7 @@ class Array
         v_i = self[i]
         v_j = self[j]
         if block
-          next if block.call(v_i, v_j) <= 0
+          next if block.call(v_i, v_j) < 0
         else
           next if v_i < v_j
         end
