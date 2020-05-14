@@ -27,7 +27,7 @@
 #include "vm.h"
 #include "console.h"
 #include "rrt0.h"
-#include "hal/hal.h"
+#include "hal_selector.h"
 
 
 /***** Macros ***************************************************************/

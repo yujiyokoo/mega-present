@@ -48,7 +48,7 @@
 /***** Local headers ********************************************************/
 #include "vm.h"
 #include "alloc.h"
-#include "hal/hal.h"
+#include "hal_selector.h"
 
 /***** Constant values ******************************************************/
 /*
