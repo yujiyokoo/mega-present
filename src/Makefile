@@ -9,6 +9,9 @@
 
 CFLAGS += -Wall -Wpointer-arith -g  # -std=c99 -pedantic -pedantic-errors
 
+ifdef MRBC_USE_HAL_SINGLETON
+  HAL_DIR = hal_singleton
+endif
 ifdef MRBC_USE_HAL_PSOC5LP
   HAL_DIR = hal_psoc5lp
 endif

@@ -15,7 +15,9 @@
   </pre>
 */
 
-#if defined(MRBC_USE_HAL_PSOC5LP)
+#if defined(MRBC_USE_HAL_SINGLETON)
+#include "hal_singleton/hal.h"
+#elif defined(MRBC_USE_HAL_PSOC5LP)
 #include "hal_psoc5lp/hal.h"
 #elif defined(MRBC_USE_HAL_ESP32)
 #include "hal_esp32/hal.h"
