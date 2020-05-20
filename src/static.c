@@ -11,24 +11,15 @@
 */
 
 #include "vm_config.h"
+#include "value.h"
 #include "static.h"
 
-
-// Builtin classes.
+//================================================================
+/*! Builtin class table.
+*/
+struct RClass *mrbc_class_tbl[MRBC_TT_MAXVAL+1];
 struct RClass *mrbc_class_object;
-struct RClass *mrbc_class_nil;
-struct RClass *mrbc_class_false;
-struct RClass *mrbc_class_true;
-struct RClass *mrbc_class_symbol;
-struct RClass *mrbc_class_fixnum;
-struct RClass *mrbc_class_float;
-struct RClass *mrbc_class_string;
-struct RClass *mrbc_class_array;
-struct RClass *mrbc_class_range;
-struct RClass *mrbc_class_hash;
-struct RClass *mrbc_class_proc;
 struct RClass *mrbc_class_math;
-
 struct RClass *mrbc_class_exception;
 struct RClass *mrbc_class_standarderror;
 struct RClass *mrbc_class_runtimeerror;

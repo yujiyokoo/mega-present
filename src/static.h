@@ -18,22 +18,22 @@
 extern "C" {
 #endif
 
-// Builtin classes.
 struct RClass;
-extern struct RClass *mrbc_class_object;
-extern struct RClass *mrbc_class_nil;
-extern struct RClass *mrbc_class_false;
-extern struct RClass *mrbc_class_true;
-extern struct RClass *mrbc_class_symbol;
-extern struct RClass *mrbc_class_fixnum;
-extern struct RClass *mrbc_class_float;
-extern struct RClass *mrbc_class_string;
-extern struct RClass *mrbc_class_array;
-extern struct RClass *mrbc_class_range;
-extern struct RClass *mrbc_class_hash;
-extern struct RClass *mrbc_class_proc;
-extern struct RClass *mrbc_class_math;
+extern struct RClass *mrbc_class_tbl[];
+#define mrbc_class_nil		mrbc_class_tbl[ MRBC_TT_NIL ]
+#define mrbc_class_false	mrbc_class_tbl[ MRBC_TT_FALSE ]
+#define mrbc_class_true		mrbc_class_tbl[ MRBC_TT_TRUE ]
+#define mrbc_class_fixnum	mrbc_class_tbl[ MRBC_TT_FIXNUM ]
+#define mrbc_class_float	mrbc_class_tbl[ MRBC_TT_FLOAT ]
+#define mrbc_class_symbol	mrbc_class_tbl[ MRBC_TT_SYMBOL ]
+#define mrbc_class_proc		mrbc_class_tbl[ MRBC_TT_PROC ]
+#define mrbc_class_array	mrbc_class_tbl[ MRBC_TT_ARRAY ]
+#define mrbc_class_string	mrbc_class_tbl[ MRBC_TT_STRING ]
+#define mrbc_class_range	mrbc_class_tbl[ MRBC_TT_RANGE ]
+#define mrbc_class_hash		mrbc_class_tbl[ MRBC_TT_HASH ]
 
+extern struct RClass *mrbc_class_object;
+extern struct RClass *mrbc_class_math;
 extern struct RClass *mrbc_class_exception;
 extern struct RClass *mrbc_class_standarderror;
 extern struct RClass *mrbc_class_runtimeerror;
@@ -41,7 +41,7 @@ extern struct RClass *mrbc_class_zerodivisionerror;
 extern struct RClass *mrbc_class_argumenterror;
 extern struct RClass *mrbc_class_indexerror;
 extern struct RClass *mrbc_class_typeerror;
-  
+
 void mrbc_init_static(void);
 void mrbc_cleanup_static(void);
 

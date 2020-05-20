@@ -15,8 +15,11 @@
 #ifndef MRBC_SRC_CLASS_H_
 #define MRBC_SRC_CLASS_H_
 
+#include <assert.h>
+
 #include "value.h"
 #include "keyvalue.h"
+#include "static.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,7 +81,6 @@ mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size);
 void mrbc_instance_delete(mrbc_value *v);
 void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v);
 mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id);
-mrbc_class *find_class_by_object(struct VM *vm, const mrbc_object *obj);
 mrbc_proc *find_method_by_class( mrbc_class **r_cls, mrbc_class *cls, mrbc_sym sym_id );
 mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id);
 mrbc_class *mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super);
@@ -95,6 +97,27 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc);
 void c_ineffect(struct VM *vm, mrbc_value v[], int argc);
 void mrbc_run_mrblib(const uint8_t bytecode[]);
 void mrbc_init_class(void);
+
+
+//================================================================
+/*! find class by object
+
+  @param  obj	pointer to object
+  @return	pointer to mrbc_class
+*/
+static inline mrbc_class *find_class_by_object(const mrbc_object *obj)
+{
+  assert( obj->tt > 0 );
+  assert( obj->tt <= MRBC_TT_MAXVAL );
+
+  mrbc_class *cls = mrbc_class_tbl[ obj->tt ];
+  if( !cls ) {
+    // obj->tt is MRBC_TT_OBJECT or MRBC_TT_CLASS
+    cls = (obj->tt == MRBC_TT_OBJECT) ? obj->instance->cls : obj->cls;
+  }
+
+  return cls;
+}
 
 
 #ifdef __cplusplus

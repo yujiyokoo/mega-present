@@ -66,6 +66,7 @@ typedef enum {
 
 } mrbc_vtype;
 #define	MRBC_TT_INC_DEC_THRESHOLD MRBC_TT_OBJECT
+#define	MRBC_TT_MAXVAL MRBC_TT_HASH
 
 
 //================================================================

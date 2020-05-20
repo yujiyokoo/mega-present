@@ -90,7 +90,7 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   }
 
   mrbc_sym sym_id = str_to_symid(method_name);
-  mrbc_class *cls = find_class_by_object(vm, recv);
+  mrbc_class *cls = find_class_by_object(recv);
   mrbc_proc *m = find_method_by_class(&cls, cls, sym_id);
 
   if( m == 0 ) {
@@ -281,11 +281,10 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  if( a != b ) {
-    mrbc_decref(&regs[a]);
-    mrbc_incref(&regs[b]);
-    regs[a] = regs[b];
-  }
+  mrbc_incref(&regs[b]);
+  mrbc_decref(&regs[a]);
+  regs[a] = regs[b];
+
   return 0;
 }
 
@@ -622,7 +621,7 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
-  mrbc_class *cls = find_class_by_object( vm, &regs[0] );
+  mrbc_class *cls = find_class_by_object( &regs[0] );
 
   // supports class constants up to 1 level.
   if( cls != mrbc_class_object ) {
@@ -1162,16 +1161,14 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   int m1 = (b >> 11) & 0x3f;
-  int r  = (b >> 10) & 0x01;
-  int m2 = (b >>  5) & 0x1f;
   int d  = (b >>  4) & 0x01;
 
-  if( r ) {
+  if( b & 0x400 ) {	// check REST parameter.
     // TODO: want to support.
     console_printf("Not support rest parameter by super.\n");
     return 1;
   }
-  if( m2 ) {
+  if( b & 0x3e0 ) {	// check m2 parameter.
     console_printf("ArgumentError: not support m2 or keyword argument.\n");
     return 1;		// raise?
   }
@@ -1188,9 +1185,10 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_decref(&regs[a]);
   regs[a] = val;
+
+  mrbc_incref(&regs[m1+1]);
   mrbc_decref(&regs[a+1]);
   regs[a+1] = regs[m1+1];
-  mrbc_incref(&regs[a+1]);
 
   return 0;
 }
@@ -1211,13 +1209,11 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 
   int m1 = (a >> 18) & 0x1f;	// # of required parameters 1
   int o  = (a >> 13) & 0x1f;	// # of optional parameters
-  int r  = (a >> 12) & 0x01;	// rest parameter is exists?
-  int m2 = (a >>  7) & 0x1f;	// # of required parameters 2
-  int k  = (a >>  2) & 0x1f;	// keyword argument
-  int d  = (a >>  1) & 0x01;	// dictionary parameter is exists?
+#define FLAG_REST_PARAM (a & 0x1000)
+#define FLAG_DICT_PARAM (a & 0x2)
   int argc = vm->callinfo_tail->n_args;
 
-  if( m2 || k ) {
+  if( a & 0xffc ) {	// check m2 and k parameter.
     console_printf("ArgumentError: not support m2 or keyword argument.\n");
     return 1;		// raise?
   }
@@ -1249,7 +1245,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 
   // dictionary parameter if exists.
   mrbc_value dict;
-  if( d ) {
+  if( FLAG_DICT_PARAM ) {
     if( (argc - m1) > 0 && regs[argc].tt == MRBC_TT_HASH ) {
       dict = regs[argc];
       regs[argc--].tt = MRBC_TT_EMPTY;
@@ -1260,7 +1256,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 
   // rest parameter if exists.
   mrbc_value rest;
-  if( r ) {
+  if( FLAG_REST_PARAM ) {
     int rest_size = argc - m1 - o;
     if( rest_size < 0 ) rest_size = 0;
     rest = mrbc_array_new(vm, rest_size);
@@ -1284,10 +1280,10 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     i = m1 + 1;
   }
   i += o;
-  if( r ) {
+  if( FLAG_REST_PARAM ) {
     regs[i++] = rest;
   }
-  if( d ) {
+  if( FLAG_DICT_PARAM ) {
     regs[i++] = dict;
   }
   if( argc >= i ) i = argc + 1;
@@ -1298,7 +1294,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   int jmp_ofs = argc - m1;
   if( jmp_ofs > 0 ) {
     if( jmp_ofs > o ) {
-      if( !r && regs[0].tt != MRBC_TT_PROC ) {
+      if( !FLAG_REST_PARAM && regs[0].tt != MRBC_TT_PROC ) {
 	console_printf("ArgumentError: wrong number of arguments.\n");
 	return 1;	// raise?
       }
@@ -1308,6 +1304,8 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   }
 
   return 0;
+#undef FLAG_REST_PARAM
+#undef FLAG_DICT_PARAM
 }
 
 
@@ -1462,9 +1460,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     return 1;		// raise?
   }
 
-  mrbc_decref(&regs[a]);
-
-  int offset = m1+r+d+1;
+  int offset = m1 + r + d + 1;
   mrbc_value *blk;
 
   if( lv == 0 ) {
@@ -1483,6 +1479,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
   }
 
   mrbc_incref(blk);
+  mrbc_decref(&regs[a]);
   regs[a] = *blk;
 
   return 0;
@@ -2165,11 +2162,10 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_decref(&regs[a]);
-
   mrbc_value val = mrbc_proc_new( vm, vm->pc_irep->reps[b] );
   if( !val.proc ) return -1;	// ENOMEM
 
+  mrbc_decref(&regs[a]);
   regs[a] = val;
 
   return 0;
@@ -2213,14 +2209,14 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_class *super = (regs[a+1].tt == MRBC_TT_CLASS) ? regs[a+1].cls : mrbc_class_object;
-
+  mrbc_class *super = (regs[a+1].tt == MRBC_TT_CLASS) ? regs[a+1].cls : 0;
   mrbc_class *cls = mrbc_define_class(vm, sym_name, super);
+  if( !cls ) return -1;		// ENOMEM
 
-  mrbc_value ret = {.tt = MRBC_TT_CLASS};
-  ret.cls = cls;
-
-  regs[a] = ret;
+  // (note)
+  //  regs[a] was set to NIL by compiler. So, no need to release regs[a].
+  regs[a].tt = MRBC_TT_CLASS;
+  regs[a].cls = cls;
 
   return 0;
 }
@@ -2741,8 +2737,8 @@ int mrbc_vm_run( struct VM *vm )
     case OP_EPOP:       ret = op_epop      (vm, regs); break;
     case OP_SENDV:      ret = op_dummy_BB  (vm, regs); break;
     case OP_SENDVB:     ret = op_dummy_BB  (vm, regs); break;
-    case OP_SEND:       ret = op_send      (vm, regs); break;
-    case OP_SENDB:      ret = op_send      (vm, regs); break; // to op_send
+    case OP_SEND:       // fall through
+    case OP_SENDB:      ret = op_send      (vm, regs); break;
     case OP_CALL:       ret = op_dummy_Z   (vm, regs); break;
     case OP_SUPER:      ret = op_super     (vm, regs); break;
     case OP_ARGARY:     ret = op_argary    (vm, regs); break;
@@ -2780,7 +2776,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_HASHADD:    ret = op_dummy_BB  (vm, regs); break;
     case OP_HASHCAT:    ret = op_dummy_B   (vm, regs); break;
     case OP_LAMBDA:     ret = op_dummy_BB  (vm, regs); break;
-    case OP_BLOCK:      ret = op_method    (vm, regs); break; // to op_method
+    case OP_BLOCK:      // fall through
     case OP_METHOD:     ret = op_method    (vm, regs); break;
     case OP_RANGE_INC:  // fall through
     case OP_RANGE_EXC:  ret = op_range     (vm, regs); break;
