@@ -14,7 +14,7 @@ your_project % tree -d
 |   |   |-- hal_pic24
 |   |   |-- hal_posix
 |   |   |-- hal_psoc5lp
-|   |   `-- hal_singleton
+|   |   `-- hal_user_reserved
 |   
 |-- your_src
 |   |-- hal
@@ -26,8 +26,8 @@ your_project % tree -d
 Make symlinks to your `hal.c` and `hal.h` :
 
 ```
-your_project % ln -s ../../../your_src/hal/hal.c mrubyc/src/hal_singleton/hal.c
-your_project % ln -s ../../../your_src/hal/hal.h mrubyc/src/hal_singleton/hal.h
+your_project % ln -s ../../../your_src/hal/hal.c mrubyc/src/hal_user_reserved/hal.c
+your_project % ln -s ../../../your_src/hal/hal.h mrubyc/src/hal_user_reserved/hal.h
 ```
 
 They will look like:
@@ -43,7 +43,7 @@ They will look like:
 |   |   |-- hal_pic24
 |   |   |-- hal_posix
 |   |   |-- hal_psoc5lp
-|   |   `-- hal_singleton
+|   |   `-- hal_user_reserved
 |   |       `-- hal.c -> ../../../your_src/hal/hal.c  # symlink
 |   |       `-- hal.c -> ../../../your_src/hal/hal.h  # symlink
 |   
@@ -57,6 +57,6 @@ They will look like:
 Now you can make libmrubyc.a which uses your own HAL:
 
 ```
-your_project/mrubyc $ CFLAGS=-DMRBC_USE_HAL_SINGLETON make
+your_project/mrubyc $ CFLAGS=-DMRBC_USE_HAL_user_reserved make
 ```
 
