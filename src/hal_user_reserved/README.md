@@ -57,6 +57,6 @@ They will look like:
 Now you can make libmrubyc.a which uses your own HAL:
 
 ```
-your_project/mrubyc $ CFLAGS=-DMRBC_USE_HAL_user_reserved make
+your_project/mrubyc $ CFLAGS=-DMRBC_USE_HAL_USER_RESERVED make
 ```
 
