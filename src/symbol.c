@@ -23,6 +23,7 @@
 #include "static.h"
 #include "class.h"
 #include "symbol.h"
+#include "c_object.h"
 #include "c_string.h"
 #include "c_array.h"
 #include "console.h"

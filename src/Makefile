@@ -1,16 +1,16 @@
 #
 # mruby/c  src/Makefile
 #
-# Copyright (C) 2015-2019 Kyushu Institute of Technology.
-# Copyright (C) 2015-2019 Shimane IT Open-Innovation Center.
+# Copyright (C) 2015-2020 Kyushu Institute of Technology.
+# Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 #
 #  This file is distributed under BSD 3-Clause License.
 #
 
 CFLAGS += -Wall -Wpointer-arith -g  # -std=c99 -pedantic -pedantic-errors
 
-ifdef MRBC_USE_HAL_USER_RESERVED
-  HAL_DIR = hal_user_reserved
+ifdef MRBC_USE_POSIX
+  HAL_DIR = hal_posix
 endif
 ifdef MRBC_USE_HAL_PSOC5LP
   HAL_DIR = hal_psoc5lp
@@ -21,15 +21,18 @@ endif
 ifdef MRBC_USE_HAL_PIC24
   HAL_DIR = hal_pic24
 endif
+ifdef MRBC_USE_HAL_USER_RESERVED
+  HAL_DIR = hal_user_reserved
+endif
 ifndef HAL_DIR
   HAL_DIR = hal_posix
 endif
 
-COMMON_SRCS = alloc.c class.c console.c error.c global.c keyvalue.c load.c rrt0.c static.c symbol.c value.c vm.c $(HAL_DIR)/hal.c
-RUBY_LIB_SRCS = c_array.c c_hash.c c_numeric.c c_math.c c_range.c c_string.c mrblib.c
+SRCS = alloc.c class.c console.c error.c global.c keyvalue.c load.c rrt0.c static.c symbol.c value.c vm.c $(HAL_DIR)/hal.c \
+  c_object.c c_array.c c_hash.c c_numeric.c c_math.c c_range.c c_string.c mrblib.c
 
 TARGET = libmrubyc.a
-OBJS = $(COMMON_SRCS:.c=.o) $(RUBY_LIB_SRCS:.c=.o)
+OBJS = $(SRCS:.c=.o)
 
 
 all:
@@ -59,9 +62,9 @@ global.o: global.c vm_config.h value.h static.h class.h global.h mrubyc.h \
   vm.h alloc.h symbol.h c_array.h c_hash.h c_numeric.h \
   c_range.h c_string.h load.h console.h $(HAL_DIR)/hal.h rrt0.h
 
-class.o: class.c vm_config.h value.h alloc.h class.h vm.h keyvalue.h \
-  static.h symbol.h global.h console.h $(HAL_DIR)/hal.h opcode.h load.h error.h \
-  c_array.h c_hash.h c_numeric.h c_math.h c_string.h c_range.h
+class.o: class.c vm_config.h alloc.h value.h vm.h class.h keyvalue.h \
+  static.h symbol.h global.h c_string.h c_array.h c_hash.h c_range.h \
+  console.h hal_selector.h $(HAL_DIR)/hal.h
 
 error.o: error.c vm_config.h value.h vm.h static.h
 
@@ -71,6 +74,10 @@ symbol.o: symbol.c vm_config.h value.h vm.h class.h alloc.h static.h \
 load.o: load.c vm_config.h vm.h value.h class.h load.h alloc.h
 
 console.o: console.c vm_config.h value.h console.h $(HAL_DIR)/hal.h
+
+c_object.o: c_object.c vm_config.h alloc.h value.h vm.h class.h \
+  keyvalue.h static.h symbol.h load.h c_object.h c_array.h c_hash.h \
+  console.h hal_selector.h $(HAL_DIR)/hal.h opcode.h
 
 c_array.o: c_array.c vm_config.h value.h vm.h class.h alloc.h static.h \
   c_array.h c_string.h console.h $(HAL_DIR)/hal.h opcode.h

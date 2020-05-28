@@ -27,6 +27,7 @@
 #include "symbol.h"
 #include "console.h"
 
+#include "c_object.h"
 #include "c_string.h"
 #include "c_range.h"
 #include "c_array.h"

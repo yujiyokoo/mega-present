@@ -815,143 +815,6 @@ static void c_string_split(struct VM *vm, mrbc_value v[], int argc)
 
 
 //================================================================
-/*! (method) sprintf
-*/
-static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
-{
-  static const int BUF_INC_STEP = 32;	// bytes.
-
-  mrbc_value *format = &v[1];
-  if( format->tt != MRBC_TT_STRING ) {
-    console_printf( "TypeError\n" );	// raise?
-    return;
-  }
-
-  int buflen = BUF_INC_STEP;
-  char *buf = mrbc_alloc(vm, buflen);
-  if( !buf ) { return; }	// ENOMEM raise?
-
-  mrbc_printf pf;
-  mrbc_printf_init( &pf, buf, buflen, mrbc_string_cstr(format) );
-
-  int i = 2;
-  int ret;
-  while( 1 ) {
-    mrbc_printf pf_bak = pf;
-    ret = mrbc_printf_main( &pf );
-    if( ret == 0 ) break;	// normal break loop.
-    if( ret < 0 ) goto INCREASE_BUFFER;
-
-    if( i > argc ) {console_print("ArgumentError\n"); break;}	// raise?
-
-    // maybe ret == 1
-    switch(pf.fmt.type) {
-    case 'c':
-      if( v[i].tt == MRBC_TT_FIXNUM ) {
-	ret = mrbc_printf_char( &pf, v[i].i );
-      } else if( v[i].tt == MRBC_TT_STRING ) {
-	ret = mrbc_printf_char( &pf, mrbc_string_cstr(&v[i])[0] );
-      }
-      break;
-
-    case 's':
-      if( v[i].tt == MRBC_TT_STRING ) {
-	ret = mrbc_printf_bstr( &pf, mrbc_string_cstr(&v[i]), mrbc_string_size(&v[i]),' ');
-      } else if( v[i].tt == MRBC_TT_SYMBOL ) {
-	ret = mrbc_printf_str( &pf, mrbc_symbol_cstr( &v[i] ), ' ');
-      }
-      break;
-
-    case 'd':
-    case 'i':
-    case 'u':
-      if( v[i].tt == MRBC_TT_FIXNUM ) {
-	ret = mrbc_printf_int( &pf, v[i].i, 10);
-#if MRBC_USE_FLOAT
-      } else if( v[i].tt == MRBC_TT_FLOAT ) {
-	ret = mrbc_printf_int( &pf, (mrbc_int)v[i].d, 10);
-#endif
-      } else if( v[i].tt == MRBC_TT_STRING ) {
-	mrbc_int ival = atol(mrbc_string_cstr(&v[i]));
-	ret = mrbc_printf_int( &pf, ival, 10 );
-      }
-      break;
-
-    case 'b':
-    case 'B':
-      if( v[i].tt == MRBC_TT_FIXNUM ) {
-	ret = mrbc_printf_bit( &pf, v[i].i, 1);
-      }
-      break;
-
-    case 'x':
-    case 'X':
-      if( v[i].tt == MRBC_TT_FIXNUM ) {
-	ret = mrbc_printf_bit( &pf, v[i].i, 4);
-      }
-      break;
-
-    case 'o':
-      if( v[i].tt == MRBC_TT_FIXNUM ) {
-	ret = mrbc_printf_bit( &pf, v[i].i, 3);
-      }
-      break;
-
-#if MRBC_USE_FLOAT
-    case 'f':
-    case 'e':
-    case 'E':
-    case 'g':
-    case 'G':
-      if( v[i].tt == MRBC_TT_FLOAT ) {
-	ret = mrbc_printf_float( &pf, v[i].d );
-      } else if( v[i].tt == MRBC_TT_FIXNUM ) {
-	ret = mrbc_printf_float( &pf, v[i].i );
-      }
-      break;
-#endif
-
-    default:
-      break;
-    }
-    if( ret >= 0 ) {
-      i++;
-      continue;		// normal next loop.
-    }
-
-    // maybe buffer full. (ret == -1)
-    if( pf.fmt.width > BUF_INC_STEP ) buflen += pf.fmt.width;
-    pf = pf_bak;
-
-  INCREASE_BUFFER:
-    buflen += BUF_INC_STEP;
-    buf = mrbc_realloc(vm, pf.buf, buflen);
-    if( !buf ) { return; }	// ENOMEM raise? TODO: leak memory.
-    mrbc_printf_replace_buffer(&pf, buf, buflen);
-  }
-  mrbc_printf_end( &pf );
-
-  buflen = mrbc_printf_len( &pf );
-  mrbc_realloc(vm, pf.buf, buflen+1);	// shrink suitable size.
-
-  mrbc_value value = mrbc_string_new_alloc( vm, pf.buf, buflen );
-
-  SET_RETURN(value);
-}
-
-
-//================================================================
-/*! (method) printf
-*/
-static void c_object_printf(struct VM *vm, mrbc_value v[], int argc)
-{
-  c_object_sprintf(vm, v, argc);
-  console_nprint( mrbc_string_cstr(v), mrbc_string_size(v) );
-  SET_NIL_RETURN();
-}
-
-
-//================================================================
 /*! (method) lstrip
 */
 static void c_string_lstrip(struct VM *vm, mrbc_value v[], int argc)
@@ -1284,6 +1147,244 @@ static void c_string_include(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
+
+//================================================================
+/*! (method) Object#sprintf
+*/
+static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
+{
+  static const int BUF_INC_STEP = 32;	// bytes.
+
+  mrbc_value *format = &v[1];
+  if( format->tt != MRBC_TT_STRING ) {
+    console_printf( "TypeError\n" );	// raise?
+    return;
+  }
+
+  int buflen = BUF_INC_STEP;
+  char *buf = mrbc_alloc(vm, buflen);
+  if( !buf ) { return; }	// ENOMEM raise?
+
+  mrbc_printf pf;
+  mrbc_printf_init( &pf, buf, buflen, mrbc_string_cstr(format) );
+
+  int i = 2;
+  int ret;
+  while( 1 ) {
+    mrbc_printf pf_bak = pf;
+    ret = mrbc_printf_main( &pf );
+    if( ret == 0 ) break;	// normal break loop.
+    if( ret < 0 ) goto INCREASE_BUFFER;
+
+    if( i > argc ) {console_print("ArgumentError\n"); break;}	// raise?
+
+    // maybe ret == 1
+    switch(pf.fmt.type) {
+    case 'c':
+      if( v[i].tt == MRBC_TT_FIXNUM ) {
+	ret = mrbc_printf_char( &pf, v[i].i );
+      } else if( v[i].tt == MRBC_TT_STRING ) {
+	ret = mrbc_printf_char( &pf, mrbc_string_cstr(&v[i])[0] );
+      }
+      break;
+
+    case 's':
+      if( v[i].tt == MRBC_TT_STRING ) {
+	ret = mrbc_printf_bstr( &pf, mrbc_string_cstr(&v[i]), mrbc_string_size(&v[i]),' ');
+      } else if( v[i].tt == MRBC_TT_SYMBOL ) {
+	ret = mrbc_printf_str( &pf, mrbc_symbol_cstr( &v[i] ), ' ');
+      }
+      break;
+
+    case 'd':
+    case 'i':
+    case 'u':
+      if( v[i].tt == MRBC_TT_FIXNUM ) {
+	ret = mrbc_printf_int( &pf, v[i].i, 10);
+#if MRBC_USE_FLOAT
+      } else if( v[i].tt == MRBC_TT_FLOAT ) {
+	ret = mrbc_printf_int( &pf, (mrbc_int)v[i].d, 10);
+#endif
+      } else if( v[i].tt == MRBC_TT_STRING ) {
+	mrbc_int ival = atol(mrbc_string_cstr(&v[i]));
+	ret = mrbc_printf_int( &pf, ival, 10 );
+      }
+      break;
+
+    case 'b':
+    case 'B':
+      if( v[i].tt == MRBC_TT_FIXNUM ) {
+	ret = mrbc_printf_bit( &pf, v[i].i, 1);
+      }
+      break;
+
+    case 'x':
+    case 'X':
+      if( v[i].tt == MRBC_TT_FIXNUM ) {
+	ret = mrbc_printf_bit( &pf, v[i].i, 4);
+      }
+      break;
+
+    case 'o':
+      if( v[i].tt == MRBC_TT_FIXNUM ) {
+	ret = mrbc_printf_bit( &pf, v[i].i, 3);
+      }
+      break;
+
+#if MRBC_USE_FLOAT
+    case 'f':
+    case 'e':
+    case 'E':
+    case 'g':
+    case 'G':
+      if( v[i].tt == MRBC_TT_FLOAT ) {
+	ret = mrbc_printf_float( &pf, v[i].d );
+      } else if( v[i].tt == MRBC_TT_FIXNUM ) {
+	ret = mrbc_printf_float( &pf, v[i].i );
+      }
+      break;
+#endif
+
+    default:
+      break;
+    }
+    if( ret >= 0 ) {
+      i++;
+      continue;		// normal next loop.
+    }
+
+    // maybe buffer full. (ret == -1)
+    if( pf.fmt.width > BUF_INC_STEP ) buflen += pf.fmt.width;
+    pf = pf_bak;
+
+  INCREASE_BUFFER:
+    buflen += BUF_INC_STEP;
+    buf = mrbc_realloc(vm, pf.buf, buflen);
+    if( !buf ) { return; }	// ENOMEM raise? TODO: leak memory.
+    mrbc_printf_replace_buffer(&pf, buf, buflen);
+  }
+  mrbc_printf_end( &pf );
+
+  buflen = mrbc_printf_len( &pf );
+  mrbc_realloc(vm, pf.buf, buflen+1);	// shrink suitable size.
+
+  mrbc_value value = mrbc_string_new_alloc( vm, pf.buf, buflen );
+
+  SET_RETURN(value);
+}
+
+
+//================================================================
+/*! (method) Object#printf
+*/
+static void c_object_printf(struct VM *vm, mrbc_value v[], int argc)
+{
+  c_object_sprintf(vm, v, argc);
+  console_nprint( mrbc_string_cstr(v), mrbc_string_size(v) );
+  SET_NIL_RETURN();
+}
+
+
+//================================================================
+/*! (method) Object#to_s
+ */
+static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
+{
+  char buf[32];
+  const char *s = buf;
+
+  switch( v->tt ) {
+  case MRBC_TT_CLASS:
+    s = symid_to_str( v->cls->sym_id );
+    break;
+
+  case MRBC_TT_OBJECT:{
+    // (NOTE) address part assumes 32bit. but enough for this.
+    mrbc_printf pf;
+
+    mrbc_printf_init( &pf, buf, sizeof(buf), "#<%s:%08x>" );
+    while( mrbc_printf_main( &pf ) > 0 ) {
+      switch(pf.fmt.type) {
+      case 's':
+	mrbc_printf_str( &pf, symid_to_str(v->instance->cls->sym_id), ' ' );
+	break;
+      case 'x':
+	mrbc_printf_int( &pf, (uint32_t)v->instance, 16 );
+	break;
+      }
+    }
+    mrbc_printf_end( &pf );
+  } break;
+
+  default:
+    s = "";
+    break;
+  }
+
+  SET_RETURN( mrbc_string_new_cstr( vm, s ) );
+}
+
+
+
+//================================================================
+/*! (method) Proc#to_s
+*/
+static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
+{
+  // (NOTE) address part assumes 32bit. but enough for this.
+  char buf[32];
+  mrbc_printf pf;
+
+  mrbc_printf_init( &pf, buf, sizeof(buf), "#<Proc:%08x>" );
+  while( mrbc_printf_main( &pf ) > 0 ) {
+    mrbc_printf_int( &pf, (uint32_t)v->proc, 16 );
+  }
+  mrbc_printf_end( &pf );
+
+  SET_RETURN( mrbc_string_new_cstr( vm, buf ) );
+}
+
+
+
+//================================================================
+/*! (method) Nil#inspect
+*/
+static void c_nil_inspect(struct VM *vm, mrbc_value v[], int argc)
+{
+  v[0] = mrbc_string_new_cstr(vm, "nil");
+}
+
+
+//================================================================
+/*! (method) Nil#to_s
+*/
+static void c_nil_to_s(struct VM *vm, mrbc_value v[], int argc)
+{
+  v[0] = mrbc_string_new(vm, NULL, 0);
+}
+
+
+
+//================================================================
+/*! (method) True#to_s
+*/
+static void c_true_to_s(struct VM *vm, mrbc_value v[], int argc)
+{
+  v[0] = mrbc_string_new_cstr(vm, "true");
+}
+
+
+
+//================================================================
+/*! (method) False#to_s
+*/
+static void c_false_to_s(struct VM *vm, mrbc_value v[], int argc)
+{
+  v[0] = mrbc_string_new_cstr(vm, "false");
+}
+
+
+
 //================================================================
 /*! initialize
 */
@@ -1320,15 +1421,30 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_string, "tr",	c_string_tr);
   mrbc_define_method(vm, mrbc_class_string, "tr!",	c_string_tr_self);
   mrbc_define_method(vm, mrbc_class_string, "start_with?", c_string_start_with);
-  mrbc_define_method(vm, mrbc_class_string, "end_with?", c_string_end_with);
+  mrbc_define_method(vm, mrbc_class_string, "end_with?",c_string_end_with);
   mrbc_define_method(vm, mrbc_class_string, "include?",	c_string_include);
 
 #if MRBC_USE_FLOAT
   mrbc_define_method(vm, mrbc_class_string, "to_f",	c_string_to_f);
 #endif
 
+  // add other classes methods
   mrbc_define_method(vm, mrbc_class_object, "sprintf",	c_object_sprintf);
   mrbc_define_method(vm, mrbc_class_object, "printf",	c_object_printf);
+  mrbc_define_method(vm, mrbc_class_object, "inspect",	c_object_to_s);
+  mrbc_define_method(vm, mrbc_class_object, "to_s",	c_object_to_s);
+
+  mrbc_define_method(vm, mrbc_class_proc,   "inspect",	c_proc_to_s);
+  mrbc_define_method(vm, mrbc_class_proc,   "to_s",	c_proc_to_s);
+
+  mrbc_define_method(vm, mrbc_class_nil,    "inspect",	c_nil_inspect);
+  mrbc_define_method(vm, mrbc_class_nil,    "to_s",	c_nil_to_s);
+
+  mrbc_define_method(vm, mrbc_class_true,   "inspect",	c_true_to_s);
+  mrbc_define_method(vm, mrbc_class_true,   "to_s",	c_true_to_s);
+
+  mrbc_define_method(vm, mrbc_class_false,  "inspect",	c_false_to_s);
+  mrbc_define_method(vm, mrbc_class_false,  "to_s",	c_false_to_s);
 }
 
 
