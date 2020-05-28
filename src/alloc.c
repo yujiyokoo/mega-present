@@ -696,6 +696,7 @@ int is_allocated_memory(void *tgt)
 }
 
 
+#if defined(MRBC_ALLOC_VMID)
 //================================================================
 /*! allocate memory
 
@@ -704,7 +705,6 @@ int is_allocated_memory(void *tgt)
   @return void * pointer to allocated memory.
   @retval NULL	error.
 */
-#if defined(MRBC_ALLOC_VMID)
 void * mrbc_alloc(const struct VM *vm, unsigned int size)
 {
   uint8_t *ptr = mrbc_raw_alloc(size);
@@ -714,7 +714,6 @@ void * mrbc_alloc(const struct VM *vm, unsigned int size)
 
   return ptr;
 }
-#endif
 
 
 //================================================================
@@ -724,7 +723,6 @@ void * mrbc_alloc(const struct VM *vm, unsigned int size)
 */
 void mrbc_free_all(const struct VM *vm)
 {
-#if defined(MRBC_ALLOC_VMID)
   USED_BLOCK *target = (USED_BLOCK *)memory_pool;
   USED_BLOCK *next;
   int vm_id = vm->vm_id;
@@ -736,7 +734,6 @@ void mrbc_free_all(const struct VM *vm)
     }
     target = next;
   }
-#endif
 }
 
 
@@ -762,6 +759,7 @@ int mrbc_get_vm_id(void *ptr)
 {
   return GET_VM_ID(ptr);
 }
+#endif	// defined(MRBC_ALLOC_VMID)
 
 
 #if defined(MRBC_DEBUG)
