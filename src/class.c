@@ -27,7 +27,6 @@
 #include "symbol.h"
 #include "keyvalue.h"
 #include "global.h"
-
 #include "console.h"
 
 
@@ -37,6 +36,19 @@
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
 /***** Global variables *****************************************************/
+// Builtin class table.
+mrbc_class *mrbc_class_tbl[MRBC_TT_MAXVAL+1];
+mrbc_class *mrbc_class_object;
+mrbc_class *mrbc_class_math;
+mrbc_class *mrbc_class_exception;
+mrbc_class *mrbc_class_standarderror;
+mrbc_class *mrbc_class_runtimeerror;
+mrbc_class *mrbc_class_zerodivisionerror;
+mrbc_class *mrbc_class_argumenterror;
+mrbc_class *mrbc_class_indexerror;
+mrbc_class *mrbc_class_typeerror;
+
+
 /***** Signal catching functions ********************************************/
 /***** Local functions ******************************************************/
 /***** Global functions *****************************************************/

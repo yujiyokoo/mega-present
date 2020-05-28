@@ -18,7 +18,6 @@
 #include "value.h"
 #include "vm.h"
 #include "alloc.h"
-#include "static.h"
 #include "class.h"
 #include "c_array.h"
 #include "c_hash.h"

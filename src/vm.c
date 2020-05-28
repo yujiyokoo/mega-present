@@ -20,7 +20,6 @@
 #include "vm.h"
 #include "alloc.h"
 #include "load.h"
-#include "static.h"
 #include "global.h"
 #include "opcode.h"
 #include "class.h"

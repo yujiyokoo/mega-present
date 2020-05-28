@@ -26,7 +26,6 @@ extern "C" {
 /***** Local headers ********************************************************/
 #include "value.h"
 #include "keyvalue.h"
-#include "static.h"
 
 
 /***** Constant values ******************************************************/
@@ -83,6 +82,29 @@ typedef struct RProc mrb_proc;
 
 
 /***** Global variables *****************************************************/
+extern struct RClass *mrbc_class_tbl[];
+#define mrbc_class_nil		mrbc_class_tbl[ MRBC_TT_NIL ]
+#define mrbc_class_false	mrbc_class_tbl[ MRBC_TT_FALSE ]
+#define mrbc_class_true		mrbc_class_tbl[ MRBC_TT_TRUE ]
+#define mrbc_class_fixnum	mrbc_class_tbl[ MRBC_TT_FIXNUM ]
+#define mrbc_class_float	mrbc_class_tbl[ MRBC_TT_FLOAT ]
+#define mrbc_class_symbol	mrbc_class_tbl[ MRBC_TT_SYMBOL ]
+#define mrbc_class_proc		mrbc_class_tbl[ MRBC_TT_PROC ]
+#define mrbc_class_array	mrbc_class_tbl[ MRBC_TT_ARRAY ]
+#define mrbc_class_string	mrbc_class_tbl[ MRBC_TT_STRING ]
+#define mrbc_class_range	mrbc_class_tbl[ MRBC_TT_RANGE ]
+#define mrbc_class_hash		mrbc_class_tbl[ MRBC_TT_HASH ]
+extern struct RClass *mrbc_class_object;
+extern struct RClass *mrbc_class_math;
+extern struct RClass *mrbc_class_exception;
+extern struct RClass *mrbc_class_standarderror;
+extern struct RClass *mrbc_class_runtimeerror;
+extern struct RClass *mrbc_class_zerodivisionerror;
+extern struct RClass *mrbc_class_argumenterror;
+extern struct RClass *mrbc_class_indexerror;
+extern struct RClass *mrbc_class_typeerror;
+
+
 /***** Function prototypes **************************************************/
 mrbc_class *mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super);
 void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_func_t cfunc);

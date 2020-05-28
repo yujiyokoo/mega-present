@@ -20,7 +20,6 @@
 #include "value.h"
 #include "vm.h"
 #include "alloc.h"
-#include "static.h"
 #include "class.h"
 #include "symbol.h"
 #include "c_array.h"
