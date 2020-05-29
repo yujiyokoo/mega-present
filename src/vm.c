@@ -2109,9 +2109,7 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
     m->func(vm, regs+a+1, 0);
   }
 
-  mrbc_value v = mrbc_string_add(vm, &regs[a], &regs[a+1]);
-  mrbc_decref(&regs[a]);
-  regs[a] = v;
+  mrbc_string_append(&regs[a], &regs[a+1]);
 
 #else
   not_supported();
