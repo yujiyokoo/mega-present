@@ -35,7 +35,6 @@ SRCS = $(HAL_DIR)/hal.c alloc.c keyvalue.c value.c global.c class.c symbol.c \
 OBJS = $(SRCS:.c=.o)
 
 
-.PHONY: all
 all:
 	$(MAKE) $(TARGET)
 
@@ -54,8 +53,8 @@ c_math.o: c_math.c vm_config.h value.h class.h keyvalue.h
 c_numeric.o: c_numeric.c vm_config.h opcode.h value.h class.h keyvalue.h \
   console.h hal_selector.h $(HAL_DIR)/hal.h c_numeric.h vm.h c_string.h
 c_object.o: c_object.c vm_config.h alloc.h value.h vm.h class.h \
-  keyvalue.h symbol.h load.h c_object.h c_array.h c_hash.h console.h \
-  hal_selector.h $(HAL_DIR)/hal.h opcode.h
+  keyvalue.h symbol.h load.h c_object.h c_string.h c_array.h c_hash.h \
+  console.h hal_selector.h $(HAL_DIR)/hal.h opcode.h
 c_range.o: c_range.c vm_config.h value.h alloc.h class.h keyvalue.h \
   c_range.h c_string.h console.h hal_selector.h $(HAL_DIR)/hal.h opcode.h
 c_string.o: c_string.c vm_config.h value.h vm.h class.h keyvalue.h \
@@ -87,6 +86,5 @@ vm.o: vm.c vm_config.h vm.h value.h class.h keyvalue.h alloc.h load.h \
   c_object.h c_string.h c_range.h c_array.h c_hash.h
 
 
-.PHONY: clean
 clean:
 	@rm -Rf $(TARGET) $(OBJS) *~
