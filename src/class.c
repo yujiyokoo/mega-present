@@ -100,7 +100,7 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 {
   if( cls == NULL ) cls = mrbc_class_object;	// set default to Object.
 
-  mrbc_proc *proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
+  mrbc_proc *proc = (mrbc_proc *)mrbc_raw_alloc_no_free(sizeof(mrbc_proc));
   if( !proc ) return;	// ENOMEM
 
   proc->ref_count = 1;
