@@ -20,13 +20,13 @@
 #include "vm.h"
 #include "alloc.h"
 #include "load.h"
-#include "static.h"
 #include "global.h"
 #include "opcode.h"
 #include "class.h"
 #include "symbol.h"
 #include "console.h"
 
+#include "c_object.h"
 #include "c_string.h"
 #include "c_range.h"
 #include "c_array.h"
@@ -2283,9 +2283,19 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
   for( ;proc->next != NULL; proc = proc->next ) {
     if( proc->next->sym_id == sym_id ) {
       // Found it. Unchain it in linked list and remove.
-      mrbc_proc *del_proc = proc->next;
+      mrbc_value del_proc = {.tt = MRBC_TT_PROC};
+      del_proc.proc = proc->next;
       proc->next = proc->next->next;
-      mrbc_raw_free( del_proc );
+
+      /* (note)
+	 Case c_func == 1 is defined by mrbc_define_method() function.
+	 That function uses mrbc_raw_alloc_no_free() to allocate memory.
+	 Thus not free this memory.
+	 Case c_func == 0 is defined by mrbc_proc_new() function.
+      */
+      if( !del_proc.proc->c_func ) {
+	mrbc_decref( &del_proc );
+      }
       break;
     }
   }

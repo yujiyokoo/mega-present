@@ -21,9 +21,10 @@
 
 /***** Local headers ********************************************************/
 #include "alloc.h"
-#include "static.h"
 #include "load.h"
 #include "class.h"
+#include "global.h"
+#include "c_object.h"
 #include "vm.h"
 #include "console.h"
 #include "rrt0.h"
@@ -376,9 +377,10 @@ void mrbc_tick(void)
 */
 void mrbc_init(uint8_t *ptr, unsigned int size )
 {
-  mrbc_init_alloc(ptr, size);
-  init_static();
   hal_init();
+  mrbc_init_alloc(ptr, size);
+  mrbc_init_global();
+  mrbc_init_class();
 
 
   // TODO 関数呼び出しが、c_XXX => mrbc_XXX の daisy chain になっている。

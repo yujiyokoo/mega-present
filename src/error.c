@@ -18,7 +18,6 @@
 #include <string.h>
 #include "vm.h"
 #include "error.h"
-#include "static.h"
 #include "c_string.h"
 
 

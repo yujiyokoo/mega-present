@@ -3,8 +3,8 @@
   console output module. (not yet input)
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -14,17 +14,25 @@
 #ifndef MRBC_SRC_CONSOLE_H_
 #define MRBC_SRC_CONSOLE_H_
 
-#include <stdint.h>
-#include <stdarg.h>
-#include <string.h>
-#include "hal_selector.h"
-#include "value.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/***** Feature test switches ************************************************/
+#include "vm_config.h"
 
+/***** System headers *******************************************************/
+#include <stdint.h>
+#include <stdarg.h>
+#include <string.h>
+
+/***** Local headers ********************************************************/
+#include "hal_selector.h"
+#include "value.h"
+
+/***** Constant values ******************************************************/
+/***** Macros ***************************************************************/
+/***** Typedefs *************************************************************/
 //================================================================
 /*! printf tiny (mruby/c) version data container.
 */
@@ -46,6 +54,8 @@ typedef struct RPrintf {
 } mrbc_printf;
 
 
+/***** Global variables *****************************************************/
+/***** Function prototypes **************************************************/
 void console_printf(const char *fstr, ...);
 int mrbc_printf_main(mrbc_printf *pf);
 int mrbc_printf_char(mrbc_printf *pf, int ch);
@@ -54,7 +64,12 @@ int mrbc_printf_int(mrbc_printf *pf, mrbc_int value, int base);
 int mrbc_printf_bit(mrbc_printf *pf, mrbc_int value, int bit);
 int mrbc_printf_float(mrbc_printf *pf, double value);
 void mrbc_printf_replace_buffer(mrbc_printf *pf, char *buf, int size);
+int mrbc_p_sub(const mrbc_value *v);
+int mrbc_print_sub(const mrbc_value *v);
+int mrbc_puts_sub(const mrbc_value *v);
 
+
+/***** Inline functions *****************************************************/
 
 //================================================================
 /*! output a character

@@ -21,7 +21,6 @@
 #endif
 
 #include "value.h"
-#include "static.h"
 #include "class.h"
 #include "console.h"
 #include "c_numeric.h"

@@ -55,12 +55,12 @@ void make_class(mrb_vm *vm)
 
 void mrubyc(uint8_t *mrbbuf)
 {
-  struct VM *vm;
-
+  hal_init();
   mrbc_init_alloc(memory_pool, MEMORY_SIZE);
-  init_static();
+  mrbc_init_global();
+  mrbc_init_class();
 
-  vm = mrbc_vm_open(NULL);
+  mrbc_vm *vm = mrbc_vm_open(NULL);
   if( vm == 0 ) {
     fprintf(stderr, "Error: Can't open VM.\n");
     return;

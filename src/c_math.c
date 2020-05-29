@@ -15,7 +15,6 @@
 #include <math.h>
 
 #include "value.h"
-#include "static.h"
 #include "class.h"
 
 

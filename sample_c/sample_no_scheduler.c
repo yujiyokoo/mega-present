@@ -42,7 +42,9 @@ void mrubyc(uint8_t *mrbbuf)
 {
   hal_init();
   mrbc_init_alloc(memory_pool, MEMORY_SIZE);
-  init_static();
+  mrbc_init_global();
+  mrbc_init_class();
+
 
   mrbc_vm *vm = mrbc_vm_open(NULL);
   if( vm == NULL ) {

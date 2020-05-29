@@ -14,7 +14,6 @@
 #include "vm_config.h"
 #include "value.h"
 #include "alloc.h"
-#include "static.h"
 #include "class.h"
 #include "c_range.h"
 #include "c_string.h"
