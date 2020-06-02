@@ -56,6 +56,8 @@ typedef struct RPrintf {
 
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
+void console_putchar(char c);
+void console_nprint(const char *str, int size);
 void console_printf(const char *fstr, ...);
 int mrbc_printf_main(mrbc_printf *pf);
 int mrbc_printf_char(mrbc_printf *pf, int ch);
@@ -72,36 +74,13 @@ int mrbc_puts_sub(const mrbc_value *v);
 /***** Inline functions *****************************************************/
 
 //================================================================
-/*! output a character
-
-  @param  c	character
-*/
-static inline void console_putchar(char c)
-{
-  hal_write(1, &c, 1);
-}
-
-
-//================================================================
 /*! output string
 
   @param str	str
 */
 static inline void console_print(const char *str)
 {
-  hal_write(1, str, strlen(str));
-}
-
-
-//================================================================
-/*! output string with length parameter.
-
-  @param str	str
-  @param size	byte length.
-*/
-static inline void console_nprint(const char *str, int size)
-{
-  hal_write(1, str, size);
+  console_nprint( str, strlen(str) );
 }
 
 

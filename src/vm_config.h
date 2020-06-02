@@ -40,6 +40,12 @@
 //  MRBC_ALLOC_16BIT or MRBC_ALLOC_24BIT
 #define MRBC_ALLOC_24BIT
 
+
+// Console new-line mode.
+//  If you need to convert LF to CRLF in console output, enable the following:
+// #define MRBC_CONVERT_CRLF
+
+
 /* Configure environment
    0: NOT USE
    1: USE

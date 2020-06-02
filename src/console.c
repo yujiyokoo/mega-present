@@ -46,6 +46,58 @@
 /***** Global functions *****************************************************/
 
 //================================================================
+/*! output a character
+
+  @param  c	character
+*/
+void console_putchar(char c)
+{
+#if defined(MRBC_CONVERT_CRLF)
+  static const char CRLF[2] = "\r\n";
+  if( c == '\n' ) {
+    hal_write(1, CRLF, 2);
+  } else {
+    hal_write(1, &c, 1);
+  }
+
+#else
+    hal_write(1, &c, 1);
+#endif
+}
+
+
+//================================================================
+/*! output string with length parameter.
+
+  @param str	str
+  @param size	byte length.
+*/
+void console_nprint(const char *str, int size)
+{
+#if defined(MRBC_CONVERT_CRLF)
+  static const char CRLF[2] = "\r\n";
+  const char *p1 = str;
+  const char *p2 = str;
+  int i;
+
+  for( i = 0; i < size; i++ ) {
+    if( *p1++ == '\n' ) {
+      hal_write(1, p2, p1 - p2 - 1);
+      hal_write(1, CRLF, 2);
+      p2 = p1;
+    }
+  }
+  if( p1 != p2 ) {
+    hal_write(1, p2, p1 - p2);
+  }
+
+#else
+  hal_write(1, str, size);
+#endif
+}
+
+
+//================================================================
 /*! output formatted string
 
   @param  fstr		format string.
@@ -63,7 +115,7 @@ void console_printf(const char *fstr, ...)
   while( 1 ) {
     ret = mrbc_printf_main( &pf );
     if( mrbc_printf_len( &pf ) ) {
-      hal_write(1, buf, mrbc_printf_len( &pf ));
+      console_nprint( buf, mrbc_printf_len( &pf ) );
       mrbc_printf_clear( &pf );
     }
     if( ret == 0 ) break;
@@ -112,7 +164,7 @@ void console_printf(const char *fstr, ...)
 	break;
       }
 
-      hal_write(1, buf, mrbc_printf_len( &pf ));
+      console_nprint( buf, mrbc_printf_len( &pf ) );
       mrbc_printf_clear( &pf );
     }
   }
