@@ -1909,6 +1909,15 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  if( regs[a].tt == MRBC_TT_NIL ){
+    // arycat(nil, [...]) #=> [...]
+    assert( regs[a+1].tt == MRBC_TT_ARRAY );
+    regs[a] = regs[a+1];
+    regs[a+1].tt = MRBC_TT_NIL;
+      
+    return 0;
+  }
+  
   assert( regs[a  ].tt == MRBC_TT_ARRAY );
   assert( regs[a+1].tt == MRBC_TT_ARRAY );
 
