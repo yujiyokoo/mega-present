@@ -204,9 +204,12 @@ typedef struct RObject mrbc_value;
 #define SET_FLOAT_RETURN(n)	do { mrbc_float nnn = (n); \
     mrbc_decref(v); v[0].tt = MRBC_TT_FLOAT; v[0].d = nnn; } while(0)
 
+#define GET_TT_ARG(n)		(v[(n)].tt)
 #define GET_INT_ARG(n)		(v[(n)].i)
+#define GET_ARY_ARG(n)		(v[(n)])
 #define GET_ARG(n)		(v[(n)])
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
+#define GET_STRING_ARG(n)	(v[(n)].string->data)
 
 
 /***** Global variables *****************************************************/
