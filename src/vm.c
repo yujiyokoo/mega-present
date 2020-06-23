@@ -33,6 +33,20 @@
 #include "c_hash.h"
 
 
+/***** Macros ***************************************************************/
+/*
+   Top-level return immediately stops the program (task) and
+   doesn't handle its arguments
+ */
+#define STOP_IF_TOPLEVEL()            \
+  do {                                \
+    if( vm->callinfo_tail == NULL ){  \
+      vm->flag_preemption = 1;        \
+      return -1;                      \
+    }                                 \
+  } while (0)
+
+
 static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
 
@@ -1320,6 +1334,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 */
 static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 {
+  STOP_IF_TOPLEVEL();
   FETCH_B();
 
   mrbc_decref(&regs[0]);
@@ -1329,12 +1344,6 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   // nregs to release
   int nregs = vm->pc_irep->nregs;
 
-  // restore irep,pc,reg
-  if( vm->callinfo_tail == NULL ){
-    // OP_RETURN in ensure
-    vm->exc = vm->exc_pending;
-    return 0;
-  }
   mrbc_pop_callinfo(vm);
 
   // clear stacked arguments
@@ -1358,6 +1367,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 */
 static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 {
+  STOP_IF_TOPLEVEL();
   FETCH_B();
 
   int nregs = vm->pc_irep->nregs;
