@@ -15,17 +15,21 @@
 #ifndef MRBC_SRC_VALUE_H_
 #define MRBC_SRC_VALUE_H_
 
-#include <stdint.h>
-#include <assert.h>
-#include "vm_config.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/***** Feature test switches ************************************************/
+/***** System headers *******************************************************/
+#include <stdint.h>
+#include <assert.h>
+#include "vm_config.h"
+
+/***** Local headers ********************************************************/
+/***** Constant values ******************************************************/
+/***** Typedefs *************************************************************/
 // pre define of some struct
 struct VM;
-struct IREP;
 struct RObject;
 struct RClass;
 struct RInstance;
@@ -138,6 +142,42 @@ typedef struct RObject mrbc_object;
 typedef struct RObject mrbc_value;
 
 
+/***** Macros ***************************************************************/
+
+// getters
+#define mrb_type(o)		((o).tt)
+#define mrb_fixnum(o)		((o).i)
+#define mrb_float(o)		((o).d)
+#define mrb_symbol(o)		((o).i)
+
+// setters
+#define mrbc_set_fixnum(p,n)	(p)->tt = MRBC_TT_FIXNUM; (p)->i = (n)
+#define mrbc_set_float(p,n)	(p)->tt = MRBC_TT_FLOAT; (p)->d = (n)
+#define mrbc_set_nil(p)		(p)->tt = MRBC_TT_NIL
+#define mrbc_set_true(p)	(p)->tt = MRBC_TT_TRUE
+#define mrbc_set_false(p)	(p)->tt = MRBC_TT_FALSE
+#define mrbc_set_bool(p,n)	(p)->tt = (n)? MRBC_TT_TRUE: MRBC_TT_FALSE
+#define mrbc_set_symbol(p,n)	(p)->tt = MRBC_TT_SYMBOL; (p)->i = (n)
+
+// make immediate values.
+#define mrbc_fixnum_value(n)	((mrbc_value){.tt = MRBC_TT_FIXNUM, .i=(n)})
+#define mrbc_float_value(vm,n)	((mrbc_value){.tt = MRBC_TT_FLOAT, .d=(n)})
+#define mrbc_nil_value()	((mrbc_value){.tt = MRBC_TT_NIL})
+#define mrbc_true_value()	((mrbc_value){.tt = MRBC_TT_TRUE})
+#define mrbc_false_value()	((mrbc_value){.tt = MRBC_TT_FALSE})
+#define mrbc_bool_value(n)	((mrbc_value){.tt = (n)?MRBC_TT_TRUE:MRBC_TT_FALSE})
+#define mrbc_symbol_value(n)	((mrbc_value){.tt = MRBC_TT_SYMBOL, .i=(n)})
+
+// (for mruby compatible)
+#define mrb_fixnum_value(n)	mrbc_fixnum_value(n)
+#define mrb_float_value(vm,n)	mrbc_float_value(vm,n)
+#define mrb_nil_value()		mrbc_nil_value()
+#define mrb_true_value()	mrbc_true_value()
+#define mrb_false_value()	mrbc_false_value()
+#define mrb_bool_value(n)	mrbc_bool_value(n)
+#define mrb_symbol_value(n)	mrbc_bool_value(n)
+
+
 // for C call
 #define SET_RETURN(n)		do { mrbc_value nnn = (n); \
     mrbc_decref(v); v[0] = nnn; } while(0)
@@ -154,119 +194,22 @@ typedef struct RObject mrbc_value;
 #define SET_FLOAT_RETURN(n)	do { mrbc_float nnn = (n); \
     mrbc_decref(v); v[0].tt = MRBC_TT_FLOAT; v[0].d = nnn; } while(0)
 
-#define GET_TT_ARG(n)		(v[(n)].tt)
 #define GET_INT_ARG(n)		(v[(n)].i)
-#define GET_ARY_ARG(n)		(v[(n)])
 #define GET_ARG(n)		(v[(n)])
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
-#define GET_STRING_ARG(n)	(v[(n)].string->data)
-
-#define mrbc_fixnum_value(n)	((mrbc_value){.tt = MRBC_TT_FIXNUM, .i=(n)})
-#define mrbc_float_value(n)	((mrbc_value){.tt = MRBC_TT_FLOAT, .d=(n)})
-#define mrbc_nil_value()	((mrbc_value){.tt = MRBC_TT_NIL})
-#define mrbc_true_value()	((mrbc_value){.tt = MRBC_TT_TRUE})
-#define mrbc_false_value()	((mrbc_value){.tt = MRBC_TT_FALSE})
-#define mrbc_bool_value(n)	((mrbc_value){.tt = (n)?MRBC_TT_TRUE:MRBC_TT_FALSE})
-
-#define mrbc_set_fixnum(p,n)	(p)->tt = MRBC_TT_FIXNUM; (p)->i = (n)
-#define mrbc_set_float(p,n)	(p)->tt = MRBC_TT_FLOAT; (p)->d = (n)
-#define mrbc_set_nil(p)		(p)->tt = MRBC_TT_NIL
-#define mrbc_set_true(p)	(p)->tt = MRBC_TT_TRUE
-#define mrbc_set_false(p)	(p)->tt = MRBC_TT_FALSE
-#define mrbc_set_bool(p,n)	(p)->tt = (n)? MRBC_TT_TRUE: MRBC_TT_FALSE
 
 
+/***** Global variables *****************************************************/
 extern void (* const mrbc_delfunc[])(mrbc_value *);
+
+
+/***** Function prototypes **************************************************/
 int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2);
 void mrbc_clear_vm_id(mrbc_value *v);
 mrbc_int mrbc_atoi(const char *s, int base);
 
 
-// (mruby compatible functions.)
-
-//================================================================
-/*!@brief
-  Returns a fixnum in mruby/c.
-
-  @param  n	int value
-  @return	mrbc_value of type fixnum.
-*/
-static inline mrbc_value mrb_fixnum_value( mrbc_int n )
-{
-  mrbc_value value = {.tt = MRBC_TT_FIXNUM};
-  value.i = n;
-  return value;
-}
-
-
-#if MRBC_USE_FLOAT
-//================================================================
-/*!@brief
-  Returns a float in mruby/c.
-
-  @param  n	dluble value
-  @return	mrbc_value of type float.
-*/
-static inline mrbc_value mrb_float_value( mrbc_float n )
-{
-  mrbc_value value = {.tt = MRBC_TT_FLOAT};
-  value.d = n;
-  return value;
-}
-#endif
-
-
-//================================================================
-/*!@brief
-  Returns a nil in mruby/c.
-
-  @return	mrbc_value of type nil.
-*/
-static inline mrbc_value mrb_nil_value(void)
-{
-  mrbc_value value = {.tt = MRBC_TT_NIL};
-  return value;
-}
-
-
-//================================================================
-/*!@brief
-  Returns a true in mruby/c.
-
-  @return	mrbc_value of type true.
-*/
-static inline mrbc_value mrb_true_value(void)
-{
-  mrbc_value value = {.tt = MRBC_TT_TRUE};
-  return value;
-}
-
-
-//================================================================
-/*!@brief
-  Returns a false in mruby/c.
-
-  @return	mrbc_value of type false.
-*/
-static inline mrbc_value mrb_false_value(void)
-{
-  mrbc_value value = {.tt = MRBC_TT_FALSE};
-  return value;
-}
-
-
-//================================================================
-/*!@brief
-  Returns a true or false in mruby/c.
-
-  @return	mrbc_value of type false.
-*/
-static inline mrbc_value mrb_bool_value( int n )
-{
-  mrbc_value value = {.tt = n ? MRBC_TT_TRUE : MRBC_TT_FALSE};
-  return value;
-}
-
+/***** Inline functions *****************************************************/
 
 //================================================================
 /*! Increment reference counter

@@ -854,7 +854,7 @@ static void c_nil_to_h(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_nil_to_f(struct VM *vm, mrbc_value v[], int argc)
 {
-  v[0] = mrbc_float_value(0);
+  v[0] = mrbc_float_value(vm,0);
 }
 #endif
 

@@ -670,3 +670,15 @@ int mrbc_puts_sub(const mrbc_value *v)
 
   return mrbc_print_sub(v);
 }
+
+
+//================================================================
+/*! p - print mrbc_value
+
+  @param  v	pointer to target value.
+*/
+void mrbc_p(const mrbc_value *v)
+{
+  mrbc_p_sub( v );
+  console_putchar('\n');
+}
