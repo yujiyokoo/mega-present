@@ -36,7 +36,13 @@ struct RInstance;
 struct RProc;
 
 // mrbc types
+#if defined(MRBC_INT16)
+typedef int16_t mrbc_int;
+#elif defined(MRBC_INT64)
+typedef int64_t mrbc_int;
+#else
 typedef int32_t mrbc_int;
+#endif
 typedef double mrbc_float;
 typedef int16_t mrbc_sym;
 typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
