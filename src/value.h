@@ -151,10 +151,10 @@ typedef struct RObject mrbc_value;
 /***** Macros ***************************************************************/
 
 // getters
-#define mrb_type(o)		((o).tt)
-#define mrb_fixnum(o)		((o).i)
-#define mrb_float(o)		((o).d)
-#define mrb_symbol(o)		((o).i)
+#define mrbc_type(o)		((o).tt)
+#define mrbc_fixnum(o)		((o).i)
+#define mrbc_float(o)		((o).d)
+#define mrbc_symbol(o)		((o).i)
 
 // setters
 #define mrbc_set_fixnum(p,n)	(p)->tt = MRBC_TT_FIXNUM; (p)->i = (n)
@@ -175,6 +175,10 @@ typedef struct RObject mrbc_value;
 #define mrbc_symbol_value(n)	((mrbc_value){.tt = MRBC_TT_SYMBOL, .i=(n)})
 
 // (for mruby compatible)
+#define mrb_type(o)		mrbc_type(o)
+#define mrb_fixnum(o)		mrbc_fixnum(o)
+#define mrb_float(o)		mrbc_float(o)
+#define mrb_symbol(o)		mrbc_symbol(o)
 #define mrb_fixnum_value(n)	mrbc_fixnum_value(n)
 #define mrb_float_value(vm,n)	mrbc_float_value(vm,n)
 #define mrb_nil_value()		mrbc_nil_value()
