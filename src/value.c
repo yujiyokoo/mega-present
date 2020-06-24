@@ -56,7 +56,9 @@ void (* const mrbc_delfunc[])(mrbc_value *) = {
 */
 int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
 {
+#if MRBC_USE_FLOAT
   mrbc_float d1, d2;
+#endif
 
   // if TT_XXX is different
   if( v1->tt != v2->tt ) {

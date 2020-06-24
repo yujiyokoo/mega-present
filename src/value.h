@@ -43,7 +43,11 @@ typedef int64_t mrbc_int;
 #else
 typedef int32_t mrbc_int;
 #endif
+#if MRBC_USE_FLOAT == 1
+typedef float mrbc_float;
+#elif MRBC_USE_FLOAT == 2
 typedef double mrbc_float;
+#endif
 typedef int16_t mrbc_sym;
 typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 
