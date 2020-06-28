@@ -1334,17 +1334,18 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 */
 static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 {
-  STOP_IF_TOPLEVEL();
   FETCH_B();
 
   mrbc_decref(&regs[0]);
   regs[0] = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
-  // nregs to release
-  int nregs = vm->pc_irep->nregs;
+  STOP_IF_TOPLEVEL();
 
   mrbc_pop_callinfo(vm);
+
+  // nregs to release
+  int nregs = vm->pc_irep->nregs;
 
   // clear stacked arguments
   int i;
@@ -1367,7 +1368,6 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 */
 static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 {
-  STOP_IF_TOPLEVEL();
   FETCH_B();
 
   int nregs = vm->pc_irep->nregs;
@@ -1393,6 +1393,8 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
   mrbc_decref( p_reg );
   *p_reg = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
+
+  STOP_IF_TOPLEVEL();
 
   mrbc_pop_callinfo(vm);
 
