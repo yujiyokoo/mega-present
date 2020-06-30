@@ -645,9 +645,19 @@ static void c_string_empty(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_string_getbyte(struct VM *vm, mrbc_value v[], int argc)
 {
-  int i = (uint8_t)mrbc_string_cstr(v)[ v[1].i ];
+  mrbc_int i = mrbc_fixnum(v[1]);
+  int len = mrbc_string_size(&v[0]);
 
-  SET_INT_RETURN( i );
+  if( i >= 0 ) {
+    if( i >= len ) i = -1;
+  } else {
+    i += len;
+  }
+  if( i >= 0 ) {
+    SET_INT_RETURN( mrbc_string_cstr(v)[i] );
+  } else {
+    SET_NIL_RETURN();
+  }
 }
 
 
