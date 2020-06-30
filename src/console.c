@@ -672,7 +672,7 @@ int mrbc_puts_sub(const mrbc_value *v)
 
 
 //================================================================
-/*! p - print mrbc_value
+/*! p - print mrbc_value (BETA)
 
   @param  v	pointer to target value.
 */
