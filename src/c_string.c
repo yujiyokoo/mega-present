@@ -145,6 +145,17 @@ void mrbc_string_delete(mrbc_value *str)
 
 
 //================================================================
+/*! clear content
+*/
+void mrbc_string_clear(mrbc_value *str)
+{
+  mrbc_raw_realloc(str->string->data, 1);
+  str->string->data[0] = '\0';
+  str->string->size = 0;
+}
+
+
+//================================================================
 /*! clear vm_id
 */
 void mrbc_string_clear_vm_id(mrbc_value *str)
@@ -586,6 +597,15 @@ static void c_string_chomp(struct VM *vm, mrbc_value v[], int argc)
   mrbc_string_chomp(&ret);
 
   SET_RETURN(ret);
+}
+
+
+//================================================================
+/*! (method) clear
+*/
+static void c_string_clear(struct VM *vm, mrbc_value v[], int argc)
+{
+  mrbc_string_clear(&v[0]);
 }
 
 
@@ -1162,6 +1182,7 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_string, "<<",	c_string_append);
   mrbc_define_method(vm, mrbc_class_string, "[]",	c_string_slice);
   mrbc_define_method(vm, mrbc_class_string, "[]=",	c_string_insert);
+  mrbc_define_method(vm, mrbc_class_string, "clear",	c_string_clear);
   mrbc_define_method(vm, mrbc_class_string, "chomp",	c_string_chomp);
   mrbc_define_method(vm, mrbc_class_string, "chomp!",	c_string_chomp_self);
   mrbc_define_method(vm, mrbc_class_string, "dup",	c_string_dup);
