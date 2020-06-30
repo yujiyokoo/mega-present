@@ -32,6 +32,8 @@ extern "C" {
 
 /***** Constant values ******************************************************/
 /***** Macros ***************************************************************/
+#define mrb_p(vm, v)	mrbc_p(&v)
+
 /***** Typedefs *************************************************************/
 //================================================================
 /*! printf tiny (mruby/c) version data container.
@@ -69,6 +71,7 @@ void mrbc_printf_replace_buffer(mrbc_printf *pf, char *buf, int size);
 int mrbc_p_sub(const mrbc_value *v);
 int mrbc_print_sub(const mrbc_value *v);
 int mrbc_puts_sub(const mrbc_value *v);
+void mrbc_p(const mrbc_value *v);
 
 
 /***** Inline functions *****************************************************/

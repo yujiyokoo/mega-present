@@ -48,11 +48,12 @@
 
 /* Configure environment
    0: NOT USE
-   1: USE
+   1: USE float
+   2: USE double
 */
 // USE Float. Support Float class.
 #if !defined(MRBC_USE_FLOAT)
-#define MRBC_USE_FLOAT 1
+#define MRBC_USE_FLOAT 2
 #endif
 
 // Use math. Support Math class.
