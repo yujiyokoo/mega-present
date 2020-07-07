@@ -466,59 +466,36 @@ static void c_string_append(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_string_slice(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_value *v1 = &v[1];
-  mrbc_value *v2 = &v[2];
+  int target_len = mrbc_string_size(v);
+  int pos = mrbc_fixnum(v[1]);
+  int len;
 
-  /*
-    in case of slice(nth) -> String | nil
-  */
-  if( argc == 1 && mrbc_type(*v1) == MRBC_TT_FIXNUM ) {
-    int len = mrbc_string_size(&v[0]);
-    mrbc_int idx = mrbc_fixnum(*v1);
+  // in case of slice!(nth) -> String | nil
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_FIXNUM ) {
+    len = 1;
 
-    if( idx >= 0 ) {
-      if( idx >= len ) idx = -1;
-    } else {
-      idx += len;
-    }
-    if( idx < 0 ) goto RETURN_NIL;
+  // in case of slice!(nth, len) -> String | nil
+  } else if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_FIXNUM &&
+	                  mrbc_type(v[2]) == MRBC_TT_FIXNUM ) {
+    len = mrbc_fixnum(v[2]);
 
-    mrbc_value value = mrbc_string_new(vm, NULL, 1);
-    if( !value.string ) goto RETURN_NIL;		// ENOMEM
-
-    value.string->data[0] = mrbc_string_cstr(&v[0])[idx];
-    value.string->data[1] = '\0';
-    SET_RETURN(value);
-    return;		// normal return
+  // other case
+  } else {
+    console_print( "Not support such case in String#[].\n" );
+    goto RETURN_NIL;
   }
 
-  /*
-    in case of slice(nth, len) -> String | nil
-  */
-  if( argc == 2 && mrbc_type(*v1) == MRBC_TT_FIXNUM &&
-                   mrbc_type(*v2) == MRBC_TT_FIXNUM ) {
-    int len = mrbc_string_size(&v[0]);
-    mrbc_int idx = mrbc_fixnum(*v1);
-    if( idx < 0 ) idx += len;
-    if( idx < 0 ) goto RETURN_NIL;
+  if( pos < 0 ) pos += target_len;
+  if( pos < 0 ) goto RETURN_NIL;
+  if( len > (target_len - pos) ) len = target_len - pos;
+  if( len < 0 ) goto RETURN_NIL;
+  if( argc == 1 && len <= 0 ) goto RETURN_NIL;
 
-    int rlen = (mrbc_fixnum(*v2) < (len-idx)) ? mrbc_fixnum(*v2): (len-idx);
-					// min( mrbc_fixnum(*v2), (len-idx) )
-    if( rlen < 0 ) goto RETURN_NIL;
+  mrbc_value ret = mrbc_string_new(vm, mrbc_string_cstr(v) + pos, len);
+  if( !ret.string ) goto RETURN_NIL;		// ENOMEM
 
-    mrbc_value value = mrbc_string_new(vm, v->string->data + idx, rlen);
-    if( !value.string ) goto RETURN_NIL;		// ENOMEM
-
-    SET_RETURN(value);
-    return;		// normal return
-  }
-
-  /*
-    other case
-  */
-  console_print( "Not support such case in String#[].\n" );
-  return;
-
+  SET_RETURN(ret);
+  return;		// normal return
 
  RETURN_NIL:
   SET_NIL_RETURN();
@@ -532,7 +509,7 @@ static void c_string_insert(struct VM *vm, mrbc_value v[], int argc)
 {
   int nth;
   int len;
-  mrbc_value *val;
+  const mrbc_value *val;
 
   /*
     in case of self[nth] = val
@@ -721,6 +698,54 @@ static void c_string_ord(struct VM *vm, mrbc_value v[], int argc)
   int i = (uint8_t)mrbc_string_cstr(v)[0];
 
   SET_INT_RETURN( i );
+}
+
+
+//================================================================
+/*! (method) slice!
+*/
+static void c_string_slice_self(struct VM *vm, mrbc_value v[], int argc)
+{
+  int target_len = mrbc_string_size(v);
+  int pos = mrbc_fixnum(v[1]);
+  int len;
+
+  // in case of slice!(nth) -> String | nil
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_FIXNUM ) {
+    len = 1;
+
+  // in case of slice!(nth, len) -> String | nil
+  } else if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_FIXNUM &&
+	                  mrbc_type(v[2]) == MRBC_TT_FIXNUM ) {
+    len = mrbc_fixnum(v[2]);
+
+  // other case
+  } else {
+    console_print( "Not support such case in String#slice!.\n" );
+    goto RETURN_NIL;
+  }
+
+  if( pos < 0 ) pos += target_len;
+  if( pos < 0 ) goto RETURN_NIL;
+  if( len > (target_len - pos) ) len = target_len - pos;
+  if( len < 0 ) goto RETURN_NIL;
+  if( argc == 1 && len <= 0 ) goto RETURN_NIL;
+
+  mrbc_value ret = mrbc_string_new(vm, mrbc_string_cstr(v) + pos, len);
+  if( !ret.string ) goto RETURN_NIL;		// ENOMEM
+
+  if( len > 0 ) {
+    memmove( mrbc_string_cstr(v) + pos, mrbc_string_cstr(v) + pos + len,
+	     mrbc_string_size(v) - pos - len + 1 );
+    v->string->size = mrbc_string_size(v) - len;
+    mrbc_raw_realloc( mrbc_string_cstr(v), mrbc_string_size(v)+1 );
+  }
+
+  SET_RETURN(ret);
+  return;		// normal return
+
+ RETURN_NIL:
+  SET_NIL_RETURN();
 }
 
 
@@ -1188,6 +1213,7 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_string, "<<",	c_string_append);
   mrbc_define_method(vm, mrbc_class_string, "[]",	c_string_slice);
   mrbc_define_method(vm, mrbc_class_string, "[]=",	c_string_insert);
+  mrbc_define_method(vm, mrbc_class_string, "b",	c_ineffect);
   mrbc_define_method(vm, mrbc_class_string, "clear",	c_string_clear);
   mrbc_define_method(vm, mrbc_class_string, "chomp",	c_string_chomp);
   mrbc_define_method(vm, mrbc_class_string, "chomp!",	c_string_chomp_self);
@@ -1197,6 +1223,7 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_string, "index",	c_string_index);
   mrbc_define_method(vm, mrbc_class_string, "inspect",	c_string_inspect);
   mrbc_define_method(vm, mrbc_class_string, "ord",	c_string_ord);
+  mrbc_define_method(vm, mrbc_class_string, "slice!",	c_string_slice_self);
   mrbc_define_method(vm, mrbc_class_string, "split",	c_string_split);
   mrbc_define_method(vm, mrbc_class_string, "lstrip",	c_string_lstrip);
   mrbc_define_method(vm, mrbc_class_string, "lstrip!",	c_string_lstrip_self);
