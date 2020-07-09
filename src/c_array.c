@@ -3,8 +3,8 @@
   mruby/c Array class
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -710,6 +710,17 @@ static void c_array_index(struct VM *vm, mrbc_value v[], int argc)
 
 
 //================================================================
+/*! (method) include?
+*/
+static void c_array_include(struct VM *vm, mrbc_value v[], int argc)
+{
+  c_array_index(vm, v, argc);
+
+  SET_BOOL_RETURN( mrb_type(v[0]) == MRBC_TT_FIXNUM );
+}
+
+
+//================================================================
 /*! (method) first
 */
 static void c_array_first(struct VM *vm, mrbc_value v[], int argc)
@@ -974,6 +985,7 @@ void mrbc_init_class_array(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_array, "length", c_array_size);
   mrbc_define_method(vm, mrbc_class_array, "count", c_array_size);
   mrbc_define_method(vm, mrbc_class_array, "index", c_array_index);
+  mrbc_define_method(vm, mrbc_class_array, "include?", c_array_include);
   mrbc_define_method(vm, mrbc_class_array, "first", c_array_first);
   mrbc_define_method(vm, mrbc_class_array, "last", c_array_last);
   mrbc_define_method(vm, mrbc_class_array, "push", c_array_push);
