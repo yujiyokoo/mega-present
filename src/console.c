@@ -136,7 +136,7 @@ void console_printf(const char *fstr, ...)
 	ret = mrbc_printf_int( &pf, va_arg(ap, int), 10);
 	break;
 
-      case 'D':	// for mrbc_int (see mrbc_print_sub in class.c)
+      case 'D':	// for mrbc_int (see mrbc_print_sub)
 	ret = mrbc_printf_int( &pf, va_arg(ap, mrbc_int), 10);
 	break;
 
@@ -348,9 +348,8 @@ int mrbc_printf_int( mrbc_printf *pf, mrbc_int value, int base )
   }
 
   // create string to allocated buffer
-  int alloc_size = 32+2;	// int32 + terminate + 1
+  int alloc_size = sizeof(mrbc_int) * 8 + 2;
   if( alloc_size < pf->fmt.precision + 1 ) alloc_size = pf->fmt.precision + 1;
-  assert( sizeof(mrbc_int) * 8 < alloc_size );
 
   char *buf = mrbc_raw_alloc( alloc_size );
   if( buf == NULL ) return 0;	// ENOMEM
@@ -669,4 +668,16 @@ int mrbc_puts_sub(const mrbc_value *v)
   }
 
   return mrbc_print_sub(v);
+}
+
+
+//================================================================
+/*! p - print mrbc_value (BETA)
+
+  @param  v	pointer to target value.
+*/
+void mrbc_p(const mrbc_value *v)
+{
+  mrbc_p_sub( v );
+  console_putchar('\n');
 }

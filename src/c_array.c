@@ -515,7 +515,7 @@ static void c_array_new(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_array_add(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( GET_TT_ARG(1) != MRBC_TT_ARRAY ) {
+  if( mrb_type(v[1]) != MRBC_TT_ARRAY ) {
     console_print( "TypeError\n" );	// raise?
     return;
   }

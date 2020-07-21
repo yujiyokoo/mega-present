@@ -145,6 +145,17 @@ void mrbc_string_delete(mrbc_value *str)
 
 
 //================================================================
+/*! clear content
+*/
+void mrbc_string_clear(mrbc_value *str)
+{
+  mrbc_raw_realloc(str->string->data, 1);
+  str->string->data[0] = '\0';
+  str->string->size = 0;
+}
+
+
+//================================================================
 /*! clear vm_id
 */
 void mrbc_string_clear_vm_id(mrbc_value *str)
@@ -461,26 +472,21 @@ static void c_string_slice(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of slice(nth) -> String | nil
   */
-  if( argc == 1 && v1->tt == MRBC_TT_FIXNUM ) {
-    int len = v->string->size;
-    int idx = v1->i;
-    int ch = -1;
+  if( argc == 1 && mrbc_type(*v1) == MRBC_TT_FIXNUM ) {
+    int len = mrbc_string_size(&v[0]);
+    mrbc_int idx = mrbc_fixnum(*v1);
+
     if( idx >= 0 ) {
-      if( idx < len ) {
-        ch = *(v->string->data + idx);
-      }
+      if( idx >= len ) idx = -1;
     } else {
       idx += len;
-      if( idx >= 0 ) {
-        ch = *(v->string->data + idx);
-      }
     }
-    if( ch < 0 ) goto RETURN_NIL;
+    if( idx < 0 ) goto RETURN_NIL;
 
     mrbc_value value = mrbc_string_new(vm, NULL, 1);
     if( !value.string ) goto RETURN_NIL;		// ENOMEM
 
-    value.string->data[0] = ch;
+    value.string->data[0] = mrbc_string_cstr(&v[0])[idx];
     value.string->data[1] = '\0';
     SET_RETURN(value);
     return;		// normal return
@@ -489,14 +495,15 @@ static void c_string_slice(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of slice(nth, len) -> String | nil
   */
-  if( argc == 2 && v1->tt == MRBC_TT_FIXNUM && v2->tt == MRBC_TT_FIXNUM ) {
-    int len = v->string->size;
-    int idx = v1->i;
+  if( argc == 2 && mrbc_type(*v1) == MRBC_TT_FIXNUM &&
+                   mrbc_type(*v2) == MRBC_TT_FIXNUM ) {
+    int len = mrbc_string_size(&v[0]);
+    mrbc_int idx = mrbc_fixnum(*v1);
     if( idx < 0 ) idx += len;
     if( idx < 0 ) goto RETURN_NIL;
 
-    int rlen = (v2->i < (len - idx)) ? v2->i : (len - idx);
-						// min( v2->i, (len-idx) )
+    int rlen = (mrbc_fixnum(*v2) < (len-idx)) ? mrbc_fixnum(*v2): (len-idx);
+					// min( mrbc_fixnum(*v2), (len-idx) )
     if( rlen < 0 ) goto RETURN_NIL;
 
     mrbc_value value = mrbc_string_new(vm, v->string->data + idx, rlen);
@@ -590,6 +597,15 @@ static void c_string_chomp(struct VM *vm, mrbc_value v[], int argc)
 
 
 //================================================================
+/*! (method) clear
+*/
+static void c_string_clear(struct VM *vm, mrbc_value v[], int argc)
+{
+  mrbc_string_clear(&v[0]);
+}
+
+
+//================================================================
 /*! (method) chomp!
 */
 static void c_string_chomp_self(struct VM *vm, mrbc_value v[], int argc)
@@ -625,9 +641,19 @@ static void c_string_empty(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_string_getbyte(struct VM *vm, mrbc_value v[], int argc)
 {
-  int i = (uint8_t)mrbc_string_cstr(v)[ v[1].i ];
+  int len = mrbc_string_size(&v[0]);
+  mrbc_int idx = mrbc_fixnum(v[1]);
 
-  SET_INT_RETURN( i );
+  if( idx >= 0 ) {
+    if( idx >= len ) idx = -1;
+  } else {
+    idx += len;
+  }
+  if( idx >= 0 ) {
+    SET_INT_RETURN( mrbc_string_cstr(&v[0])[idx] );
+  } else {
+    SET_NIL_RETURN();
+  }
 }
 
 
@@ -1162,6 +1188,7 @@ void mrbc_init_class_string(struct VM *vm)
   mrbc_define_method(vm, mrbc_class_string, "<<",	c_string_append);
   mrbc_define_method(vm, mrbc_class_string, "[]",	c_string_slice);
   mrbc_define_method(vm, mrbc_class_string, "[]=",	c_string_insert);
+  mrbc_define_method(vm, mrbc_class_string, "clear",	c_string_clear);
   mrbc_define_method(vm, mrbc_class_string, "chomp",	c_string_chomp);
   mrbc_define_method(vm, mrbc_class_string, "chomp!",	c_string_chomp_self);
   mrbc_define_method(vm, mrbc_class_string, "dup",	c_string_dup);
