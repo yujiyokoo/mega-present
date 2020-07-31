@@ -193,7 +193,7 @@ typedef struct RObject mrbc_value;
 #define mrb_true_value()	mrbc_true_value()
 #define mrb_false_value()	mrbc_false_value()
 #define mrb_bool_value(n)	mrbc_bool_value(n)
-#define mrb_symbol_value(n)	mrbc_bool_value(n)
+#define mrb_symbol_value(n)	mrbc_symbol_value(n)
 
 
 // for C call

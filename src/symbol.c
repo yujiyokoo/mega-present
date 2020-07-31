@@ -11,12 +11,15 @@
   </pre>
 */
 
+/***** Feature test switches ************************************************/
+/***** System headers *******************************************************/
 #include "vm_config.h"
 #include <stdint.h>
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
 
+/***** Local headers ********************************************************/
 #include "value.h"
 #include "vm.h"
 #include "alloc.h"
@@ -27,7 +30,7 @@
 #include "c_array.h"
 #include "console.h"
 
-
+/***** Constant values ******************************************************/
 #if !defined(MRBC_SYMBOL_SEARCH_LINER) && !defined(MRBC_SYMBOL_SEARCH_BTREE)
 #define MRBC_SYMBOL_SEARCH_BTREE
 #endif
@@ -38,6 +41,11 @@
 #define MRBC_SYMBOL_TABLE_INDEX_TYPE	uint16_t
 #endif
 
+
+/***** Macros ***************************************************************/
+/***** Typedefs *************************************************************/
+/***** Function prototypes **************************************************/
+/***** Local variables ******************************************************/
 struct SYM_INDEX {
   uint16_t hash;	//!< hash value, returned by calc_hash().
 #ifdef MRBC_SYMBOL_SEARCH_BTREE
@@ -47,10 +55,13 @@ struct SYM_INDEX {
   const char *cstr;	//!< point to the symbol string.
 };
 
-
 static struct SYM_INDEX sym_index[MAX_SYMBOLS_COUNT];
 static int sym_index_pos;	// point to the last(free) sym_index array.
 
+
+/***** Global variables *****************************************************/
+/***** Signal catching functions ********************************************/
+/***** Local functions ******************************************************/
 
 //================================================================
 /*! Calculate hash value.
@@ -63,26 +74,19 @@ static inline uint16_t calc_hash(const char *str)
   uint16_t h = 0;
 
   while( *str != '\0' ) {
-    h = h * 37 + *str;
-    str++;
+    h = h * 17 + *str++;
   }
   return h;
 }
 
 
 //================================================================
-/*! cleanup
- */
-void mrbc_cleanup_symbol(void)
-{
-  memset(sym_index, 0, sizeof(sym_index));
-  sym_index_pos = 0;
-}
-
-
-//================================================================
 /*! search index table
- */
+
+  @param  hash	hash value.
+  @param  str	string ptr.
+  @return	symbol id. or -1 if not registered.
+*/
 static int search_index( uint16_t hash, const char *str )
 {
 #ifdef MRBC_SYMBOL_SEARCH_LINER
@@ -114,7 +118,11 @@ static int search_index( uint16_t hash, const char *str )
 
 //================================================================
 /*! add to index table
- */
+
+  @param  hash	return value.
+  @param  str	string ptr.
+  @return	symbol id. or -1 if error.
+*/
 static int add_index( uint16_t hash, const char *str )
 {
   // check overflow.
@@ -155,34 +163,17 @@ static int add_index( uint16_t hash, const char *str )
 }
 
 
+/***** Global functions *****************************************************/
+
 //================================================================
-/*! constructor
-
-  @param  vm	pointer to VM.
-  @param  str	String
-  @return 	symbol object
+/*! cleanup
 */
-mrbc_value mrbc_symbol_new(struct VM *vm, const char *str)
+void mrbc_symbol_cleanup(void)
 {
-  mrbc_value ret = {.tt = MRBC_TT_SYMBOL};
-  uint16_t h = calc_hash(str);
-  mrbc_sym sym_id = search_index(h, str);
-
-  if( sym_id >= 0 ) {
-    ret.i = sym_id;
-    return ret;		// already exist.
-  }
-
-  // create symbol object dynamically.
-  int size = strlen(str) + 1;
-  char *buf = mrbc_raw_alloc_no_free(size);
-  if( buf == NULL ) return ret;		// ENOMEM raise?
-
-  memcpy(buf, str, size);
-  ret.i = add_index( h, buf );
-
-  return ret;
+  memset(sym_index, 0, sizeof(sym_index));
+  sym_index_pos = 0;
 }
+
 
 
 //================================================================
@@ -191,7 +182,7 @@ mrbc_value mrbc_symbol_new(struct VM *vm, const char *str)
   @param  str		Target string.
   @return mrbc_sym	Symbol value.
 */
-mrbc_sym str_to_symid(const char *str)
+mrbc_sym mrbc_str_to_symid(const char *str)
 {
   uint16_t h = calc_hash(str);
   mrbc_sym sym_id = search_index(h, str);
@@ -208,7 +199,7 @@ mrbc_sym str_to_symid(const char *str)
   @return const char*	String.
   @retval NULL		Invalid sym_id was given.
 */
-const char * symid_to_str(mrbc_sym sym_id)
+const char * mrbc_symid_to_str(mrbc_sym sym_id)
 {
   if( sym_id < 0 ) return NULL;
   if( sym_id >= sym_index_pos ) return NULL;
@@ -216,6 +207,49 @@ const char * symid_to_str(mrbc_sym sym_id)
   return sym_index[sym_id].cstr;
 }
 
+
+
+//================================================================
+/*! Search only.
+
+  @param  str	C string.
+  @return	symbol id. or -1 if not registered.
+*/
+mrbc_sym mrbc_search_symid( const char *str )
+{
+  uint16_t h = calc_hash(str);
+  return search_index(h, str);
+}
+
+
+//================================================================
+/*! constructor
+
+  @param  vm	pointer to VM.
+  @param  str	String
+  @return 	symbol object
+*/
+mrbc_value mrbc_symbol_new(struct VM *vm, const char *str)
+{
+  uint16_t h = calc_hash(str);
+  mrbc_sym sym_id = search_index(h, str);
+
+  if( sym_id >= 0 ) goto DONE;	// already exist.
+
+  // create symbol object dynamically.
+  int size = strlen(str) + 1;
+  char *buf = mrbc_raw_alloc_no_free(size);
+  if( buf == NULL ) return mrbc_nil_value();	// ENOMEM raise?
+
+  memcpy(buf, str, size);
+  sym_id = add_index( h, buf );
+
+ DONE:
+  return mrbc_symbol_value( sym_id );
+}
+
+
+/***** mruby/c methods ******************************************************/
 
 //================================================================
 /*! (method) all_symbols
@@ -240,7 +274,7 @@ static void c_all_symbols(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_inspect(struct VM *vm, mrbc_value v[], int argc)
 {
-  const char *s = symid_to_str(v[0].i);
+  const char *s = mrbc_symid_to_str( mrbc_symbol(v[0]) );
   v[0] = mrbc_string_new_cstr(vm, ":");
   mrbc_string_append_cstr(&v[0], s);
 }
@@ -251,7 +285,7 @@ static void c_inspect(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
-  v[0] = mrbc_string_new_cstr(vm, symid_to_str(v[0].i));
+  v[0] = mrbc_string_new_cstr(vm, mrbc_symid_to_str( mrbc_symbol(v[0]) ));
 }
 #endif
 
