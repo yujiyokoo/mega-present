@@ -7,7 +7,7 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
-SRC = array.rb hash.rb numeric.rb object.rb range.rb string.rb
+SRC = array.rb global.rb hash.rb numeric.rb object.rb range.rb string.rb
 OUTPUT = ../src/mrblib.c
 MRBC ?= mrbc
 

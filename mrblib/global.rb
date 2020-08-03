@@ -7,13 +7,5 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
-class Object
-
-  # loop
-  def loop
-    while true
-      yield
-    end
-  end
-
-end
+RUBY_VERSION = "1.9"
+MRUBYC_VERSION = "2.1"
