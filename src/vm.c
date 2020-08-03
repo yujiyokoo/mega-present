@@ -605,15 +605,24 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
+  mrbc_class *cls = (vm->callinfo_tail) ? vm->callinfo_tail->own_class : NULL;
+  mrbc_value *v;
 
-  mrbc_decref(&regs[a]);
-  mrbc_value *v = mrbc_get_const(sym_id);
-  if( v == NULL ) {             // raise?
+  while( cls != NULL ) {
+    v = mrbc_get_class_const(cls, sym_id);
+    if( v != NULL ) goto DONE;
+    cls = cls->super;
+  }
+
+  v = mrbc_get_const(sym_id);
+  if( v == NULL ) {		// raise?
     console_printf( "NameError: uninitialized constant %s\n", sym_name );
     return 0;
   }
 
+ DONE:
   mrbc_incref(v);
+  mrbc_decref(&regs[a]);
   regs[a] = *v;
 
   return 0;
@@ -635,29 +644,13 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
-  mrbc_class *cls = find_class_by_object( &regs[0] );
-
-  // supports class constants up to 1 level.
-  if( cls != mrbc_class_object ) {
-    mrbc_sym id = cls->sym_id;
-    char buf[10];
-    int i;
-    for( i = 3; i >= 0; i-- ) {
-      buf[i] = '0' + (id & 0x0f);
-      id >>= 4;
-    }
-    id = sym_id;
-    for( i = 7; i >= 4; i-- ) {
-      buf[i] = '0' + (id & 0x0f);
-      id >>= 4;
-    }
-    buf[8] = 0;
-
-    sym_id = mrbc_symbol_new( vm, buf ).i;
-  }
 
   mrbc_incref(&regs[a]);
-  mrbc_set_const(sym_id, &regs[a]);
+  if( mrbc_type(regs[0]) == MRBC_TT_CLASS ) {
+    mrbc_set_class_const(regs[0].cls, sym_id, &regs[a]);
+  } else {
+    mrbc_set_const(sym_id, &regs[a]);
+  }
 
   return 0;
 }
@@ -677,32 +670,21 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
+  mrbc_sym sym_id = str_to_symid(sym_name);
   mrbc_class *cls = regs[a].cls;
-  mrbc_sym id = cls->sym_id;
-  char buf[10];
-  int i;
-  for( i = 3; i >= 0; i-- ) {
-    buf[i] = '0' + (id & 0x0f);
-    id >>= 4;
-  }
-  id = str_to_symid(sym_name);
-  for( i = 7; i >= 4; i-- ) {
-    buf[i] = '0' + (id & 0x0f);
-    id >>= 4;
-  }
-  buf[8] = 0;
+  mrbc_value *v;
 
-  mrbc_sym sym_id = str_to_symid(buf);
-
-  mrbc_decref(&regs[a]);
-  mrbc_value *v = mrbc_get_const(sym_id);
-  if( v == NULL ) {             // raise?
-    console_printf( "NameError: uninitialized constant %s::%s\n",
-		    symid_to_str( cls->sym_id ), sym_name );
-    return 0;
+  while( !(v = mrbc_get_class_const(cls, sym_id)) ) {
+    cls = cls->super;
+    if( !cls ) {	// raise?
+      console_printf( "NameError: uninitialized constant %s::%s\n",
+		      symid_to_str( regs[a].cls->sym_id ), sym_name );
+      return 0;
+    }
   }
 
   mrbc_incref(v);
+  mrbc_decref(&regs[a]);
   regs[a] = *v;
 
   return 0;
@@ -1926,10 +1908,10 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
     assert( regs[a+1].tt == MRBC_TT_ARRAY );
     regs[a] = regs[a+1];
     regs[a+1].tt = MRBC_TT_NIL;
-      
+
     return 0;
   }
-  
+
   assert( regs[a  ].tt == MRBC_TT_ARRAY );
   assert( regs[a+1].tt == MRBC_TT_ARRAY );
 

@@ -3,8 +3,8 @@
   Constant and global variables.
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2020 Kyushu Institute of Technology.
+  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -15,6 +15,8 @@
 #include "value.h"
 #include "global.h"
 #include "keyvalue.h"
+#include "class.h"
+#include "symbol.h"
 #include "console.h"
 
 
@@ -50,6 +52,35 @@ int mrbc_set_const( mrbc_sym sym_id, mrbc_value *v )
 
 
 //================================================================
+/*! setter class constant
+
+  @param  cls		class.
+  @param  sym_id	symbol ID.
+  @param  v		pointer to mrbc_value.
+  @return		mrbc_error_code.
+*/
+int mrbc_set_class_const( mrbc_class *cls, mrbc_sym sym_id, mrbc_value *v )
+{
+  char buf[10];
+  mrbc_sym id = cls->sym_id;
+  int i;
+
+  for( i = 3; i >= 0; i-- ) {
+    buf[i] = '0' + (id & 0x0f);
+    id >>= 4;
+  }
+  id = sym_id;
+  for( i = 7; i >= 4; i-- ) {
+    buf[i] = '0' + (id & 0x0f);
+    id >>= 4;
+  }
+  buf[8] = 0;
+
+  return mrbc_set_const( mrbc_symbol( mrbc_symbol_new( 0, buf )), v);
+}
+
+
+//================================================================
 /*! getter constant
 
   @param  sym_id	symbol ID.
@@ -58,6 +89,38 @@ int mrbc_set_const( mrbc_sym sym_id, mrbc_value *v )
 mrbc_value * mrbc_get_const( mrbc_sym sym_id )
 {
   return mrbc_kv_get( &handle_const, sym_id );
+}
+
+
+//================================================================
+/*! getter class constant
+
+  @param  cls		class
+  @param  sym_id	symbol ID.
+  @return		pointer to mrbc_value or NULL.
+*/
+mrbc_value * mrbc_get_class_const( mrbc_class *cls, mrbc_sym sym_id )
+{
+  char buf[10];
+  mrbc_sym id = cls->sym_id;
+  int i;
+  for( i = 3; i >= 0; i-- ) {
+    buf[i] = '0' + (id & 0x0f);
+    id >>= 4;
+  }
+  id = sym_id;
+  for( i = 7; i >= 4; i-- ) {
+    buf[i] = '0' + (id & 0x0f);
+    id >>= 4;
+  }
+  buf[8] = 0;
+
+  id = mrbc_search_symid(buf);
+  if( id < 0 ) return NULL;
+
+  mrbc_value *v = mrbc_kv_get( &handle_const, id );
+
+  return v;
 }
 
 
