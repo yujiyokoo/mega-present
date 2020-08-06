@@ -8,9 +8,9 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 # (usage)
-# ruby make_symbol_table.rb > src/symbol_builtin.c
+# ruby make_symbol_table.rb > src/symbol_builtin.h
 #  or
-# ruby make_symbol_table.rb SYMBOL_LIST.TXT > src/symbol_builtin.c
+# ruby make_symbol_table.rb SYMBOL_LIST.TXT > src/symbol_builtin.h
 #
 
 all_symbols = ["Object", "new", "!", "!=", "<=>", "===", "class", "dup", "block_given?", "is_a?", "kind_of?", "nil?", "p", "print", "puts", "raise", "object_id", "instance_methods", "instance_variables", "memory_statistics", "attr_reader", "attr_accessor", "sprintf", "printf", "inspect", "to_s", "Proc", "call", "NilClass", "to_i", "to_a", "to_h", "to_f", "TrueClass", "FalseClass", "Symbol", "all_symbols", "id2name", "to_sym", "Fixnum", "[]", "+@", "-@", "**", "%", "&", "|", "^", "~", "<<", ">>", "abs", "chr", "Float", "String", "+", "*", "size", "length", "[]=", "b", "clear", "chomp", "chomp!", "empty?", "getbyte", "index", "ord", "slice!", "split", "lstrip", "lstrip!", "rstrip", "rstrip!", "strip", "strip!", "intern", "tr", "tr!", "start_with?", "end_with?", "include?", "Array", "at", "delete_at", "count", "first", "last", "push", "pop", "shift", "unshift", "min", "max", "minmax", "join", "Range", "exclude_end?", "Hash", "delete", "has_key?", "has_value?", "key", "keys", "merge", "merge!", "values", "Exception", "message", "StandardError", "RuntimeError", "ZeroDivisionError", "ArgumentError", "IndexError", "TypeError", "collect", "map", "collect!", "map!", "delete_if", "each", "each_index", "each_with_index", "reject!", "reject", "sort!", "sort", "RUBY_VERSION", "MRUBYC_VERSION", "times", "loop", "each_byte", "each_char"]

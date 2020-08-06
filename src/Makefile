@@ -43,6 +43,7 @@ $(TARGET): $(OBJS)
 
 
 hal.o: $(HAL_DIR)/hal.c $(HAL_DIR)/hal.h
+
 alloc.o: alloc.c vm_config.h vm.h value.h class.h keyvalue.h alloc.h \
   hal_selector.h $(HAL_DIR)/hal.h
 c_array.o: c_array.c vm_config.h value.h vm.h class.h keyvalue.h alloc.h \
@@ -67,8 +68,8 @@ console.o: console.c vm_config.h alloc.h value.h class.h keyvalue.h \
   c_hash.h c_range.h
 error.o: error.c vm_config.h vm.h value.h class.h keyvalue.h error.h \
   c_string.h
-global.o: global.c vm_config.h value.h global.h keyvalue.h console.h \
-  hal_selector.h $(HAL_DIR)/hal.h class.h symbol.h
+global.o: global.c vm_config.h value.h global.h class.h keyvalue.h \
+  symbol.h console.h hal_selector.h $(HAL_DIR)/hal.h
 keyvalue.o: keyvalue.c vm_config.h value.h alloc.h keyvalue.h
 load.o: load.c vm_config.h vm.h value.h class.h keyvalue.h load.h alloc.h \
   console.h hal_selector.h $(HAL_DIR)/hal.h
@@ -78,9 +79,9 @@ rrt0.o: rrt0.c vm_config.h alloc.h load.h class.h value.h keyvalue.h \
   rrt0.h
 symbol.o: symbol.c vm_config.h value.h vm.h class.h keyvalue.h alloc.h \
   symbol.h c_object.h c_string.h c_array.h console.h hal_selector.h \
-  symbol_builtin.c $(HAL_DIR)/hal.h
-value.o: value.c vm_config.h value.h vm.h class.h keyvalue.h alloc.h \
-  c_string.h c_range.h c_array.h c_hash.h
+  $(HAL_DIR)/hal.h symbol_builtin.h
+value.o: value.c vm_config.h value.h class.h keyvalue.h c_string.h \
+  c_range.h c_array.h alloc.h c_hash.h
 vm.o: vm.c vm_config.h vm.h value.h class.h keyvalue.h alloc.h load.h \
   global.h opcode.h symbol.h console.h hal_selector.h $(HAL_DIR)/hal.h \
   c_object.h c_string.h c_range.h c_array.h c_hash.h
