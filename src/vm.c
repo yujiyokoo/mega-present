@@ -1257,6 +1257,9 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 
   // OP_SENDV or OP_SENDVB
   int flag_sendv_pattern = ( argc == CALL_MAXARGS );
+  if( flag_sendv_pattern ){
+    argc = 1;
+  }
   
   if( a & 0xffc ) {	// check m2 and k parameter.
     console_printf("ArgumentError: not support m2 or keyword argument.\n");
@@ -1292,7 +1295,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
       regs[i+1] = argary.array->data[i];
       mrbc_incref( &regs[i+1] );
     }
-    mrbc_array_delete( &argary );
+    //    mrbc_array_delete( &argary );
     argc = i;
   }
 
@@ -1380,6 +1383,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   regs[a].tt = MRBC_TT_EMPTY;
 
   STOP_IF_TOPLEVEL();
+
 
   mrbc_pop_callinfo(vm);
 
