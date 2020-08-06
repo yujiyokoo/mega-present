@@ -62,7 +62,7 @@ struct SYM_INDEX {
 static struct SYM_INDEX sym_index[MAX_SYMBOLS_COUNT];
 static int sym_index_pos;	// point to the last(free) sym_index array.
 
-#include "symbol_builtin.c"	// built-in symbol table.
+#include "symbol_builtin.h"	// built-in symbol table.
 
 
 /***** Global variables *****************************************************/
