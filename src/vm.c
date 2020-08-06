@@ -605,9 +605,10 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
-  mrbc_class *cls = (vm->callinfo_tail) ? vm->callinfo_tail->own_class : NULL;
+  mrbc_class *cls = NULL;
   mrbc_value *v;
 
+  if( vm->callinfo_tail ) cls = vm->callinfo_tail->own_class;
   while( cls != NULL ) {
     v = mrbc_get_class_const(cls, sym_id);
     if( v != NULL ) goto DONE;

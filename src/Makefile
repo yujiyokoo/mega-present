@@ -78,7 +78,7 @@ rrt0.o: rrt0.c vm_config.h alloc.h load.h class.h value.h keyvalue.h \
   rrt0.h
 symbol.o: symbol.c vm_config.h value.h vm.h class.h keyvalue.h alloc.h \
   symbol.h c_object.h c_string.h c_array.h console.h hal_selector.h \
-  $(HAL_DIR)/hal.h
+  symbol_builtin.c $(HAL_DIR)/hal.h
 value.o: value.c vm_config.h value.h vm.h class.h keyvalue.h alloc.h \
   c_string.h c_range.h c_array.h c_hash.h
 vm.o: vm.c vm_config.h vm.h value.h class.h keyvalue.h alloc.h load.h \
