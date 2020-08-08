@@ -1077,7 +1077,6 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 /*! OP_SENDV
 
   R(a) = call(R(a),Syms(b),*R(a+1))
-  R(a) = call(R(a),Syms(b),*R(a+1),&R(a+2))
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1089,12 +1088,31 @@ static inline int op_sendv( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
 
-  return send_by_name( vm, sym_name, regs, a, CALL_MAXARGS, (vm->inst[-4] == OP_SENDVB) );
+  return send_by_name( vm, sym_name, regs, a, CALL_MAXARGS, 0 );
 }
 
 
 //================================================================
-/*! OP_SEND, OP_SENDB
+/*! OP_SENDVB
+
+  R(a) = call(R(a),Syms(b),*R(a+1),&R(a+2))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_sendvb( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
+
+  return send_by_name( vm, sym_name, regs, a, CALL_MAXARGS, 1 );
+}
+
+
+//================================================================
+/*! OP_SEND
 
   R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
 
@@ -1108,7 +1126,26 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
 
-  return send_by_name( vm, sym_name, regs, a, c, (vm->inst[-4] == OP_SENDB) );
+  return send_by_name( vm, sym_name, regs, a, c, 0 );
+}
+
+
+//================================================================
+/*! OP_SENDB
+
+  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_sendb( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BBB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
+
+  return send_by_name( vm, sym_name, regs, a, c, 1 );
 }
 
 
@@ -2807,10 +2844,10 @@ int mrbc_vm_run( struct VM *vm )
     case OP_RAISE:      ret = op_raise     (vm, regs); break;
     case OP_EPUSH:      ret = op_epush     (vm, regs); break;
     case OP_EPOP:       ret = op_epop      (vm, regs); break;
-    case OP_SENDV:      // fall through
-    case OP_SENDVB:     ret = op_sendv     (vm, regs); break;
-    case OP_SEND:       // fall through
-    case OP_SENDB:      ret = op_send      (vm, regs); break;
+    case OP_SENDV:      ret = op_sendv     (vm, regs); break;
+    case OP_SENDVB:     ret = op_sendvb    (vm, regs); break;
+    case OP_SEND:       ret = op_send      (vm, regs); break;
+    case OP_SENDB:      ret = op_sendb     (vm, regs); break;
     case OP_CALL:       ret = op_dummy_Z   (vm, regs); break;
     case OP_SUPER:      ret = op_super     (vm, regs); break;
     case OP_ARGARY:     ret = op_argary    (vm, regs); break;
