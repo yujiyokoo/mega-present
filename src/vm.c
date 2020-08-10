@@ -1303,7 +1303,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
     return 1;		// raise?
   }
 
-  if( argc < m1 && regs[0].tt != MRBC_TT_PROC ) {
+  if( !flag_sendv_pattern && argc < m1 && regs[0].tt != MRBC_TT_PROC ) {
     console_printf("ArgumentError: wrong number of arguments.\n");
     return 1;		// raise?
   }
@@ -1379,8 +1379,16 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   if( FLAG_DICT_PARAM ) {
     regs[i++] = dict;
   }
-  if( argc >= i ) i = argc + 1;
-  regs[i] = proc;
+
+  // proc の位置を求める
+  if( proc.tt == MRBC_TT_PROC ){
+    if( flag_sendv_pattern ){
+      // Nothing
+    } else {
+      if( argc >= i ) i = argc + 1;
+    }
+    regs[i] = proc;
+  }
   vm->callinfo_tail->n_args = i;
 
   // prepare for get default arguments.
