@@ -24,7 +24,6 @@
 #endif
 
 /***** Local headers ********************************************************/
-#include "alloc.h"
 #include "value.h"
 #include "class.h"
 #include "console.h"
@@ -333,6 +332,7 @@ int mrbc_printf_int( mrbc_printf *pf, mrbc_int value, int base )
 {
   int sign = 0;
   mrbc_int v = value;
+  char *pf_p_ini_val = pf->p;
 
   if( value < 0 ) {
     sign = '-';
@@ -343,55 +343,65 @@ int mrbc_printf_int( mrbc_printf *pf, mrbc_int value, int base )
     sign = ' ';
   }
 
-  if( pf->fmt.flag_minus || pf->fmt.width == 0 ) {
-    pf->fmt.flag_zero = 0; // disable zero padding if left align or width zero.
+  // disable zero padding if conflict parameters exists.
+  if( pf->fmt.flag_minus || pf->fmt.width == 0 || pf->fmt.precision != 0 ) {
+    pf->fmt.flag_zero = 0;
   }
 
-  // create string to allocated buffer
-  int alloc_size = sizeof(mrbc_int) * 8 + 2;
-  if( alloc_size < pf->fmt.precision + 1 ) alloc_size = pf->fmt.precision + 1;
+  // create string to temporary buffer
+  char buf[sizeof(mrbc_int) * 8];
+  char *p = buf + sizeof(buf);
 
-  char *buf = mrbc_raw_alloc( alloc_size );
-  if( buf == NULL ) return 0;	// ENOMEM
-
-  char *p = buf + alloc_size - 1;
-  *p = '\0';
   do {
-    assert( p != buf );
-    int i = v % base;
-    *--p = i + ((i < 10)? '0' : 'a' - 10);
+    int ch = v % base;
+    *--p = ch + ((ch < 10)? '0' : 'a' - 10);
     v /= base;
   } while( v != 0 );
 
-  // precision parameter
-  int precision_remain = (int)pf->fmt.precision - ((buf + alloc_size - 1) - p);
-  while( --precision_remain >= 0 ) {
-    *--p = '0';
-  }
-  pf->fmt.precision = 0;
+  int dig_width = buf + sizeof(buf) - p;
 
-  // decide pad character and output sign character
-  int ret;
-  int pad;
-  if( pf->fmt.flag_zero ) {
-    pad = '0';
-    if( sign ) {
-      *pf->p++ = sign;
-      if( pf->p >= pf->buf_end ) {
-	ret = -1;
-	goto DONE;
-      }
-      pf->fmt.width--;
+
+  // write padding character, if adjust right.
+  if( !pf->fmt.flag_minus && pf->fmt.width ) {
+    int pad = pf->fmt.flag_zero ? '0' : ' ';
+    int pad_width = pf->fmt.width - !!sign;
+    pad_width -= (pf->fmt.precision > dig_width)? pf->fmt.precision: dig_width;
+
+    for( ; pad_width > 0; pad_width-- ) {
+      *pf->p++ = pad;
+      if( pf->p >= pf->buf_end ) return -1;
     }
-  } else {
-    pad = ' ';
-    if( sign ) *--p = sign;
   }
-  ret = mrbc_printf_str( pf, p, pad );
 
- DONE:
-  mrbc_raw_free( buf );
-  return ret;
+  // sign
+  if( sign ) {
+    *pf->p++ = sign;
+    if( pf->p >= pf->buf_end ) return -1;
+  }
+
+  // precision
+  int pre_width = pf->fmt.precision - dig_width;
+  for( ; pre_width > 0; pre_width-- ) {
+    *pf->p++ = '0';
+    if( pf->p >= pf->buf_end ) return -1;
+  }
+
+  // digit
+  for( ; dig_width > 0; dig_width-- ) {
+    *pf->p++ = *p++;
+    if( pf->p >= pf->buf_end ) return -1;
+  }
+
+  // write space, if adjust left.
+  if( pf->fmt.flag_minus && pf->fmt.width ) {
+    int pad_width = pf->fmt.width - (pf->p - pf_p_ini_val);
+    for( ; pad_width > 0; pad_width-- ) {
+      *pf->p++ = ' ';
+      if( pf->p >= pf->buf_end ) return -1;
+    }
+  }
+
+  return 0;
 }
 
 
