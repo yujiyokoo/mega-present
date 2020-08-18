@@ -49,6 +49,7 @@
 
 static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
+#define CALL_MAXARGS 255
 
 //================================================================
 /*! get sym[n] from symbol table in irep
@@ -96,6 +97,10 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
 {
   mrbc_value *recv = &regs[a];
 
+  // if SENDV or SENDVB, params are in one Array
+  int flag_array_arg = ( c == CALL_MAXARGS );
+  if( flag_array_arg ) c = 1;
+  
   // if not OP_SENDB, blcok does not exist
   int bidx = a + c + 1;
   if( !is_sendb ){
@@ -129,6 +134,7 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
 
   // m is Ruby method.
   // callinfo
+  if( flag_array_arg ) c = CALL_MAXARGS;
   mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, sym_id, a, c);
   callinfo->own_class = cls;
 
@@ -1051,7 +1057,45 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! OP_SEND, OP_SENDB
+/*! OP_SENDV
+
+  R(a) = call(R(a),Syms(b),*R(a+1))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_sendv( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
+
+  return send_by_name( vm, sym_name, regs, a, CALL_MAXARGS, 0 );
+}
+
+
+//================================================================
+/*! OP_SENDVB
+
+  R(a) = call(R(a),Syms(b),*R(a+1),&R(a+2))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_sendvb( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
+
+  return send_by_name( vm, sym_name, regs, a, CALL_MAXARGS, 1 );
+}
+
+
+//================================================================
+/*! OP_SEND
 
   R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
 
@@ -1065,7 +1109,26 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
 
-  return send_by_name( vm, sym_name, regs, a, c, (vm->inst[-4] == OP_SENDB) );
+  return send_by_name( vm, sym_name, regs, a, c, 0 );
+}
+
+
+//================================================================
+/*! OP_SENDB
+
+  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_sendb( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BBB();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
+
+  return send_by_name( vm, sym_name, regs, a, c, 1 );
 }
 
 
@@ -1196,6 +1259,8 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
 
   arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1)
 
+  flags: 0mmm_mmoo_ooor_mmmm_mkkk_kkdb
+
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
   @retval 0  No error.
@@ -1210,12 +1275,18 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 #define FLAG_DICT_PARAM (a & 0x2)
   int argc = vm->callinfo_tail->n_args;
 
+  // OP_SENDV or OP_SENDVB
+  int flag_sendv_pattern = ( argc == CALL_MAXARGS );
+  if( flag_sendv_pattern ){
+    argc = 1;
+  }
+  
   if( a & 0xffc ) {	// check m2 and k parameter.
     console_printf("ArgumentError: not support m2 or keyword argument.\n");
     return 1;		// raise?
   }
 
-  if( argc < m1 && regs[0].tt != MRBC_TT_PROC ) {
+  if( !flag_sendv_pattern && argc < m1 && regs[0].tt != MRBC_TT_PROC ) {
     console_printf("ArgumentError: wrong number of arguments.\n");
     return 1;		// raise?
   }
@@ -1225,18 +1296,26 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   regs[argc + 1].tt = MRBC_TT_EMPTY;
 
   // support yield [...] pattern
-  if( regs[0].tt == MRBC_TT_PROC &&
-      regs[1].tt == MRBC_TT_ARRAY && argc != m1 ) {
+  // support op_sendv pattern
+  int flag_yield_pattern = ( regs[0].tt == MRBC_TT_PROC &&
+			     regs[1].tt == MRBC_TT_ARRAY && argc != m1 );
+  if( flag_yield_pattern || flag_sendv_pattern ){
     mrbc_value argary = regs[1];
     regs[1].tt = MRBC_TT_EMPTY;
 
     int i;
-    for( i = 0; i < m1; i++ ) {
+    int copy_size;
+    if( flag_sendv_pattern ){
+      copy_size = mrbc_array_size(&argary);
+    } else {
+      copy_size = m1;
+    }
+    for( i = 0; i < copy_size; i++ ) {
       if( mrbc_array_size(&argary) <= i ) break;
       regs[i+1] = argary.array->data[i];
       mrbc_incref( &regs[i+1] );
     }
-    mrbc_array_delete( &argary );
+    //    mrbc_array_delete( &argary );
     argc = i;
   }
 
@@ -1283,8 +1362,16 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   if( FLAG_DICT_PARAM ) {
     regs[i++] = dict;
   }
-  if( argc >= i ) i = argc + 1;
-  regs[i] = proc;
+
+  // proc の位置を求める
+  if( proc.tt == MRBC_TT_PROC ){
+    if( flag_sendv_pattern ){
+      // Nothing
+    } else {
+      if( argc >= i ) i = argc + 1;
+    }
+    regs[i] = proc;
+  }
   vm->callinfo_tail->n_args = i;
 
   // prepare for get default arguments.
@@ -1324,6 +1411,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   regs[a].tt = MRBC_TT_EMPTY;
 
   STOP_IF_TOPLEVEL();
+
 
   mrbc_pop_callinfo(vm);
 
@@ -2747,10 +2835,10 @@ int mrbc_vm_run( struct VM *vm )
     case OP_RAISE:      ret = op_raise     (vm, regs); break;
     case OP_EPUSH:      ret = op_epush     (vm, regs); break;
     case OP_EPOP:       ret = op_epop      (vm, regs); break;
-    case OP_SENDV:      ret = op_dummy_BB  (vm, regs); break;
-    case OP_SENDVB:     ret = op_dummy_BB  (vm, regs); break;
-    case OP_SEND:       // fall through
-    case OP_SENDB:      ret = op_send      (vm, regs); break;
+    case OP_SENDV:      ret = op_sendv     (vm, regs); break;
+    case OP_SENDVB:     ret = op_sendvb    (vm, regs); break;
+    case OP_SEND:       ret = op_send      (vm, regs); break;
+    case OP_SENDB:      ret = op_sendb     (vm, regs); break;
     case OP_CALL:       ret = op_dummy_Z   (vm, regs); break;
     case OP_SUPER:      ret = op_super     (vm, regs); break;
     case OP_ARGARY:     ret = op_argary    (vm, regs); break;
