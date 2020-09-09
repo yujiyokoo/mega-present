@@ -2801,7 +2801,6 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADI_5:    // fall through
     case OP_LOADI_6:    // fall through
     case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
-      // case OP_LOADI16
     case OP_LOADI16:    ret = op_loadi16   (vm, regs); break;
     case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
     case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
