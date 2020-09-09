@@ -2486,27 +2486,6 @@ static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! OP_EXT1, OP_EXT2, OP_EXT3
-
-  if OP_EXT1, make 1st operand 16bit
-  if OP_EXT2, make 2nd operand 16bit
-  if OP_EXT3, make 1st and 2nd operand 16bit
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval -1  No error and exit from vm.
-*/
-static inline int op_ext( mrbc_vm *vm, mrbc_value *regs )
-{
-  FETCH_Z();
-
-  vm->ext_flag = vm->inst[-1] - OP_EXT1 + 1;
-
-  return 0;
-}
-
-
-//================================================================
 /*! OP_STOP
 
   stop VM
@@ -2803,6 +2782,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADI_5:    // fall through
     case OP_LOADI_6:    // fall through
     case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
+      // case OP_LOADI16
     case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
     case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
@@ -2826,13 +2806,10 @@ int mrbc_vm_run( struct VM *vm )
     case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
     case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
-    case OP_ONERR:      ret = op_onerr     (vm, regs); break;
+      // case OP_JMPUW
     case OP_EXCEPT:     ret = op_except    (vm, regs); break;
     case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
-    case OP_POPERR:     ret = op_poperr    (vm, regs); break;
-    case OP_RAISE:      ret = op_raise     (vm, regs); break;
-    case OP_EPUSH:      ret = op_epush     (vm, regs); break;
-    case OP_EPOP:       ret = op_epop      (vm, regs); break;
+      // case OP_RAISEIF
     case OP_SENDV:      ret = op_sendv     (vm, regs); break;
     case OP_SENDVB:     ret = op_sendvb    (vm, regs); break;
     case OP_SEND:       ret = op_send      (vm, regs); break;
@@ -2889,9 +2866,6 @@ int mrbc_vm_run( struct VM *vm )
     case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
     case OP_DEBUG:      ret = op_dummy_BBB (vm, regs); break;
     case OP_ERR:        ret = op_dummy_B   (vm, regs); break;
-    case OP_EXT1:       // fall through
-    case OP_EXT2:       // fall through
-    case OP_EXT3:       ret = op_ext       (vm, regs); break;
     case OP_STOP:       ret = op_stop      (vm, regs); break;
 
     case OP_ABORT:      ret = op_abort     (vm, regs); break;
