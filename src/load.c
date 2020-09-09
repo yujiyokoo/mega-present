@@ -51,7 +51,7 @@ static int load_header(struct VM *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos;
 
-  if( memcmp(p, "RITE0006", 8) != 0 ) {
+  if( memcmp(p, "RITE01", 6) != 0 ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return -1;
   }
@@ -242,7 +242,7 @@ static int load_irep(struct VM *vm, const uint8_t **pos)
   const uint8_t *p = *pos + 4;			// 4 = skip "IREP"
   int section_size = bin_to_uint32(p);
   p += 4;
-  if( memcmp(p, "0002", 4) != 0 ) {		// rite version
+  if( memcmp(p, "0300", 4) != 0 ) {		// rite version
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return -1;
   }
