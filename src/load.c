@@ -194,11 +194,14 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
 
     irep->pools[i] = obj;
     p += obj_size;
+
+    // padding
+    p += (4 - (obj_size & 0x03)) & 0x03;
   }
 
   // SYMS BLOCK
   irep->ptr_to_sym = (uint8_t*)p;
-  int slen = bin_to_uint32(p);		p += 4;
+  int slen = bin_to_uint16(p);		p += 2;
   while( --slen >= 0 ) {
     int s = bin_to_uint16(p);		p += 2;
     p += s+1;
