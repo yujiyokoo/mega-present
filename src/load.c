@@ -30,6 +30,13 @@
 
 
 
+// Skip padding
+static size_t skip_padding(const uint8_t *buf)
+{
+  const size_t align = 4;
+  return -(intptr_t)buf & (align-1);
+}
+
 //================================================================
 /*! Parse header section.
 
@@ -123,7 +130,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   irep->ilen = bin_to_uint32(p);	p += 4;
 
   // padding
-  p += (vm->mrb - p) & 0x03;
+  p += skip_padding(p);
 
   // allocate memory for child irep's pointers
   if( irep->rlen ) {
@@ -162,6 +169,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
     case 0: { // IREP_TT_STRING
       obj->tt = MRBC_TT_STRING;
       obj->str = (char*)p;
+      obj_size++;
     } break;
 #endif
     case 1: { // IREP_TT_FIXNUM
@@ -186,14 +194,11 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
 
     irep->pools[i] = obj;
     p += obj_size;
-
-    // padding
-    p += (4 - (obj_size & 0x03)) & 0x03;
   }
 
   // SYMS BLOCK
   irep->ptr_to_sym = (uint8_t*)p;
-  int slen = bin_to_uint16(p);		p += 2;
+  int slen = bin_to_uint32(p);		p += 4;
   while( --slen >= 0 ) {
     int s = bin_to_uint16(p);		p += 2;
     p += s+1;
