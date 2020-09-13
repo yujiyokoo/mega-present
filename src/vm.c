@@ -372,7 +372,7 @@ static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADI_n (n=-1,0,1..7)
 
-  R(a) = R(a)+mrb_int(n)
+  R(a) = mrb_int(n)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -388,6 +388,26 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_decref(&regs[a]);
   mrbc_set_fixnum(&regs[a], n);
+
+  return 0;
+}
+
+
+//================================================================
+/*! OP_LOADI16
+
+  R(a) = mrb_int(b)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error and exit from vm.
+*/
+static inline int op_loadi16( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BS();
+
+  mrbc_decref(&regs[a]);
+  mrbc_set_fixnum(&regs[a], b);
 
   return 0;
 }
@@ -2785,6 +2805,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADI_6:    // fall through
     case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
       // case OP_LOADI16
+    case OP_LOADI16:    ret = op_loadi16   (vm, regs); break;
     case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
     case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
