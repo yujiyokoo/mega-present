@@ -2669,7 +2669,6 @@ void mrbc_vm_begin( struct VM *vm )
 {
   vm->pc_irep = vm->irep;
   vm->inst = vm->pc_irep->code;
-  vm->ext_flag = 0;
 
   memset(vm->regs, 0, sizeof(vm->regs));
   int i;
