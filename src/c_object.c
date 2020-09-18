@@ -211,7 +211,7 @@ static void c_object_block_given(struct VM *vm, mrbc_value v[], int argc)
 static void c_object_kind_of(struct VM *vm, mrbc_value v[], int argc)
 {
   int result = 0;
-  if( v[1].tt != MRBC_TT_CLASS ) goto DONE;
+  if( mrbc_type(v[1]) != MRBC_TT_CLASS ) goto DONE;	// TypeError. raise?
 
   result = mrbc_obj_is_kind_of( &v[0], v[1].cls );
 

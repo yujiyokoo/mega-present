@@ -71,7 +71,7 @@ mrbc_value mrbc_string_new(struct VM *vm, const void *src, int len)
     return value;
   }
 
-  h->ref_count = 1;
+  MRBC_INIT_OBJECT_HEADER( h, "ST" );
   h->size = len;
   h->data = str;
 
@@ -122,7 +122,7 @@ mrbc_value mrbc_string_new_alloc(struct VM *vm, void *buf, int len)
   h = (mrbc_string *)mrbc_alloc(vm, sizeof(mrbc_string));
   if( !h ) return value;		// ENOMEM
 
-  h->ref_count = 1;
+  MRBC_INIT_OBJECT_HEADER( h, "ST" );
   h->size = len;
   h->data = buf;
 

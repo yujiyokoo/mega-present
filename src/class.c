@@ -103,11 +103,12 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
   mrbc_proc *proc = (mrbc_proc *)mrbc_raw_alloc_no_free(sizeof(mrbc_proc));
   if( !proc ) return;	// ENOMEM
 
-  proc->ref_count = 1;
+  MRBC_INIT_OBJECT_HEADER( proc, "ME" );
   proc->c_func = 1;
   proc->sym_id = str_to_symid(name);
   proc->next = cls->procs;
   proc->callinfo = 0;
+  proc->callinfo_self = 0;
   proc->func = cfunc;
 
   cls->procs = proc;
@@ -115,7 +116,7 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 
 
 //================================================================
-/*! mrbc_instance constructor
+/*! instance constructor
 
   @param  vm    Pointer to VM.
   @param  cls	Pointer to Class (mrbc_class).
@@ -134,7 +135,7 @@ mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size)
     return v;
   }
 
-  v.instance->ref_count = 1;
+  MRBC_INIT_OBJECT_HEADER( v.instance, "IN" );
   v.instance->cls = cls;
 
   return v;
@@ -142,7 +143,7 @@ mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size)
 
 
 //================================================================
-/*! mrbc_instance destructor
+/*! instance destructor
 
   @param  v	pointer to target value
 */
@@ -185,7 +186,7 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
 
 
 //================================================================
-/*! mrbc_proc constructor
+/*! proc constructor
 
   @param  vm		Pointer to VM.
   @param  irep		Pointer to IREP.
@@ -198,7 +199,7 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep)
   val.proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
   if( !val.proc ) return val;	// ENOMEM
 
-  val.proc->ref_count = 1;
+  MRBC_INIT_OBJECT_HEADER( val.proc, "PR" );
   val.proc->c_func = 0;
   val.proc->sym_id = -1;
   val.proc->next = 0;
@@ -217,7 +218,7 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep)
 
 
 //================================================================
-/*! mrbc_proc destructor
+/*! proc destructor
 
   @param  val	pointer to target value
 */

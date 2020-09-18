@@ -79,7 +79,7 @@ mrbc_value mrbc_array_new(struct VM *vm, int size)
     return value;
   }
 
-  h->ref_count = 1;
+  MRBC_INIT_OBJECT_HEADER( h, "AR" );
   h->data_size = size;
   h->n_stored = 0;
   h->data = data;

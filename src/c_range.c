@@ -37,7 +37,7 @@ mrbc_value mrbc_range_new(struct VM *vm, mrbc_value *first, mrbc_value *last, in
   value.range = mrbc_alloc(vm, sizeof(mrbc_range));
   if( !value.range ) return value;		// ENOMEM
 
-  value.range->ref_count = 1;
+  MRBC_INIT_OBJECT_HEADER( value.range, "RA" );
   value.range->flag_exclude = flag_exclude;
   value.range->first = *first;
   value.range->last = *last;

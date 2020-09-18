@@ -118,8 +118,11 @@ typedef enum {
 /*!@brief
   Define the object structure having reference counter.
 */
-#define MRBC_OBJECT_HEADER \
-  uint16_t ref_count;
+#if defined(MRBC_DEBUG)
+#define MRBC_OBJECT_HEADER  uint8_t t1, t2; uint16_t ref_count;
+#else
+#define MRBC_OBJECT_HEADER  uint16_t ref_count;
+#endif
 
 struct RBasic {
   MRBC_OBJECT_HEADER;
@@ -206,7 +209,8 @@ typedef struct RObject mrbc_value;
 #define SET_TRUE_RETURN()	do { \
     mrbc_decref(v); v[0].tt = MRBC_TT_TRUE; } while(0)
 #define SET_BOOL_RETURN(n)	do { \
-    mrbc_decref(v); v[0].tt = (n)?MRBC_TT_TRUE:MRBC_TT_FALSE; } while(0)
+    int tt = (n) ? MRBC_TT_TRUE : MRBC_TT_FALSE;	\
+    mrbc_decref(v); v[0].tt = tt; } while(0)
 #define SET_INT_RETURN(n)	do { mrbc_int nnn = (n);		\
     mrbc_decref(v); v[0].tt = MRBC_TT_FIXNUM; v[0].i = nnn; } while(0)
 #define SET_FLOAT_RETURN(n)	do { mrbc_float nnn = (n); \
@@ -218,6 +222,12 @@ typedef struct RObject mrbc_value;
 #define GET_ARG(n)		(v[(n)])
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
 #define GET_STRING_ARG(n)	(v[(n)].string->data)
+
+#if defined(MRBC_DEBUG)
+#define MRBC_INIT_OBJECT_HEADER(p, t)  (p)->ref_count = 1; (p)->t1 = (t)[0]; (p)->t2 = (t)[1]
+#else
+#define MRBC_INIT_OBJECT_HEADER(p, t)  (p)->ref_count = 1
+#endif
 
 
 /***** Global variables *****************************************************/
@@ -241,7 +251,7 @@ static inline void mrbc_incref(mrbc_value *v)
 {
   if( v->tt < MRBC_TT_INC_DEC_THRESHOLD ) return;
 
-  assert( v->obj->ref_count > 0 );
+  assert( v->obj->ref_count != 0 );
   assert( v->obj->ref_count != 0xff );	// check max value.
   v->obj->ref_count++;
 }
