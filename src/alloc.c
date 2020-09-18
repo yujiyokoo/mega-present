@@ -41,7 +41,6 @@
 /***** System headers *******************************************************/
 #include "vm_config.h"
 #include <stdint.h>
-#include <stddef.h>
 #include <string.h>
 #include <assert.h>
 
@@ -49,6 +48,7 @@
 #include "vm.h"
 #include "alloc.h"
 #include "hal_selector.h"
+#include "console.h"
 
 /***** Constant values ******************************************************/
 /*
@@ -481,6 +481,9 @@ void * mrbc_raw_alloc(unsigned int size)
   // else out of memory
   static const char msg[] = "Fatal error: Out of memory.\n";
   hal_write(1, msg, sizeof(msg)-1);
+#if defined(MRBC_OUT_OF_MEMORY)
+  MRBC_OUT_OF_MEMORY();
+#endif
   return NULL;  // ENOMEM
 
 
@@ -763,7 +766,6 @@ int mrbc_get_vm_id(void *ptr)
 
 
 #if defined(MRBC_DEBUG)
-#include "stdio.h"
 //================================================================
 /*! statistics
 
@@ -805,21 +807,39 @@ void mrbc_alloc_print_memory_pool( void )
   FREE_BLOCK *block = (FREE_BLOCK *)memory_pool;
 
   while( block < (FREE_BLOCK *)(memory_pool + memory_pool_size) ) {
-    printf("%p", block );
+    console_printf("%p", block );
 #if defined(MRBC_ALLOC_VMID)
-    printf(" id:%02x", block->vm_id );
+    console_printf(" id:%02x", block->vm_id );
 #endif
-    printf(" size:%5d+%d(%04x) prv:%d use:%d ",
-	   block->size & ~0x03, block->size & 0x03, block->size,
-	   !!(block->size & 0x02), !!(block->size & 0x01) );
+    console_printf(" size:%5d(%04x) use:%d prv:%d ",
+		   block->size & ~0x03, block->size & ~0x03,
+		   !!(block->size & 0x01), !!(block->size & 0x02) );
+
+    if( IS_USED_BLOCK(block) ) {
+      int n = 32;
+      if( n > (BLOCK_SIZE(block) - sizeof(USED_BLOCK)) ) {
+	n = BLOCK_SIZE(block) - sizeof(USED_BLOCK);
+      }
+      uint8_t *p = (uint8_t *)block + sizeof(USED_BLOCK);
+      int i;
+      for( i = 0; i < n; i++) console_printf(" %02x", *p++ );
+      for( ; i < 32; i++ ) console_printf("   ");
+
+      console_printf("  ");
+      p = (uint8_t *)block + sizeof(USED_BLOCK);
+      for( i = 0; i < n; i++) {
+	int ch = *p++;
+	console_printf("%c", (' ' <= ch && ch < 0x7f)? ch : '.');
+      }
+    }
 
     if( IS_FREE_BLOCK(block) ) {
       unsigned int index = calc_index(BLOCK_SIZE(block)) - 1;
-      printf(" fli:%d sli:%d pf:%p nf:%p",
+      console_printf(" fli:%d sli:%d pf:%p nf:%p",
 	     FLI(index), SLI(index), block->prev_free, block->next_free);
     }
 
-    printf( "\n" );
+    console_printf( "\n" );
     block = PHYS_NEXT(block);
   }
 }
