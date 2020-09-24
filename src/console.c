@@ -691,6 +691,10 @@ int mrbc_print_sub(const mrbc_value *v)
     console_putchar('}');
   } break;
 
+  case MRBC_TT_HANDLE:
+    console_printf( "#<Handle:%08x>", v->handle );
+    break;
+
   default:
     console_printf("Not support MRBC_TT_XX(%d)", v->tt);
     break;

@@ -63,6 +63,7 @@ typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 typedef enum {
   /* internal use */
   MRBC_TT_HANDLE = -1,
+
   /* primitive */
   MRBC_TT_EMPTY	 = 0,
   MRBC_TT_NIL	 = 1,
@@ -143,7 +144,6 @@ struct RObject {
 #endif
     struct RBasic *obj;		// use inc/dec ref only.
     struct RClass *cls;		// MRBC_TT_CLASS
-    struct RObject *handle;	// handle to objects
     struct RInstance *instance;	// MRBC_TT_OBJECT
     struct RProc *proc;		// MRBC_TT_PROC
     struct RArray *array;	// MRBC_TT_ARRAY
@@ -151,6 +151,7 @@ struct RObject {
     const char *str;		// C-string (only loader use.)
     struct RRange *range;	// MRBC_TT_RANGE
     struct RHash *hash;		// MRBC_TT_HASH
+    void *handle;		// internal use only.
   };
 };
 typedef struct RObject mrb_object;	// not recommended.

@@ -24,6 +24,7 @@
 #include "load.h"
 #include "class.h"
 #include "global.h"
+#include "symbol.h"
 #include "c_object.h"
 #include "vm.h"
 #include "console.h"
@@ -251,7 +252,7 @@ static void c_get_tcb(mrbc_vm *vm, mrbc_value v[], int argc)
   mrbc_tcb *tcb = VM2TCB(vm);
 
   mrbc_value value = {.tt = MRBC_TT_HANDLE};
-  value.handle = (void*)tcb;
+  value.handle = tcb;
 
   SET_RETURN( value );
 }
