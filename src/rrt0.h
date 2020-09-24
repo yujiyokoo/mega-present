@@ -86,6 +86,7 @@ typedef struct RMutex {
 /***** Function prototypes **************************************************/
 void mrbc_tick(void);
 void mrbc_init(uint8_t *ptr, unsigned int size);
+void mrbc_cleanup(void);
 void mrbc_init_tcb(mrbc_tcb *tcb);
 mrbc_tcb *mrbc_create_task(const uint8_t *vm_code, mrbc_tcb *tcb);
 int mrbc_start_task(mrbc_tcb *tcb);

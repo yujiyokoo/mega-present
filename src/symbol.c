@@ -212,7 +212,7 @@ static int add_index( uint16_t hash, const char *str )
 //================================================================
 /*! cleanup
 */
-void mrbc_symbol_cleanup(void)
+void mrbc_cleanup_symbol(void)
 {
   memset(sym_index, 0, sizeof(sym_index));
   sym_index_pos = 0;

@@ -100,7 +100,7 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   // if SENDV or SENDVB, params are in one Array
   int flag_array_arg = ( c == CALL_MAXARGS );
   if( flag_array_arg ) c = 1;
-  
+
   // if not OP_SENDB, blcok does not exist
   int bidx = a + c + 1;
   if( !is_sendb ){
@@ -1280,7 +1280,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   if( flag_sendv_pattern ){
     argc = 1;
   }
-  
+
   if( a & 0xffc ) {	// check m2 and k parameter.
     console_printf("ArgumentError: not support m2 or keyword argument.\n");
     return 1;		// raise?
@@ -2519,13 +2519,6 @@ static inline int op_stop( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_Z();
 
-  if( vm->inst[-1] == OP_STOP ) {
-    int i;
-    for( i = 0; i < MAX_REGS_SIZE; i++ ) {
-      mrbc_decref_empty(&vm->regs[i]);
-    }
-  }
-
   vm->flag_preemption = 1;
 
   return -1;
@@ -2707,6 +2700,11 @@ void mrbc_vm_begin( struct VM *vm )
 */
 void mrbc_vm_end( struct VM *vm )
 {
+  int i;
+  for( i = 0; i < MAX_REGS_SIZE; i++ ) {
+    mrbc_decref_empty(&vm->regs[i]);
+  }
+
   mrbc_global_clear_vm_id();
   mrbc_free_all(vm);
 }
