@@ -200,21 +200,40 @@ typedef struct RObject mrbc_value;
 
 
 // for C call
-#define SET_RETURN(n)		do { mrbc_value nnn = (n); \
-    mrbc_decref(v); v[0] = nnn; } while(0)
-#define SET_NIL_RETURN()	do { \
-    mrbc_decref(v); v[0].tt = MRBC_TT_NIL; } while(0)
-#define SET_FALSE_RETURN()	do { \
-    mrbc_decref(v); v[0].tt = MRBC_TT_FALSE; } while(0)
-#define SET_TRUE_RETURN()	do { \
-    mrbc_decref(v); v[0].tt = MRBC_TT_TRUE; } while(0)
-#define SET_BOOL_RETURN(n)	do { \
-    int tt = (n) ? MRBC_TT_TRUE : MRBC_TT_FALSE;	\
-    mrbc_decref(v); v[0].tt = tt; } while(0)
-#define SET_INT_RETURN(n)	do { mrbc_int nnn = (n);		\
-    mrbc_decref(v); v[0].tt = MRBC_TT_FIXNUM; v[0].i = nnn; } while(0)
-#define SET_FLOAT_RETURN(n)	do { mrbc_float nnn = (n); \
-    mrbc_decref(v); v[0].tt = MRBC_TT_FLOAT; v[0].d = nnn; } while(0)
+#define SET_RETURN(n) do {	\
+    mrbc_value nnn = (n);	\
+    mrbc_decref(v);		\
+    v[0] = nnn;			\
+  } while(0)
+#define SET_NIL_RETURN() do {	\
+    mrbc_decref(v);		\
+    v[0].tt = MRBC_TT_NIL;	\
+  } while(0)
+#define SET_FALSE_RETURN() do { \
+    mrbc_decref(v);		\
+    v[0].tt = MRBC_TT_FALSE;	\
+  } while(0)
+#define SET_TRUE_RETURN() do {	\
+    mrbc_decref(v);		\
+    v[0].tt = MRBC_TT_TRUE;	\
+  } while(0)
+#define SET_BOOL_RETURN(n) do {			 \
+    int tt = (n) ? MRBC_TT_TRUE : MRBC_TT_FALSE; \
+    mrbc_decref(v);				 \
+    v[0].tt = tt;				 \
+  } while(0)
+#define SET_INT_RETURN(n) do {	\
+    mrbc_int nnn = (n);		\
+    mrbc_decref(v);		\
+    v[0].tt = MRBC_TT_FIXNUM;	\
+    v[0].i = nnn;		\
+  } while(0)
+#define SET_FLOAT_RETURN(n) do {\
+    mrbc_float nnn = (n);	\
+    mrbc_decref(v);		\
+    v[0].tt = MRBC_TT_FLOAT;	\
+    v[0].d = nnn;		\
+} while(0)
 
 #define GET_TT_ARG(n)		(v[(n)].tt)
 #define GET_INT_ARG(n)		(v[(n)].i)
