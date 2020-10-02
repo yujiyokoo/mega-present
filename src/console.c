@@ -506,7 +506,7 @@ int mrbc_printf_float( mrbc_printf *pf, double value )
 /*! sprintf subcontract function for pointer '%p'
 
   @param  pf	pointer to mrbc_printf.
-  @param  value	output value.
+  @param  ptr	output value.
   @retval 0	done.
   @retval -1	buffer full.
 
@@ -515,10 +515,10 @@ int mrbc_printf_float( mrbc_printf *pf, double value )
     up to 8 digits, even if 64bit machines.
     not support sign, width, precision and other parameters.
 */
-int mrbc_printf_pointer( mrbc_printf *pf, void *pointer )
+int mrbc_printf_pointer( mrbc_printf *pf, void *ptr )
 {
-  int v = (int)pointer; // regal (void* to int), but implementation defined.
-  int n = sizeof(pointer) * 2;
+  int v = (int)ptr; // regal (void* to int), but implementation defined.
+  int n = sizeof(ptr) * 2;
   if( n > 8 ) n = 8;
 
   // check buffer size.
