@@ -40,7 +40,7 @@ typedef struct RClass {
   const char *names;	// for debug. delete soon.
 #endif
   struct RClass *super;	// mrbc_class[super]
-  struct RProc *procs;	// mrbc_proc[rprocs], linked list
+  struct RMethod *method_link;
 
 } mrbc_class;
 typedef struct RClass mrb_class;
@@ -81,6 +81,21 @@ typedef struct RProc {
 typedef struct RProc mrb_proc;
 
 
+//================================================================
+/*! Method management structure.
+*/
+typedef struct RMethod {
+  uint8_t type;		// for debug
+  uint8_t c_func;	// 0:IREP, 1:C Func
+  mrbc_sym sym_id;
+  union {
+    struct IREP *irep;
+    mrbc_func_t func;
+  };
+  struct RMethod *next;
+} mrbc_method;
+
+
 /***** Global variables *****************************************************/
 extern struct RClass *mrbc_class_tbl[];
 #define mrbc_class_nil		mrbc_class_tbl[ MRBC_TT_NIL ]
@@ -115,8 +130,8 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id);
 mrbc_value mrbc_proc_new(struct VM *vm, void *irep);
 void mrbc_proc_delete(mrbc_value *val);
 int mrbc_obj_is_kind_of(const mrbc_value *obj, const mrb_class *cls);
-mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id);
-mrbc_proc *find_method_by_class(mrbc_class **r_cls, mrbc_class *cls, mrbc_sym sym_id);
+mrbc_method *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id);
+mrbc_method *find_method_by_class(mrbc_class **r_cls, mrbc_class *cls, mrbc_sym sym_id);
 mrbc_class *mrbc_get_class_by_name(const char *name);
 mrbc_value mrbc_send(struct VM *vm, mrbc_value *v, int reg_ofs, mrbc_value *recv, const char *method, int argc, ...);
 void c_ineffect(struct VM *vm, mrbc_value v[], int argc);

@@ -110,18 +110,18 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
 
   mrbc_sym sym_id = str_to_symid(method_name);
   mrbc_class *cls = find_class_by_object(recv);
-  mrbc_proc *m = find_method_by_class(&cls, cls, sym_id);
+  mrbc_method *method = find_method_by_class(&cls, cls, sym_id);
 
-  if( m == 0 ) {
+  if( method == 0 ) {
     console_printf("Undefined local variable or method '%s' for %s\n",
 		   method_name, symid_to_str( cls->sym_id ));
     return 1;
   }
 
   // m is C func
-  if( m->c_func ) {
-    m->func(vm, regs + a, c);
-    if( m->func == c_proc_call ) return 0;
+  if( method->c_func ) {
+    method->func(vm, regs + a, c);
+    if( method->func == c_proc_call ) return 0;
     if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
 
     int release_reg = a+1;
@@ -139,8 +139,8 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   callinfo->own_class = cls;
 
   // target irep
-  vm->pc_irep = m->irep;
-  vm->inst = m->irep->code;
+  vm->pc_irep = method->irep;
+  vm->inst = method->irep->code;
 
   // new regs
   vm->current_regs += a;
@@ -1181,14 +1181,14 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   cls = cls->super;
   assert( cls );
 
-  mrbc_proc *m = find_method_by_class( &cls, cls, callinfo->method_id );
-  if( m == 0 ) {
+  mrbc_method *method = find_method_by_class( &cls, cls, callinfo->method_id );
+  if( method == 0 ) {
     console_printf("Undefined method '%s' for %s\n",
 		   symid_to_str(callinfo->method_id), symid_to_str(cls->sym_id));
     return 1;
   }
 
-  if( m->c_func ) {
+  if( method->c_func ) {
     console_printf("Not support.\n");	// TODO
     return 1;
   }
@@ -1197,8 +1197,8 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   callinfo->own_class = cls;
 
   // target irep
-  vm->pc_irep = m->irep;
-  vm->inst = m->irep->code;
+  vm->pc_irep = method->irep;
+  vm->inst = method->irep->code;
 
   // new regs
   vm->current_regs += a;
@@ -2196,9 +2196,9 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
 #if MRBC_USE_STRING
   // call "to_s"
   mrbc_sym sym_id = str_to_symid("to_s");
-  mrbc_proc *m = find_method(vm, &regs[a+1], sym_id);
-  if( m && m->c_func ){
-    m->func(vm, regs+a+1, 0);
+  mrbc_method *method = find_method(vm, &regs[a+1], sym_id);
+  if( method && method->c_func ){
+    method->func(vm, regs+a+1, 0);
   }
 
   mrbc_string_append(&regs[a], &regs[a+1]);
@@ -2358,39 +2358,39 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[a+1].tt == MRBC_TT_PROC );
 
   mrbc_class *cls = regs[a].cls;
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id = str_to_symid(sym_name);
+  const char *name = mrbc_get_irep_symbol(vm, b);
+  mrbc_sym sym_id = str_to_symid( name );
   mrbc_proc *proc = regs[a+1].proc;
 
-  mrbc_set_vm_id(proc, 0);
-  proc->sym_id = sym_id;
+  mrbc_method *method = mrbc_raw_alloc( sizeof(mrbc_method) );
+  if( !method ) return -1; // ENOMEM
 
-  // add to class
-  proc->next = cls->procs;
-  cls->procs = proc;
+  method->type = 'M';
+  method->c_func = 0;
+  method->sym_id = sym_id;
+  method->irep = proc->irep;
+  method->next = cls->method_link;
+  cls->method_link = method;
 
   // checking same method
-  for( ;proc->next != NULL; proc = proc->next ) {
-    if( proc->next->sym_id == sym_id ) {
+  for( ;method->next != NULL; method = method->next ) {
+    if( method->next->sym_id == sym_id ) {
       // Found it. Unchain it in linked list and remove.
-      mrbc_value del_proc = {.tt = MRBC_TT_PROC};
-      del_proc.proc = proc->next;
-      proc->next = proc->next->next;
+      mrbc_method *del_method = method->next;
 
+      method->next = del_method->next;
       /* (note)
-	 Case c_func == 1 is defined by mrbc_define_method() function.
-	 That function uses mrbc_raw_alloc_no_free() to allocate memory.
-	 Thus not free this memory.
-	 Case c_func == 0 is defined by mrbc_proc_new() function.
+         Case c_func == 1 is defined by mrbc_define_method() function.
+         That function uses mrbc_raw_alloc_no_free() to allocate memory.
+         Thus not free this memory.
+         Case c_func == 0 is defined by this function.
       */
-      if( !del_proc.proc->c_func ) {
-	mrbc_decref( &del_proc );
-      }
+      if( del_method->c_func == 0 ) mrbc_raw_free( del_method );
+
       break;
     }
   }
 
-  regs[a+1].tt = MRBC_TT_EMPTY;
   return 0;
 }
 
@@ -2408,40 +2408,28 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name_new = mrbc_get_irep_symbol(vm, a);
-  mrbc_sym sym_id_new = str_to_symid(sym_name_new);
-  const char *sym_name_old = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id_old = str_to_symid(sym_name_old);
+  const char *name_new = mrbc_get_irep_symbol(vm, a);
+  const char *name_org = mrbc_get_irep_symbol(vm, b);
+  mrbc_sym sym_id_new = str_to_symid(name_new);
+  mrbc_sym sym_id_org = str_to_symid(name_org);
 
-  // find method only in this class.
-  mrb_proc *old_method = NULL;
   mrbc_class *cls = vm->target_class;
-  while( old_method == NULL && cls != NULL ){
-    mrb_proc *proc = cls->procs;
-    while( proc != NULL ) {
-      if( proc->sym_id == sym_id_old ){
-	old_method = proc;
-	break;
-      }
-      proc = proc->next;
-    }
-    cls = cls->super;
-  }
+  mrbc_method *method = find_method_by_class( NULL, cls, sym_id_org );
 
-  if( !old_method ) {
-    console_printf("NameError: undefined_method '%s'\n", sym_name_old);
+  if( method == 0 ) {
+    console_printf("NameError: undefined method '%s'\n", name_org);
     return 0;
   }
 
-  // copy the Proc object
-  mrbc_proc *proc_alias = mrbc_alloc(0, sizeof(mrbc_proc));
-  if( !proc_alias ) return 0;// ENOMEM
-  memcpy( proc_alias, old_method, sizeof(mrbc_proc) );
+  // copy method and chain link list.
+  mrbc_method *method_new = mrbc_raw_alloc( sizeof(mrbc_method) );
+  if( !method_new ) return 0;	// ENOMEM
 
-  // register procs link.
-  proc_alias->sym_id = sym_id_new;
-  proc_alias->next = vm->target_class->procs;
-  vm->target_class->procs = proc_alias;
+  *method_new = *method;
+  method_new->sym_id = sym_id_new;	// TODO check already sym_id_new exist?
+
+  method_new->next = cls->method_link;
+  cls->method_link = method_new;
 
   return 0;
 }
@@ -2609,7 +2597,7 @@ mrbc_vm *mrbc_vm_open( struct VM *vm_arg )
 
   if( vm == NULL ) {
     // allocate memory.
-    vm = (mrbc_vm *)mrbc_raw_alloc( sizeof(mrbc_vm) );
+    vm = mrbc_raw_alloc( sizeof(mrbc_vm) );
     if( vm == NULL ) return NULL;
   }
 

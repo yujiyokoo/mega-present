@@ -50,8 +50,8 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 
   char syms[]="______initialize";
   mrbc_sym sym_id = str_to_symid(&syms[6]);
-  mrbc_proc *m = find_method(vm, &v[0], sym_id);
-  if( m==0 ){
+  mrbc_method *method = find_method(vm, &v[0], sym_id);
+  if( method == 0 ) {
     SET_RETURN(new_obj);
     return;
   }
@@ -375,12 +375,12 @@ static void c_object_instance_methods(struct VM *vm, mrbc_value v[], int argc)
   int flag_first = 1;
 
   mrbc_class *cls = find_class_by_object( v );
-  mrbc_proc *proc = cls->procs;
-  while( proc ) {
+  mrbc_method *method = cls->method_link;
+  while( method ) {
     console_printf( "%s:%s", (flag_first ? "" : ", "),
-		    symid_to_str(proc->sym_id) );
+		    symid_to_str(method->sym_id) );
     flag_first = 0;
-    proc = proc->next;
+    method = method->next;
   }
 
   console_printf( "]" );
