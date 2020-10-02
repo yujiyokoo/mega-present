@@ -197,9 +197,6 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep)
   if( !val.proc ) return val;	// ENOMEM
 
   MRBC_INIT_OBJECT_HEADER( val.proc, "PR" );
-  val.proc->c_func = 0;
-  val.proc->sym_id = -1;
-  val.proc->next = 0;
   val.proc->callinfo = vm->callinfo_tail;
 
   if(vm->current_regs[0].tt == MRBC_TT_PROC) {

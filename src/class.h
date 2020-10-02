@@ -66,16 +66,9 @@ typedef struct RInstance mrb_instance;
 typedef struct RProc {
   MRBC_OBJECT_HEADER;
 
-  unsigned int c_func : 1;	// 0:IREP, 1:C Func
-  mrbc_sym sym_id;
-  struct RProc *next;
   struct CALLINFO *callinfo;
   struct CALLINFO *callinfo_self;
-
-  union {
-    struct IREP *irep;
-    mrbc_func_t func;
-  };
+  struct IREP *irep;
 
 } mrbc_proc;
 typedef struct RProc mrb_proc;
