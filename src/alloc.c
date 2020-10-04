@@ -62,7 +62,7 @@
   last 4bit is ignored
 
  FLI range      SLI0  1     2     3     4     5     6     7         BlockSize
-  0  0000-007f  0000- 0010- 0020- 0030- 0040- 0050- 0060- 0070-007f   16
+  0  0000-007f unused 0010- 0020- 0030- 0040- 0050- 0060- 0070-007f   16
   1  0080-00ff  0080- 0090- 00a0- 00b0- 00c0- 00d0- 00e0- 00f0-00ff   16
   2  0100-01ff  0100- 0120- 0140- 0160- 0180- 01a0- 01c0- 01e0-01ff   32
   3  0200-03ff  0200- 0240- 0280- 02c0- 0300- 0340- 0380- 03c0-03ff   64
@@ -190,10 +190,11 @@ typedef struct MEMORY_POOL {
 
   // free memory bitmap
   uint16_t free_fli_bitmap;
-  uint8_t  free_sli_bitmap[MRBC_ALLOC_FLI_BIT_WIDTH +1+1]; // + sentinel
+  uint8_t  free_sli_bitmap[MRBC_ALLOC_FLI_BIT_WIDTH +1+1];
+						// +1=bit_width, +1=sentinel
 
   // free memory block index
-  FREE_BLOCK *free_blocks[SIZE_FREE_BLOCKS + 1];
+  FREE_BLOCK *free_blocks[SIZE_FREE_BLOCKS +1];	// +1=sentinel
 } MEMORY_POOL;
 
 #define MEMORY_BLOCK_TOP(p) ((void *)((uint8_t *)(p) + sizeof(MEMORY_POOL)))
@@ -261,23 +262,21 @@ static unsigned int calc_index(MRBC_ALLOC_MEMSIZE_T alloc_size)
   if( (alloc_size >> (MRBC_ALLOC_FLI_BIT_WIDTH
                       + MRBC_ALLOC_SLI_BIT_WIDTH
                       + MRBC_ALLOC_IGNORE_LSBS)) != 0) {
-    return SIZE_FREE_BLOCKS;
+    return SIZE_FREE_BLOCKS - 1;
   }
 
   // calculate First Level Index.
-  int fli = 16 -
+  unsigned int fli = 16 -
     nlz16( alloc_size >> (MRBC_ALLOC_SLI_BIT_WIDTH + MRBC_ALLOC_IGNORE_LSBS) );
 
   // calculate Second Level Index.
-  int shift = (fli == 0) ? MRBC_ALLOC_IGNORE_LSBS :
-			  (MRBC_ALLOC_IGNORE_LSBS - 1 + fli);
+  unsigned int shift = (fli == 0) ? MRBC_ALLOC_IGNORE_LSBS :
+                                   (MRBC_ALLOC_IGNORE_LSBS - 1 + fli);
 
-  int sli   = (alloc_size >> shift) & ((1 << MRBC_ALLOC_SLI_BIT_WIDTH) - 1);
-  int index = (fli << MRBC_ALLOC_SLI_BIT_WIDTH) + sli;
+  unsigned int sli = (alloc_size >> shift) & ((1 << MRBC_ALLOC_SLI_BIT_WIDTH) - 1);
+  unsigned int index = (fli << MRBC_ALLOC_SLI_BIT_WIDTH) + sli;
 
-  assert(fli >= 0);
   assert(fli <= MRBC_ALLOC_FLI_BIT_WIDTH);
-  assert(sli >= 0);
   assert(sli <= (1 << MRBC_ALLOC_SLI_BIT_WIDTH) - 1);
 
   return index;
@@ -297,9 +296,9 @@ static void add_free_block(MEMORY_POOL *pool, FREE_BLOCK *target)
   FREE_BLOCK **top_adrs = (FREE_BLOCK **)((uint8_t*)target + BLOCK_SIZE(target) - sizeof(FREE_BLOCK *));
   *top_adrs = target;
 
-  unsigned int index = calc_index(BLOCK_SIZE(target)) - 1;
-  int fli = FLI(index);
-  int sli = SLI(index);
+  unsigned int index = calc_index(BLOCK_SIZE(target));
+  unsigned int fli = FLI(index);
+  unsigned int sli = SLI(index);
   assert( index < SIZE_FREE_BLOCKS );
 
   pool->free_fli_bitmap      |= (MSB_BIT1_FLI >> fli);
@@ -332,12 +331,12 @@ static void remove_free_block(MEMORY_POOL *pool, FREE_BLOCK *target)
 {
   // top of linked list?
   if( target->prev_free == NULL ) {
-    unsigned int index = calc_index(BLOCK_SIZE(target)) - 1;
+    unsigned int index = calc_index(BLOCK_SIZE(target));
 
     pool->free_blocks[index] = target->next_free;
     if( target->next_free == NULL ) {
-      int fli = FLI(index);
-      int sli = SLI(index);
+      unsigned int fli = FLI(index);
+      unsigned int sli = SLI(index);
       pool->free_sli_bitmap[fli] &= ~(MSB_BIT1_SLI >> sli);
       if( pool->free_sli_bitmap[fli] == 0 ) pool->free_fli_bitmap &= ~(MSB_BIT1_FLI >> fli);
     }
@@ -438,25 +437,6 @@ void mrbc_cleanup_alloc(void)
 
 
 //================================================================
-/*! allocate memory sub function.
-*/
-static inline void * mrbc_raw_alloc_ff_sub(MEMORY_POOL *pool, MRBC_ALLOC_MEMSIZE_T alloc_size, unsigned int index)
-{
-  FREE_BLOCK *target = pool->free_blocks[--index];
-
-  while(1) {
-    if( target == NULL ) return NULL;
-    if( BLOCK_SIZE(target) >= alloc_size ) break;
-    target = target->next_free;
-  }
-
-  remove_free_block( pool, target );
-
-  return target;
-}
-
-
-//================================================================
 /*! allocate memory
 
   @param  size	request size.
@@ -474,13 +454,25 @@ void * mrbc_raw_alloc(unsigned int size)
   // check minimum alloc size.
   if( alloc_size < MRBC_MIN_MEMORY_BLOCK_SIZE ) alloc_size = MRBC_MIN_MEMORY_BLOCK_SIZE;
 
-  // find free memory block.
+  FREE_BLOCK *target;
+  unsigned int fli, sli;
   unsigned int index = calc_index(alloc_size);
-  int fli = FLI(index);
-  int sli = SLI(index);
 
-  FREE_BLOCK *target = pool->free_blocks[index];
-  if( target != NULL ) goto FOUND_TARGET_BLOCK;
+  // At first, check only the beginning of the same size block.
+  // because it immediately responds to the pattern in which
+  // same size memory are allocated and released continuously.
+  target = pool->free_blocks[index];
+  if( target && BLOCK_SIZE(target) >= alloc_size ) {
+    fli = FLI(index);
+    sli = SLI(index);
+    goto FOUND_TARGET_BLOCK;
+  }
+
+  // and then, check the next (larger) size block.
+  target = pool->free_blocks[++index];
+  fli = FLI(index);
+  sli = SLI(index);
+  if( target ) goto FOUND_TARGET_BLOCK;
 
   // check in SLI bitmap table.
   uint16_t masked = pool->free_sli_bitmap[fli] & ((MSB_BIT1_SLI >> sli) - 1);
@@ -498,8 +490,14 @@ void * mrbc_raw_alloc(unsigned int size)
   }
 
   // Change strategy to First-fit.
-  target = mrbc_raw_alloc_ff_sub( pool, alloc_size, index );
-  if( target ) goto SPLIT_BLOCK;
+  target = pool->free_blocks[--index];
+  while( target ) {
+    if( BLOCK_SIZE(target) >= alloc_size ) {
+      remove_free_block( pool, target );
+      goto SPLIT_BLOCK;
+    }
+    target = target->next_free;
+  }
 
   // else out of memory
   static const char msg[] = "Fatal error: Out of memory.\n";
@@ -511,12 +509,8 @@ void * mrbc_raw_alloc(unsigned int size)
 
 
  FOUND_FLI_SLI:
-  assert(fli >= 0);
-  assert(fli <= MRBC_ALLOC_FLI_BIT_WIDTH);
-  assert(sli >= 0);
-  assert(sli <= (1 << MRBC_ALLOC_SLI_BIT_WIDTH) - 1);
-
   index = (fli << MRBC_ALLOC_SLI_BIT_WIDTH) + sli;
+  assert( index < SIZE_FREE_BLOCKS );
   target = pool->free_blocks[index];
   assert( target != NULL );
 
@@ -827,13 +821,14 @@ void mrbc_alloc_print_memory_pool( void )
   console_printf("== MEMORY POOL HEADER DUMP ==\n");
   console_printf(" Address: %p - %p - %p\n", pool,
 		 MEMORY_BLOCK_TOP(pool), MEMORY_BLOCK_END(pool));
-  console_printf(" Size: %d / PoolSize: %d\n", pool->pool_size, pool->pool_size + sizeof(MEMORY_POOL));
+  console_printf(" PoolSize: %d / Total: %d\n",
+		 pool->pool_size, pool->pool_size + sizeof(MEMORY_POOL));
 
   console_printf(" FLI/SLI bitmap and free_blocks table.\n");
   console_printf("    FLI :S[0123 4567] -- free_blocks ");
   for( i = 0; i < 64; i++ ) { console_printf("-"); }
   console_printf("\n");
-  for( i = 0; i < MRBC_ALLOC_FLI_BIT_WIDTH+1+1; i++ ) {
+  for( i = 0; i < sizeof(pool->free_sli_bitmap); i++ ) {
     console_printf(" [%2d] %d :  ", i, !!((pool->free_fli_bitmap << i) & MSB_BIT1_FLI));
     int j;
     for( j = 0; j < 8; j++ ) {
@@ -843,12 +838,11 @@ void mrbc_alloc_print_memory_pool( void )
 
     for( j = 0; j < 8; j++ ) {
       int idx = i * 8 + j;
-      if( idx > SIZE_FREE_BLOCKS ) break;
+      if( idx >= sizeof(pool->free_blocks) / sizeof(FREE_BLOCK *) ) break;
       console_printf(" %p", pool->free_blocks[idx] );
     }
     console_printf( "\n" );
   }
-
 
   console_printf("== MEMORY BLOCK DUMP ==\n");
   FREE_BLOCK *block = MEMORY_BLOCK_TOP(pool);
@@ -880,7 +874,7 @@ void mrbc_alloc_print_memory_pool( void )
     }
 
     if( IS_FREE_BLOCK(block) ) {
-      unsigned int index = calc_index(BLOCK_SIZE(block)) - 1;
+      unsigned int index = calc_index(BLOCK_SIZE(block));
       console_printf(" fli:%d sli:%d pf:%p nf:%p",
 	     FLI(index), SLI(index), block->prev_free, block->next_free);
     }
