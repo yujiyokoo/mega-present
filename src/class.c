@@ -294,19 +294,28 @@ mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym
       }
     }
 
-    // %TODO change to bin search.
     struct RBuiltInClass *c = (struct RBuiltInClass *)cls;
-    int i;
-    for( i = 0; i < cls->num_builtin_method; i++ ) {
-      if( c->method_symbols[i] == sym_id ) {
-	*r_method = (mrbc_method){
-	  .type = 'M',
-	  .c_func = 1,
-	  .sym_id = sym_id,
-	  .func = c->method_functions[i],
-	  .cls = cls };
-	return r_method;
+    int left = 0;
+    int right = cls->num_builtin_method - 1;
+    if( right < 0 ) return 0;
+
+    while( left < right ) {
+      int mid = (left + right) / 2;
+      if( c->method_symbols[mid] < sym_id ) {
+	left = mid + 1;
+      } else {
+	right = mid;
       }
+    }
+
+    if( c->method_symbols[right] == sym_id ) {
+      *r_method = (mrbc_method){
+	.type = 'M',
+	.c_func = 1,
+	.sym_id = sym_id,
+	.func = c->method_functions[right],
+	.cls = cls };
+      return r_method;
     }
 
     cls = cls->super;
