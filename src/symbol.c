@@ -318,7 +318,7 @@ static void c_all_symbols(struct VM *vm, mrbc_value v[], int argc)
 
   int i;
   for( i = 0; i < sizeof(builtin_symbols) / sizeof(builtin_symbols[0]); i++ ) {
-//    mrbc_array_push(&ret, &mrbc_symbol_value(i));
+    mrbc_array_push(&ret, &mrbc_symbol_value(i));
   }
 
   for( i = 0; i < sym_index_pos; i++ ) {

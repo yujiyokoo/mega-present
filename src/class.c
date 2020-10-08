@@ -297,7 +297,7 @@ mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym
     struct RBuiltInClass *c = (struct RBuiltInClass *)cls;
     int left = 0;
     int right = cls->num_builtin_method - 1;
-    if( right < 0 ) return 0;
+    if( right < 0 ) goto NEXT;
 
     while( left < right ) {
       int mid = (left + right) / 2;
@@ -318,6 +318,7 @@ mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym
       return r_method;
     }
 
+  NEXT:
     cls = cls->super;
   } while( cls != 0 );
 
