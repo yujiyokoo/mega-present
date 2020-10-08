@@ -50,8 +50,9 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 
   char syms[]="______initialize";
   mrbc_sym sym_id = str_to_symid(&syms[6]);
-  mrbc_method *method = find_method(vm, &v[0], sym_id);
-  if( method == 0 ) {
+  mrbc_method method;
+
+  if( mrbc_find_method( &method, v->cls, sym_id ) == 0 ) {
     SET_RETURN(new_obj);
     return;
   }
@@ -1001,7 +1002,7 @@ void mrbc_init_class(void)
   void mrbc_init_class_math(struct VM *vm);
   void mrbc_init_class_string(struct VM *);
   void mrbc_init_class_array(struct VM *);
-  void mrbc_init_class_range(struct VM *);
+  mrbc_class *mrbc_init_class_range(struct VM *);
   void mrbc_init_class_hash(struct VM *);
   void mrbc_init_class_exception(struct VM *);
 
@@ -1025,7 +1026,7 @@ void mrbc_init_class(void)
   mrbc_init_class_string(0);
 #endif
   mrbc_init_class_array(0);
-  mrbc_init_class_range(0);
+  mrbc_class_range = mrbc_init_class_range(0);
   mrbc_init_class_hash(0);
   mrbc_init_class_exception(0);
 

@@ -110,18 +110,18 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
 
   mrbc_sym sym_id = str_to_symid(method_name);
   mrbc_class *cls = find_class_by_object(recv);
-  mrbc_method *method = find_method_by_class(&cls, cls, sym_id);
+  mrbc_method method;
 
-  if( method == 0 ) {
+  if( mrbc_find_method( &method, cls, sym_id ) == 0 ) {
     console_printf("Undefined local variable or method '%s' for %s\n",
 		   method_name, symid_to_str( cls->sym_id ));
     return 1;
   }
 
-  // m is C func
-  if( method->c_func ) {
-    method->func(vm, regs + a, c);
-    if( method->func == c_proc_call ) return 0;
+  // call C method.
+  if( method.c_func ) {
+    method.func(vm, regs + a, c);
+    if( method.func == c_proc_call ) return 0;
     if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
 
     int release_reg = a+1;
@@ -132,15 +132,14 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
     return 0;
   }
 
-  // m is Ruby method.
-  // callinfo
+  // call Ruby method.
   if( flag_array_arg ) c = CALL_MAXARGS;
   mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, sym_id, a, c);
-  callinfo->own_class = cls;
+  callinfo->own_class = method.cls;
 
   // target irep
-  vm->pc_irep = method->irep;
-  vm->inst = method->irep->code;
+  vm->pc_irep = method.irep;
+  vm->inst = method.irep->code;
 
   // new regs
   vm->current_regs += a;
@@ -1177,28 +1176,28 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   // find super class
   mrbc_callinfo *callinfo = vm->callinfo_tail;
   mrbc_class *cls = callinfo->own_class;
+  mrbc_method method;
+
   assert( cls );
   cls = cls->super;
   assert( cls );
-
-  mrbc_method *method = find_method_by_class( &cls, cls, callinfo->method_id );
-  if( method == 0 ) {
+  if( mrbc_find_method( &method, cls, callinfo->method_id ) == 0 ) {
     console_printf("Undefined method '%s' for %s\n",
 		   symid_to_str(callinfo->method_id), symid_to_str(cls->sym_id));
     return 1;
   }
 
-  if( method->c_func ) {
+  if( method.c_func ) {
     console_printf("Not support.\n");	// TODO
     return 1;
   }
 
   callinfo = mrbc_push_callinfo(vm, callinfo->method_id, a, b);
-  callinfo->own_class = cls;
+  callinfo->own_class = method.cls;
 
   // target irep
-  vm->pc_irep = method->irep;
-  vm->inst = method->irep->code;
+  vm->pc_irep = method.irep;
+  vm->inst = method.irep->code;
 
   // new regs
   vm->current_regs += a;
@@ -2195,13 +2194,14 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
 
 #if MRBC_USE_STRING
   // call "to_s"
-  mrbc_sym sym_id = str_to_symid("to_s");
-  mrbc_method *method = find_method(vm, &regs[a+1], sym_id);
-  if( method && method->c_func ){
-    method->func(vm, regs+a+1, 0);
-  }
+  mrbc_method method;
+  if( mrbc_find_method( &method, find_class_by_object(&regs[a+1]),
+			str_to_symid("to_s")) == 0 ) return 0;
+  if( !method.c_func ) return 0;	// TODO: Not support?
 
-  mrbc_string_append(&regs[a], &regs[a+1]);
+  method.func( vm, regs + a + 1, 0 );
+  mrbc_string_append( &regs[a], &regs[a+1] );
+  mrbc_decref_empty( &regs[a+1] );
 
 #else
   not_supported();
@@ -2412,11 +2412,10 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
   const char *name_org = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id_new = str_to_symid(name_new);
   mrbc_sym sym_id_org = str_to_symid(name_org);
-
   mrbc_class *cls = vm->target_class;
-  mrbc_method *method = find_method_by_class( NULL, cls, sym_id_org );
+  mrbc_method method_org;
 
-  if( method == 0 ) {
+  if( mrbc_find_method( &method_org, cls, sym_id_org ) == 0 ) {
     console_printf("NameError: undefined method '%s'\n", name_org);
     return 0;
   }
@@ -2425,7 +2424,7 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
   mrbc_method *method_new = mrbc_raw_alloc( sizeof(mrbc_method) );
   if( !method_new ) return 0;	// ENOMEM
 
-  *method_new = *method;
+  *method_new = method_org;
   method_new->sym_id = sym_id_new;	// TODO check already sym_id_new exist?
 
   method_new->next = cls->method_link;

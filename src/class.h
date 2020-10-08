@@ -35,15 +35,28 @@ extern "C" {
 /*! mruby/c class object.
 */
 typedef struct RClass {
-  mrbc_sym sym_id;	// class name
+  mrbc_sym sym_id;		//!< class name's symbol ID
+  int16_t num_builtin_method;	//!< num of built-in method.
 #ifdef MRBC_DEBUG
-  const char *names;	// for debug. delete soon.
+  const char *names;		// for debug. delete soon.
 #endif
-  struct RClass *super;	// mrbc_class[super]
-  struct RMethod *method_link;
-
+  struct RClass *super;		//!< pointer to super class.
+  struct RMethod *method_link;	//!< pointer to method link.
 } mrbc_class;
 typedef struct RClass mrb_class;
+
+struct RBuiltInClass {
+  mrbc_sym sym_id;		//!< class name's symbol ID
+  int16_t num_builtin_method;	//!< num of built-in method.
+#ifdef MRBC_DEBUG
+  const char *names;		// for debug. delete soon.
+#endif
+  struct RClass *super;		//!< pointer to super class.
+  struct RMethod *method_link;	//!< pointer to method link.
+
+  const mrbc_sym *method_symbols;	//!< built-in method sym-id table.
+  const mrbc_func_t *method_functions;	//!< built-in method function table.
+};
 
 
 //================================================================
@@ -79,13 +92,16 @@ typedef struct RProc mrb_proc;
 */
 typedef struct RMethod {
   uint8_t type;		// for debug
-  uint8_t c_func;	// 0:IREP, 1:C Func
-  mrbc_sym sym_id;
+  uint8_t c_func;	//!< 0:IREP, 1:C Func
+  mrbc_sym sym_id;	//!< function names symbol ID
   union {
-    struct IREP *irep;
-    mrbc_func_t func;
+    struct IREP *irep;	//!< to IREP for ruby proc.
+    mrbc_func_t func;	//!< to C function.
   };
-  struct RMethod *next;
+  union {
+    struct RMethod *next;	//!< link to next method.
+    struct RClass *cls;		//!< for return value for mrbc_find_method.
+  };
 } mrbc_method;
 
 
@@ -115,6 +131,7 @@ extern struct RClass *mrbc_class_typeerror;
 
 /***** Function prototypes **************************************************/
 mrbc_class *mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super);
+mrbc_class *mrbc_define_builtin_class(const char *name, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method);
 void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_func_t cfunc);
 mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size);
 void mrbc_instance_delete(mrbc_value *v);
@@ -123,10 +140,9 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id);
 mrbc_value mrbc_proc_new(struct VM *vm, void *irep);
 void mrbc_proc_delete(mrbc_value *val);
 int mrbc_obj_is_kind_of(const mrbc_value *obj, const mrb_class *cls);
-mrbc_method *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id);
-mrbc_method *find_method_by_class(mrbc_class **r_cls, mrbc_class *cls, mrbc_sym sym_id);
+mrbc_method *mrbc_find_method(mrbc_method *r_method, mrbc_class *cls, mrbc_sym sym_id);
 mrbc_class *mrbc_get_class_by_name(const char *name);
-mrbc_value mrbc_send(struct VM *vm, mrbc_value *v, int reg_ofs, mrbc_value *recv, const char *method, int argc, ...);
+mrbc_value mrbc_send(struct VM *vm, mrbc_value *v, int reg_ofs, mrbc_value *recv, const char *method_name, int argc, ...);
 void c_ineffect(struct VM *vm, mrbc_value v[], int argc);
 
 

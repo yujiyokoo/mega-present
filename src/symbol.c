@@ -62,7 +62,9 @@ struct SYM_INDEX {
 static struct SYM_INDEX sym_index[MAX_SYMBOLS_COUNT];
 static int sym_index_pos;	// point to the last(free) sym_index array.
 
+#define MRBC_DEFINE_SYMBOL_TABLE
 #include "symbol_builtin.h"	// built-in symbol table.
+#undef MRBC_DEFINE_SYMBOL_TABLE
 
 
 /***** Global variables *****************************************************/
