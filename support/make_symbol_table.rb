@@ -8,46 +8,110 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 # (usage)
-# ruby make_symbol_table.rb
-#  or
-# ruby make_symbol_table.rb SYMBOL_LIST.TXT
+# ruby make_symbol_table.rb [option]
+#
+#  -o output filename.
+#  -i input symbol list filename.
+#  -a Targets all .c files in the current directory.
+#  -v verbose
 #
 
-require_relative "rename_for_symbol"
+require "optparse"
+require_relative "common_sub"
 
 OUTPUT_FILENAME = "symbol_builtin.h"
+APPEND_SYMBOL = ["initialize", "Exception", "message", "StandardError", "RuntimeError", "ZeroDivisionError", "ArgumentError", "IndexError", "TypeError", "collect", "map", "collect!", "map!", "delete_if", "each", "each_index", "each_with_index", "reject!", "reject", "sort!", "sort", "RUBY_VERSION", "MRUBYC_VERSION", "times", "loop", "each_byte", "each_char"]
 
-all_symbols = %w(Object new ! != <=> === class dup block_given? is_a? kind_of? nil? p print puts raise object_id instance_methods instance_variables memory_statistics attr_reader attr_accessor sprintf printf inspect to_s Proc call NilClass to_i to_a to_h to_f TrueClass FalseClass Symbol all_symbols id2name to_sym Fixnum [] +@ -@ ** % & | ^ ~ << >> abs chr Float String + * size length []= b clear chomp chomp! empty? getbyte index ord slice! split lstrip lstrip! rstrip rstrip! strip strip! intern tr tr! start_with? end_with? include? Array at delete_at count first last push pop shift unshift min max minmax join Range exclude_end? Hash delete has_key? has_value? key keys merge merge! values Exception message StandardError RuntimeError ZeroDivisionError ArgumentError IndexError TypeError collect map collect! map! delete_if each each_index each_with_index reject! reject sort! sort RUBY_VERSION MRUBYC_VERSION times loop each_byte each_char)
+
+##
+# verbose print
+#
+def vp( s, level = 1 )
+  puts s  if $options[:v] >= level
+end
+
+
+##
+# parse command line option
+#
+def get_options
+  opt = OptionParser.new
+  ret = {:i=>[], :v=>0}
+
+  opt.on("-i input file") {|v| ret[:i] << v }
+  opt.on("-o output file", "(default #{OUTPUT_FILENAME})") {|v| ret[:o] = v }
+  opt.on("-a", "targets all .c files") {|v| ret[:a] = v }
+  opt.on("-v", "verbose mode") {|v| ret[:v] += 1 }
+  opt.parse!(ARGV)
+  return ret
+
+rescue OptionParser::MissingArgument =>ex
+  STDERR.puts ex.message
+  return nil
+end
+
+
+##
+# read *.c file and extract symbols.
+#
+def fetch_builtin_symbol( filename )
+  ret = []
+  vp("Process '#{filename}'")
+
+  File.open( filename ) {|file|
+    while src = get_method_table_source( file )
+      param = parse_source_string( src )
+      exit 1 if !param
+      exit 1 if !check_error( param )
+
+      vp("Found class #{param[:class]}, #{param[:methods].size} methods.")
+      ret << param[:class]
+      param[:methods].each {|m| ret << m[:name] }
+    end
+  }
+
+  return ret
+end
+
 
 
 ##
 # main
 #
-if ARGV[0]
-  # read specified symbol list.
-  all_symbols.clear
+$options = get_options()
+exit if !$options
 
-  File.open( ARGV[0] ) {|file|
-    while s = file.gets
-      s.chomp!
-      all_symbols << s
-    end
-  }
+# read source file(s)
+if !$options[:i].empty?
+  source_files = $options[:i]
+elsif $options[:a]
+  source_files = Dir.glob("*.c")
+else
+  STDERR.puts "File not given."
+  exit 1
 end
 
-all_symbols << "initialize"
+all_symbols = []
+source_files.each {|filename|
+  all_symbols.concat( fetch_builtin_symbol( filename ) )
+}
+all_symbols.concat( APPEND_SYMBOL )
 all_symbols.sort!
 all_symbols.uniq!
+vp("Total number of built-in symbols: #{all_symbols.size}")
 
 if all_symbols.size > 256
   STDERR.puts "Symbol table size must be less than 256"
   exit 1
 end
 
+# output symbol table file.
+output_filename = $options[:o] || OUTPUT_FILENAME
+vp("Output file '#{output_filename}'")
 begin
-  file = File.open( OUTPUT_FILENAME, "w" )
+  file = File.open( output_filename, "w" )
 rescue Errno::ENOENT
-  puts "File can't open. #{OUTPUT_FILENAME}"
+  puts "File can't open. #{output_filename}"
   exit 1
 end
 
@@ -73,3 +137,4 @@ file.puts "};"
 file.puts "#endif"
 
 file.close
+vp("Done")
