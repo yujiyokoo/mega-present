@@ -63,6 +63,7 @@ end
 #   class: "Range",
 #   file: "c_range_method_table.h",
 #   func: "mrbc_init_class_range",
+#   super: "mrbc_class_object",
 #   methods: [
 #     { name: "first", func: "c_range_first", if_exp: "" }
 #       ...
@@ -84,13 +85,13 @@ def parse_source_string( src )
       next
     end
 
-    # e.g. CLASS("xxx")
+    # e.g. CLASS, METHOD and etc.
     if /^([A-Z]+)\s*\((.*)\)/ =~ txt
       key = $1
       args = $2.split(",").map {|s| s.strip }
       flag_arg_ok = true
       case key
-      when "CLASS", "FILE", "FUNC"
+      when "CLASS", "FILE", "FUNC", "SUPER"
         if args.size == 1
           ret[key.downcase.to_sym] = args[0]
         else
@@ -99,7 +100,7 @@ def parse_source_string( src )
 
       when "METHOD"
         if args.size == 2
-          ret[:methods] << { name: args[0], func: args[1] }
+          ret[:methods] << { name: strip_double_quot(args[0]), func: args[1] }
           ret[:methods].last[:if_exp] = if_exp.dup  if !if_exp.empty?
         else
           flag_arg_ok = false
@@ -118,6 +119,8 @@ def parse_source_string( src )
     puts "Error: #{txt}"
     flag_error = true
   }
+
+  ret[:super] ||= "mrbc_class_object"
 
   return flag_error ? nil : ret
 end
@@ -168,7 +171,7 @@ def output_header_file( param )
 
   param[:methods].each {|m|
     file.puts m[:if_exp].join  if m[:if_exp]
-    file.puts "    MRBC_SYMID_#{rename_for_symbol( strip_double_quot(m[:name]))},"
+    file.puts "    MRBC_SYMID_#{rename_for_symbol(m[:name])},"
     m[:if_exp].size.times { file.puts "#endif" }  if m[:if_exp]
   }
   file.puts "  };"
@@ -182,14 +185,11 @@ def output_header_file( param )
   file.puts "  };"
   file.puts
 
-  file.puts "  return mrbc_define_builtin_class(#{param[:class]}, 0, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );"
+  file.puts "  return mrbc_define_builtin_class(#{param[:class]}, #{param[:super]}, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );"
   file.puts "}"
 
   file.close
 end
-
-
-
 
 
 ##
@@ -217,7 +217,11 @@ if !src
   exit 1
 end
 
-param = parse_source_string( src )
-exit 1 if !param
-exit 1 if !check_error( param )
-output_header_file( param )
+while src
+  param = parse_source_string( src )
+  exit 1 if !param
+  exit 1 if !check_error( param )
+  output_header_file( param )
+
+  src = get_method_table_source( file )
+end
