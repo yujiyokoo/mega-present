@@ -45,7 +45,7 @@ typedef struct RClass {
 } mrbc_class;
 typedef struct RClass mrb_class;
 
-struct RBuiltInClass {
+struct RBuiltinClass {
   mrbc_sym sym_id;		//!< class name's symbol ID
   int16_t num_builtin_method;	//!< num of built-in method.
 #ifdef MRBC_DEBUG

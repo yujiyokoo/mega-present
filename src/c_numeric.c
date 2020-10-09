@@ -230,34 +230,36 @@ static void c_fixnum_to_s(struct VM *vm, mrbc_value v[], int argc)
 #endif
 
 
+/* MRBC_AUTOGEN_METHOD_TABLE
 
-void mrbc_init_class_fixnum(struct VM *vm)
-{
-  // Fixnum
-  mrbc_class_fixnum = mrbc_define_class(vm, "Fixnum", mrbc_class_object);
+  CLASS("Fixnum")
+  FILE("method_table_fixnum.h")
+  FUNC("mrbc_init_class_fixnum")
 
-  mrbc_define_method(vm, mrbc_class_fixnum, "[]", c_fixnum_bitref);
-  mrbc_define_method(vm, mrbc_class_fixnum, "+@", c_fixnum_positive);
-  mrbc_define_method(vm, mrbc_class_fixnum, "-@", c_fixnum_negative);
-  mrbc_define_method(vm, mrbc_class_fixnum, "**", c_fixnum_power);
-  mrbc_define_method(vm, mrbc_class_fixnum, "%", c_fixnum_mod);
-  mrbc_define_method(vm, mrbc_class_fixnum, "&", c_fixnum_and);
-  mrbc_define_method(vm, mrbc_class_fixnum, "|", c_fixnum_or);
-  mrbc_define_method(vm, mrbc_class_fixnum, "^", c_fixnum_xor);
-  mrbc_define_method(vm, mrbc_class_fixnum, "~", c_fixnum_not);
-  mrbc_define_method(vm, mrbc_class_fixnum, "<<", c_fixnum_lshift);
-  mrbc_define_method(vm, mrbc_class_fixnum, ">>", c_fixnum_rshift);
-  mrbc_define_method(vm, mrbc_class_fixnum, "abs", c_fixnum_abs);
-  mrbc_define_method(vm, mrbc_class_fixnum, "to_i", c_ineffect);
+  METHOD( "[]",		c_fixnum_bitref )
+  METHOD( "+@",		c_fixnum_positive )
+  METHOD( "-@",		c_fixnum_negative )
+  METHOD( "**",		c_fixnum_power )
+  METHOD( "%",		c_fixnum_mod )
+  METHOD( "&",		c_fixnum_and )
+  METHOD( "|",		c_fixnum_or )
+  METHOD( "^",		c_fixnum_xor )
+  METHOD( "~",		c_fixnum_not )
+  METHOD( "<<",		c_fixnum_lshift )
+  METHOD( ">>",		c_fixnum_rshift )
+  METHOD( "abs",	c_fixnum_abs )
+  METHOD( "to_i",	c_ineffect )
 #if MRBC_USE_FLOAT
-  mrbc_define_method(vm, mrbc_class_fixnum, "to_f", c_fixnum_to_f);
+  METHOD( "to_f",	c_fixnum_to_f )
 #endif
 #if MRBC_USE_STRING
-  mrbc_define_method(vm, mrbc_class_fixnum, "chr", c_fixnum_chr);
-  mrbc_define_method(vm, mrbc_class_fixnum, "inspect", c_fixnum_to_s);
-  mrbc_define_method(vm, mrbc_class_fixnum, "to_s", c_fixnum_to_s);
+  METHOD( "chr",	c_fixnum_chr )
+  METHOD( "inspect",	c_fixnum_to_s )
+  METHOD( "to_s",	c_fixnum_to_s )
 #endif
-}
+*/
+#include "method_table_fixnum.h"
+
 
 
 // Float
@@ -336,26 +338,25 @@ static void c_float_to_s(struct VM *vm, mrbc_value v[], int argc)
 #endif
 
 
-//================================================================
-/*! initialize class Float
-*/
-void mrbc_init_class_float(struct VM *vm)
-{
-  // Float
-  mrbc_class_float = mrbc_define_class(vm, "Float", mrbc_class_object);
+/* MRBC_AUTOGEN_METHOD_TABLE
 
-  mrbc_define_method(vm, mrbc_class_float, "+@", c_float_positive);
-  mrbc_define_method(vm, mrbc_class_float, "-@", c_float_negative);
+  CLASS("Float")
+  FILE("method_table_float.h")
+  FUNC("mrbc_init_class_float")
+
+  METHOD( "+@",		c_float_positive )
+  METHOD( "-@",		c_float_negative )
 #if MRBC_USE_MATH
-  mrbc_define_method(vm, mrbc_class_float, "**", c_float_power);
+  METHOD( "**",		c_float_power )
 #endif
-  mrbc_define_method(vm, mrbc_class_float, "abs", c_float_abs);
-  mrbc_define_method(vm, mrbc_class_float, "to_i", c_float_to_i);
-  mrbc_define_method(vm, mrbc_class_float, "to_f", c_ineffect);
+  METHOD( "abs",	c_float_abs )
+  METHOD( "to_i",	c_float_to_i )
+  METHOD( "to_f",	c_ineffect )
 #if MRBC_USE_STRING
-  mrbc_define_method(vm, mrbc_class_float, "inspect", c_float_to_s);
-  mrbc_define_method(vm, mrbc_class_float, "to_s", c_float_to_s);
+  METHOD( "inspect",	c_float_to_s )
+  METHOD( "to_s",	c_float_to_s )
 #endif
-}
+*/
+#include "method_table_float.h"
 
-#endif
+#endif  // MRBC_USE_FLOAT

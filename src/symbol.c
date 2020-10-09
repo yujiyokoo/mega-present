@@ -350,21 +350,22 @@ static void c_to_s(struct VM *vm, mrbc_value v[], int argc)
 #endif
 
 
-//================================================================
-/*! initialize
-*/
-void mrbc_init_class_symbol(struct VM *vm)
-{
-  mrbc_class_symbol = mrbc_define_class(vm, "Symbol", mrbc_class_object);
+/* MRBC_AUTOGEN_METHOD_TABLE
 
-  mrbc_define_method(vm, mrbc_class_symbol, "all_symbols", c_all_symbols);
+  CLASS("Symbol")
+  FILE("method_table_symbol.h")
+  FUNC("mrbc_init_class_symbol")
+
+  METHOD( "all_symbols", c_all_symbols )
 #if MRBC_USE_STRING
-  mrbc_define_method(vm, mrbc_class_symbol, "inspect", c_inspect);
-  mrbc_define_method(vm, mrbc_class_symbol, "to_s", c_to_s);
-  mrbc_define_method(vm, mrbc_class_symbol, "id2name", c_to_s);
+  METHOD( "inspect", c_inspect )
+  METHOD( "to_s", c_to_s )
+  METHOD( "id2name", c_to_s )
 #endif
-  mrbc_define_method(vm, mrbc_class_symbol, "to_sym", c_ineffect);
-}
+  METHOD( "to_sym", c_ineffect )
+*/
+#include "method_table_symbol.h"
+
 
 
 #if defined(MRBC_DEBUG)

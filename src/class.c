@@ -102,7 +102,7 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
 mrbc_class * mrbc_define_builtin_class(const char *name, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method)
 {
   mrbc_sym sym_id = str_to_symid(name);
-  struct RBuiltInClass *cls = mrbc_raw_alloc_no_free( sizeof(struct RBuiltInClass));
+  struct RBuiltinClass *cls = mrbc_raw_alloc_no_free( sizeof(struct RBuiltinClass));
   if( !cls ) return 0;	// ENOMEM
 
   cls->sym_id = sym_id;
@@ -110,7 +110,7 @@ mrbc_class * mrbc_define_builtin_class(const char *name, mrbc_class *super, cons
 #ifdef MRBC_DEBUG
   cls->names = name;	// for debug; delete soon.
 #endif
-  cls->super = (super == NULL) ? mrbc_class_object : super;
+  cls->super = super;
   cls->method_link = 0;
   cls->method_symbols = method_symbols;
   cls->method_functions = method_functions;
@@ -294,10 +294,10 @@ mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym
       }
     }
 
-    struct RBuiltInClass *c = (struct RBuiltInClass *)cls;
+    struct RBuiltinClass *c = (struct RBuiltinClass *)cls;
+    int right = c->num_builtin_method;
+    if( right == 0 ) goto NEXT;
     int left = 0;
-    int right = cls->num_builtin_method - 1;
-    if( right < 0 ) goto NEXT;
 
     while( left < right ) {
       int mid = (left + right) / 2;

@@ -181,7 +181,7 @@ static void c_range_inspect(struct VM *vm, mrbc_value v[], int argc)
 
 /* MRBC_AUTOGEN_METHOD_TABLE
 
-  CLASS("Range")
+   CLASS("Range")
   FILE("method_table_range.h")
   FUNC("mrbc_init_class_range")
 

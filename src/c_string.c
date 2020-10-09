@@ -1197,52 +1197,52 @@ static void c_string_include(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
-//================================================================
-/*! initialize
-*/
-void mrbc_init_class_string(struct VM *vm)
-{
-  mrbc_class_string = mrbc_define_class(vm, "String", mrbc_class_object);
+/* MRBC_AUTOGEN_METHOD_TABLE
 
-  mrbc_define_method(vm, mrbc_class_string, "+",	c_string_add);
-  mrbc_define_method(vm, mrbc_class_string, "*",	c_string_mul);
-  mrbc_define_method(vm, mrbc_class_string, "size",	c_string_size);
-  mrbc_define_method(vm, mrbc_class_string, "length",	c_string_size);
-  mrbc_define_method(vm, mrbc_class_string, "to_i",	c_string_to_i);
-  mrbc_define_method(vm, mrbc_class_string, "to_s",	c_ineffect);
-  mrbc_define_method(vm, mrbc_class_string, "<<",	c_string_append);
-  mrbc_define_method(vm, mrbc_class_string, "[]",	c_string_slice);
-  mrbc_define_method(vm, mrbc_class_string, "[]=",	c_string_insert);
-  mrbc_define_method(vm, mrbc_class_string, "b",	c_ineffect);
-  mrbc_define_method(vm, mrbc_class_string, "clear",	c_string_clear);
-  mrbc_define_method(vm, mrbc_class_string, "chomp",	c_string_chomp);
-  mrbc_define_method(vm, mrbc_class_string, "chomp!",	c_string_chomp_self);
-  mrbc_define_method(vm, mrbc_class_string, "dup",	c_string_dup);
-  mrbc_define_method(vm, mrbc_class_string, "empty?",	c_string_empty);
-  mrbc_define_method(vm, mrbc_class_string, "getbyte",	c_string_getbyte);
-  mrbc_define_method(vm, mrbc_class_string, "index",	c_string_index);
-  mrbc_define_method(vm, mrbc_class_string, "inspect",	c_string_inspect);
-  mrbc_define_method(vm, mrbc_class_string, "ord",	c_string_ord);
-  mrbc_define_method(vm, mrbc_class_string, "slice!",	c_string_slice_self);
-  mrbc_define_method(vm, mrbc_class_string, "split",	c_string_split);
-  mrbc_define_method(vm, mrbc_class_string, "lstrip",	c_string_lstrip);
-  mrbc_define_method(vm, mrbc_class_string, "lstrip!",	c_string_lstrip_self);
-  mrbc_define_method(vm, mrbc_class_string, "rstrip",	c_string_rstrip);
-  mrbc_define_method(vm, mrbc_class_string, "rstrip!",	c_string_rstrip_self);
-  mrbc_define_method(vm, mrbc_class_string, "strip",	c_string_strip);
-  mrbc_define_method(vm, mrbc_class_string, "strip!",	c_string_strip_self);
-  mrbc_define_method(vm, mrbc_class_string, "to_sym",	c_string_to_sym);
-  mrbc_define_method(vm, mrbc_class_string, "intern",	c_string_to_sym);
-  mrbc_define_method(vm, mrbc_class_string, "tr",	c_string_tr);
-  mrbc_define_method(vm, mrbc_class_string, "tr!",	c_string_tr_self);
-  mrbc_define_method(vm, mrbc_class_string, "start_with?", c_string_start_with);
-  mrbc_define_method(vm, mrbc_class_string, "end_with?",c_string_end_with);
-  mrbc_define_method(vm, mrbc_class_string, "include?",	c_string_include);
+  CLASS("String")
+  FILE("method_table_string.h")
+  FUNC("mrbc_init_class_string")
+
+  METHOD( "+",		c_string_add )
+  METHOD( "*",		c_string_mul )
+  METHOD( "size",	c_string_size )
+  METHOD( "length",	c_string_size )
+  METHOD( "to_i",	c_string_to_i )
+  METHOD( "to_s",	c_ineffect )
+  METHOD( "<<",		c_string_append )
+  METHOD( "[]",		c_string_slice )
+  METHOD( "[]=",	c_string_insert )
+  METHOD( "b",		c_ineffect )
+  METHOD( "clear",	c_string_clear )
+  METHOD( "chomp",	c_string_chomp )
+  METHOD( "chomp!",	c_string_chomp_self )
+  METHOD( "dup",	c_string_dup )
+  METHOD( "empty?",	c_string_empty )
+  METHOD( "getbyte",	c_string_getbyte )
+  METHOD( "index",	c_string_index )
+  METHOD( "inspect",	c_string_inspect )
+  METHOD( "ord",	c_string_ord )
+  METHOD( "slice!",	c_string_slice_self )
+  METHOD( "split",	c_string_split )
+  METHOD( "lstrip",	c_string_lstrip )
+  METHOD( "lstrip!",	c_string_lstrip_self )
+  METHOD( "rstrip",	c_string_rstrip )
+  METHOD( "rstrip!",	c_string_rstrip_self )
+  METHOD( "strip",	c_string_strip )
+  METHOD( "strip!",	c_string_strip_self )
+  METHOD( "to_sym",	c_string_to_sym )
+  METHOD( "intern",	c_string_to_sym )
+  METHOD( "tr",		c_string_tr )
+  METHOD( "tr!",	c_string_tr_self )
+  METHOD( "start_with?", c_string_start_with )
+  METHOD( "end_with?",	c_string_end_with )
+  METHOD( "include?",	c_string_include )
 
 #if MRBC_USE_FLOAT
-  mrbc_define_method(vm, mrbc_class_string, "to_f",	c_string_to_f);
+  METHOD( "to_f",	c_string_to_f )
 #endif
-}
+*/
+#include "method_table_string.h"
 
 
 #endif // MRBC_USE_STRING

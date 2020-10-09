@@ -27,5 +27,5 @@ struct RClass *mrbc_init_class_range(struct VM *vm)
 #endif
   };
 
-  return mrbc_define_builtin_class("Range", 0, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
+  return mrbc_define_builtin_class("Range", mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
 }

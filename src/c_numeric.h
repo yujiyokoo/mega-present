@@ -21,8 +21,6 @@
 extern "C" {
 #endif
 
-void mrbc_init_class_fixnum(struct VM *vm);
-void mrbc_init_class_float(struct VM *vm);
 
 #ifdef __cplusplus
 }

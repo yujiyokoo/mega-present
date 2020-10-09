@@ -226,37 +226,36 @@ static void c_math_tanh(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
-//================================================================
-/*! initialize
+/* MRBC_AUTOGEN_METHOD_TABLE
+
+  CLASS("Math")
+  FILE("method_table_math.h")
+  FUNC("mrbc_init_class_math")
+
+  METHOD( "acos",	c_math_acos )
+  METHOD( "acosh",	c_math_acosh )
+  METHOD( "asin",	c_math_asin )
+  METHOD( "asinh",	c_math_asinh )
+  METHOD( "atan",	c_math_atan )
+  METHOD( "atan2",	c_math_atan2 )
+  METHOD( "atanh",	c_math_atanh )
+  METHOD( "cbrt",	c_math_cbrt )
+  METHOD( "cos",	c_math_cos )
+  METHOD( "cosh",	c_math_cosh )
+  METHOD( "erf",	c_math_erf )
+  METHOD( "erfc",	c_math_erfc )
+  METHOD( "exp",	c_math_exp )
+  METHOD( "hypot",	c_math_hypot )
+  METHOD( "ldexp",	c_math_ldexp )
+  METHOD( "log",	c_math_log )
+  METHOD( "log10",	c_math_log10 )
+  METHOD( "log2",	c_math_log2 )
+  METHOD( "sin",	c_math_sin )
+  METHOD( "sinh",	c_math_sinh )
+  METHOD( "sqrt",	c_math_sqrt )
+  METHOD( "tan",	c_math_tan )
+  METHOD( "tanh",	c_math_tanh )
 */
-void mrbc_init_class_math(struct VM *vm)
-{
-  mrbc_class_math = mrbc_define_class(vm, "Math",	mrbc_class_object);
-
-  mrbc_define_method(vm, mrbc_class_math, "acos",	c_math_acos);
-  mrbc_define_method(vm, mrbc_class_math, "acosh",	c_math_acosh);
-  mrbc_define_method(vm, mrbc_class_math, "asin",	c_math_asin);
-  mrbc_define_method(vm, mrbc_class_math, "asinh",	c_math_asinh);
-  mrbc_define_method(vm, mrbc_class_math, "atan",	c_math_atan);
-  mrbc_define_method(vm, mrbc_class_math, "atan2",	c_math_atan2);
-  mrbc_define_method(vm, mrbc_class_math, "atanh",	c_math_atanh);
-  mrbc_define_method(vm, mrbc_class_math, "cbrt",	c_math_cbrt);
-  mrbc_define_method(vm, mrbc_class_math, "cos",	c_math_cos);
-  mrbc_define_method(vm, mrbc_class_math, "cosh",	c_math_cosh);
-  mrbc_define_method(vm, mrbc_class_math, "erf",	c_math_erf);
-  mrbc_define_method(vm, mrbc_class_math, "erfc",	c_math_erfc);
-  mrbc_define_method(vm, mrbc_class_math, "exp",	c_math_exp);
-  mrbc_define_method(vm, mrbc_class_math, "hypot",	c_math_hypot);
-  mrbc_define_method(vm, mrbc_class_math, "ldexp",	c_math_ldexp);
-  mrbc_define_method(vm, mrbc_class_math, "log",	c_math_log);
-  mrbc_define_method(vm, mrbc_class_math, "log10",	c_math_log10);
-  mrbc_define_method(vm, mrbc_class_math, "log2",	c_math_log2);
-  mrbc_define_method(vm, mrbc_class_math, "sin",	c_math_sin);
-  mrbc_define_method(vm, mrbc_class_math, "sinh",	c_math_sinh);
-  mrbc_define_method(vm, mrbc_class_math, "sqrt",	c_math_sqrt);
-  mrbc_define_method(vm, mrbc_class_math, "tan",	c_math_tan);
-  mrbc_define_method(vm, mrbc_class_math, "tanh",	c_math_tanh);
-}
-
+#include "method_table_math.h"
 
 #endif  // MRBC_USE_FLOAT && MRBC_USE_MATH
