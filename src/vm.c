@@ -179,8 +179,14 @@ const char *mrbc_get_callee_name( struct VM *vm )
 mrbc_irep *mrbc_irep_alloc(struct VM *vm)
 {
   mrbc_irep *p = (mrbc_irep *)mrbc_alloc(vm, sizeof(mrbc_irep));
-  if( p )
+  if( p ) {
     memset(p, 0, sizeof(mrbc_irep));	// caution: assume NULL is zero.
+  }
+
+#if defined(MRBC_DEBUG)
+  p->type[0] = 'R';	// set "RP"
+  p->type[1] = 'P';
+#endif
   return p;
 }
 
@@ -2380,12 +2386,13 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
 
       method->next = del_method->next;
       /* (note)
+         Case c_func == 0 is defined by this ope-code.
          Case c_func == 1 is defined by mrbc_define_method() function.
          That function uses mrbc_raw_alloc_no_free() to allocate memory.
          Thus not free this memory.
-         Case c_func == 0 is defined by this function.
+         Case c_func == 2 is builtin C function. maybe create by OP_ALIAS.
       */
-      if( del_method->c_func == 0 ) mrbc_raw_free( del_method );
+      if( del_method->c_func != 1 ) mrbc_raw_free( del_method );
 
       break;
     }
@@ -2425,10 +2432,20 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
   if( !method_new ) return 0;	// ENOMEM
 
   *method_new = method_org;
-  method_new->sym_id = sym_id_new;	// TODO check already sym_id_new exist?
-
+  method_new->sym_id = sym_id_new;
   method_new->next = cls->method_link;
   cls->method_link = method_new;
+
+  // checking same method
+  //  see OP_DEF function. same it.
+  for( ;method_new->next != NULL; method_new = method_new->next ) {
+    if( method_new->next->sym_id == sym_id_new ) {
+      mrbc_method *del_method = method_new->next;
+      method_new->next = del_method->next;
+      if( del_method->c_func != 1 ) mrbc_raw_free( del_method );
+      break;
+    }
+  }
 
   return 0;
 }

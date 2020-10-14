@@ -30,6 +30,10 @@ extern "C" {
   IREP Internal REPresentation
 */
 typedef struct IREP {
+#if defined(MRBC_DEBUG)
+  uint8_t type[2];		//!< # for debug.
+#endif
+
   uint16_t nlocals;		//!< # of local variables
   uint16_t nregs;		//!< # of register variables
   uint16_t rlen;		//!< # of child IREP blocks

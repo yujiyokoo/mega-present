@@ -92,7 +92,7 @@ typedef struct RProc mrb_proc;
 */
 typedef struct RMethod {
   uint8_t type;		// for debug
-  uint8_t c_func;	//!< 0:IREP, 1:C Func
+  uint8_t c_func;	//!< 0:IREP, 1:C Func, 2:C Func (built-in)
   mrbc_sym sym_id;	//!< function names symbol ID
   union {
     struct IREP *irep;	//!< to IREP for ruby proc.

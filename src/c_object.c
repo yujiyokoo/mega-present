@@ -64,15 +64,18 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
     OP_ABORT,
   };
   mrbc_irep irep = {
-    0,     // nlocals
-    0,     // nregs
-    0,     // rlen
-    sizeof(code)/sizeof(uint8_t),     // ilen
-    0,     // plen
-    (uint8_t *)code,   // code
-    NULL,  // pools
-    (uint8_t *)syms,  // ptr_to_sym
-    NULL,  // reps
+#if defined(MRBC_DEBUG)
+    .type = "IR",
+#endif
+    .nlocals = 0,
+    .nregs = 0,
+    .rlen = 0,
+    .ilen = sizeof(code)/sizeof(uint8_t),
+    .plen = 0,
+    .code = (uint8_t *)code,
+    .pools = NULL,
+    .ptr_to_sym = (uint8_t *)syms,
+    .reps = NULL,
   };
 
   mrbc_class *cls = v->cls;

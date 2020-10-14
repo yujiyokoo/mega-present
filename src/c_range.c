@@ -185,7 +185,7 @@ static void c_range_inspect(struct VM *vm, mrbc_value v[], int argc)
   FILE("method_table_range.h")
   FUNC("mrbc_init_class_range")
 
-  METHOD("===",	c_range_equal3 )
+  METHOD("===",		c_range_equal3 )
   METHOD("first",	c_range_first )
   METHOD("last",	c_range_last )
   METHOD("exclude_end?", c_range_exclude_end )
