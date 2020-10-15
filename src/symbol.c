@@ -62,7 +62,9 @@ struct SYM_INDEX {
 static struct SYM_INDEX sym_index[MAX_SYMBOLS_COUNT];
 static int sym_index_pos;	// point to the last(free) sym_index array.
 
+#define MRBC_DEFINE_SYMBOL_TABLE
 #include "symbol_builtin.h"	// built-in symbol table.
+#undef MRBC_DEFINE_SYMBOL_TABLE
 
 
 /***** Global variables *****************************************************/
@@ -316,7 +318,7 @@ static void c_all_symbols(struct VM *vm, mrbc_value v[], int argc)
 
   int i;
   for( i = 0; i < sizeof(builtin_symbols) / sizeof(builtin_symbols[0]); i++ ) {
-//    mrbc_array_push(&ret, &mrbc_symbol_value(i));
+    mrbc_array_push(&ret, &mrbc_symbol_value(i));
   }
 
   for( i = 0; i < sym_index_pos; i++ ) {
@@ -348,21 +350,22 @@ static void c_to_s(struct VM *vm, mrbc_value v[], int argc)
 #endif
 
 
-//================================================================
-/*! initialize
-*/
-void mrbc_init_class_symbol(struct VM *vm)
-{
-  mrbc_class_symbol = mrbc_define_class(vm, "Symbol", mrbc_class_object);
+/* MRBC_AUTOGEN_METHOD_TABLE
 
-  mrbc_define_method(vm, mrbc_class_symbol, "all_symbols", c_all_symbols);
+  CLASS("Symbol")
+  FILE("method_table_symbol.h")
+  FUNC("mrbc_init_class_symbol")
+
+  METHOD( "all_symbols", c_all_symbols )
 #if MRBC_USE_STRING
-  mrbc_define_method(vm, mrbc_class_symbol, "inspect", c_inspect);
-  mrbc_define_method(vm, mrbc_class_symbol, "to_s", c_to_s);
-  mrbc_define_method(vm, mrbc_class_symbol, "id2name", c_to_s);
+  METHOD( "inspect", c_inspect )
+  METHOD( "to_s", c_to_s )
+  METHOD( "id2name", c_to_s )
 #endif
-  mrbc_define_method(vm, mrbc_class_symbol, "to_sym", c_ineffect);
-}
+  METHOD( "to_sym", c_ineffect )
+*/
+#include "method_table_symbol.h"
+
 
 
 #if defined(MRBC_DEBUG)

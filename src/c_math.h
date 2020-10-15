@@ -19,8 +19,6 @@
 extern "C" {
 #endif
 
-void mrbc_init_class_math(struct VM *vm);
-
 
 #ifdef __cplusplus
 }

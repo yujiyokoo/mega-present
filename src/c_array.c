@@ -964,41 +964,40 @@ static void c_array_join(struct VM *vm, mrbc_value v[], int argc)
 #endif
 
 
+/* MRBC_AUTOGEN_METHOD_TABLE
 
-//================================================================
-/*! initialize
-*/
-void mrbc_init_class_array(struct VM *vm)
-{
-  mrbc_class_array = mrbc_define_class(vm, "Array", mrbc_class_object);
+  CLASS("Array")
+  FILE("method_table_array.h")
+  FUNC("mrbc_init_class_array")
 
-  mrbc_define_method(vm, mrbc_class_array, "new", c_array_new);
-  mrbc_define_method(vm, mrbc_class_array, "+", c_array_add);
-  mrbc_define_method(vm, mrbc_class_array, "[]", c_array_get);
-  mrbc_define_method(vm, mrbc_class_array, "at", c_array_get);
-  mrbc_define_method(vm, mrbc_class_array, "[]=", c_array_set);
-  mrbc_define_method(vm, mrbc_class_array, "<<", c_array_push);
-  mrbc_define_method(vm, mrbc_class_array, "clear", c_array_clear);
-  mrbc_define_method(vm, mrbc_class_array, "delete_at", c_array_delete_at);
-  mrbc_define_method(vm, mrbc_class_array, "empty?", c_array_empty);
-  mrbc_define_method(vm, mrbc_class_array, "size", c_array_size);
-  mrbc_define_method(vm, mrbc_class_array, "length", c_array_size);
-  mrbc_define_method(vm, mrbc_class_array, "count", c_array_size);
-  mrbc_define_method(vm, mrbc_class_array, "index", c_array_index);
-  mrbc_define_method(vm, mrbc_class_array, "include?", c_array_include);
-  mrbc_define_method(vm, mrbc_class_array, "first", c_array_first);
-  mrbc_define_method(vm, mrbc_class_array, "last", c_array_last);
-  mrbc_define_method(vm, mrbc_class_array, "push", c_array_push);
-  mrbc_define_method(vm, mrbc_class_array, "pop", c_array_pop);
-  mrbc_define_method(vm, mrbc_class_array, "shift", c_array_shift);
-  mrbc_define_method(vm, mrbc_class_array, "unshift", c_array_unshift);
-  mrbc_define_method(vm, mrbc_class_array, "dup", c_array_dup);
-  mrbc_define_method(vm, mrbc_class_array, "min", c_array_min);
-  mrbc_define_method(vm, mrbc_class_array, "max", c_array_max);
-  mrbc_define_method(vm, mrbc_class_array, "minmax", c_array_minmax);
+  METHOD( "new",	c_array_new )
+  METHOD( "+",		c_array_add )
+  METHOD( "[]",		c_array_get )
+  METHOD( "at",		c_array_get )
+  METHOD( "[]=",	c_array_set )
+  METHOD( "<<",		c_array_push )
+  METHOD( "clear",	c_array_clear )
+  METHOD( "delete_at",	c_array_delete_at )
+  METHOD( "empty?",	c_array_empty )
+  METHOD( "size",	c_array_size )
+  METHOD( "length",	c_array_size )
+  METHOD( "count",	c_array_size )
+  METHOD( "index",	c_array_index )
+  METHOD( "include?",	c_array_include )
+  METHOD( "first",	c_array_first )
+  METHOD( "last",	c_array_last )
+  METHOD( "push",	c_array_push )
+  METHOD( "pop",	c_array_pop )
+  METHOD( "shift",	c_array_shift )
+  METHOD( "unshift",	c_array_unshift )
+  METHOD( "dup",	c_array_dup )
+  METHOD( "min",	c_array_min )
+  METHOD( "max",	c_array_max )
+  METHOD( "minmax",	c_array_minmax )
 #if MRBC_USE_STRING
-  mrbc_define_method(vm, mrbc_class_array, "inspect", c_array_inspect);
-  mrbc_define_method(vm, mrbc_class_array, "to_s", c_array_inspect);
-  mrbc_define_method(vm, mrbc_class_array, "join", c_array_join);
+  METHOD( "inspect",	c_array_inspect )
+  METHOD( "to_s",	c_array_inspect )
+  METHOD( "join",	c_array_join )
 #endif
-}
+*/
+#include "method_table_array.h"

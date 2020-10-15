@@ -120,7 +120,7 @@ typedef enum {
   Define the object structure having reference counter.
 */
 #if defined(MRBC_DEBUG)
-#define MRBC_OBJECT_HEADER  uint8_t t1, t2; uint16_t ref_count;
+#define MRBC_OBJECT_HEADER  uint8_t type[2]; uint16_t ref_count;
 #else
 #define MRBC_OBJECT_HEADER  uint16_t ref_count;
 #endif
@@ -244,7 +244,7 @@ typedef struct RObject mrbc_value;
 #define GET_STRING_ARG(n)	(v[(n)].string->data)
 
 #if defined(MRBC_DEBUG)
-#define MRBC_INIT_OBJECT_HEADER(p, t)  (p)->ref_count = 1; (p)->t1 = (t)[0]; (p)->t2 = (t)[1]
+#define MRBC_INIT_OBJECT_HEADER(p, t)  (p)->ref_count = 1; (p)->type[0] = (t)[0]; (p)->type[1] = (t)[1]
 #else
 #define MRBC_INIT_OBJECT_HEADER(p, t)  (p)->ref_count = 1
 #endif
