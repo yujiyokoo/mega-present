@@ -129,6 +129,12 @@ typedef struct FREE_BLOCK {
 
 /*
   define memory block header for 24/32 bit.
+
+  (note)
+  Typical size of
+    USED_BLOCK is  4 bytes
+    FREE_BLOCK is 16 bytes
+  on 32bit machine.
 */
 #elif defined(MRBC_ALLOC_24BIT)
 #define MRBC_ALLOC_MEMSIZE_T	uint32_t
@@ -186,7 +192,7 @@ typedef struct FREE_BLOCK {
   define memory pool header
 */
 typedef struct MEMORY_POOL {
-  MRBC_ALLOC_MEMSIZE_T pool_size;		 // total size - this header.
+  MRBC_ALLOC_MEMSIZE_T size;
 
   // free memory bitmap
   uint16_t free_fli_bitmap;
@@ -197,8 +203,8 @@ typedef struct MEMORY_POOL {
   FREE_BLOCK *free_blocks[SIZE_FREE_BLOCKS +1];	// +1=sentinel
 } MEMORY_POOL;
 
-#define MEMORY_BLOCK_TOP(p) ((void *)((uint8_t *)(p) + sizeof(MEMORY_POOL)))
-#define MEMORY_BLOCK_END(p) ((void *)((uint8_t *)MEMORY_BLOCK_TOP(p) + ((MEMORY_POOL *)(p))->pool_size))
+#define BLOCK_TOP(p) ((void *)((uint8_t *)(p) + sizeof(MEMORY_POOL)))
+#define BLOCK_END(p) ((void *)((uint8_t *)(p) + ((MEMORY_POOL *)(p))->size))
 
 #define MSB_BIT1_FLI 0x8000
 #define MSB_BIT1_SLI 0x80
@@ -401,26 +407,25 @@ void mrbc_init_alloc(void *ptr, unsigned int size)
 {
   assert( MRBC_MIN_MEMORY_BLOCK_SIZE >= sizeof(FREE_BLOCK) );
   assert( MRBC_MIN_MEMORY_BLOCK_SIZE >= (1 << MRBC_ALLOC_IGNORE_LSBS) );
+  assert( (sizeof(USED_BLOCK) & 0x03) == 0 );
+  assert( (sizeof(FREE_BLOCK) & 0x03) == 0 );
   assert( size != 0 );
   assert( size <= (MRBC_ALLOC_MEMSIZE_T)(~0) );
+
   if( memory_pool != NULL ) return;
+  size &= ~(unsigned int)0x03;	// align 4 byte.
   memory_pool = ptr;
-
-  MRBC_ALLOC_MEMSIZE_T free_size = (size - sizeof(MEMORY_POOL)) & ~0x03;
-
   memset( memory_pool, 0, sizeof(MEMORY_POOL) );
-  memory_pool->pool_size = free_size;
+  memory_pool->size = size;
 
   // initialize memory pool
   //  large free block + zero size used block (sentinel).
   MRBC_ALLOC_MEMSIZE_T sentinel_size = sizeof(USED_BLOCK);
-  sentinel_size += (-sentinel_size & 3);	// align 4 byte.
-  free_size -= sentinel_size;
+  MRBC_ALLOC_MEMSIZE_T free_size = size - sizeof(MEMORY_POOL) - sentinel_size;
+  FREE_BLOCK *free_block = BLOCK_TOP(memory_pool);
+  USED_BLOCK *used_block = (USED_BLOCK *)((uint8_t *)free_block + free_size);
 
-  FREE_BLOCK *free_block = MEMORY_BLOCK_TOP(memory_pool);
   free_block->size = free_size | 0x02;		// flag prev=1, used=0
-
-  USED_BLOCK *used_block = (USED_BLOCK *)((uint8_t *)MEMORY_BLOCK_TOP(memory_pool) + free_size);
   used_block->size = sentinel_size | 0x01;	// flag prev=0, used=1
 
   add_free_block( memory_pool, free_block );
@@ -432,6 +437,12 @@ void mrbc_init_alloc(void *ptr, unsigned int size)
 */
 void mrbc_cleanup_alloc(void)
 {
+#if defined(MRBC_DEBUG)
+  if( memory_pool ) {
+    memset( memory_pool, 0, memory_pool->size );
+  }
+#endif
+
   memory_pool = 0;
 }
 
@@ -565,12 +576,12 @@ void * mrbc_raw_alloc_no_free(unsigned int size)
   MRBC_ALLOC_MEMSIZE_T alloc_size = size + (-size & 3);	// align 4 byte
 
   // find the tail block
-  FREE_BLOCK *tail = MEMORY_BLOCK_TOP(pool);
+  FREE_BLOCK *tail = BLOCK_TOP(pool);
   FREE_BLOCK *prev;
   do {
     prev = tail;
     tail = PHYS_NEXT(tail);
-  } while( PHYS_NEXT(tail) < MEMORY_BLOCK_END(pool) );
+  } while( PHYS_NEXT(tail) < BLOCK_END(pool) );
 
   // can resize it block?
   if( IS_USED_BLOCK(prev) ) goto FALLBACK;
@@ -735,11 +746,11 @@ void * mrbc_alloc(const struct VM *vm, unsigned int size)
 void mrbc_free_all(const struct VM *vm)
 {
   MEMORY_POOL *pool = memory_pool;
-  USED_BLOCK *target = MEMORY_BLOCK_TOP(pool);
+  USED_BLOCK *target = BLOCK_TOP(pool);
   USED_BLOCK *next;
   int vm_id = vm->vm_id;
 
-  while( target < (USED_BLOCK *)MEMORY_BLOCK_END(pool) ) {
+  while( target < (USED_BLOCK *)BLOCK_END(pool) ) {
     next = PHYS_NEXT(target);
     if( IS_USED_BLOCK(target) && (target->vm_id == vm_id) ) {
       mrbc_raw_free( (uint8_t *)target + sizeof(USED_BLOCK) );
@@ -786,15 +797,15 @@ int mrbc_get_vm_id(void *ptr)
 void mrbc_alloc_statistics(int *total, int *used, int *free, int *fragmentation)
 {
   MEMORY_POOL *pool = memory_pool;
-  *total = pool->pool_size;
+  *total = pool->size;
   *used = 0;
   *free = 0;
   *fragmentation = -1;
 
-  USED_BLOCK *block = MEMORY_BLOCK_TOP(pool);
+  USED_BLOCK *block = BLOCK_TOP(pool);
   int flag_used_free = IS_USED_BLOCK(block);
 
-  while( block < (USED_BLOCK *)MEMORY_BLOCK_END(pool) ) {
+  while( block < (USED_BLOCK *)BLOCK_END(pool) ) {
     if( IS_FREE_BLOCK(block) ) {
       *free += BLOCK_SIZE(block);
     } else {
@@ -820,9 +831,10 @@ void mrbc_alloc_print_memory_pool( void )
 
   console_printf("== MEMORY POOL HEADER DUMP ==\n");
   console_printf(" Address: %p - %p - %p\n", pool,
-		 MEMORY_BLOCK_TOP(pool), MEMORY_BLOCK_END(pool));
-  console_printf(" PoolSize: %d / Total: %d\n",
-		 pool->pool_size, pool->pool_size + sizeof(MEMORY_POOL));
+		 BLOCK_TOP(pool), BLOCK_END(pool));
+  console_printf(" Total: %d  Management: %d  User: %d\n",
+		 pool->size, sizeof(MEMORY_POOL),
+		 pool->size - sizeof(MEMORY_POOL));
 
   console_printf(" FLI/SLI bitmap and free_blocks table.\n");
   console_printf("    FLI :S[0123 4567] -- free_blocks ");
@@ -845,9 +857,9 @@ void mrbc_alloc_print_memory_pool( void )
   }
 
   console_printf("== MEMORY BLOCK DUMP ==\n");
-  FREE_BLOCK *block = MEMORY_BLOCK_TOP(pool);
+  FREE_BLOCK *block = BLOCK_TOP(pool);
 
-  while( block < (FREE_BLOCK *)MEMORY_BLOCK_END(pool) ) {
+  while( block < (FREE_BLOCK *)BLOCK_END(pool) ) {
     console_printf("%p", block );
 #if defined(MRBC_ALLOC_VMID)
     console_printf(" id:%02x", block->vm_id );
