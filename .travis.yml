@@ -9,8 +9,8 @@ services:
   - docker
 
 before_install:
-  - docker build -t mrubyc/mrubyc-test .
+  - make setup_test
 
 script:
-  - docker run --mount type=bind,src=${PWD}/,dst=/mrubyc mrubyc/mrubyc-test
+  - make test
 
