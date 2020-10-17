@@ -42,7 +42,12 @@ package: clean
 
 .PHONY: test setup_test
 test:
-	docker run --mount type=bind,src=${PWD}/,dst=/root/mrubyc mrubyc/mrubyc-test
+	docker run --mount type=bind,src=${PWD}/,dst=/root/mrubyc \
+	  -e CFLAGS="-DMRBC_USE_MATH=1 -DMAX_SYMBOLS_COUNT=500 $(CFLAGS)" \
+	  mrubyc/mrubyc-test bundle exec mrubyc-test \
+	  --every=100 \
+	  --mrbc-path=/root/mruby/build/host/bin/mrbc \
+	  $(file)
 
 setup_test:
 	@echo MRUBY_TAG=$(MRUBY_TAG)
