@@ -12,7 +12,6 @@ class ArrayTest < MrubycTestCase
     a += b
     assert_equal [1,2,3,1,2,3,4,5], a
     assert_equal [1,2,3,4,5], b
-    assert_equal true, false
   end
 
   description "size, length, empty, clear"
