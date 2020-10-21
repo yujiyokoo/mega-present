@@ -71,11 +71,12 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
     if( !cls ) return cls;	// ENOMEM
 
     cls->sym_id = sym_id;
+    cls->num_builtin_method = 0;
 #ifdef MRBC_DEBUG
     cls->names = name;	// for debug; delete soon.
 #endif
     cls->super = (super == NULL) ? mrbc_class_object : super;
-    cls->procs = 0;
+    cls->method_link = 0;
 
     // register to global constant.
     mrbc_set_const( sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = cls} );
@@ -89,7 +90,39 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
 
 
 //================================================================
-/*! define class method or instance method.
+/*! define built-in class
+
+  @param  name		class name.
+  @param  super		super class.
+  @param  method_symbols
+  @param  method_functions
+  @param  num_builtin_method
+  @return		pointer to defined class.
+*/
+mrbc_class * mrbc_define_builtin_class(const char *name, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method)
+{
+  mrbc_sym sym_id = str_to_symid(name);
+  struct RBuiltinClass *cls = mrbc_raw_alloc_no_free( sizeof(struct RBuiltinClass));
+  if( !cls ) return 0;	// ENOMEM
+
+  cls->sym_id = sym_id;
+  cls->num_builtin_method = num_builtin_method;
+#ifdef MRBC_DEBUG
+  cls->names = name;	// for debug; delete soon.
+#endif
+  cls->super = super;
+  cls->method_link = 0;
+  cls->method_symbols = method_symbols;
+  cls->method_functions = method_functions;
+
+  // register to global constant.
+  mrbc_set_const( sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = (mrbc_class *)cls} );
+  return (mrbc_class *)cls;
+}
+
+
+//================================================================
+/*! define method.
 
   @param  vm		pointer to vm.
   @param  cls		pointer to class.
@@ -100,22 +133,20 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 {
   if( cls == NULL ) cls = mrbc_class_object;	// set default to Object.
 
-  mrbc_proc *proc = (mrbc_proc *)mrbc_raw_alloc_no_free(sizeof(mrbc_proc));
-  if( !proc ) return;	// ENOMEM
+  mrbc_method *method = mrbc_raw_alloc_no_free( sizeof(mrbc_method) );
+  if( !method ) return; // ENOMEM
 
-  proc->ref_count = 1;
-  proc->c_func = 1;
-  proc->sym_id = str_to_symid(name);
-  proc->next = cls->procs;
-  proc->callinfo = 0;
-  proc->func = cfunc;
-
-  cls->procs = proc;
+  method->type = 'M';
+  method->c_func = 1;
+  method->sym_id = str_to_symid( name );
+  method->func = cfunc;
+  method->next = cls->method_link;
+  cls->method_link = method;
 }
 
 
 //================================================================
-/*! mrbc_instance constructor
+/*! instance constructor
 
   @param  vm    Pointer to VM.
   @param  cls	Pointer to Class (mrbc_class).
@@ -134,7 +165,7 @@ mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size)
     return v;
   }
 
-  v.instance->ref_count = 1;
+  MRBC_INIT_OBJECT_HEADER( v.instance, "IN" );
   v.instance->cls = cls;
 
   return v;
@@ -142,7 +173,7 @@ mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size)
 
 
 //================================================================
-/*! mrbc_instance destructor
+/*! instance destructor
 
   @param  v	pointer to target value
 */
@@ -185,7 +216,7 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
 
 
 //================================================================
-/*! mrbc_proc constructor
+/*! proc constructor
 
   @param  vm		Pointer to VM.
   @param  irep		Pointer to IREP.
@@ -198,10 +229,7 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep)
   val.proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
   if( !val.proc ) return val;	// ENOMEM
 
-  val.proc->ref_count = 1;
-  val.proc->c_func = 0;
-  val.proc->sym_id = -1;
-  val.proc->next = 0;
+  MRBC_INIT_OBJECT_HEADER( val.proc, "PR" );
   val.proc->callinfo = vm->callinfo_tail;
 
   if(vm->current_regs[0].tt == MRBC_TT_PROC) {
@@ -217,7 +245,7 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep)
 
 
 //================================================================
-/*! mrbc_proc destructor
+/*! proc destructor
 
   @param  val	pointer to target value
 */
@@ -247,42 +275,52 @@ int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls )
 
 
 //================================================================
-/*! find method from object
+/*! find method
 
-  @param  vm		pointer to vm
-  @param  recv		pointer to receiver object.
+  @param  method	pointer to mrbc_method to return values.
+  @param  cls		search class.
   @param  sym_id	symbol id.
-  @return		pointer to proc or NULL.
+  @return		pointer to method or NULL.
 */
-mrbc_proc *find_method(struct VM *vm, const mrbc_object *recv, mrbc_sym sym_id)
+mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym sym_id )
 {
-  mrbc_class *cls = find_class_by_object(recv);
-
-  return find_method_by_class(NULL, cls, sym_id);
-}
-
-
-//================================================================
-/*! find method by class
-
-  @param  r_cls		found class return pointer or NULL
-  @param  cls		target class
-  @param  sym_id	sym_id of method
-  @return		pointer to mrbc_proc or NULL
-*/
-mrbc_proc *find_method_by_class( mrbc_class **r_cls, mrbc_class *cls, mrbc_sym sym_id )
-{
-  while( cls != 0 ) {
-    mrbc_proc *proc = cls->procs;
-    while( proc != 0 ) {
-      if( proc->sym_id == sym_id ) {
-	if( r_cls ) *r_cls = cls;
-        return proc;
+  do {
+    mrbc_method *method;
+    for( method = cls->method_link; method != 0; method = method->next ) {
+      if( method->sym_id == sym_id ) {
+	*r_method = *method;
+	r_method->cls = cls;
+	return r_method;
       }
-      proc = proc->next;
     }
+
+    struct RBuiltinClass *c = (struct RBuiltinClass *)cls;
+    int right = c->num_builtin_method;
+    if( right == 0 ) goto NEXT;
+    int left = 0;
+
+    while( left < right ) {
+      int mid = (left + right) / 2;
+      if( c->method_symbols[mid] < sym_id ) {
+	left = mid + 1;
+      } else {
+	right = mid;
+      }
+    }
+
+    if( c->method_symbols[right] == sym_id ) {
+      *r_method = (mrbc_method){
+	.type = 'M',
+	.c_func = 2,
+	.sym_id = sym_id,
+	.func = c->method_functions[right],
+	.cls = cls };
+      return r_method;
+    }
+
+  NEXT:
     cls = cls->super;
-  }
+  } while( cls != 0 );
 
   return 0;
 }
@@ -325,17 +363,17 @@ mrbc_class * mrbc_get_class_by_name( const char *name )
   }
  */
 mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
-		     mrbc_value *recv, const char *method, int argc, ... )
+		     mrbc_value *recv, const char *method_name, int argc, ... )
 {
-  mrbc_sym sym_id = str_to_symid(method);
-  mrbc_proc *m = find_method(vm, recv, sym_id);
+  mrbc_method method;
 
-  if( m == 0 ) {
-    console_printf("No method. vtype=%d method='%s'\n", recv->tt, method );
+  if( mrbc_find_method( &method, find_class_by_object(recv),
+			str_to_symid(method_name) ) == 0 ) {
+    console_printf("No method. vtype=%d method='%s'\n", recv->tt, method_name );
     goto ERROR;
   }
-  if( !m->c_func ) {
-    console_printf("Method %s is not C function\n", method );
+  if( !method.c_func ) {
+    console_printf("Method %s needs to be C function.\n", method_name );
     goto ERROR;
   }
 
@@ -357,7 +395,7 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
   va_end(ap);
 
   // call method.
-  m->func(vm, regs, argc);
+  method.func(vm, regs, argc);
   mrbc_value ret = regs[0];
 
   for(; i >= 0; i-- ) {

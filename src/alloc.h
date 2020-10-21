@@ -44,7 +44,6 @@ void *mrbc_raw_alloc(unsigned int size);
 void *mrbc_raw_alloc_no_free(unsigned int size);
 void mrbc_raw_free(void *ptr);
 void *mrbc_raw_realloc(void *ptr, unsigned int size);
-int is_allocated_memory(void *tgt);
 #define mrbc_free(vm,ptr)		mrbc_raw_free(ptr)
 #define mrbc_realloc(vm,ptr,size)	mrbc_raw_realloc(ptr, size)
 

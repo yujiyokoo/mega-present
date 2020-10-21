@@ -1,33 +1,16 @@
-language: c
+language: ruby
 
-arch:
-  - amd64
-  - arm64
-  - ppc64le
+addons:
+  apt:
+    packages:
+      - docker-ce
 
-cache:
-  directories:
-    - /home/travis/.rbenv/
+services:
+  - docker
 
 before_install:
-  - sudo apt update
-  - sudo apt install -y autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
-
-before_script:
-  - "export CRUBY_VERSION=$(ruby -e'puts `grep cruby_version .mrubycconfig`.sub(\"cruby_version: \", \"\")')"
-  - export MRUBY_VERSION=$(grep mruby .ruby-version)
-  - if [ ! -e ~/.rbenv/bin/rbenv ]; then git clone https://github.com/rbenv/rbenv.git ~/.rbenv; fi
-  - if [ ! -e ~/.rbenv/plugins/ruby-build/bin/ruby-build ]; then git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build; fi
-  - cd ~/.rbenv/plugins/ruby-build && git pull && cd -
-  - echo 'export PATH="$HOME/.rbenv/shims:$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
-  - source ~/.bash_profile
-  - echo $PATH
-  - rbenv init -
-  - rbenv install --skip-existing $MRUBY_VERSION
-  - rbenv install --skip-existing $CRUBY_VERSION
-  - RBENV_VERSION=$CRUBY_VERSION gem install bundler
-  - RBENV_VERSION=$CRUBY_VERSION bundle install
+  - make setup_test
 
 script:
-  - RBENV_VERSION=$CRUBY_VERSION CFLAGS="-DMRBC_USE_MATH=1 -DMAX_SYMBOLS_COUNT=500" bundle exec mrubyc-test --every=100
+  - make test
 

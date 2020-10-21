@@ -24,6 +24,7 @@
 #include "load.h"
 #include "class.h"
 #include "global.h"
+#include "symbol.h"
 #include "c_object.h"
 #include "vm.h"
 #include "console.h"
@@ -251,7 +252,7 @@ static void c_get_tcb(mrbc_vm *vm, mrbc_value v[], int argc)
   mrbc_tcb *tcb = VM2TCB(vm);
 
   mrbc_value value = {.tt = MRBC_TT_HANDLE};
-  value.handle = (void*)tcb;
+  value.handle = tcb;
 
   SET_RETURN( value );
 }
@@ -375,7 +376,7 @@ void mrbc_tick(void)
 /*! initialize
 
 */
-void mrbc_init(uint8_t *ptr, unsigned int size )
+void mrbc_init(uint8_t *ptr, unsigned int size)
 {
   hal_init();
   mrbc_init_alloc(ptr, size);
@@ -404,6 +405,23 @@ void mrbc_init(uint8_t *ptr, unsigned int size )
   mrbc_class *c_vm;
   c_vm = mrbc_define_class(0, "VM", mrbc_class_object);
   mrbc_define_method(0, c_vm, "tick", c_vm_tick);
+}
+
+
+//================================================================
+/*! clenaup all resources.
+
+*/
+void mrbc_cleanup(void)
+{
+  mrbc_cleanup_vm();
+  mrbc_cleanup_symbol();
+  mrbc_cleanup_alloc();
+
+  q_dormant_ = 0;
+  q_ready_ = 0;
+  q_waiting_ = 0;
+  q_suspended_ = 0;
 }
 
 

@@ -35,6 +35,9 @@
 
 
 /***** Constant values ******************************************************/
+#define CONSOLE_PRINTF_MAX_WIDTH 82
+
+
 /***** Macros ***************************************************************/
 /***** Typedefs *************************************************************/
 /***** Function prototypes **************************************************/
@@ -107,7 +110,7 @@ void console_printf(const char *fstr, ...)
   va_start(ap, fstr);
 
   mrbc_printf pf;
-  char buf[82];
+  char buf[CONSOLE_PRINTF_MAX_WIDTH];
   mrbc_printf_init( &pf, buf, sizeof(buf), fstr );
 
   int ret;
@@ -158,6 +161,9 @@ void console_printf(const char *fstr, ...)
 	ret = mrbc_printf_float( &pf, va_arg(ap, double) );
 	break;
 #endif
+      case 'p':
+	ret = mrbc_printf_pointer( &pf, va_arg(ap, void *) );
+	break;
 
       default:
 	break;
@@ -360,7 +366,6 @@ int mrbc_printf_int( mrbc_printf *pf, mrbc_int value, int base )
 
   int dig_width = buf + sizeof(buf) - p;
 
-
   // write padding character, if adjust right.
   if( !pf->fmt.flag_minus && pf->fmt.width ) {
     int pad = pf->fmt.flag_zero ? '0' : ' ';
@@ -494,6 +499,43 @@ int mrbc_printf_float( mrbc_printf *pf, double value )
   return -(pf->p == pf->buf_end);
 }
 #endif
+
+
+
+//================================================================
+/*! sprintf subcontract function for pointer '%p'
+
+  @param  pf	pointer to mrbc_printf.
+  @param  ptr	output value.
+  @retval 0	done.
+  @retval -1	buffer full.
+
+  @note
+    display '$00000000' style only.
+    up to 8 digits, even if 64bit machines.
+    not support sign, width, precision and other parameters.
+*/
+int mrbc_printf_pointer( mrbc_printf *pf, void *ptr )
+{
+  int v = (int)ptr; // regal (void* to int), but implementation defined.
+  int n = sizeof(ptr) * 2;
+  if( n > 8 ) n = 8;
+
+  // check buffer size.
+  if( (pf->buf_end - pf->p) < n+1 ) return -1;
+
+  // write pointer value.
+  *pf->p++ = '$';
+  pf->p += n;
+  char *p = pf->p - 1;
+
+  for(; n > 0; n-- ) {
+    *p-- = (v & 0xf) < 10 ? (v & 0xf) + '0' : (v & 0xf) - 10 + 'a';
+    v >>= 4;
+  }
+
+  return 0;
+}
 
 
 
@@ -648,6 +690,10 @@ int mrbc_print_sub(const mrbc_value *v)
     }
     console_putchar('}');
   } break;
+
+  case MRBC_TT_HANDLE:
+    console_printf( "#<Handle:%08x>", v->handle );
+    break;
 
   default:
     console_printf("Not support MRBC_TT_XX(%d)", v->tt);

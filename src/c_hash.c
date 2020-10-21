@@ -68,7 +68,7 @@ mrbc_value mrbc_hash_new(struct VM *vm, int size)
     return value;
   }
 
-  h->ref_count = 1;
+  MRBC_INIT_OBJECT_HEADER( h, "HA" );
   h->data_size = size * 2;
   h->n_stored = 0;
   h->data = data;
@@ -539,36 +539,33 @@ static void c_hash_inspect(struct VM *vm, mrbc_value v[], int argc)
 #endif
 
 
+/* MRBC_AUTOGEN_METHOD_TABLE
 
+  CLASS("Hash")
+  FILE("method_table_hash.h")
+  FUNC("mrbc_init_class_hash")
 
-//================================================================
-/*! initialize
-*/
-void mrbc_init_class_hash(struct VM *vm)
-{
-  mrbc_class_hash = mrbc_define_class(vm, "Hash", mrbc_class_object);
-
-  mrbc_define_method(vm, mrbc_class_hash, "new",	c_hash_new);
-  mrbc_define_method(vm, mrbc_class_hash, "[]",		c_hash_get);
-  mrbc_define_method(vm, mrbc_class_hash, "[]=",	c_hash_set);
-  mrbc_define_method(vm, mrbc_class_hash, "clear",	c_hash_clear);
-  mrbc_define_method(vm, mrbc_class_hash, "dup",	c_hash_dup);
-  mrbc_define_method(vm, mrbc_class_hash, "delete",	c_hash_delete);
-  mrbc_define_method(vm, mrbc_class_hash, "empty?",	c_hash_empty);
-  mrbc_define_method(vm, mrbc_class_hash, "has_key?",	c_hash_has_key);
-  mrbc_define_method(vm, mrbc_class_hash, "has_value?",	c_hash_has_value);
-  mrbc_define_method(vm, mrbc_class_hash, "key",	c_hash_key);
-  mrbc_define_method(vm, mrbc_class_hash, "keys",	c_hash_keys);
-  mrbc_define_method(vm, mrbc_class_hash, "size",	c_hash_size);
-  mrbc_define_method(vm, mrbc_class_hash, "length",	c_hash_size);
-  mrbc_define_method(vm, mrbc_class_hash, "count",	c_hash_size);
-  mrbc_define_method(vm, mrbc_class_hash, "merge",	c_hash_merge);
-  mrbc_define_method(vm, mrbc_class_hash, "merge!",	c_hash_merge_self);
-  mrbc_define_method(vm, mrbc_class_hash, "to_h",	c_ineffect);
-  mrbc_define_method(vm, mrbc_class_hash, "values",	c_hash_values);
+  METHOD( "new",	c_hash_new )
+  METHOD( "[]",		c_hash_get )
+  METHOD( "[]=",	c_hash_set )
+  METHOD( "clear",	c_hash_clear )
+  METHOD( "dup",	c_hash_dup )
+  METHOD( "delete",	c_hash_delete )
+  METHOD( "empty?",	c_hash_empty )
+  METHOD( "has_key?",	c_hash_has_key )
+  METHOD( "has_value?",	c_hash_has_value )
+  METHOD( "key",	c_hash_key )
+  METHOD( "keys",	c_hash_keys )
+  METHOD( "size",	c_hash_size )
+  METHOD( "length",	c_hash_size )
+  METHOD( "count",	c_hash_size )
+  METHOD( "merge",	c_hash_merge )
+  METHOD( "merge!",	c_hash_merge_self )
+  METHOD( "to_h",	c_ineffect )
+  METHOD( "values",	c_hash_values )
 #if MRBC_USE_STRING
-  mrbc_define_method(vm, mrbc_class_hash, "inspect",	c_hash_inspect);
-  mrbc_define_method(vm, mrbc_class_hash, "to_s",	c_hash_inspect);
+  METHOD( "inspect",	c_hash_inspect )
+  METHOD( "to_s",	c_hash_inspect )
 #endif
-
-}
+*/
+#include "method_table_hash.h"

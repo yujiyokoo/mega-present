@@ -28,12 +28,11 @@ extern "C" {
 /***** Typedefs *************************************************************/
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
-void mrbc_symbol_cleanup(void);
+void mrbc_cleanup_symbol(void);
 mrbc_sym mrbc_str_to_symid(const char *str);
 const char *mrbc_symid_to_str(mrbc_sym sym_id);
 mrbc_sym mrbc_search_symid(const char *str);
 mrbc_value mrbc_symbol_new(struct VM *vm, const char *str);
-void mrbc_init_class_symbol(struct VM *vm);
 void mrbc_symbol_statistics(int *total_used);
 
 

@@ -63,6 +63,7 @@ typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 typedef enum {
   /* internal use */
   MRBC_TT_HANDLE = -1,
+
   /* primitive */
   MRBC_TT_EMPTY	 = 0,
   MRBC_TT_NIL	 = 1,
@@ -118,8 +119,11 @@ typedef enum {
 /*!@brief
   Define the object structure having reference counter.
 */
-#define MRBC_OBJECT_HEADER \
-  uint16_t ref_count;
+#if defined(MRBC_DEBUG)
+#define MRBC_OBJECT_HEADER  uint8_t type[2]; uint16_t ref_count;
+#else
+#define MRBC_OBJECT_HEADER  uint16_t ref_count;
+#endif
 
 struct RBasic {
   MRBC_OBJECT_HEADER;
@@ -140,7 +144,6 @@ struct RObject {
 #endif
     struct RBasic *obj;		// use inc/dec ref only.
     struct RClass *cls;		// MRBC_TT_CLASS
-    struct RObject *handle;	// handle to objects
     struct RInstance *instance;	// MRBC_TT_OBJECT
     struct RProc *proc;		// MRBC_TT_PROC
     struct RArray *array;	// MRBC_TT_ARRAY
@@ -148,6 +151,7 @@ struct RObject {
     const char *str;		// C-string (only loader use.)
     struct RRange *range;	// MRBC_TT_RANGE
     struct RHash *hash;		// MRBC_TT_HASH
+    void *handle;		// internal use only.
   };
 };
 typedef struct RObject mrb_object;	// not recommended.
@@ -197,20 +201,40 @@ typedef struct RObject mrbc_value;
 
 
 // for C call
-#define SET_RETURN(n)		do { mrbc_value nnn = (n); \
-    mrbc_decref(v); v[0] = nnn; } while(0)
-#define SET_NIL_RETURN()	do { \
-    mrbc_decref(v); v[0].tt = MRBC_TT_NIL; } while(0)
-#define SET_FALSE_RETURN()	do { \
-    mrbc_decref(v); v[0].tt = MRBC_TT_FALSE; } while(0)
-#define SET_TRUE_RETURN()	do { \
-    mrbc_decref(v); v[0].tt = MRBC_TT_TRUE; } while(0)
-#define SET_BOOL_RETURN(n)	do { \
-    mrbc_decref(v); v[0].tt = (n)?MRBC_TT_TRUE:MRBC_TT_FALSE; } while(0)
-#define SET_INT_RETURN(n)	do { mrbc_int nnn = (n);		\
-    mrbc_decref(v); v[0].tt = MRBC_TT_FIXNUM; v[0].i = nnn; } while(0)
-#define SET_FLOAT_RETURN(n)	do { mrbc_float nnn = (n); \
-    mrbc_decref(v); v[0].tt = MRBC_TT_FLOAT; v[0].d = nnn; } while(0)
+#define SET_RETURN(n) do {	\
+    mrbc_value nnn = (n);	\
+    mrbc_decref(v);		\
+    v[0] = nnn;			\
+  } while(0)
+#define SET_NIL_RETURN() do {	\
+    mrbc_decref(v);		\
+    v[0].tt = MRBC_TT_NIL;	\
+  } while(0)
+#define SET_FALSE_RETURN() do { \
+    mrbc_decref(v);		\
+    v[0].tt = MRBC_TT_FALSE;	\
+  } while(0)
+#define SET_TRUE_RETURN() do {	\
+    mrbc_decref(v);		\
+    v[0].tt = MRBC_TT_TRUE;	\
+  } while(0)
+#define SET_BOOL_RETURN(n) do {			 \
+    int tt = (n) ? MRBC_TT_TRUE : MRBC_TT_FALSE; \
+    mrbc_decref(v);				 \
+    v[0].tt = tt;				 \
+  } while(0)
+#define SET_INT_RETURN(n) do {	\
+    mrbc_int nnn = (n);		\
+    mrbc_decref(v);		\
+    v[0].tt = MRBC_TT_FIXNUM;	\
+    v[0].i = nnn;		\
+  } while(0)
+#define SET_FLOAT_RETURN(n) do {\
+    mrbc_float nnn = (n);	\
+    mrbc_decref(v);		\
+    v[0].tt = MRBC_TT_FLOAT;	\
+    v[0].d = nnn;		\
+} while(0)
 
 #define GET_TT_ARG(n)		(v[(n)].tt)
 #define GET_INT_ARG(n)		(v[(n)].i)
@@ -218,6 +242,12 @@ typedef struct RObject mrbc_value;
 #define GET_ARG(n)		(v[(n)])
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
 #define GET_STRING_ARG(n)	(v[(n)].string->data)
+
+#if defined(MRBC_DEBUG)
+#define MRBC_INIT_OBJECT_HEADER(p, t)  (p)->ref_count = 1; (p)->type[0] = (t)[0]; (p)->type[1] = (t)[1]
+#else
+#define MRBC_INIT_OBJECT_HEADER(p, t)  (p)->ref_count = 1
+#endif
 
 
 /***** Global variables *****************************************************/
@@ -241,7 +271,7 @@ static inline void mrbc_incref(mrbc_value *v)
 {
   if( v->tt < MRBC_TT_INC_DEC_THRESHOLD ) return;
 
-  assert( v->obj->ref_count > 0 );
+  assert( v->obj->ref_count != 0 );
   assert( v->obj->ref_count != 0xff );	// check max value.
   v->obj->ref_count++;
 }
