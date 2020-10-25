@@ -1,6 +1,12 @@
+/* dumped in little endian order.
+   use `mrbc -E` option for big endian CPU. */
 #include <stdint.h>
-#ifdef __cplusplus
 extern const uint8_t mrblib_bytecode[];
+const uint8_t
+#if defined __GNUC__
+__attribute__((aligned(4)))
+#elif defined _MSC_VER
+__declspec(align(4))
 #endif
 const uint8_t mrblib_bytecode[] = {
 0x52,0x49,0x54,0x45,0x30,0x31,0x30,0x31,0x4a,0x0d,0x00,0x00,0x08,0xee,0x4d,0x41,

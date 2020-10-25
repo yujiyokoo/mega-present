@@ -6,17 +6,8 @@ Refer to https://github.com/mrubyc/mrubyc-test for further details.
 
 ## Prerequisite
 
-You need rbenv installed.
-If you still don't have it, installation commands are like this (Ubuntu + Bash):
-
-```
-git clone https://github.com/rbenv/rbenv.git ~/.rbenv
-echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
-echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
-. ~/.bash_profile
-```
-
-For more information about rbenv on https://github.com/rbenv/rbenv
+You need Docker installed.
+Information about Docker on https://docs.docker.com/get-docker/
 
 ## Setup
 
@@ -24,7 +15,7 @@ For more information about rbenv on https://github.com/rbenv/rbenv
 make setup_test
 ```
 
-This target will install both CRuby and mruby which are specified in `.mrubycconfig` .
+This target will build a Docker container image.
 It may take a while.
 
 ## Test!
