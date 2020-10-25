@@ -30,13 +30,6 @@
 
 
 
-// Skip padding
-static size_t skip_padding(const uint8_t *buf)
-{
-  const size_t align = 4;
-  return -(intptr_t)buf & (align-1);
-}
-
 //================================================================
 /*! Parse header section.
 
@@ -127,10 +120,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   irep->nregs = bin_to_uint16(p);	p += 2;
   irep->rlen = bin_to_uint16(p);	p += 2;
   p += 2;   // clen [mruby3]
-  irep->ilen = bin_to_uint32(p);	p += 4;
-
-  // padding
-  p += skip_padding(p);
+  irep->ilen = bin_to_uint16(p);	p += 2;
 
   // allocate memory for child irep's pointers
   if( irep->rlen ) {
@@ -198,7 +188,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
 
   // SYMS BLOCK
   irep->ptr_to_sym = (uint8_t*)p;
-  int slen = bin_to_uint32(p);		p += 4;
+  int slen = bin_to_uint16(p);		p += 2;
   while( --slen >= 0 ) {
     int s = bin_to_uint16(p);		p += 2;
     p += s+1;

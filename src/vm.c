@@ -61,9 +61,9 @@ static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 static const char * mrbc_get_irep_symbol( struct VM *vm, int n )
 {
   const uint8_t *p = vm->pc_irep->ptr_to_sym;
-  int cnt = bin_to_uint32(p);
+  int cnt = bin_to_uint16(p);
   if( n >= cnt ) return 0;
-  p += 4;
+  p += 2;
   while( n > 0 ) {
    uint16_t s = bin_to_uint16(p);
     p += 2+s+1;   // size(2 bytes) + symbol len + '\0'
@@ -2805,7 +2805,6 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADI_5:    // fall through
     case OP_LOADI_6:    // fall through
     case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
-      // case OP_LOADI16
     case OP_LOADI16:    ret = op_loadi16   (vm, regs); break;
     case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
     case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
