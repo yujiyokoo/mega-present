@@ -107,9 +107,10 @@ typedef struct VM {
   uint8_t flag_debug_mode;
 #endif
 
-  mrbc_class *exc, *exc_pending;
-  mrbc_value exc_message;  // exception message
-  mrbc_callinfo *exception_tail;
+  mrbc_class *exc;
+  //  mrbc_class *exc, *exc_pending;
+  //  mrbc_value exc_message;  // exception message
+  //  mrbc_callinfo *exception_tail;
 
   int32_t error_code;
 

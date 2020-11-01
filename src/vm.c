@@ -122,7 +122,8 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   if( method.c_func ) {
     method.func(vm, regs + a, c);
     if( method.func == c_proc_call ) return 0;
-    if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
+    //    if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
+    if( vm->exc != NULL ) return 0;
 
     int release_reg = a+1;
     while( release_reg <= bidx ) {
@@ -906,8 +907,8 @@ static inline int op_onerr( mrbc_vm *vm, mrbc_value *regs )
   callinfo->n_args = 0;
   callinfo->target_class = vm->target_class;
   callinfo->own_class = 0;
-  callinfo->prev = vm->exception_tail;
-  vm->exception_tail = callinfo;
+  // callinfo->prev = vm->exception_tail;
+  // vm->exception_tail = callinfo;
 
   return 0;
 }
@@ -930,8 +931,8 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
   regs[a].tt = MRBC_TT_CLASS;
   if( vm->exc != NULL ){
     regs[a].cls = vm->exc;
-  } else {
-    regs[a].cls = vm->exc_pending;
+    // } else {
+    //    regs[a].cls = vm->exc_pending;
   }
 
   return 0;
@@ -1011,8 +1012,8 @@ static inline int op_raise( mrbc_vm *vm, mrbc_value *regs )
     vm->pc_irep = callinfo->pc_irep;
     vm->inst = callinfo->inst;
     mrbc_free(vm, callinfo);
-  }  else {
-    vm->exc = vm->exc_pending;
+    //  }  else {
+    //    vm->exc = vm->exc_pending;
   }
 
   return 0;
@@ -1042,13 +1043,14 @@ static inline int op_epush( mrbc_vm *vm, mrbc_value *regs )
   callinfo->n_args = 0;
   callinfo->target_class = vm->target_class;
   callinfo->own_class = 0;
-  callinfo->prev = vm->exception_tail;
-  vm->exception_tail = callinfo;
+  // callinfo->prev = vm->exception_tail;
+  //vm->exception_tail = callinfo;
 
   return 0;
 }
 
 
+#if 0
 //================================================================
 /*! OP_EPOP
 
@@ -1079,7 +1081,7 @@ static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
 
   return 0;
 }
-
+#endif
 
 //================================================================
 /*! OP_SENDV
@@ -2688,7 +2690,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->target_class = mrbc_class_object;
 
   vm->exc = 0;
-  vm->exception_tail = 0;
+  //  vm->exception_tail = 0;
 
   vm->error_code = 0;
   vm->flag_preemption = 0;
@@ -2713,64 +2715,6 @@ void mrbc_vm_end( struct VM *vm )
 
 
 //================================================================
-/*! output op for debug
-
-  @param  opcode   opcode
-*/
-#ifdef MRBC_DEBUG
-void output_opcode( uint8_t opcode )
-{
-  const char *n[] = {
-    // 0x00
-    "NOP",     "MOVE",    "LOADL",   "LOADI",
-    "LOADINEG","LOADI__1","LOADI_0", "LOADI_1",
-    "LOADI_2", "LOADI_3", "LOADI_4", "LOADI_5",
-    "LOADI_6", "LOADI_7", "LOADSYM", "LOADNIL",
-    // 0x10
-    "LOADSELF","LOADT",   "LOADF",   "GETGV",
-    "SETGV",   "GETSV",   "SETSV",   "GETIV",
-    "SETIV",   "GETCV",   "SETCV",   "GETCONST",
-    "SETCONST","GETMCNST","SETMCNST","GETUPVAR",
-    // 0x20
-    "SETUPVAR","JMP",     "JMPIF",   "JMPNOT",
-    "JMPNIL",  "ONERR",   "EXCEPT",  "RESCUE",
-    "POPERR",  "RAISE",   "EPUSH",   "EPOP",
-    "SENDV",   "SENDVB",  "SEND",    "SENDB",
-    // 0x30
-    "CALL",    "SUPER",   "ARGARY",  "ENTER",
-    "KEY_P",   "KEYEND",  "KARG",    "RETURN",
-    "RETRUN_BLK","BREAK", "BLKPUSH", "ADD",
-    "ADDI",    "SUB",     "SUBI",    "MUL",
-    // 0x40
-    "DIV",     "EQ",      "LT",      "LE",
-    "GT",      "GE",      "ARRAY",   "ARRAY2",
-    "ARYCAT",  "ARYPUSH", "ARYDUP",  "AREF",
-    "ASET",    "APOST",   "INTERN",  "STRING",
-    // 0x50
-    "STRCAT",  "HASH",    "HASHADD", "HASHCAT",
-    "LAMBDA",  "BLOCK",   "METHOD",  "RANGE_INC",
-    "RANGE_EXC","OCLASS", "CLASS",   "MODULE",
-    "EXEC",    "DEF",     "ALIAS",   "UNDEF",
-    // 0x60
-    "SCLASS",  "TCLASS",  "DEBUG",   "ERR",
-    "EXT1",    "EXT2",    "EXT3",    "STOP",
-    "ABORT",
-  };
-
-  if( opcode < sizeof(n)/sizeof(char *) ){
-    if( n[opcode] ){
-      console_printf("(OP_%s)\n", n[opcode]);
-    } else {
-      console_printf("(OP=%02x)\n", opcode);
-    }
-  } else {
-    console_printf("(ERROR=%02x)\n", opcode);
-  }
-}
-#endif
-
-
-//================================================================
 /*! Fetch a bytecode and execute
 
   @param  vm    A pointer of VM.
@@ -2786,9 +2730,6 @@ int mrbc_vm_run( struct VM *vm )
 
     // Dispatch
     uint8_t op = *vm->inst++;
-
-    // output OP_XXX for debug
-    //if( vm->flag_debug_mode )output_opcode( op );
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
@@ -2899,7 +2840,7 @@ int mrbc_vm_run( struct VM *vm )
 
     // raise in top level
     // exit vm
-    if( vm->exception_tail == NULL && vm->callinfo_tail == NULL && vm->exc ) return 0;
+    if( vm->callinfo_tail == NULL && vm->exc ) return 0;
   } while( !vm->flag_preemption );
 
   vm->flag_preemption = 0;

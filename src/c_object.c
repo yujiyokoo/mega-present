@@ -289,36 +289,37 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     if( argc == 0 ){
       // 1. raise
       vm->exc = mrbc_class_runtimeerror;
-      vm->exc_message = mrbc_nil_value();
+      //      vm->exc_message = mrbc_nil_value();
     } else if( argc == 1 ){
       if( v[1].tt == MRBC_TT_CLASS ){
 	// 3. raise Exception
 	vm->exc = v[1].cls;
-	vm->exc_message = mrbc_nil_value();
+	// vm->exc_message = mrbc_nil_value();
       } else {
 	// 2. raise "param"
 	mrbc_incref( &v[1] );
 	vm->exc = mrbc_class_runtimeerror;
-	vm->exc_message = v[1];
+	// vm->exc_message = v[1];
       }
     } else if( argc == 2 ){
       // 4. raise Exception, "param"
       mrbc_incref( &v[2] );
       vm->exc = v[1].cls;
-      vm->exc_message = v[2];
+      // vm->exc_message = v[2];
     }
   } else {
     // in exception
   }
 
   // do nothing if no rescue, no ensure
-  if( vm->exception_tail == NULL ){
-    return;
-  }
+  //  if( vm->exception_tail == NULL ){
+  //  return;
+  // }
 
   // NOT to return to OP_SEND
   mrbc_pop_callinfo(vm);
 
+  #if 0
   mrbc_callinfo *callinfo = vm->exception_tail;
   if( callinfo != NULL ){
     if( callinfo->method_id == 0x7fff ){
@@ -353,6 +354,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     vm->exc_pending = vm->exc;
     vm->exc = 0;
   }
+  #endif
 }
 
 
