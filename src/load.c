@@ -119,7 +119,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   irep->nlocals = bin_to_uint16(p);	p += 2;
   irep->nregs = bin_to_uint16(p);	p += 2;
   irep->rlen = bin_to_uint16(p);	p += 2;
-  p += 2;   // clen [mruby3]
+  irep->clen = bin_to_uint16(p);        p += 2;
   irep->ilen = bin_to_uint16(p);	p += 2;
 
   // allocate memory for child irep's pointers
@@ -133,7 +133,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
 
   // ISEQ (code) BLOCK
   irep->code = (uint8_t *)p;
-  p += irep->ilen;
+  p += irep->ilen + sizeof(mrbc_irep_catch_handler) * irep->clen;
 
   // POOL BLOCK
   irep->plen = bin_to_uint16(p);	p += 2;

@@ -24,6 +24,22 @@
 extern "C" {
 #endif
 
+//================================================================
+/*!@brief
+  IREP Catch Handler, Catch Handler Type
+*/
+typedef enum mrbc_catch_type {
+  MRB_CATCH_RESCUE = 0,
+  MRB_CATCH_ENSURE = 1,
+} mrbc_catch_type;
+
+typedef struct IREP_CATCH_HANDLER {
+  uint8_t type;          /* enum mrb_catch_type, 1 byte */
+  uint8_t begin[2];      /* The starting address to match the hander. Includes this. */
+  uint8_t end[2];        /* The endpoint address that matches the hander. Not Includes this. */
+  uint8_t target[2];     /* The address to jump to if a match is made. */
+} mrbc_irep_catch_handler;
+
 
 //================================================================
 /*!@brief
@@ -39,6 +55,7 @@ typedef struct IREP {
   uint16_t rlen;		//!< # of child IREP blocks
   uint16_t ilen;		//!< # of irep
   uint16_t plen;		//!< # of pool
+  uint16_t clen;                //!< # of catch
 
   uint8_t     *code;		//!< ISEQ (code) BLOCK
   mrbc_object **pools;		//!< array of POOL objects pointer.
