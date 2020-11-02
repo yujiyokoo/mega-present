@@ -29,6 +29,16 @@
 #define mrbc_raise(vm,err,msg) console_printf("<raise> %s:%d\n", __FILE__, __LINE__);
 
 
+// IREP TT
+enum irep_pool_type {
+  IREP_TT_STR   = 0,          /* string (need free) */
+  IREP_TT_SSTR  = 2,          /* string (static) */
+  IREP_TT_INT32 = 1,          /* 32bit integer */
+  IREP_TT_INT64 = 3,          /* 64bit integer */
+  IREP_TT_FLOAT = 5,          /* float (double/float) */
+};
+
+
 
 //================================================================
 /*! Parse header section.
@@ -155,14 +165,18 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
       return NULL;
     }
     switch( tt ) {
+      // IREP_TT_INT64 is not implemented
+      // IREP_TT_SSTR is same implementation with IREP_TT_STR
+
 #if MRBC_USE_STRING
-    case 0: { // IREP_TT_STRING
+    case IREP_TT_STR:
+    case IREP_TT_SSTR: {
       obj->tt = MRBC_TT_STRING;
       obj->str = (char*)p;
       obj_size++;
     } break;
 #endif
-    case 1: { // IREP_TT_FIXNUM
+    case IREP_TT_INT32: {
       char buf[obj_size+1];
       memcpy(buf, p, obj_size);
       buf[obj_size] = '\0';
@@ -170,7 +184,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
       obj->i = atol(buf);
     } break;
 #if MRBC_USE_FLOAT
-    case 2: { // IREP_TT_FLOAT
+    case IREP_TT_FLOAT: {
       char buf[obj_size+1];
       memcpy(buf, p, obj_size);
       buf[obj_size] = '\0';
