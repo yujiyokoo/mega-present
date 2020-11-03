@@ -158,46 +158,54 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   int i;
   for( i = 0; i < irep->plen; i++ ) {
     int tt = *p++;
-    int obj_size = bin_to_uint16(p);	p += 2;
     mrbc_object *obj = mrbc_alloc(0, sizeof(mrbc_object));
     if( obj == NULL ) {
       mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
       return NULL;
     }
     switch( tt ) {
-      // IREP_TT_INT64 is not implemented
+      //  is not implemented
       // IREP_TT_SSTR is same implementation with IREP_TT_STR
 
 #if MRBC_USE_STRING
     case IREP_TT_STR:
     case IREP_TT_SSTR: {
+      int pool_data_len = bin_to_uint16(p);
+      p += sizeof(uint16_t);
       obj->tt = MRBC_TT_STRING;
       obj->str = (char*)p;
-      obj_size++;
+      p += pool_data_len + 1;
     } break;
 #endif
     case IREP_TT_INT32: {
-      char buf[obj_size+1];
-      memcpy(buf, p, obj_size);
-      buf[obj_size] = '\0';
+      uint32_t value = bin_to_uint32(p);
+      p += sizeof(uint32_t);
       obj->tt = MRBC_TT_FIXNUM;
-      obj->i = atol(buf);
+      obj->i = value;
     } break;
 #if MRBC_USE_FLOAT
     case IREP_TT_FLOAT: {
-      char buf[obj_size+1];
-      memcpy(buf, p, obj_size);
-      buf[obj_size] = '\0';
+      double value;
+      memcpy(&value, p, sizeof(double));
+      p += sizeof(double);
       obj->tt = MRBC_TT_FLOAT;
-      obj->d = atof(buf);
+      obj->d = value;
     } break;
 #endif
+    case IREP_TT_INT64: {
+      uint64_t value = bin_to_uint32(p);
+      p += sizeof(uint32_t);
+      value <<= 32;
+      value |= bin_to_uint32(p);
+      p += sizeof(uint32_t);      
+      obj->tt = MRBC_TT_FIXNUM;
+      obj->i = value;
+    } break;
     default:
       assert(!"Unknown tt");
     }
 
     irep->pools[i] = obj;
-    p += obj_size;
   }
 
   // SYMS BLOCK
