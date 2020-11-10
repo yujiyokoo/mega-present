@@ -24,7 +24,7 @@ extern "C" {
 
 #define PEEK_B(pc) ((pc)[0])
 #define PEEK_S(pc) ((pc)[0]<<8|(pc)[1])
-#define PEEK_W(pc) ((pc)[0]<<16|(pc)[1]<<8|(pc)[2])
+#define PEEK_W(pc) ((uint32_t)((pc)[0])<<16|(pc)[1]<<8|(pc)[2])
 
 #define READ_B() (vm->inst+=1, PEEK_B(vm->inst-1))
 #define READ_S() (vm->inst+=2, PEEK_S(vm->inst-2))

@@ -105,9 +105,16 @@
 /***** Typedefs *************************************************************/
 /*
   define memory block header for 16 bit
+
+  (note)
+  Typical size of
+    USED_BLOCK is 2 bytes
+    FREE_BLOCK is 8 bytes
+  on 16bit machine.
 */
 #if defined(MRBC_ALLOC_16BIT)
 #define MRBC_ALLOC_MEMSIZE_T	uint16_t
+
 typedef struct USED_BLOCK {
   MRBC_ALLOC_MEMSIZE_T size;		//!< block size, header included
 #if defined(MRBC_ALLOC_VMID)
@@ -138,6 +145,7 @@ typedef struct FREE_BLOCK {
 */
 #elif defined(MRBC_ALLOC_24BIT)
 #define MRBC_ALLOC_MEMSIZE_T	uint32_t
+
 typedef struct USED_BLOCK {
 #if defined(MRBC_ALLOC_VMID)
   MRBC_ALLOC_MEMSIZE_T size : 24;	//!< block size, header included
@@ -198,6 +206,7 @@ typedef struct MEMORY_POOL {
   uint16_t free_fli_bitmap;
   uint8_t  free_sli_bitmap[MRBC_ALLOC_FLI_BIT_WIDTH +1+1];
 						// +1=bit_width, +1=sentinel
+  uint8_t  pad[3]; // for alignment compatibility on 16bit and 32bit machines
 
   // free memory block index
   FREE_BLOCK *free_blocks[SIZE_FREE_BLOCKS +1];	// +1=sentinel
@@ -407,8 +416,7 @@ void mrbc_init_alloc(void *ptr, unsigned int size)
 {
   assert( MRBC_MIN_MEMORY_BLOCK_SIZE >= sizeof(FREE_BLOCK) );
   assert( MRBC_MIN_MEMORY_BLOCK_SIZE >= (1 << MRBC_ALLOC_IGNORE_LSBS) );
-  assert( (sizeof(USED_BLOCK) & 0x03) == 0 );
-  assert( (sizeof(FREE_BLOCK) & 0x03) == 0 );
+  assert( (sizeof(MEMORY_POOL) & 0x03) == 0 );
   assert( size != 0 );
   assert( size <= (MRBC_ALLOC_MEMSIZE_T)(~0) );
 
@@ -421,6 +429,7 @@ void mrbc_init_alloc(void *ptr, unsigned int size)
   // initialize memory pool
   //  large free block + zero size used block (sentinel).
   MRBC_ALLOC_MEMSIZE_T sentinel_size = sizeof(USED_BLOCK);
+  sentinel_size += (-sentinel_size & 3);
   MRBC_ALLOC_MEMSIZE_T free_size = size - sizeof(MEMORY_POOL) - sentinel_size;
   FREE_BLOCK *free_block = BLOCK_TOP(memory_pool);
   USED_BLOCK *used_block = (USED_BLOCK *)((uint8_t *)free_block + free_size);
@@ -585,7 +594,7 @@ void * mrbc_raw_alloc_no_free(unsigned int size)
 
   // can resize it block?
   if( IS_USED_BLOCK(prev) ) goto FALLBACK;
-  if( (BLOCK_SIZE(prev) - sizeof(USED_BLOCK)) < size ) goto FALLBACK;
+  if( (BLOCK_SIZE(prev) - sizeof(USED_BLOCK)) < alloc_size ) goto FALLBACK;
 
   remove_free_block( pool, prev );
   MRBC_ALLOC_MEMSIZE_T free_size = BLOCK_SIZE(prev) - alloc_size;
@@ -830,11 +839,14 @@ void mrbc_alloc_print_memory_pool( void )
   MEMORY_POOL *pool = memory_pool;
 
   console_printf("== MEMORY POOL HEADER DUMP ==\n");
-  console_printf(" Address: %p - %p - %p\n", pool,
+  console_printf(" Address: %p - %p - %p  ", pool,
 		 BLOCK_TOP(pool), BLOCK_END(pool));
-  console_printf(" Total: %d  Management: %d  User: %d\n",
-		 pool->size, sizeof(MEMORY_POOL),
-		 pool->size - sizeof(MEMORY_POOL));
+  console_printf(" Size Total: %d User: %d\n",
+		 pool->size, pool->size - sizeof(MEMORY_POOL));
+  console_printf(" sizeof MEMORY_POOL: %d(%04x), USED_BLOCK: %d(%02x), FREE_BLOCK: %d(%02x)\n",
+		 sizeof(MEMORY_POOL), sizeof(MEMORY_POOL),
+		 sizeof(USED_BLOCK), sizeof(USED_BLOCK),
+		 sizeof(FREE_BLOCK), sizeof(FREE_BLOCK) );
 
   console_printf(" FLI/SLI bitmap and free_blocks table.\n");
   console_printf("    FLI :S[0123 4567] -- free_blocks ");
