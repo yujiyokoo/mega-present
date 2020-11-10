@@ -2714,6 +2714,30 @@ void mrbc_vm_end( struct VM *vm )
 }
 
 
+
+//================================================================
+/*! Find exception, catch handler
+
+*/
+static const struct mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm)
+{
+  if( vm->pc_irep->clen <= 0 ){  // no catch handler
+    return NULL;
+  }
+
+  mrbc_irep_catch_handler *catch_table = (mrbc_irep_catch_handler*)(vm->pc_irep->code + vm->pc_irep->ilen);
+  int cnt = vm->pc_irep->clen - 1;
+  for( ; cnt >= 0 ; cnt-- ){
+    mrbc_irep_catch_handler *ptr = catch_table + cnt;
+    printf("range %02x%02x - %02x%02x, %02x%02x\n", ptr->begin[0], ptr->begin[1], ptr->end[0],ptr->end[1], ptr->target[0],ptr->target[1]);
+  }
+
+  return catch_table;
+}
+
+
+
+
 //================================================================
 /*! Fetch a bytecode and execute
 
@@ -2837,6 +2861,15 @@ int mrbc_vm_run( struct VM *vm )
       console_printf("Unknown OP 0x%02x\n", op);
       break;
     }
+
+    // Handle exception
+    if( vm->exc ){
+      // check
+      if( catch_handler_find(vm) != NULL ){
+	printf("catch process...\n");
+      }
+    }
+
 
     // raise in top level
     // exit vm
