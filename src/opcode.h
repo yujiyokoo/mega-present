@@ -35,6 +35,7 @@ extern "C" {
 #define FETCH_BB() uint32_t a,b; a=READ_B(); b=READ_B(); (void)a, (void)b
 #define FETCH_BBB() uint32_t a,b,c; a=READ_B(); b=READ_B(); c=READ_B(); (void)a, (void)b, (void)c
 #define FETCH_BS() uint32_t a,b; a=READ_B(); b=READ_S(); (void)a, (void)b
+#define FETCH_BSS() uint32_t a,b,c; a=READ_B(); b=READ_S(); c=READ_S(); (void)a, (void)b, (void)c
 #define FETCH_S() uint32_t a=READ_S(); (void)a
 #define FETCH_W() uint32_t a=READ_W(); (void)a
 

@@ -420,6 +420,26 @@ static inline int op_loadi16( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
+/*! OP_LOADI32
+
+  R(a) = mrb_int((b<<16)+c)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error and exit from vm.
+*/
+static inline int op_loadi32( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BSS();
+
+  mrbc_decref(&regs[a]);
+  mrbc_set_fixnum(&regs[a], (((uint32_t)b<<16)+c));
+
+  return 0;
+}
+
+
+//================================================================
 /*! OP_LOADSYM
 
   R(a) = Syms(b)
@@ -2771,6 +2791,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADI_6:    // fall through
     case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
     case OP_LOADI16:    ret = op_loadi16   (vm, regs); break;
+    case OP_LOADI32:    ret = op_loadi32   (vm, regs); break;
     case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
     case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
