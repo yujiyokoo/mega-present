@@ -336,6 +336,26 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
+/*! OP_LOADL16
+
+  R(a) = Pool(b)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_loadl16( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BS();
+
+  mrbc_decref(&regs[a]);
+  regs[a] = *(vm->pc_irep->pools[b]);
+
+  return 0;
+}
+
+
+//================================================================
 /*! OP_LOADI
 
   R(a) = mrb_int(b)
@@ -2779,6 +2799,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_NOP:        ret = op_nop       (vm, regs); break;
     case OP_MOVE:       ret = op_move      (vm, regs); break;
     case OP_LOADL:      ret = op_loadl     (vm, regs); break;
+    case OP_LOADL16:    ret = op_loadl16   (vm, regs); break;
     case OP_LOADI:      ret = op_loadi     (vm, regs); break;
     case OP_LOADINEG:   ret = op_loadineg  (vm, regs); break;
     case OP_LOADI__1:   // fall through
