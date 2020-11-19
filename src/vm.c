@@ -2149,6 +2149,26 @@ static inline int op_aref( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
+/*! OP_ASET
+
+  R(a)[c] = R(b)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_aset( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BBB();
+
+  mrbc_array_set(&regs[a], c, &regs[b]);
+
+  return 0;
+}
+
+
+
+//================================================================
 /*! OP_APOST
 
   *R(a),R(a+1)..R(a+c) = R(a)[b..]
@@ -2872,7 +2892,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_ARYPUSH:    ret = op_dummy_B   (vm, regs); break;
     case OP_ARYDUP:     ret = op_arydup    (vm, regs); break;
     case OP_AREF:       ret = op_aref      (vm, regs); break;
-    case OP_ASET:       ret = op_dummy_BBB (vm, regs); break;
+    case OP_ASET:       ret = op_aset      (vm, regs); break;
     case OP_APOST:      ret = op_apost     (vm, regs); break;
     case OP_INTERN:     ret = op_intern    (vm, regs); break;
     case OP_STRING:     ret = op_string    (vm, regs); break;
