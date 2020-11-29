@@ -10,7 +10,7 @@
 #
 
 RENAME_CHAR = {
-  "!"=>"NOT",   # or "EXC"
+  "!"=>"NOT",   # or "E"
   "%"=>"MOD",
   "&"=>"AND",
   "*"=>"MUL",
@@ -22,18 +22,18 @@ RENAME_CHAR = {
   ">"=>"GT",
   "?"=>"Q",
   "@"=>"AT",
-  "["=>"BLL",
-  "]"=>"BLR",
-  "^"=>"HAT",
+  "["=>"BL",
+  "]"=>"BR",
+  "^"=>"XOR",
   "|"=>"OR",
-  "~"=>"TILDE"
+  "~"=>"NEG"
 }
 
 ##
 # rename for symbol
 #
 def rename_for_symbol(s)
-  return "#{$1}_EXC"  if /^(.+)!$/ =~ s
+  return "#{$1}_E"  if /^(.+)!$/ =~ s
 
   r = ""
   s.each_char {|ch|
