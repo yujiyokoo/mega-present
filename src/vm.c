@@ -968,11 +968,11 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_decref( &regs[a] );
-  regs[a].tt = MRBC_TT_CLASS;
   if( vm->exc != NULL ){
+    regs[a].tt = MRBC_TT_CLASS;
     regs[a].cls = vm->exc;
-    // } else {
-    //    regs[a].cls = vm->exc_pending;
+  } else {
+    regs[a] = mrbc_nil_value();
   }
 
   return 0;
@@ -992,7 +992,7 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  assert( regs[a].tt == MRBC_TT_CLASS );
+  //assert( regs[a].tt == MRBC_TT_CLASS );
   assert( regs[b].tt == MRBC_TT_CLASS );
   mrbc_class *cls = regs[a].cls;
   while( cls != NULL ){
@@ -1008,6 +1008,25 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
   mrbc_decref( &regs[b] );
   regs[b] = mrbc_false_value();
 
+  return 0;
+}
+
+
+//================================================================
+/*! OP_RAISEIF
+
+  raise(R(a)) if R(a)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_value exc = regs[a];
+  
   return 0;
 }
 
@@ -2789,10 +2808,14 @@ static const struct mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm)
   int cnt = vm->pc_irep->clen - 1;
   for( ; cnt >= 0 ; cnt-- ){
     mrbc_irep_catch_handler *ptr = catch_table + cnt;
-    printf("range %02x%02x - %02x%02x, %02x%02x\n", ptr->begin[0], ptr->begin[1], ptr->end[0],ptr->end[1], ptr->target[0],ptr->target[1]);
+    // Catch range check
+    int pc = vm->inst - vm->pc_irep->code;
+    if( (pc > bin_to_uint16(ptr->begin)) && (pc <= bin_to_uint16(ptr->end)) ){
+      return catch_table + cnt;
+    }
   }
 
-  return catch_table;
+  return NULL;
 }
 
 
@@ -2859,7 +2882,7 @@ int mrbc_vm_run( struct VM *vm )
       // case OP_JMPUW
     case OP_EXCEPT:     ret = op_except    (vm, regs); break;
     case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
-      // case OP_RAISEIF
+    case OP_RAISEIF:    ret = op_raiseif   (vm, regs); break;
     case OP_SENDV:      ret = op_sendv     (vm, regs); break;
     case OP_SENDVB:     ret = op_sendvb    (vm, regs); break;
     case OP_SEND:       ret = op_send      (vm, regs); break;
@@ -2927,8 +2950,10 @@ int mrbc_vm_run( struct VM *vm )
     // Handle exception
     if( vm->exc ){
       // check
-      if( catch_handler_find(vm) != NULL ){
-	printf("catch process...\n");
+      mrbc_irep_catch_handler *handler = catch_handler_find(vm);
+      if( handler != NULL ){
+	vm->exc = NULL;
+	vm->inst = vm->pc_irep->code + bin_to_uint16(handler->target);
       }
     }
 
