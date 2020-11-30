@@ -134,6 +134,9 @@ all_symbols.each_with_index {|s,i|
   file.puts "  MRBC_SYMID_#{rename_for_symbol(s)} = #{i},"
 }
 file.puts "};"
+
+file.puts
+file.puts "#define MRB_SYM(sym) MRBC_SYMID_##sym"
 file.puts "#endif"
 
 file.close
