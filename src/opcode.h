@@ -106,62 +106,63 @@ enum OPCODE {
   OP_SENDVB	= 0x2e,	//!< BB   R(a) = call(R(a),Syms(b),*R(a+1),&R(a+2))
   OP_SEND	= 0x2f,	//!< BBB  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
   OP_SENDB	= 0x30,	//!< BBB  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c),&R(a+c+1))
-  OP_CALL       = 0x31, //!< Z    R(0) = self.call(frame.argc, frame.argv)
-  OP_SUPER	= 0x32,	//!< BB   R(a) = super(R(a+1),... ,R(a+b+1))
-  OP_ARGARY	= 0x33,	//!< BS   R(a) = argument array (16=m5:r1:m5:d1:lv4)
-  OP_ENTER	= 0x34,	//!< W    arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1)
-  OP_KEY_P      = 0x35,	//!< BB   R(a) = kdict.key?(Syms(b))
-  OP_KEYEND     = 0x36,	//!< Z    raise unless kdict.empty?
-  OP_KARG       = 0x37,	//!< BB   R(a) = kdict[Syms(b)]; kdict.delete(Syms(b))
-  OP_RETURN	= 0x38,	//!< B    return R(a) (normal)
-  OP_RETURN_BLK	= 0x39,	//!< B    return R(a) (in-block return)
-  OP_BREAK	= 0x3a,	//!< B    break R(a)
-  OP_BLKPUSH	= 0x3b,	//!< BS   R(a) = block (16=m5:r1:m5:d1:lv4)
-  OP_ADD	= 0x3c,	//!< B    R(a) = R(a)+R(a+1)
-  OP_ADDI	= 0x3d,	//!< BB   R(a) = R(a)+mrb_int(b)
-  OP_SUB	= 0x3e,	//!< B    R(a) = R(a)-R(a+1)
-  OP_SUBI	= 0x3f,	//!< BB   R(a) = R(a)-mrb_int(b)
-  OP_MUL	= 0x40,	//!< B    R(a) = R(a)*R(a+1)
-  OP_DIV	= 0x41,	//!< B    R(a) = R(a)/R(a+1)
-  OP_EQ		= 0x42,	//!< B    R(a) = R(a)==R(a+1)
-  OP_LT		= 0x43,	//!< B    R(a) = R(a)<R(a+1)
-  OP_LE		= 0x44,	//!< B    R(a) = R(a)<=R(a+1)
-  OP_GT		= 0x45,	//!< B    R(a) = R(a)>R(a+1)
-  OP_GE		= 0x46,	//!< B    R(a) = R(a)>=R(a+1)
-  OP_ARRAY	= 0x47,	//!< BB   R(a) = ary_new(R(a),R(a+1)..R(a+b))
-  OP_ARRAY2	= 0x48,	//!< BBB  R(a) = ary_new(R(b),R(b+1)..R(b+c))
-  OP_ARYCAT	= 0x49,	//!< B    ary_cat(R(a),R(a+1))
-  OP_ARYPUSH    = 0x4a, //!< B    ary_push(R(a),R(a+1))
-  OP_ARYDUP	= 0x4b,	//!< B    R(a) = ary_dup(R(a))
-  OP_AREF	= 0x4c,	//!< BBB  R(a) = R(b)[c]
-  OP_ASET       = 0x4d, //!< BBB  R(a)[c] = R(b)
-  OP_APOST	= 0x4e,	//!< BBB  *R(a),R(a+1)..R(a+c) = R(a)[b..]
-  OP_INTERN	= 0x4f,	//!< B    R(a) = intern(R(a))
-  OP_STRING	= 0x50,	//!< BB   R(a) = str_dup(Lit(b))
-  OP_STRING16	= 0x51,	//!< BS   R(a) = str_dup(Lit(b))
-  OP_STRCAT	= 0x52,	//!< B    str_cat(R(a),R(a+1))
-  OP_HASH	= 0x53,	//!< BB   R(a) = hash_new(R(a),R(a+1)..R(a+b))
-  OP_HASHADD    = 0x54, //!< BB   R(a) = hash_push(R(a),R(a+1)..R(a+b))
-  OP_HASHCAT    = 0x55, //!< B    R(a) = hash_cat(R(a),R(a+1))
-  OP_LAMBDA     = 0x56, //!< BB   R(a) = lambda(SEQ[b],L_LAMBDA)
-  OP_BLOCK	= 0x57,	//!< BB   R(a) = lambda(SEQ[b],L_BLOCK)
-  OP_METHOD	= 0x58,	//!< BB   R(a) = lambda(SEQ[b],L_METHOD)
-  OP_RANGE_INC	= 0x59,	//!< B    R(a) = range_new(R(a),R(a+1),FALSE)
-  OP_RANGE_EXC	= 0x5a,	//!< B    R(a) = range_new(R(a),R(a+1),TRUE)
-  OP_OCLASS     = 0x5b, //!< B    R(a) = ::Object
-  OP_CLASS	= 0x5c,	//!< BB   R(a) = newclass(R(a),Syms(b),R(a+1))
-  OP_MODULE     = 0x5d, //!< BB   R(a) = newmodule(R(a),Syms(b))
-  OP_EXEC	= 0x5e,	//!< BB   R(a) = blockexec(R(a),SEQ[b])
-  OP_DEF	= 0x5f,	//!< BB   R(a).newmethod(Syms(b),R(a+1))
-  OP_ALIAS	= 0x60,	//!< BB   alias_method(target_class,Syms(a),Syms(b))
-  OP_UNDEF      = 0x61, //!< B    undef_method(target_class,Syms(a))
-  OP_SCLASS	= 0x62,	//!< B    R(a) = R(a).singleton_class
-  OP_TCLASS	= 0x63,	//!< B    R(a) = target_class
-  OP_DEBUG      = 0x64, //!< BBB  print a,b,c
-  OP_ERR        = 0x65, //!< B    raise(LocalJumpError, Lit(a))
-  OP_STOP	= 0x66,	//!< Z    stop VM
+  OP_SENDVK     = 0x31, //!> BB   R(a) = call(R(a),Syms(b),*R(a+1),**(a+2),&R(a+3)) # todo
+  OP_CALL       = 0x32, //!< Z    R(0) = self.call(frame.argc, frame.argv)
+  OP_SUPER	= 0x33,	//!< BB   R(a) = super(R(a+1),... ,R(a+b+1))
+  OP_ARGARY	= 0x34,	//!< BS   R(a) = argument array (16=m5:r1:m5:d1:lv4)
+  OP_ENTER	= 0x35,	//!< W    arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1)
+  OP_KEY_P      = 0x36,	//!< BB   R(a) = kdict.key?(Syms(b))
+  OP_KEYEND     = 0x37,	//!< Z    raise unless kdict.empty?
+  OP_KARG       = 0x38,	//!< BB   R(a) = kdict[Syms(b)]; kdict.delete(Syms(b))
+  OP_RETURN	= 0x39,	//!< B    return R(a) (normal)
+  OP_RETURN_BLK	= 0x3a,	//!< B    return R(a) (in-block return)
+  OP_BREAK	= 0x3b,	//!< B    break R(a)
+  OP_BLKPUSH	= 0x3c,	//!< BS   R(a) = block (16=m5:r1:m5:d1:lv4)
+  OP_ADD	= 0x3d,	//!< B    R(a) = R(a)+R(a+1)
+  OP_ADDI	= 0x3e,	//!< BB   R(a) = R(a)+mrb_int(b)
+  OP_SUB	= 0x3f,	//!< B    R(a) = R(a)-R(a+1)
+  OP_SUBI	= 0x40,	//!< BB   R(a) = R(a)-mrb_int(b)
+  OP_MUL	= 0x41,	//!< B    R(a) = R(a)*R(a+1)
+  OP_DIV	= 0x42,	//!< B    R(a) = R(a)/R(a+1)
+  OP_EQ		= 0x43,	//!< B    R(a) = R(a)==R(a+1)
+  OP_LT		= 0x44,	//!< B    R(a) = R(a)<R(a+1)
+  OP_LE		= 0x45,	//!< B    R(a) = R(a)<=R(a+1)
+  OP_GT		= 0x46,	//!< B    R(a) = R(a)>R(a+1)
+  OP_GE		= 0x47,	//!< B    R(a) = R(a)>=R(a+1)
+  OP_ARRAY	= 0x48,	//!< BB   R(a) = ary_new(R(a),R(a+1)..R(a+b))
+  OP_ARRAY2	= 0x49,	//!< BBB  R(a) = ary_new(R(b),R(b+1)..R(b+c))
+  OP_ARYCAT	= 0x4a,	//!< B    ary_cat(R(a),R(a+1))
+  OP_ARYPUSH    = 0x4b, //!< B    ary_push(R(a),R(a+1))
+  OP_ARYDUP	= 0x4c,	//!< B    R(a) = ary_dup(R(a))
+  OP_AREF	= 0x4d,	//!< BBB  R(a) = R(b)[c]
+  OP_ASET       = 0x4e, //!< BBB  R(a)[c] = R(b)
+  OP_APOST	= 0x4f,	//!< BBB  *R(a),R(a+1)..R(a+c) = R(a)[b..]
+  OP_INTERN	= 0x50,	//!< B    R(a) = intern(R(a))
+  OP_STRING	= 0x51,	//!< BB   R(a) = str_dup(Lit(b))
+  OP_STRING16	= 0x52,	//!< BS   R(a) = str_dup(Lit(b))
+  OP_STRCAT	= 0x53,	//!< B    str_cat(R(a),R(a+1))
+  OP_HASH	= 0x54,	//!< BB   R(a) = hash_new(R(a),R(a+1)..R(a+b))
+  OP_HASHADD    = 0x55, //!< BB   R(a) = hash_push(R(a),R(a+1)..R(a+b))
+  OP_HASHCAT    = 0x56, //!< B    R(a) = hash_cat(R(a),R(a+1))
+  OP_LAMBDA     = 0x57, //!< BB   R(a) = lambda(SEQ[b],L_LAMBDA)
+  OP_BLOCK	= 0x58,	//!< BB   R(a) = lambda(SEQ[b],L_BLOCK)
+  OP_METHOD	= 0x59,	//!< BB   R(a) = lambda(SEQ[b],L_METHOD)
+  OP_RANGE_INC	= 0x5a,	//!< B    R(a) = range_new(R(a),R(a+1),FALSE)
+  OP_RANGE_EXC	= 0x5b,	//!< B    R(a) = range_new(R(a),R(a+1),TRUE)
+  OP_OCLASS     = 0x5c, //!< B    R(a) = ::Object
+  OP_CLASS	= 0x5d,	//!< BB   R(a) = newclass(R(a),Syms(b),R(a+1))
+  OP_MODULE     = 0x5e, //!< BB   R(a) = newmodule(R(a),Syms(b))
+  OP_EXEC	= 0x5f,	//!< BB   R(a) = blockexec(R(a),SEQ[b])
+  OP_DEF	= 0x60,	//!< BB   R(a).newmethod(Syms(b),R(a+1))
+  OP_ALIAS	= 0x61,	//!< BB   alias_method(target_class,Syms(a),Syms(b))
+  OP_UNDEF      = 0x62, //!< B    undef_method(target_class,Syms(a))
+  OP_SCLASS	= 0x63,	//!< B    R(a) = R(a).singleton_class
+  OP_TCLASS	= 0x64,	//!< B    R(a) = target_class
+  OP_DEBUG      = 0x65, //!< BBB  print a,b,c
+  OP_ERR        = 0x66, //!< B    raise(LocalJumpError, Lit(a))
+  OP_STOP	= 0x67,	//!< Z    stop VM
 
-  OP_ABORT	= 0x67, // only for mruby/c, TODO: remove
+  OP_ABORT	= 0x68, // only for mruby/c, TODO: remove
 };
 
 //================================================================
