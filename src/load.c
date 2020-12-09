@@ -144,7 +144,8 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   // ISEQ (code) BLOCK
   irep->code = (uint8_t *)p;
   p += irep->ilen + sizeof(mrbc_irep_catch_handler) * irep->clen;
-
+  assert( sizeof(mrbc_irep_catch_handler) == 13 );
+  
   // POOL BLOCK
   irep->plen = bin_to_uint16(p);	p += 2;
   if( irep->plen ) {

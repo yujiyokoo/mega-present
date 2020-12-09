@@ -35,9 +35,9 @@ typedef enum mrbc_catch_type {
 
 typedef struct IREP_CATCH_HANDLER {
   uint8_t type;          /* enum mrb_catch_type, 1 byte */
-  uint8_t begin[2];      /* The starting address to match the hander. Includes this. */
-  uint8_t end[2];        /* The endpoint address that matches the hander. Not Includes this. */
-  uint8_t target[2];     /* The address to jump to if a match is made. */
+  uint8_t begin[4];      /* The starting address to match the hander. Includes this. */
+  uint8_t end[4];        /* The endpoint address that matches the hander. Not Includes this. */
+  uint8_t target[4];     /* The address to jump to if a match is made. */
 } mrbc_irep_catch_handler;
 
 
