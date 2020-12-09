@@ -855,7 +855,7 @@ static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
-  vm->inst = vm->pc_irep->code + a;
+  vm->inst += (int16_t)a;
 
   return 0;
 }
@@ -875,7 +875,7 @@ static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   if( regs[a].tt > MRBC_TT_FALSE ) {
-    vm->inst = vm->pc_irep->code + b;
+    vm->inst += (int16_t)b;
   }
 
   return 0;
@@ -896,7 +896,7 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   if( regs[a].tt <= MRBC_TT_FALSE ) {
-    vm->inst = vm->pc_irep->code + b;
+    vm->inst += (int16_t)b;
   }
 
   return 0;
@@ -917,7 +917,7 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   if( regs[a].tt == MRBC_TT_NIL ) {
-    vm->inst = vm->pc_irep->code + b;
+    vm->inst += (int16_t)b;
   }
 
   return 0;
@@ -2837,6 +2837,8 @@ int mrbc_vm_run( struct VM *vm )
 
     // Dispatch
     uint8_t op = *vm->inst++;
+
+    // printf("OP=%02x\n", op);
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
