@@ -194,6 +194,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
     } break;
 #endif
     case IREP_TT_INT64: {
+#ifdef MRBC_INT64
       uint64_t value = bin_to_uint32(p);
       p += sizeof(uint32_t);
       value <<= 32;
@@ -201,6 +202,9 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
       p += sizeof(uint32_t);      
       obj->tt = MRBC_TT_FIXNUM;
       obj->i = value;
+#else
+      mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
+#endif
     } break;
     default:
       assert(!"Unknown tt");

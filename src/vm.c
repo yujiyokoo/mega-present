@@ -2838,7 +2838,7 @@ int mrbc_vm_run( struct VM *vm )
     // Dispatch
     uint8_t op = *vm->inst++;
 
-    console_printf("OP=%02x\n", op);
+    // console_printf("OP=%02x\n", op);
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
