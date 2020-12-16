@@ -2810,7 +2810,7 @@ static const struct mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm)
     mrbc_irep_catch_handler *ptr = catch_table + cnt;
     // Catch range check
     int pc = vm->inst - vm->pc_irep->code;
-    if( (pc > bin_to_uint16(ptr->begin)) && (pc <= bin_to_uint16(ptr->end)) ){
+    if( (pc > bin_to_uint32(ptr->begin)) && (pc <= bin_to_uint32(ptr->end)) ){
       return catch_table + cnt;
     }
   }
@@ -2838,7 +2838,7 @@ int mrbc_vm_run( struct VM *vm )
     // Dispatch
     uint8_t op = *vm->inst++;
 
-    // printf("OP=%02x\n", op);
+    console_printf("OP=%02x\n", op);
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
