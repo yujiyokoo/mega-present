@@ -484,6 +484,30 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
+/*! OP_LOADSYM16
+
+  R(a) = Syms(b)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_loadsym16( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BS();
+
+  const char *sym_name = mrbc_get_irep_symbol(vm, b);
+  mrbc_sym sym_id = str_to_symid(sym_name);
+
+  mrbc_decref(&regs[a]);
+  regs[a].tt = MRBC_TT_SYMBOL;
+  regs[a].i = sym_id;
+
+  return 0;
+}
+
+
+//================================================================
 /*! OP_LOADNIL
 
   R(a) = nil
@@ -2145,6 +2169,38 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
+/*! OP_STRING16
+
+  R(a) = str_dup(Lit(b))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_string16( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+#if MRBC_USE_STRING
+  mrbc_object *pool_obj = vm->pc_irep->pools[b];
+
+  /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
+  int len = bin_to_uint16(pool_obj->str - 2);
+  mrbc_value value = mrbc_string_new(vm, pool_obj->str, len);
+  if( value.string == NULL ) return -1;         // ENOMEM
+
+  mrbc_decref(&regs[a]);
+  regs[a] = value;
+
+#else
+  not_supported();
+#endif
+
+  return 0;
+}
+
+
+//================================================================
 /*! OP_STRCAT
 
   str_cat(R(a),R(a+1))
@@ -2717,7 +2773,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADI16:    ret = op_loadi16   (vm, regs); break;
     case OP_LOADI32:    ret = op_loadi32   (vm, regs); break;
     case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
-  //case OP_LOADSYM16:  ret = op_loadsym16 (vm, regs); break;
+    case OP_LOADSYM16:  ret = op_loadsym16 (vm, regs); break;
     case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
     case OP_LOADT:      ret = op_loadt     (vm, regs); break;
@@ -2781,7 +2837,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_APOST:      ret = op_apost     (vm, regs); break;
     case OP_INTERN:     ret = op_intern    (vm, regs); break;
     case OP_STRING:     ret = op_string    (vm, regs); break;
-  //case OP_STRING16:   ret = op_string16  (vm, regs); break;
+    case OP_STRING16:   ret = op_string16  (vm, regs); break;
     case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
     case OP_HASH:       ret = op_hash      (vm, regs); break;
     case OP_HASHADD:    ret = op_dummy_BB  (vm, regs); break;
