@@ -12,6 +12,7 @@ mrbc
 
 # Mruby bytecode
 *.mrb
+src/mrblib.c
 
 # backup file
 *~
