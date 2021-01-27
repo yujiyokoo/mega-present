@@ -9,6 +9,7 @@
 
 # MRUBY_TAG corresponds to tag or branch of mruby/mruby
 MRUBY_TAG = $(shell grep MRUBY_VERSION mrblib/global.rb | sed 's/MRUBY_VERSION *= *"\(.\+\)"/\1/')
+USER_ID = $(shell id -u)
 
 all: mrubyc_lib mrubyc_bin
 
@@ -62,4 +63,4 @@ check_tag:
 	fi
 
 setup_test:
-	docker build -t mrubyc-dev --build-arg MRUBY_TAG=$(MRUBY_TAG) .
+	docker build -t mrubyc-dev --build-arg MRUBY_TAG=$(MRUBY_TAG) --build-arg USER_ID=$(USER_ID) .

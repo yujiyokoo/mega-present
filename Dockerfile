@@ -13,7 +13,8 @@ RUN apt install -y \
 
 RUN gem update --system
 
-RUN useradd -m -u 1000 mrubyc
+ARG USER_ID
+RUN useradd -m -u $USER_ID mrubyc
 RUN mkdir /work && chown mrubyc /work
 
 USER mrubyc
