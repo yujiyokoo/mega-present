@@ -9,6 +9,7 @@
 
 # MRUBY_TAG corresponds to tag or branch of mruby/mruby
 MRUBY_TAG = $(shell grep MRUBY_VERSION mrblib/global.rb | sed 's/MRUBY_VERSION *= *"\(.\+\)"/\1/')
+USER_ID = $(shell id -u)
 
 
 all: mrubyc_lib mrubyc_bin
@@ -49,10 +50,11 @@ package: clean
 test: check_tag
 	docker run --mount type=bind,src=${PWD}/,dst=/work/mrubyc \
 	  -e CFLAGS="-DMRBC_USE_MATH=1 -DMAX_SYMBOLS_COUNT=500 $(CFLAGS)" \
-	  mrubyc-dev bundle exec mrubyc-test \
-	  --every=10 \
+	  -e MRBC="/work/mruby/build/host/bin/mrbc" \
+	  mrubyc-dev /bin/sh -c "cd mrblib; make distclean all && cd -; \
+	  bundle exec mrubyc-test --every=10 \
 	  --mrbc-path=/work/mruby/build/host/bin/mrbc \
-	  $(file)
+	  $(file)"
 
 check_tag:
 	$(eval CURRENT_MRUBY_TAG = $(shell docker run mrubyc-dev \
@@ -67,4 +69,4 @@ check_tag:
 	fi
 
 setup_test:
-	docker build -t mrubyc-dev --build-arg MRUBY_TAG=$(MRUBY_TAG) .
+	docker build -t mrubyc-dev --build-arg MRUBY_TAG=$(MRUBY_TAG) --build-arg USER_ID=$(USER_ID) .
