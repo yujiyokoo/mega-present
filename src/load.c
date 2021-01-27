@@ -49,12 +49,12 @@ enum irep_pool_type {
 
   <pre>
   Structure
-   "RITE"	identifier
-   "0006"	version
-   0000		CRC
-   0000_0000	total size
-   "MATZ"	compiler name
-   "0000"	compiler version
+   "RITE"     identifier
+   "01"       major version
+   "00"       minor version
+   0000_0000  total size
+   "MATZ"     compiler name
+   "0000"     compiler version
   </pre>
 */
 static int load_header(struct VM *vm, const uint8_t **pos)
@@ -70,16 +70,16 @@ static int load_header(struct VM *vm, const uint8_t **pos)
 
   /* Ignore size */
 
-  if( memcmp(p + 14, "MATZ", 4) != 0 ) {
+  if( memcmp(p + 12, "MATZ", 4) != 0 ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return -1;
   }
-  if( memcmp(p + 18, "0000", 4) != 0 ) {
+  if( memcmp(p + 16, "0000", 4) != 0 ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return -1;
   }
 
-  *pos += 22;
+  *pos += 20;
   return 0;
 }
 
