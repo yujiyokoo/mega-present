@@ -1,8 +1,8 @@
 #
 # mruby/c  Makefile
 #
-# Copyright (C) 2015-2019 Kyushu Institute of Technology.
-# Copyright (C) 2015-2019 Shimane IT Open-Innovation Center.
+# Copyright (C) 2015-2021 Kyushu Institute of Technology.
+# Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 #
 #  This file is distributed under BSD 3-Clause License.
 #
@@ -15,12 +15,10 @@ MRBC ?= mrbc
 all: $(OUTPUT)
 
 $(OUTPUT): $(SRC)
-	cat $(SRC) > mrblib.rb
-	$(MRBC) -Bmrblib_bytecode --remove-lv -o$(OUTPUT) mrblib.rb
-	rm -f mrblib.rb
+	$(MRBC) -E -Bmrblib_bytecode --remove-lv -o$(OUTPUT) $(SRC)
 
 clean:
-	@rm -f mrblib.rb *~
+	@rm -f *~
 
 distclean: clean
 	@rm -f $(OUTPUT)
