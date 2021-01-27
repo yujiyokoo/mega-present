@@ -45,7 +45,7 @@ package: clean
 	rm -Rf pkg ;\
 	echo Done.
 
-.PHONY: test setup_test check_tag
+.PHONY: test setup_test check_tag debug_test
 
 test: check_tag
 	docker run --mount type=bind,src=${PWD}/,dst=/work/mrubyc \
@@ -70,3 +70,6 @@ check_tag:
 
 setup_test:
 	docker build -t mrubyc-dev --build-arg MRUBY_TAG=$(MRUBY_TAG) --build-arg USER_ID=$(USER_ID) .
+
+debug_test:
+	gdb $(OPTION) --directory $(shell pwd)/src --args test/tmp/test
