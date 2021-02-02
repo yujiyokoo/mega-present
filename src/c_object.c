@@ -48,16 +48,16 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
 
-  char syms[]="______initialize";
-  mrbc_sym sym_id = str_to_symid(&syms[6]);
+  char syms[]="____initialize";
+  mrbc_sym sym_id = str_to_symid(&syms[4]);
   mrbc_method method;
 
   if( mrbc_find_method( &method, v->cls, sym_id ) == 0 ) {
     SET_RETURN(new_obj);
     return;
   }
-  uint32_to_bin( 1,(uint8_t*)&syms[0]);
-  uint16_to_bin(10,(uint8_t*)&syms[4]);
+  uint16_to_bin( 1,(uint8_t*)&syms[0]);
+  uint16_to_bin(10,(uint8_t*)&syms[2]);
 
   uint8_t code[] = {
     OP_SEND, 0, 0, argc,
