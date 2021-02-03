@@ -165,9 +165,6 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
       return NULL;
     }
     switch( tt ) {
-      //  is not implemented
-      // IREP_TT_SSTR is same implementation with IREP_TT_STR
-
 #if MRBC_USE_STRING
     case IREP_TT_STR:
     case IREP_TT_SSTR: {
