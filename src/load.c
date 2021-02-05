@@ -61,7 +61,7 @@ static int load_header(struct VM *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos;
 
-  if( memcmp(p, "RITE01", 6) != 0 ) {
+  if( memcmp(p, "RITE02", 6) != 0 ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return -1;
   }
