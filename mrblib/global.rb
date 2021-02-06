@@ -8,5 +8,5 @@
 #
 
 RUBY_VERSION = "1.9"
-MRUBY_VERSION = "33deeae"
+MRUBY_VERSION = "3.0.0-rc"
 MRUBYC_VERSION = "3.0"
