@@ -5,8 +5,8 @@ struct RClass *mrbc_init_class_array(struct VM *vm)
   static const mrbc_sym method_symbols[] = {
     MRBC_SYMID_PLUS,
     MRBC_SYMID_LT_LT,
-    MRBC_SYMID_BLL_BLR,
-    MRBC_SYMID_BLL_BLR_EQ,
+    MRBC_SYMID_BL_BR,
+    MRBC_SYMID_BL_BR_EQ,
     MRBC_SYMID_at,
     MRBC_SYMID_clear,
     MRBC_SYMID_count,

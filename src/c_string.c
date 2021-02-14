@@ -357,6 +357,29 @@ int mrbc_string_chomp(mrbc_value *src)
 }
 
 
+//================================================================
+/*! (method) new
+*/
+static void c_string_new(struct VM *vm, mrbc_value v[], int argc)
+{
+  if (argc == 1 && v[1].tt != MRBC_TT_STRING) {
+    console_print( "TypeError\n" ); // raise? TypeError
+    return;
+  }
+  if (argc > 1) {
+    console_print( "Wrong number of arguments (expected 0..1)\n" ); // raise? ArgumentError
+    return;
+  }
+
+  mrbc_value value;
+  if (argc == 0) {
+    value = mrbc_string_new(vm, NULL, 0);
+  } else if (argc == 1) {
+    value = mrbc_string_dup(vm, &v[1]);
+  }
+  SET_RETURN(value);
+}
+
 
 //================================================================
 /*! (method) +
@@ -1203,6 +1226,7 @@ static void c_string_include(struct VM *vm, mrbc_value v[], int argc)
   FILE("method_table_string.h")
   FUNC("mrbc_init_class_string")
 
+  METHOD( "new",	c_string_new )
   METHOD( "+",		c_string_add )
   METHOD( "*",		c_string_mul )
   METHOD( "size",	c_string_size )
