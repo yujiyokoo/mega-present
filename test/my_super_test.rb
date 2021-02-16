@@ -15,7 +15,6 @@ class MySuperTest < MrubycTestCase
 
   description "MySuper2"
   def super_2_case
-    pend
     obj = MySuper2.new()
     obj.method1( 11, 22 )
     assert_equal 22, obj.a1

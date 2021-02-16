@@ -1,6 +1,18 @@
 
 class StringTest < MrubycTestCase
 
+  description "String.new with arg"
+  def string_new_with_arg
+    str = String.new("a string instance")
+    assert_equal "a string instance", str
+  end
+
+  description "String.new without arg"
+  def string_new_without_arg
+    str = String.new
+    assert_equal "", str
+  end
+
   description "==, !="
   def op_eq_case
     assert_equal true, "abc" == "abc"

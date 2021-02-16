@@ -3,8 +3,8 @@
 struct RClass *mrbc_init_class_hash(struct VM *vm)
 {
   static const mrbc_sym method_symbols[] = {
-    MRBC_SYMID_BLL_BLR,
-    MRBC_SYMID_BLL_BLR_EQ,
+    MRBC_SYMID_BL_BR,
+    MRBC_SYMID_BL_BR_EQ,
     MRBC_SYMID_clear,
     MRBC_SYMID_count,
     MRBC_SYMID_delete,
@@ -19,7 +19,7 @@ struct RClass *mrbc_init_class_hash(struct VM *vm)
     MRBC_SYMID_keys,
     MRBC_SYMID_length,
     MRBC_SYMID_merge,
-    MRBC_SYMID_merge_EXC,
+    MRBC_SYMID_merge_E,
     MRBC_SYMID_new,
     MRBC_SYMID_size,
     MRBC_SYMID_to_h,
