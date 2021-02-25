@@ -172,24 +172,28 @@ enum OPCODE {
   OP_HASHADD    = 0x55, //!< BB   R(a) = hash_push(R(a),R(a+1)..R(a+b*2))
   OP_HASHCAT    = 0x56, //!< B    R(a) = hash_cat(R(a),R(a+1))
   OP_LAMBDA     = 0x57, //!< BB   R(a) = lambda(SEQ[b],L_LAMBDA)
-  OP_BLOCK      = 0x58, //!< BB   R(a) = lambda(SEQ[b],L_BLOCK)
-  OP_METHOD     = 0x59, //!< BB   R(a) = lambda(SEQ[b],L_METHOD)
-  OP_RANGE_INC  = 0x5a, //!< B    R(a) = range_new(R(a),R(a+1),FALSE)
-  OP_RANGE_EXC  = 0x5b, //!< B    R(a) = range_new(R(a),R(a+1),TRUE)
-  OP_OCLASS     = 0x5c, //!< B    R(a) = ::Object
-  OP_CLASS      = 0x5d, //!< BB   R(a) = newclass(R(a),Syms(b),R(a+1))
-  OP_MODULE     = 0x5e, //!< BB   R(a) = newmodule(R(a),Syms(b))
-  OP_EXEC       = 0x5f, //!< BB   R(a) = blockexec(R(a),SEQ[b])
-  OP_DEF        = 0x60, //!< BB   R(a).newmethod(Syms(b),R(a+1))
-  OP_ALIAS      = 0x61, //!< BB   alias_method(target_class,Syms(a),Syms(b))
-  OP_UNDEF      = 0x62, //!< B    undef_method(target_class,Syms(a))
-  OP_SCLASS     = 0x63, //!< B    R(a) = R(a).singleton_class
-  OP_TCLASS     = 0x64, //!< B    R(a) = target_class
-  OP_DEBUG      = 0x65, //!< BBB  print a,b,c
-  OP_ERR        = 0x66, //!< B    raise(LocalJumpError, Lit(a))
-  OP_STOP       = 0x67, //!< Z    stop VM
+  OP_LAMBDA16   = 0x58, //!< BS   R(a) = lambda(SEQ[b],L_LAMBDA)
+  OP_BLOCK      = 0x59, //!< BB   R(a) = lambda(SEQ[b],L_BLOCK)
+  OP_BLOCK16    = 0x5a, //!< BS   R(a) = lambda(SEQ[b],L_BLOCK)
+  OP_METHOD     = 0x5b, //!< BB   R(a) = lambda(SEQ[b],L_METHOD)
+  OP_METHOD16   = 0x5c, //!< BB   R(a) = lambda(SEQ[b],L_METHOD)
+  OP_RANGE_INC  = 0x5d, //!< B    R(a) = range_new(R(a),R(a+1),FALSE)
+  OP_RANGE_EXC  = 0x5e, //!< B    R(a) = range_new(R(a),R(a+1),TRUE)
+  OP_OCLASS     = 0x5f, //!< B    R(a) = ::Object
+  OP_CLASS      = 0x60, //!< BB   R(a) = newclass(R(a),Syms(b),R(a+1))
+  OP_MODULE     = 0x61, //!< BB   R(a) = newmodule(R(a),Syms(b))
+  OP_EXEC       = 0x62, //!< BB   R(a) = blockexec(R(a),SEQ[b])
+  OP_EXEC16     = 0x63, //!< BB   R(a) = blockexec(R(a),SEQ[b])
+  OP_DEF        = 0x64, //!< BB   R(a).newmethod(Syms(b),R(a+1))
+  OP_ALIAS      = 0x65, //!< BB   alias_method(target_class,Syms(a),Syms(b))
+  OP_UNDEF      = 0x66, //!< B    undef_method(target_class,Syms(a))
+  OP_SCLASS     = 0x67, //!< B    R(a) = R(a).singleton_class
+  OP_TCLASS     = 0x68, //!< B    R(a) = target_class
+  OP_DEBUG      = 0x69, //!< BBB  print a,b,c
+  OP_ERR        = 0x6a, //!< B    raise(LocalJumpError, Lit(a))
+  OP_STOP       = 0x6b, //!< Z    stop VM
 
-  OP_ABORT      = 0x68, // only for mruby/c, TODO: remove
+  OP_ABORT      = 0x6c, // only for mruby/c, TODO: remove
 };
 
 //================================================================
