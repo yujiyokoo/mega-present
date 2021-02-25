@@ -1019,7 +1019,7 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_value exc = regs[a];
+//  mrbc_value exc = regs[a];
 
   return 0;
 }
