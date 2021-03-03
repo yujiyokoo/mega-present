@@ -438,7 +438,11 @@ int mrbc_printf_bit( mrbc_printf *pf, mrbc_int value, int bit )
   int mchar = mask + ((mask < 10)? '0' : offset_a);
 
   // create string to local buffer
+#ifdef MRBC_INT64
+  char buf[72];	// > int64(bit) + '..f\0'
+#else
   char buf[40];	// > int32(bit) + '..f\0'
+#endif
   assert( sizeof(buf) > (sizeof(mrbc_int) * 8 + 4) );
   char *p = buf + sizeof(buf) - 1;
   *p = '\0';
