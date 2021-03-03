@@ -2284,6 +2284,29 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
+/*! OP_METHOD16
+
+  R(a) = lambda(SEQ[b],L_METHOD)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_method16( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BS();
+
+  mrbc_value val = mrbc_proc_new( vm, vm->pc_irep->reps[b] );
+  if( !val.proc ) return -1;	// ENOMEM
+
+  mrbc_decref(&regs[a]);
+  regs[a] = val;
+
+  return 0;
+}
+
+
+//================================================================
 /*! OP_RANGE_INC, OP_RANGE_EXC
 
   R(a) = range_new(R(a),R(a+1),FALSE)
@@ -2345,6 +2368,35 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
+  assert( regs[a].tt == MRBC_TT_CLASS );
+
+  // prepare callinfo
+  mrbc_push_callinfo(vm, 0, 0, 0);
+
+  // target irep
+  vm->pc_irep = vm->pc_irep->reps[b];
+  vm->inst = vm->pc_irep->code;
+
+  // new regs and class
+  vm->current_regs += a;
+  vm->target_class = regs[a].cls;
+
+  return 0;
+}
+
+
+//================================================================
+/*! OP_EXEC16
+
+  R(a) = blockexec(R(a),SEQ[b])
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_exec16( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BS();
   assert( regs[a].tt == MRBC_TT_CLASS );
 
   // prepare callinfo
@@ -2845,12 +2897,15 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LAMBDA:     ret = op_dummy_BB  (vm, regs); break;
     case OP_BLOCK:      // fall through
     case OP_METHOD:     ret = op_method    (vm, regs); break;
+    case OP_BLOCK16:    // fall through, order of OP_METHOD and OP_BLOCK16 is changed. 
+    case OP_METHOD16:   ret = op_method16  (vm, regs); break;
     case OP_RANGE_INC:  // fall through
     case OP_RANGE_EXC:  ret = op_range     (vm, regs); break;
     case OP_OCLASS:     ret = op_dummy_B   (vm, regs); break;
     case OP_CLASS:      ret = op_class     (vm, regs); break;
     case OP_MODULE:     ret = op_dummy_BB  (vm, regs); break;
     case OP_EXEC:       ret = op_exec      (vm, regs); break;
+    case OP_EXEC16:     ret = op_exec16    (vm, regs); break;
     case OP_DEF:        ret = op_def       (vm, regs); break;
     case OP_ALIAS:      ret = op_alias     (vm, regs); break;
     case OP_UNDEF:      ret = op_dummy_B   (vm, regs); break;
