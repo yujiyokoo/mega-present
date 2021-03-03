@@ -453,7 +453,7 @@ static inline int op_loadi32( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BSS();
 
   mrbc_decref(&regs[a]);
-  mrbc_set_fixnum(&regs[a], (((uint32_t)b<<16)+c));
+  mrbc_set_fixnum(&regs[a], (((int32_t)b<<16)+c));
 
   return 0;
 }
