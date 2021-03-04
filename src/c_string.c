@@ -374,7 +374,7 @@ static void c_string_new(struct VM *vm, mrbc_value v[], int argc)
   mrbc_value value;
   if (argc == 0) {
     value = mrbc_string_new(vm, NULL, 0);
-  } else if (argc == 1) {
+  } else {
     value = mrbc_string_dup(vm, &v[1]);
   }
   SET_RETURN(value);
