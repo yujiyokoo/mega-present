@@ -650,7 +650,7 @@ static void c_string_getbyte(struct VM *vm, mrbc_value v[], int argc)
     idx += len;
   }
   if( idx >= 0 ) {
-    SET_INT_RETURN( mrbc_string_cstr(&v[0])[idx] );
+    SET_INT_RETURN( ((uint8_t *)mrbc_string_cstr(&v[0]))[idx] );
   } else {
     SET_NIL_RETURN();
   }
@@ -718,7 +718,7 @@ static void c_string_inspect(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_string_ord(struct VM *vm, mrbc_value v[], int argc)
 {
-  int i = (uint8_t)mrbc_string_cstr(v)[0];
+  int i = ((uint8_t *)mrbc_string_cstr(v))[0];
 
   SET_INT_RETURN( i );
 }
