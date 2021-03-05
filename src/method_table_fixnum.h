@@ -10,8 +10,8 @@ struct RClass *mrbc_init_class_fixnum(struct VM *vm)
     MRBC_SYMID_MINUS_AT,
     MRBC_SYMID_LT_LT,
     MRBC_SYMID_GT_GT,
-    MRBC_SYMID_BLL_BLR,
-    MRBC_SYMID_HAT,
+    MRBC_SYMID_BL_BR,
+    MRBC_SYMID_XOR,
     MRBC_SYMID_abs,
 #if MRBC_USE_STRING
     MRBC_SYMID_chr,
@@ -27,7 +27,7 @@ struct RClass *mrbc_init_class_fixnum(struct VM *vm)
     MRBC_SYMID_to_s,
 #endif
     MRBC_SYMID_OR,
-    MRBC_SYMID_TILDE,
+    MRBC_SYMID_NEG,
   };
   static const mrbc_func_t method_functions[] = {
     c_fixnum_mod,
