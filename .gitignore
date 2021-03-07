@@ -5,7 +5,6 @@ sample_concurrent
 sample_myclass
 sample_no_scheduler
 mrbc
-test/tmp/core
 
 # Object files
 *.o
