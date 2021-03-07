@@ -433,7 +433,8 @@ static inline int op_loadi16( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   mrbc_decref(&regs[a]);
-  mrbc_set_fixnum(&regs[a], b);
+  int16_t signed_b = (int16_t)b;
+  mrbc_set_fixnum(&regs[a], signed_b);
 
   return 0;
 }
