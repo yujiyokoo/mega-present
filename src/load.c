@@ -29,16 +29,6 @@
 #define mrbc_raise(vm,err,msg) console_printf("<raise> %s:%d\n", __FILE__, __LINE__);
 
 
-// IREP TT
-enum irep_pool_type {
-  IREP_TT_STR   = 0,          /* string (need free) */
-  IREP_TT_SSTR  = 2,          /* string (static) */
-  IREP_TT_INT32 = 1,          /* 32bit integer */
-  IREP_TT_INT64 = 3,          /* 64bit integer */
-  IREP_TT_FLOAT = 5,          /* float (double/float) */
-};
-
-
 
 //================================================================
 /*! Parse header section.
@@ -49,19 +39,19 @@ enum irep_pool_type {
 
   <pre>
   Structure
-   "RITE"     identifier
-   "01"       major version
-   "00"       minor version
-   0000_0000  total size
-   "MATZ"     compiler name
-   "0000"     compiler version
+   "RITE"	identifier
+   "0006"	version
+   0000		CRC
+   0000_0000	total size
+   "MATZ"	compiler name
+   "0000"	compiler version
   </pre>
 */
 static int load_header(struct VM *vm, const uint8_t **pos)
 {
   const uint8_t *p = *pos;
 
-  if( memcmp(p, "RITE01", 6) != 0 ) {
+  if( memcmp(p, "RITE0006", 8) != 0 ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return -1;
   }
@@ -70,16 +60,16 @@ static int load_header(struct VM *vm, const uint8_t **pos)
 
   /* Ignore size */
 
-  if( memcmp(p + 12, "MATZ", 4) != 0 ) {
+  if( memcmp(p + 14, "MATZ", 4) != 0 ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return -1;
   }
-  if( memcmp(p + 16, "0000", 4) != 0 ) {
+  if( memcmp(p + 18, "0000", 4) != 0 ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return -1;
   }
 
-  *pos += 20;
+  *pos += 22;
   return 0;
 }
 
@@ -129,8 +119,10 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   irep->nlocals = bin_to_uint16(p);	p += 2;
   irep->nregs = bin_to_uint16(p);	p += 2;
   irep->rlen = bin_to_uint16(p);	p += 2;
-  irep->clen = bin_to_uint16(p);        p += 2;
-  irep->ilen = bin_to_uint16(p);	p += 2;
+  irep->ilen = bin_to_uint32(p);	p += 4;
+
+  // padding
+  p += (vm->mrb - p) & 0x03;
 
   // allocate memory for child irep's pointers
   if( irep->rlen ) {
@@ -143,11 +135,10 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
 
   // ISEQ (code) BLOCK
   irep->code = (uint8_t *)p;
-  p += irep->ilen + sizeof(mrbc_irep_catch_handler) * irep->clen;
-  assert( sizeof(mrbc_irep_catch_handler) == 13 );
-  
+  p += irep->ilen;
+
   // POOL BLOCK
-  irep->plen = bin_to_uint16(p);	p += 2;
+  irep->plen = bin_to_uint32(p);	p += 4;
   if( irep->plen ) {
     irep->pools = (mrbc_object**)mrbc_alloc(0, sizeof(void*) * irep->plen);
     if(irep->pools == NULL ) {
@@ -159,63 +150,46 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pos)
   int i;
   for( i = 0; i < irep->plen; i++ ) {
     int tt = *p++;
+    int obj_size = bin_to_uint16(p);	p += 2;
     mrbc_object *obj = mrbc_alloc(0, sizeof(mrbc_object));
     if( obj == NULL ) {
       mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
       return NULL;
     }
     switch( tt ) {
-      //  is not implemented
-      // IREP_TT_SSTR is same implementation with IREP_TT_STR
-
 #if MRBC_USE_STRING
-    case IREP_TT_STR:
-    case IREP_TT_SSTR: {
-      int pool_data_len = bin_to_uint16(p);
-      p += sizeof(uint16_t);
+    case 0: { // IREP_TT_STRING
       obj->tt = MRBC_TT_STRING;
       obj->str = (char*)p;
-      p += pool_data_len + 1;
     } break;
 #endif
-    case IREP_TT_INT32: {
-      uint32_t value = bin_to_uint32(p);
-      p += sizeof(uint32_t);
+    case 1: { // IREP_TT_FIXNUM
+      char buf[obj_size+1];
+      memcpy(buf, p, obj_size);
+      buf[obj_size] = '\0';
       obj->tt = MRBC_TT_FIXNUM;
-      obj->i = value;
+      obj->i = atol(buf);
     } break;
 #if MRBC_USE_FLOAT
-    case IREP_TT_FLOAT: {
-      double value;
-      memcpy(&value, p, sizeof(double));
-      p += sizeof(double);
+    case 2: { // IREP_TT_FLOAT
+      char buf[obj_size+1];
+      memcpy(buf, p, obj_size);
+      buf[obj_size] = '\0';
       obj->tt = MRBC_TT_FLOAT;
-      obj->d = value;
+      obj->d = atof(buf);
     } break;
 #endif
-    case IREP_TT_INT64: {
-#ifdef MRBC_INT64
-      uint64_t value = bin_to_uint32(p);
-      p += sizeof(uint32_t);
-      value <<= 32;
-      value |= bin_to_uint32(p);
-      p += sizeof(uint32_t);      
-      obj->tt = MRBC_TT_FIXNUM;
-      obj->i = value;
-#else
-      mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
-#endif
-    } break;
     default:
       assert(!"Unknown tt");
     }
 
     irep->pools[i] = obj;
+    p += obj_size;
   }
 
   // SYMS BLOCK
   irep->ptr_to_sym = (uint8_t*)p;
-  int slen = bin_to_uint16(p);		p += 2;
+  int slen = bin_to_uint32(p);		p += 4;
   while( --slen >= 0 ) {
     int s = bin_to_uint16(p);		p += 2;
     p += s+1;
@@ -265,11 +239,10 @@ static mrbc_irep * load_irep_0(struct VM *vm, const uint8_t **pos)
 */
 static int load_irep(struct VM *vm, const uint8_t **pos)
 {
-  const uint8_t *p = *pos;                      // start at "IREP"
-  p += 4;		  	                // skip "IREP"
+  const uint8_t *p = *pos + 4;			// 4 = skip "IREP"
   int section_size = bin_to_uint32(p);
   p += 4;
-  if( memcmp(p, "0300", 4) != 0 ) {		// rite version
+  if( memcmp(p, "0002", 4) != 0 ) {		// rite version
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return -1;
   }

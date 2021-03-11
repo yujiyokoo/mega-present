@@ -289,30 +289,70 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     if( argc == 0 ){
       // 1. raise
       vm->exc = mrbc_class_runtimeerror;
-      //      vm->exc_message = mrbc_nil_value();
+      vm->exc_message = mrbc_nil_value();
     } else if( argc == 1 ){
       if( v[1].tt == MRBC_TT_CLASS ){
 	// 3. raise Exception
 	vm->exc = v[1].cls;
-	// vm->exc_message = mrbc_nil_value();
+	vm->exc_message = mrbc_nil_value();
       } else {
 	// 2. raise "param"
 	mrbc_incref( &v[1] );
 	vm->exc = mrbc_class_runtimeerror;
-	// vm->exc_message = v[1];
+	vm->exc_message = v[1];
       }
     } else if( argc == 2 ){
       // 4. raise Exception, "param"
       mrbc_incref( &v[2] );
       vm->exc = v[1].cls;
-      // vm->exc_message = v[2];
+      vm->exc_message = v[2];
     }
   } else {
     // in exception
   }
 
+  // do nothing if no rescue, no ensure
+  if( vm->exception_tail == NULL ){
+    return;
+  }
+
   // NOT to return to OP_SEND
   mrbc_pop_callinfo(vm);
+
+  mrbc_callinfo *callinfo = vm->exception_tail;
+  if( callinfo != NULL ){
+    if( callinfo->method_id == 0x7fff ){
+      // "rescue"
+      // jump to rescue
+      vm->exception_tail = callinfo->prev;
+      vm->current_regs = callinfo->current_regs;
+      vm->pc_irep = callinfo->pc_irep;
+      vm->inst = callinfo->inst;
+      vm->target_class = callinfo->target_class;
+      mrbc_free(vm, callinfo);
+      callinfo = vm->exception_tail;
+    } else {
+      // "ensure"
+      // jump to ensure
+      vm->exception_tail = callinfo->prev;
+      vm->current_regs = callinfo->current_regs;
+      vm->pc_irep = callinfo->pc_irep;
+      vm->inst = callinfo->inst;
+      vm->target_class = callinfo->target_class;
+      mrbc_free(vm, callinfo);
+      //
+      callinfo = vm->exception_tail;
+      if( callinfo != NULL ){
+	vm->exception_tail = callinfo->prev;
+	callinfo->prev = vm->callinfo_tail;
+	vm->callinfo_tail = callinfo;
+      }
+    }
+  }
+  if( callinfo == NULL ){
+    vm->exc_pending = vm->exc;
+    vm->exc = 0;
+  }
 }
 
 

@@ -61,11 +61,11 @@ static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 static const char * mrbc_get_irep_symbol( struct VM *vm, int n )
 {
   const uint8_t *p = vm->pc_irep->ptr_to_sym;
-  int cnt = bin_to_uint16(p);
+  int cnt = bin_to_uint32(p);
   if( n >= cnt ) return 0;
-  p += 2;
+  p += 4;
   while( n > 0 ) {
-   uint16_t s = bin_to_uint16(p);
+    uint16_t s = bin_to_uint16(p);
     p += 2+s+1;   // size(2 bytes) + symbol len + '\0'
     n--;
   }
@@ -122,8 +122,7 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
   if( method.c_func ) {
     method.func(vm, regs + a, c);
     if( method.func == c_proc_call ) return 0;
-    //    if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
-    if( vm->exc != NULL ) return 0;
+    if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
 
     int release_reg = a+1;
     while( release_reg <= bidx ) {
@@ -336,26 +335,6 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! OP_LOADL16
-
-  R(a) = Pool(b)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
-*/
-static inline int op_loadl16( mrbc_vm *vm, mrbc_value *regs )
-{
-  FETCH_BS();
-
-  mrbc_decref(&regs[a]);
-  regs[a] = *(vm->pc_irep->pools[b]);
-
-  return 0;
-}
-
-
-//================================================================
 /*! OP_LOADI
 
   R(a) = mrb_int(b)
@@ -398,7 +377,7 @@ static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADI_n (n=-1,0,1..7)
 
-  R(a) = mrb_int(n)
+  R(a) = R(a)+mrb_int(n)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -420,46 +399,6 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! OP_LOADI16
-
-  R(a) = mrb_int(b)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error and exit from vm.
-*/
-static inline int op_loadi16( mrbc_vm *vm, mrbc_value *regs )
-{
-  FETCH_BS();
-
-  mrbc_decref(&regs[a]);
-  mrbc_set_fixnum(&regs[a], b);
-
-  return 0;
-}
-
-
-//================================================================
-/*! OP_LOADI32
-
-  R(a) = mrb_int((b<<16)+c)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error and exit from vm.
-*/
-static inline int op_loadi32( mrbc_vm *vm, mrbc_value *regs )
-{
-  FETCH_BSS();
-
-  mrbc_decref(&regs[a]);
-  mrbc_set_fixnum(&regs[a], (((uint32_t)b<<16)+c));
-
-  return 0;
-}
-
-
-//================================================================
 /*! OP_LOADSYM
 
   R(a) = Syms(b)
@@ -471,30 +410,6 @@ static inline int op_loadi32( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
-
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id = str_to_symid(sym_name);
-
-  mrbc_decref(&regs[a]);
-  regs[a].tt = MRBC_TT_SYMBOL;
-  regs[a].i = sym_id;
-
-  return 0;
-}
-
-
-//================================================================
-/*! OP_LOADSYM16
-
-  R(a) = Syms(b)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
-*/
-static inline int op_loadsym16( mrbc_vm *vm, mrbc_value *regs )
-{
-  FETCH_BS();
 
   const char *sym_name = mrbc_get_irep_symbol(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name);
@@ -551,9 +466,9 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! OP_LOADT
+/*! OP_LOADF
 
-  R(a) = true
+  R(a) = false
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -869,7 +784,7 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_JMP
 
-  pc+=a
+  pc=a
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -879,7 +794,7 @@ static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
-  vm->inst += (int16_t)a;
+  vm->inst = vm->pc_irep->code + a;
 
   return 0;
 }
@@ -888,7 +803,7 @@ static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_JMPIF
 
-  if R(a) pc+=b
+  if R(b) pc=a
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -899,7 +814,7 @@ static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   if( regs[a].tt > MRBC_TT_FALSE ) {
-    vm->inst += (int16_t)b;
+    vm->inst = vm->pc_irep->code + b;
   }
 
   return 0;
@@ -909,7 +824,7 @@ static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_JMPNOT
 
-  if !R(a) pc+=b
+  if !R(b) pc=a
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -920,7 +835,7 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   if( regs[a].tt <= MRBC_TT_FALSE ) {
-    vm->inst += (int16_t)b;
+    vm->inst = vm->pc_irep->code + b;
   }
 
   return 0;
@@ -930,7 +845,7 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_JMPNIL
 
-  if R(a)==nil pc+=b
+  if R(b)==nil pc=a
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -941,8 +856,38 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   if( regs[a].tt == MRBC_TT_NIL ) {
-    vm->inst += (int16_t)b;
+    vm->inst = vm->pc_irep->code + b;
   }
+
+  return 0;
+}
+
+
+//================================================================
+/*! OP_ONERR
+
+  rescue_push(a)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_onerr( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_S();
+
+  mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
+
+  callinfo->current_regs = vm->current_regs;
+  callinfo->pc_irep = vm->pc_irep;
+  callinfo->inst = vm->pc_irep->code + a;
+  callinfo->reg_offset = 0;
+  callinfo->method_id = 0x7fff;  // rescue
+  callinfo->n_args = 0;
+  callinfo->target_class = vm->target_class;
+  callinfo->own_class = 0;
+  callinfo->prev = vm->exception_tail;
+  vm->exception_tail = callinfo;
 
   return 0;
 }
@@ -962,11 +907,11 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_decref( &regs[a] );
+  regs[a].tt = MRBC_TT_CLASS;
   if( vm->exc != NULL ){
-    regs[a].tt = MRBC_TT_CLASS;
     regs[a].cls = vm->exc;
   } else {
-    regs[a] = mrbc_nil_value();
+    regs[a].cls = vm->exc_pending;
   }
 
   return 0;
@@ -986,7 +931,7 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  //assert( regs[a].tt == MRBC_TT_CLASS );
+  assert( regs[a].tt == MRBC_TT_CLASS );
   assert( regs[b].tt == MRBC_TT_CLASS );
   mrbc_class *cls = regs[a].cls;
   while( cls != NULL ){
@@ -1007,19 +952,110 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! OP_RAISEIF
+/*! OP_POPERR
 
-  raise(R(a)) if R(a)
+  a.times{rescue_pop()}
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
   @retval 0  No error.
 */
-static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
+static inline int op_poperr( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_value exc = regs[a];
+  //  vm->rescue_idx -= a;
+
+  return 0;
+}
+
+
+//================================================================
+/*! OP_RAISE
+
+  raise(R(a))
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_raise( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  vm->exc = regs[a].cls;
+
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  if( callinfo != NULL ){
+    vm->callinfo_tail = callinfo->prev;
+    vm->pc_irep = callinfo->pc_irep;
+    vm->inst = callinfo->inst;
+    mrbc_free(vm, callinfo);
+  }  else {
+    vm->exc = vm->exc_pending;
+  }
+
+  return 0;
+}
+
+
+//================================================================
+/*! OP_EPUSH
+
+  ensure_push(SEQ[a])
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_epush( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
+
+  callinfo->current_regs = vm->current_regs;
+  callinfo->pc_irep = vm->pc_irep->reps[a];
+  callinfo->inst = vm->pc_irep->reps[a]->code;
+  callinfo->reg_offset = 0;
+  callinfo->method_id = 0x7ffe;   // ensure
+  callinfo->n_args = 0;
+  callinfo->target_class = vm->target_class;
+  callinfo->own_class = 0;
+  callinfo->prev = vm->exception_tail;
+  vm->exception_tail = callinfo;
+
+  return 0;
+}
+
+
+//================================================================
+/*! OP_EPOP
+
+  A.times{ensure_pop().call}
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_epop( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+  mrbc_callinfo *callinfo = vm->exception_tail;
+  if( callinfo == NULL ){
+    return 0;
+  }
+  vm->exception_tail = callinfo->prev;
+
+  // same as OP_EXEC
+  mrbc_push_callinfo(vm, 0, 0, 0);
+  vm->pc_irep = callinfo->pc_irep;
+  vm->inst = vm->pc_irep->code;
+  vm->target_class = callinfo->target_class;
+  vm->exc = 0;
+
+  mrbc_free(vm, callinfo);
 
   return 0;
 }
@@ -1085,7 +1121,7 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SENDB
 
-  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c),&R(a+c+1))
+  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1400,7 +1436,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_RETURN_BLK
 
-  return R(a) (in-block return)
+  return R(a) (normal)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2051,25 +2087,6 @@ static inline int op_aref( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! OP_ASET
-
-  R(a)[c] = R(b)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
-*/
-static inline int op_aset( mrbc_vm *vm, mrbc_value *regs )
-{
-  FETCH_BBB();
-
-  mrbc_array_set(&regs[a], c, &regs[b]);
-
-  return 0;
-}
-
-
-//================================================================
 /*! OP_APOST
 
   *R(a),R(a+1)..R(a+c) = R(a)[b..]
@@ -2169,38 +2186,6 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
-/*! OP_STRING16
-
-  R(a) = str_dup(Lit(b))
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
-*/
-static inline int op_string16( mrbc_vm *vm, mrbc_value *regs )
-{
-  FETCH_BB();
-
-#if MRBC_USE_STRING
-  mrbc_object *pool_obj = vm->pc_irep->pools[b];
-
-  /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
-  int len = bin_to_uint16(pool_obj->str - 2);
-  mrbc_value value = mrbc_string_new(vm, pool_obj->str, len);
-  if( value.string == NULL ) return -1;         // ENOMEM
-
-  mrbc_decref(&regs[a]);
-  regs[a] = value;
-
-#else
-  not_supported();
-#endif
-
-  return 0;
-}
-
-
-//================================================================
 /*! OP_STRCAT
 
   str_cat(R(a),R(a+1))
@@ -2235,7 +2220,7 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_HASH
 
-  R(a) = hash_new(R(a),R(a+1)..R(a+b*2-1))
+  R(a) = hash_new(R(a),R(a+1)..R(a+b))
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2505,6 +2490,27 @@ static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
+/*! OP_EXT1, OP_EXT2, OP_EXT3
+
+  if OP_EXT1, make 1st operand 16bit
+  if OP_EXT2, make 2nd operand 16bit
+  if OP_EXT3, make 1st and 2nd operand 16bit
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval -1  No error and exit from vm.
+*/
+static inline int op_ext( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_Z();
+
+  vm->ext_flag = vm->inst[-1] - OP_EXT1 + 1;
+
+  return 0;
+}
+
+
+//================================================================
 /*! OP_STOP
 
   stop VM
@@ -2668,6 +2674,7 @@ void mrbc_vm_begin( struct VM *vm )
 {
   vm->pc_irep = vm->irep;
   vm->inst = vm->pc_irep->code;
+  vm->ext_flag = 0;
 
   memset(vm->regs, 0, sizeof(vm->regs));
   int i;
@@ -2683,7 +2690,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->target_class = mrbc_class_object;
 
   vm->exc = 0;
-  //  vm->exception_tail = 0;
+  vm->exception_tail = 0;
 
   vm->error_code = 0;
   vm->flag_preemption = 0;
@@ -2707,32 +2714,62 @@ void mrbc_vm_end( struct VM *vm )
 }
 
 
-
 //================================================================
-/*! Find exception, catch handler
+/*! output op for debug
 
+  @param  opcode   opcode
 */
-static const struct mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm)
+#ifdef MRBC_DEBUG
+void output_opcode( uint8_t opcode )
 {
-  if( vm->pc_irep->clen <= 0 ){  // no catch handler
-    return NULL;
-  }
+  const char *n[] = {
+    // 0x00
+    "NOP",     "MOVE",    "LOADL",   "LOADI",
+    "LOADINEG","LOADI__1","LOADI_0", "LOADI_1",
+    "LOADI_2", "LOADI_3", "LOADI_4", "LOADI_5",
+    "LOADI_6", "LOADI_7", "LOADSYM", "LOADNIL",
+    // 0x10
+    "LOADSELF","LOADT",   "LOADF",   "GETGV",
+    "SETGV",   "GETSV",   "SETSV",   "GETIV",
+    "SETIV",   "GETCV",   "SETCV",   "GETCONST",
+    "SETCONST","GETMCNST","SETMCNST","GETUPVAR",
+    // 0x20
+    "SETUPVAR","JMP",     "JMPIF",   "JMPNOT",
+    "JMPNIL",  "ONERR",   "EXCEPT",  "RESCUE",
+    "POPERR",  "RAISE",   "EPUSH",   "EPOP",
+    "SENDV",   "SENDVB",  "SEND",    "SENDB",
+    // 0x30
+    "CALL",    "SUPER",   "ARGARY",  "ENTER",
+    "KEY_P",   "KEYEND",  "KARG",    "RETURN",
+    "RETRUN_BLK","BREAK", "BLKPUSH", "ADD",
+    "ADDI",    "SUB",     "SUBI",    "MUL",
+    // 0x40
+    "DIV",     "EQ",      "LT",      "LE",
+    "GT",      "GE",      "ARRAY",   "ARRAY2",
+    "ARYCAT",  "ARYPUSH", "ARYDUP",  "AREF",
+    "ASET",    "APOST",   "INTERN",  "STRING",
+    // 0x50
+    "STRCAT",  "HASH",    "HASHADD", "HASHCAT",
+    "LAMBDA",  "BLOCK",   "METHOD",  "RANGE_INC",
+    "RANGE_EXC","OCLASS", "CLASS",   "MODULE",
+    "EXEC",    "DEF",     "ALIAS",   "UNDEF",
+    // 0x60
+    "SCLASS",  "TCLASS",  "DEBUG",   "ERR",
+    "EXT1",    "EXT2",    "EXT3",    "STOP",
+    "ABORT",
+  };
 
-  mrbc_irep_catch_handler *catch_table = (mrbc_irep_catch_handler*)(vm->pc_irep->code + vm->pc_irep->ilen);
-  int cnt = vm->pc_irep->clen - 1;
-  for( ; cnt >= 0 ; cnt-- ){
-    mrbc_irep_catch_handler *ptr = catch_table + cnt;
-    // Catch range check
-    int pc = vm->inst - vm->pc_irep->code;
-    if( (pc > bin_to_uint32(ptr->begin)) && (pc <= bin_to_uint32(ptr->end)) ){
-      return catch_table + cnt;
+  if( opcode < sizeof(n)/sizeof(char *) ){
+    if( n[opcode] ){
+      console_printf("(OP_%s)\n", n[opcode]);
+    } else {
+      console_printf("(OP=%02x)\n", opcode);
     }
+  } else {
+    console_printf("(ERROR=%02x)\n", opcode);
   }
-
-  return NULL;
 }
-
-
+#endif
 
 
 //================================================================
@@ -2752,13 +2789,13 @@ int mrbc_vm_run( struct VM *vm )
     // Dispatch
     uint8_t op = *vm->inst++;
 
-    // console_printf("OP=%02x\n", op);
+    // output OP_XXX for debug
+    //if( vm->flag_debug_mode )output_opcode( op );
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
     case OP_MOVE:       ret = op_move      (vm, regs); break;
     case OP_LOADL:      ret = op_loadl     (vm, regs); break;
-    case OP_LOADL16:    ret = op_loadl16   (vm, regs); break;
     case OP_LOADI:      ret = op_loadi     (vm, regs); break;
     case OP_LOADINEG:   ret = op_loadineg  (vm, regs); break;
     case OP_LOADI__1:   // fall through
@@ -2770,10 +2807,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LOADI_5:    // fall through
     case OP_LOADI_6:    // fall through
     case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
-    case OP_LOADI16:    ret = op_loadi16   (vm, regs); break;
-    case OP_LOADI32:    ret = op_loadi32   (vm, regs); break;
     case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
-    case OP_LOADSYM16:  ret = op_loadsym16 (vm, regs); break;
     case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
     case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
     case OP_LOADT:      ret = op_loadt     (vm, regs); break;
@@ -2796,15 +2830,17 @@ int mrbc_vm_run( struct VM *vm )
     case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
     case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
-  //case OP_JMPUW:      ret = op_jmpuw     (vm, regs); break;
+    case OP_ONERR:      ret = op_onerr     (vm, regs); break;
     case OP_EXCEPT:     ret = op_except    (vm, regs); break;
     case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
-    case OP_RAISEIF:    ret = op_raiseif   (vm, regs); break;
+    case OP_POPERR:     ret = op_poperr    (vm, regs); break;
+    case OP_RAISE:      ret = op_raise     (vm, regs); break;
+    case OP_EPUSH:      ret = op_epush     (vm, regs); break;
+    case OP_EPOP:       ret = op_epop      (vm, regs); break;
     case OP_SENDV:      ret = op_sendv     (vm, regs); break;
     case OP_SENDVB:     ret = op_sendvb    (vm, regs); break;
     case OP_SEND:       ret = op_send      (vm, regs); break;
     case OP_SENDB:      ret = op_sendb     (vm, regs); break;
-  //case OP_SENDVK:     ret = op_sendvk    (vm, regs); break;
     case OP_CALL:       ret = op_dummy_Z   (vm, regs); break;
     case OP_SUPER:      ret = op_super     (vm, regs); break;
     case OP_ARGARY:     ret = op_argary    (vm, regs); break;
@@ -2833,11 +2869,10 @@ int mrbc_vm_run( struct VM *vm )
     case OP_ARYPUSH:    ret = op_dummy_B   (vm, regs); break;
     case OP_ARYDUP:     ret = op_arydup    (vm, regs); break;
     case OP_AREF:       ret = op_aref      (vm, regs); break;
-    case OP_ASET:       ret = op_aset      (vm, regs); break;
+    case OP_ASET:       ret = op_dummy_BBB (vm, regs); break;
     case OP_APOST:      ret = op_apost     (vm, regs); break;
     case OP_INTERN:     ret = op_intern    (vm, regs); break;
     case OP_STRING:     ret = op_string    (vm, regs); break;
-    case OP_STRING16:   ret = op_string16  (vm, regs); break;
     case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
     case OP_HASH:       ret = op_hash      (vm, regs); break;
     case OP_HASHADD:    ret = op_dummy_BB  (vm, regs); break;
@@ -2858,6 +2893,9 @@ int mrbc_vm_run( struct VM *vm )
     case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
     case OP_DEBUG:      ret = op_dummy_BBB (vm, regs); break;
     case OP_ERR:        ret = op_dummy_B   (vm, regs); break;
+    case OP_EXT1:       // fall through
+    case OP_EXT2:       // fall through
+    case OP_EXT3:       ret = op_ext       (vm, regs); break;
     case OP_STOP:       ret = op_stop      (vm, regs); break;
 
     case OP_ABORT:      ret = op_abort     (vm, regs); break;
@@ -2866,20 +2904,9 @@ int mrbc_vm_run( struct VM *vm )
       break;
     }
 
-    // Handle exception
-    if( vm->exc ){
-      // check
-      mrbc_irep_catch_handler *handler = catch_handler_find(vm);
-      if( handler != NULL ){
-	vm->exc = NULL;
-	vm->inst = vm->pc_irep->code + bin_to_uint16(handler->target);
-      }
-    }
-
-
     // raise in top level
     // exit vm
-    if( vm->callinfo_tail == NULL && vm->exc ) return 0;
+    if( vm->exception_tail == NULL && vm->callinfo_tail == NULL && vm->exc ) return 0;
   } while( !vm->flag_preemption );
 
   vm->flag_preemption = 0;

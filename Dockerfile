@@ -1,37 +1,18 @@
-from ruby:3.0.0-slim
+from ruby:2.7.2-slim
 
 RUN apt update && apt -y upgrade
-RUN apt install -y \
-  bison \
-  gcc \
-  gcc-arm-linux-gnueabi \
-  git \
-  make \
-  qemu \
-  qemu-kvm \
-  qemu-system-arm
+RUN apt install -y bison make git gcc gcc-arm-linux-gnueabi qemu qemu-kvm qemu-system-arm
 
 RUN gem update --system
 
-ARG USER_ID
-RUN useradd -m -u $USER_ID mrubyc
-RUN mkdir /work && chown mrubyc /work
-
-USER mrubyc
-
-VOLUME /work/mrubyc
-COPY --chown=mrubyc Gemfile /work/mrubyc/
-COPY --chown=mrubyc Gemfile.lock /work/mrubyc/
-
-USER root
-WORKDIR /work/mrubyc
-RUN bundle install
-
-USER mrubyc
-ENV CFLAGS="-DMRBC_USE_MATH=1 -DMAX_SYMBOLS_COUNT=500"
-
-RUN git clone https://github.com/mruby/mruby /work/mruby
+RUN git clone https://github.com/mruby/mruby /root/mruby
 ARG MRUBY_TAG
-RUN cd /work/mruby; git fetch --prune; git checkout $MRUBY_TAG; make clean && make
+RUN cd /root/mruby; git checkout $MRUBY_TAG; make
 
-CMD ["bundle", "exec", "mrubyc-test", "-e", "10", "-p", "/work/mruby/build/host/bin/mrbc"]
+VOLUME /root/mrubyc
+COPY Gemfile /root/mrubyc/
+COPY Gemfile.lock /root/mrubyc/
+WORKDIR /root/mrubyc
+RUN bundle install
+ENV CFLAGS="-DMRBC_USE_MATH=1 -DMAX_SYMBOLS_COUNT=500"
+CMD ["bundle", "exec", "mrubyc-test", "-e", "100", "-p", "/root/mruby/build/host/bin/mrbc"]
