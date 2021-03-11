@@ -4,8 +4,6 @@ sample_include
 sample_concurrent
 sample_myclass
 sample_no_scheduler
-mrbc
-test/tmp/core
 
 # Object files
 *.o
@@ -13,7 +11,6 @@ test/tmp/core
 
 # Mruby bytecode
 *.mrb
-src/mrblib.c
 
 # backup file
 *~
