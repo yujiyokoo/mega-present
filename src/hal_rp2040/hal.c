@@ -46,7 +46,11 @@ bool alarm_irq(struct repeating_timer *t) {
 void hal_init(void){
     add_repeating_timer_ms(1, alarm_irq, NULL, &timer);
     clocks_hw->sleep_en0 = 0;
-    clocks_hw->sleep_en1 = CLOCKS_SLEEP_EN1_CLK_SYS_TIMER_BITS | CLOCKS_SLEEP_EN1_CLK_SYS_USBCTRL_BITS | CLOCKS_SLEEP_EN1_CLK_USB_USBCTRL_BITS;
+    clocks_hw->sleep_en1 = CLOCKS_SLEEP_EN1_CLK_SYS_TIMER_BITS 
+                          | CLOCKS_SLEEP_EN1_CLK_SYS_USBCTRL_BITS
+                          | CLOCKS_SLEEP_EN1_CLK_USB_USBCTRL_BITS
+                          | CLOCKS_SLEEP_EN1_CLK_SYS_UART0_BITS
+                          | CLOCKS_SLEEP_EN1_CLK_PERI_UART0_BITS;
 }
 
 //================================================================
@@ -56,9 +60,19 @@ void hal_init(void){
   @param  fd    dummy, but 1.
   @param  buf   pointer of buffer.
   @param  nbytes        output byte length.
+
+  Memo: Steps to use uart_puts() with hal_write.
+  1. Write in main function↓
+    uart_init(uart0,115200);
+    gpio_set_function(0,GPIO_FUNC_UART);
+    gpio_set_function(1,GPIO_FUNC_UART);
+  
+  2. Comment out the printf for hal_write.
+  3. Uncomment uart_puts for halwrite.
 */
 int hal_write(int fd, const void *buf, int nbytes){
     printf(buf);
+    // uart_puts(uart0, buf)
     return nbytes;
 }
 
