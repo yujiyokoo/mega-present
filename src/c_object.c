@@ -277,35 +277,35 @@ static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
 
 //================================================================
 /*! (method) raise
- *    1. raise
- *    2. raise "param"
- *    3. raise Exception
- *    4. raise Exception, "param"
+ *    case 1. raise
+ *    case 2. raise "param"
+ *    case 3. raise Exception
+ *    case 4. raise Exception, "param"
  */
 static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
   if( !vm->exc ){
     // raise exception
     if( argc == 0 ){
-      // 1. raise
+      // case 1. raise
       vm->exc = mrbc_class_runtimeerror;
-      //      vm->exc_message = mrbc_nil_value();
+      vm->exc_message = mrbc_nil_value();
     } else if( argc == 1 ){
       if( v[1].tt == MRBC_TT_CLASS ){
-	// 3. raise Exception
-	vm->exc = v[1].cls;
-	// vm->exc_message = mrbc_nil_value();
+        // case 3. raise Exception
+	      vm->exc = v[1].cls;
+	      vm->exc_message = mrbc_nil_value();
       } else {
-	// 2. raise "param"
-	mrbc_incref( &v[1] );
-	vm->exc = mrbc_class_runtimeerror;
-	// vm->exc_message = v[1];
+	      // case 2. raise "param"
+	      mrbc_incref( &v[1] );
+	      vm->exc = mrbc_class_runtimeerror;
+	      vm->exc_message = v[1];
       }
     } else if( argc == 2 ){
-      // 4. raise Exception, "param"
+      // case 4. raise Exception, "param"
       mrbc_incref( &v[2] );
       vm->exc = v[1].cls;
-      // vm->exc_message = v[2];
+      vm->exc_message = v[2];
     }
   } else {
     // in exception

@@ -949,6 +949,27 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
+
+//================================================================
+/*! OP_JMPUW
+
+  unwind_and_jump_to(a)
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_S();
+
+  vm->inst += (int16_t)a;
+
+  return 0;
+}
+
+
+
 //================================================================
 /*! OP_EXCEPT
 
@@ -966,6 +987,7 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
   if( vm->exc != NULL ){
     regs[a].tt = MRBC_TT_CLASS;
     regs[a].cls = vm->exc;
+    vm->exc = NULL;
   } else {
     regs[a] = mrbc_nil_value();
   }
@@ -2849,7 +2871,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
     case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
     case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
-  //case OP_JMPUW:      ret = op_jmpuw     (vm, regs); break;
+    case OP_JMPUW:      ret = op_jmpuw     (vm, regs); break;
     case OP_EXCEPT:     ret = op_except    (vm, regs); break;
     case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
     case OP_RAISEIF:    ret = op_raiseif   (vm, regs); break;
@@ -2927,15 +2949,13 @@ int mrbc_vm_run( struct VM *vm )
       // check
       mrbc_irep_catch_handler *handler = catch_handler_find(vm);
       if( handler != NULL ){
-	vm->exc = NULL;
-	vm->inst = vm->pc_irep->code + bin_to_uint16(handler->target);
+	      vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
       }
     }
 
-
     // raise in top level
     // exit vm
-    if( vm->callinfo_tail == NULL && vm->exc ) return 0;
+    // if( vm->callinfo_tail == NULL && vm->exc ) return 0;
   } while( !vm->flag_preemption );
 
   vm->flag_preemption = 0;

@@ -6,6 +6,9 @@ sample_myclass
 sample_no_scheduler
 mrbc
 
+# hal
+src/hal
+
 # Object files
 *.o
 *.a

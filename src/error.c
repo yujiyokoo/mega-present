@@ -24,11 +24,12 @@
 static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_decref( &v[0] );
-  //  if( vm->exc_message.tt == MRBC_TT_NIL ){
+  if( vm->exc_message.tt == MRBC_TT_NIL ){
     v[0] = mrbc_string_new(vm, "", 0);
-  //  } else {
-  //  v[0] = vm->exc_message;
-  // }
+  } else {
+    mrbc_incref( &vm->exc_message );
+    v[0] = vm->exc_message;
+  }
 }
 
 
