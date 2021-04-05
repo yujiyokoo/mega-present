@@ -963,7 +963,7 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
-  vm->inst += (int16_t)a;
+//  vm->inst += (int16_t)a;
 
   return 0;
 }
@@ -1042,7 +1042,7 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-//  mrbc_value exc = regs[a];
+// RAISEIF
 
   return 0;
 }

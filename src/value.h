@@ -83,6 +83,9 @@ typedef enum {
   MRBC_TT_RANGE	 = 12,
   MRBC_TT_HASH	 = 13,
 
+  /* Internal use */
+  MRBC_TT_BREAK  = 14,  // Exception and break
+
 } mrbc_vtype;
 #define	MRBC_TT_INC_DEC_THRESHOLD MRBC_TT_OBJECT
 #define	MRBC_TT_MAXVAL MRBC_TT_HASH
