@@ -61,19 +61,26 @@ void hal_init(void){
   @param  buf   pointer of buffer.
   @param  nbytes        output byte length.
 
-  Memo: Steps to use uart_puts() with hal_write.
+  Memo: Steps to use uart_putc_raw() with hal_write.
   1. Write in main function↓
     uart_init(uart0,115200);
     gpio_set_function(0,GPIO_FUNC_UART);
     gpio_set_function(1,GPIO_FUNC_UART);
   
-  2. Comment out the printf for hal_write.
-  3. Uncomment uart_puts for halwrite.
+  2. Comment out the putchar for hal_write.
+  3. Uncomment uart_putc_raw for hal_write.
 */
-int hal_write(int fd, const void *buf, int nbytes){
-    printf(buf);
-    // uart_puts(uart0, buf)
-    return nbytes;
+int hal_write(int fd, const void *buf, int nbytes)
+{
+  int i = nbytes;
+  const uint8_t *p = buf;
+
+  while( --i >= 0 ) {
+    putchar( *p++ );
+    // uart_putc_raw(uart0, *p++ );
+  }
+
+  return nbytes;
 }
 
 //================================================================
