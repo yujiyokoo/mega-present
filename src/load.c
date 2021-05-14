@@ -75,9 +75,10 @@ static int load_header(struct VM *vm, const uint8_t *bin)
 //================================================================
 /*! read one irep section.
 
-  @param  vm		A pointer to VM.
-  @param  pp_bin	A pointer to pointer to RITE ISEQ
-  @return		Pointer to allocated mrbc_irep or NULL
+  @param  vm	A pointer to VM.
+  @param  bin	A pointer to RITE ISEQ.
+  @param  len	Returns the parsed length.
+  @return	Pointer to allocated mrbc_irep or NULL
 
   <pre>
    (loop n of child irep bellow)
@@ -100,9 +101,9 @@ static int load_header(struct VM *vm, const uint8_t *bin)
      ...	symbol data
   </pre>
 */
-static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pp_bin)
+static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
 {
-  const uint8_t *p = *pp_bin + 4;		// skip record size
+  const uint8_t *p = bin + 4;
 
   // new irep
   mrbc_irep *irep = mrbc_irep_alloc(0);
@@ -162,8 +163,8 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pp_bin)
     } break;
 #endif
     case IREP_TT_INT32: {
-      uint32_t value = bin_to_uint32(p);
-      p += sizeof(uint32_t);
+      int32_t value = bin_to_uint32(p);
+      p += sizeof(int32_t);
       obj->tt = MRBC_TT_FIXNUM;
       obj->i = value;
     } break;
@@ -199,13 +200,18 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pp_bin)
 
   // SYMS BLOCK
   irep->ptr_to_sym = (uint8_t*)p;
+
+  *len = bin_to_uint32(bin);
+
+#if defined(MRBC_DEBUG)
   int slen = bin_to_uint16(p);		p += 2;
   while( --slen >= 0 ) {
     int s = bin_to_uint16(p);		p += 2;
     p += s+1;
   }
+  assert( *len == (p - bin) );
+#endif
 
-  *pp_bin = p;
   return irep;
 }
 
@@ -214,21 +220,26 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t **pp_bin)
 //================================================================
 /*! Load IREP section.
 
-  @param  vm		A pointer to VM.
-  @param  pp_bin	A pointer to pointer to RITE ISEQ
-  @return		Pointer to allocated mrbc_irep or NULL
-
+  @param  vm	A pointer to VM.
+  @param  bin	A pointer to RITE ISEQ.
+  @param  len	Returns the parsed length.
+  @return	Pointer to allocated mrbc_irep or NULL
 */
-static mrbc_irep *load_irep(struct VM *vm, const uint8_t **pp_bin)
+static mrbc_irep *load_irep(struct VM *vm, const uint8_t *bin, int *len)
 {
-  mrbc_irep *irep = load_irep_1(vm, pp_bin);
+  int len1;
+  mrbc_irep *irep = load_irep_1(vm, bin, &len1);
   if( !irep ) return NULL;
+  bin += len1;
+  int total_len = len1;
 
   int i;
   for( i = 0; i < irep->rlen; i++ ) {
-    irep->reps[i] = load_irep(vm, pp_bin);
+    irep->reps[i] = load_irep(vm, bin, &len1);
+    total_len += len1;
   }
 
+  if( len ) *len = total_len;
   return irep;
 }
 
@@ -255,8 +266,7 @@ int mrbc_load_mrb(struct VM *vm, const uint8_t *bin)
     uint32_t section_size = bin_to_uint32(bin+4);
 
     if( memcmp(bin, IREP, sizeof(IREP)) == 0 ) {
-      const uint8_t *bin1 = bin + SIZE_RITE_SECTION_HEADER;
-      vm->irep = load_irep(vm, &bin1);
+      vm->irep = load_irep(vm, bin + SIZE_RITE_SECTION_HEADER, 0);
       if( vm->irep == NULL ) return -1;
 
     } else if( memcmp(bin, END, sizeof(END)) == 0 ) {
