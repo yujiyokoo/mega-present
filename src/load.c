@@ -111,12 +111,10 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return NULL;
   }
-
-  // nlocals,nregs,rlen
   irep->nlocals = bin_to_uint16(p);	p += 2;
   irep->nregs = bin_to_uint16(p);	p += 2;
   irep->rlen = bin_to_uint16(p);	p += 2;
-  irep->clen = bin_to_uint16(p);        p += 2;
+  irep->clen = bin_to_uint16(p);	p += 2;
   irep->ilen = bin_to_uint16(p);	p += 2;
 
   // allocate memory for child irep's pointers
@@ -216,7 +214,6 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
 }
 
 
-
 //================================================================
 /*! Load IREP section.
 
@@ -230,12 +227,12 @@ static mrbc_irep *load_irep(struct VM *vm, const uint8_t *bin, int *len)
   int len1;
   mrbc_irep *irep = load_irep_1(vm, bin, &len1);
   if( !irep ) return NULL;
-  bin += len1;
   int total_len = len1;
 
   int i;
   for( i = 0; i < irep->rlen; i++ ) {
-    irep->reps[i] = load_irep(vm, bin, &len1);
+    irep->reps[i] = load_irep(vm, bin + total_len, &len1);
+    if( ! irep->reps[i] ) return NULL;
     total_len += len1;
   }
 
