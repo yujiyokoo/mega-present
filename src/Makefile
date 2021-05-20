@@ -1,8 +1,8 @@
 #
 # mruby/c  src/Makefile
 #
-# Copyright (C) 2015-2020 Kyushu Institute of Technology.
-# Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+# Copyright (C) 2015-2021 Kyushu Institute of Technology.
+# Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 #
 #  This file is distributed under BSD 3-Clause License.
 #
@@ -26,16 +26,12 @@ ifndef HAL_DIR
   HAL_DIR = hal_posix
 endif
 
-MAKE_SYMBOL_TABLE = ../support/make_symbol_table.rb
-MAKE_METHOD_TABLE = ../support/make_method_table.rb
-
 TARGET = libmrubyc.a
 CFLAGS += -Wall -Wpointer-arith -g  # -std=c99 -pedantic -pedantic-errors
 SRCS = $(HAL_DIR)/hal.c alloc.c keyvalue.c value.c global.c class.c symbol.c \
   error.c  console.c c_array.c c_hash.c c_math.c c_numeric.c c_object.c \
   c_range.c c_string.c mrblib.c vm.c load.c rrt0.c
 OBJS = $(SRCS:.c=.o)
-
 
 all:
 	$(MAKE) $(TARGET)
@@ -44,7 +40,22 @@ $(TARGET): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 
 clean:
-	@rm -Rf $(TARGET) $(OBJS) *~
+	@rm -Rf $(TARGET) $(OBJS) $(AUTOGEN_SYMBOL_TABLE) $(AUTOGEN_METHOD_TABLE) *~
+
+
+# Auto generated files.
+
+MAKE_SYMBOL_TABLE ?= ../support/make_symbol_table.rb
+MAKE_METHOD_TABLE ?= ../support/make_method_table.rb
+
+AUTOGEN_SYMBOL_TABLE = symbol_builtin.h
+AUTOGEN_METHOD_TABLE = method_table_array.h method_table_false.h \
+  method_table_fixnum.h method_table_float.h method_table_hash.h \
+  method_table_math.h method_table_nil.h method_table_object.h \
+  method_table_proc.h method_table_range.h method_table_string.h \
+  method_table_symbol.h method_table_true.h
+
+autogen: symboltable methodtable
 
 symboltable:
 	$(MAKE_SYMBOL_TABLE) -a -v
@@ -59,6 +70,38 @@ methodtable:
 	$(MAKE_METHOD_TABLE) c_string.c
 	$(MAKE_METHOD_TABLE) symbol.c
 
+$(AUTOGEN_SYMBOL_TABLE): $(AUTOGEN_METHOD_TABLE)
+	$(MAKE_SYMBOL_TABLE) -a
+
+method_table_array.h:	c_array.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_false.h:	c_object.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_fixnum.h:	c_numeric.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_float.h:	c_numeric.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_hash.h:	c_hash.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_math.h:	c_math.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_nil.h:	c_object.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_object.h:	c_object.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_proc.h:	c_object.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_range.h:	c_range.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_string.h:	c_string.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_symbol.h:	symbol.c
+	$(MAKE_METHOD_TABLE) $?
+method_table_true.h:	c_object.c
+	$(MAKE_METHOD_TABLE) $?
+
+
+# File dependencies.
 
 hal.o: $(HAL_DIR)/hal.c $(HAL_DIR)/hal.h
 alloc.o: alloc.c vm_config.h vm.h value.h class.h keyvalue.h alloc.h \
@@ -68,7 +111,8 @@ c_array.o: c_array.c vm_config.h value.h vm.h class.h keyvalue.h alloc.h \
   method_table_array.h symbol_builtin.h
 c_hash.o: c_hash.c vm_config.h value.h vm.h class.h keyvalue.h alloc.h \
   c_array.h c_hash.h c_string.h method_table_hash.h symbol_builtin.h
-c_math.o: c_math.c vm_config.h value.h class.h keyvalue.h
+c_math.o: c_math.c vm_config.h value.h class.h keyvalue.h \
+  method_table_math.h symbol_builtin.h
 c_numeric.o: c_numeric.c vm_config.h opcode.h value.h class.h keyvalue.h \
   console.h hal_selector.h $(HAL_DIR)/hal.h c_numeric.h vm.h c_string.h \
   method_table_fixnum.h symbol_builtin.h method_table_float.h
@@ -101,7 +145,7 @@ rrt0.o: rrt0.c vm_config.h alloc.h load.h class.h value.h keyvalue.h \
   $(HAL_DIR)/hal.h rrt0.h
 symbol.o: symbol.c vm_config.h value.h vm.h class.h keyvalue.h alloc.h \
   symbol.h c_object.h c_string.h c_array.h console.h hal_selector.h \
-  $(HAL_DIR)/hal.h symbol_builtin.h
+  $(HAL_DIR)/hal.h symbol_builtin.h method_table_symbol.h
 value.o: value.c vm_config.h value.h class.h keyvalue.h c_string.h \
   c_range.h c_array.h alloc.h c_hash.h
 vm.o: vm.c vm_config.h vm.h value.h class.h keyvalue.h alloc.h load.h \
