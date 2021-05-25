@@ -24,6 +24,17 @@ class ExceptionTest < MrubycTestCase
     assert_equal("RAISE", v)
   end
 
+  def test_exception_rescued_with_class
+    v = nil
+    begin
+      raise StandardError
+    rescue => e
+      v = e.message  # NOTE: e.message does not work ? 
+      v = "RAISE"
+    end
+    assert_equal("RAISE", v)
+  end
+
   def test_exception_ensure
     v = nil
     begin

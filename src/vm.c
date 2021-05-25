@@ -1082,6 +1082,7 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  mrbc_incref( &regs[a] );
   vm->exc = &regs[a];
 
   return 0;
