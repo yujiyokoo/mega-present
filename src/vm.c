@@ -2243,7 +2243,7 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
 */
 static inline int op_string16( mrbc_vm *vm, mrbc_value *regs )
 {
-  FETCH_BB();
+  FETCH_BS();
 
 #if MRBC_USE_STRING
   mrbc_object *pool_obj = vm->pc_irep->pools[b];
