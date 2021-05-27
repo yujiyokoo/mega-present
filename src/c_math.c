@@ -3,8 +3,8 @@
   mruby/c Math class
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -16,6 +16,8 @@
 
 #include "value.h"
 #include "class.h"
+#include "global.h"
+#include "symbol_builtin.h"
 
 
 #if MRBC_USE_FLOAT && MRBC_USE_MATH
@@ -225,12 +227,27 @@ static void c_math_tanh(struct VM *vm, mrbc_value v[], int argc)
   v[0] = mrbc_float_value(vm, tanh( to_double(&v[1]) ));
 }
 
+//================================================================
+/*! initialize
+*/
+mrbc_class *mrbc_init_class_math(struct VM *vm)
+{
+  mrbc_class *mrbc_init_class_math_sub(struct VM *vm);
+  mrbc_class *cls = mrbc_init_class_math_sub(vm);
+
+  static mrbc_value e = mrbc_float_value(0, M_E);
+  mrbc_set_class_const( cls, MRBC_SYM(E), &e );
+  static mrbc_value pi = mrbc_float_value(0, M_PI);
+  mrbc_set_class_const( cls, MRBC_SYM(PI), &pi );
+
+  return cls;
+}
 
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Math")
   FILE("method_table_math.h")
-  FUNC("mrbc_init_class_math")
+  FUNC("mrbc_init_class_math_sub")
 
   METHOD( "acos",	c_math_acos )
   METHOD( "acosh",	c_math_acosh )
