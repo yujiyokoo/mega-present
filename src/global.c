@@ -170,9 +170,6 @@ void mrbc_global_clear_vm_id(void)
 
 
 #ifdef MRBC_DEBUG
-#include "class.h"
-#include "symbol.h"
-
 //================================================================
 /*! clear vm_id in global object for process terminated.
 */
@@ -197,7 +194,11 @@ void mrbc_global_debug_dump(void)
       console_printf(" %04x:%s = ", kv->sym_id, s );
     }
     mrbc_p_sub( &kv->value );
-    console_printf(" .tt=%d\n", kv->value.tt);
+    if( kv->value.tt < MRBC_TT_INC_DEC_THRESHOLD ) {
+      console_printf(" .tt=%d\n", kv->value.tt);
+    } else {
+      console_printf(" .tt=%d refcnt=%d\n", kv->value.tt, kv->value.obj->ref_count);
+    }
   }
 
   console_print("<< Global table dump. >>\n(s_id:identifier = value)\n");
@@ -207,7 +208,11 @@ void mrbc_global_debug_dump(void)
 
     console_printf(" %04x:%s = ", kv->sym_id, symid_to_str(kv->sym_id));
     mrbc_p_sub( &kv->value );
-    console_printf(" .tt=%d\n", kv->value.tt);
+    if( kv->value.tt < MRBC_TT_INC_DEC_THRESHOLD ) {
+      console_printf(" .tt=%d\n", kv->value.tt);
+    } else {
+      console_printf(" .tt=%d refcnt=%d\n", kv->value.tt, kv->value.obj->ref_count);
+    }
   }
 }
 
