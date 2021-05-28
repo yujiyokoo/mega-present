@@ -3,8 +3,8 @@
   Object, Proc, Nil, True and False class.
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -26,13 +26,10 @@
 #include "vm.h"
 #include "class.h"
 #include "symbol.h"
-#include "load.h"
-#include "c_object.h"
 #include "c_string.h"
 #include "c_array.h"
 #include "c_hash.h"
 #include "console.h"
-
 #include "opcode.h"
 
 
@@ -918,68 +915,3 @@ static void c_false_to_s(struct VM *vm, mrbc_value v[], int argc)
 #endif
 */
 #include "method_table_false.h"
-
-
-
-//================================================================
-/*! Run mrblib, which is mruby bytecode
-*/
-static void mrbc_run_mrblib(const uint8_t bytecode[])
-{
-  // instead of mrbc_vm_open()
-  mrbc_vm *vm = mrbc_alloc( 0, sizeof(mrbc_vm) );
-  if( !vm ) return;	// ENOMEM
-  memset(vm, 0, sizeof(mrbc_vm));
-
-  mrbc_load_mrb(vm, bytecode);
-  mrbc_vm_begin(vm);
-  mrbc_vm_run(vm);
-
-  // not necessary to call mrbc_vm_end()
-
-  // instead of mrbc_vm_close()
-  mrbc_raw_free( vm );
-}
-
-
-
-//================================================================
-/*! initialize all classes.
- */
-void mrbc_init_class(void)
-{
-  extern const uint8_t mrblib_bytecode[];
-  mrbc_class *mrbc_init_class_symbol(struct VM *vm);
-  mrbc_class *mrbc_init_class_fixnum(struct VM *vm);
-  mrbc_class *mrbc_init_class_float(struct VM *vm);
-  mrbc_class *mrbc_init_class_math(struct VM *vm);
-  mrbc_class *mrbc_init_class_string(struct VM *);
-  mrbc_class *mrbc_init_class_array(struct VM *);
-  mrbc_class *mrbc_init_class_range(struct VM *);
-  mrbc_class *mrbc_init_class_hash(struct VM *);
-  void mrbc_init_class_exception(struct VM *);
-
-
-  mrbc_class_object =	mrbc_init_class_object(0);
-  mrbc_class_proc =	mrbc_init_class_proc(0);
-  mrbc_class_nil =	mrbc_init_class_nil(0);
-  mrbc_class_true =	mrbc_init_class_true(0);
-  mrbc_class_false =	mrbc_init_class_false(0);
-  mrbc_class_symbol =	mrbc_init_class_symbol(0);
-  mrbc_class_fixnum =	mrbc_init_class_fixnum(0);
-#if MRBC_USE_FLOAT
-  mrbc_class_float =	mrbc_init_class_float(0);
-#if MRBC_USE_MATH
-  mrbc_class_math =	mrbc_init_class_math(0);
-#endif
-#endif
-#if MRBC_USE_STRING
-  mrbc_class_string =	mrbc_init_class_string(0);
-#endif
-  mrbc_class_array =	mrbc_init_class_array(0);
-  mrbc_class_range =	mrbc_init_class_range(0);
-  mrbc_class_hash =	mrbc_init_class_hash(0);
-  mrbc_init_class_exception(0);
-
-  mrbc_run_mrblib(mrblib_bytecode);
-}
