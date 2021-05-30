@@ -475,7 +475,7 @@ static void c_array_new(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of new(num)
   */
-  if( argc == 1 && v[1].tt == MRBC_TT_FIXNUM && v[1].i >= 0 ) {
+  if( argc == 1 && v[1].tt == MRBC_TT_INTEGER && v[1].i >= 0 ) {
     mrbc_value ret = mrbc_array_new(vm, v[1].i);
     if( ret.array == NULL ) return;		// ENOMEM
 
@@ -490,7 +490,7 @@ static void c_array_new(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of new(num, value)
   */
-  if( argc == 2 && v[1].tt == MRBC_TT_FIXNUM && v[1].i >= 0 ) {
+  if( argc == 2 && v[1].tt == MRBC_TT_INTEGER && v[1].i >= 0 ) {
     mrbc_value ret = mrbc_array_new(vm, v[1].i);
     if( ret.array == NULL ) return;		// ENOMEM
 
@@ -569,7 +569,7 @@ static void c_array_get(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of self[nth] -> object | nil
   */
-  if( argc == 1 && v[1].tt == MRBC_TT_FIXNUM ) {
+  if( argc == 1 && v[1].tt == MRBC_TT_INTEGER ) {
     mrbc_value ret = mrbc_array_get(v, v[1].i);
     mrbc_incref(&ret);
     SET_RETURN(ret);
@@ -579,7 +579,7 @@ static void c_array_get(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of self[start, length] -> Array | nil
   */
-  if( argc == 2 && v[1].tt == MRBC_TT_FIXNUM && v[2].tt == MRBC_TT_FIXNUM ) {
+  if( argc == 2 && v[1].tt == MRBC_TT_INTEGER && v[2].tt == MRBC_TT_INTEGER ) {
     int len = mrbc_array_size(&v[0]);
     int idx = v[1].i;
     if( idx < 0 ) idx += len;
@@ -622,7 +622,7 @@ static void c_array_set(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of self[nth] = val
   */
-  if( argc == 2 && v[1].tt == MRBC_TT_FIXNUM ) {
+  if( argc == 2 && v[1].tt == MRBC_TT_INTEGER ) {
     mrbc_array_set(v, v[1].i, &v[2]);	// raise? IndexError or ENOMEM
     v[2].tt = MRBC_TT_EMPTY;
     return;
@@ -631,7 +631,7 @@ static void c_array_set(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of self[start, length] = val
   */
-  if( argc == 3 && v[1].tt == MRBC_TT_FIXNUM && v[2].tt == MRBC_TT_FIXNUM ) {
+  if( argc == 3 && v[1].tt == MRBC_TT_INTEGER && v[2].tt == MRBC_TT_INTEGER ) {
     // TODO: not implement yet.
   }
 
@@ -716,7 +716,7 @@ static void c_array_include(struct VM *vm, mrbc_value v[], int argc)
 {
   c_array_index(vm, v, argc);
 
-  SET_BOOL_RETURN( mrb_type(v[0]) == MRBC_TT_FIXNUM );
+  SET_BOOL_RETURN( mrb_type(v[0]) == MRBC_TT_INTEGER );
 }
 
 
@@ -769,7 +769,7 @@ static void c_array_pop(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of pop(n) -> Array
   */
-  if( argc == 1 && v[1].tt == MRBC_TT_FIXNUM ) {
+  if( argc == 1 && v[1].tt == MRBC_TT_INTEGER ) {
     // TODO: not implement yet.
   }
 
@@ -807,7 +807,7 @@ static void c_array_shift(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of pop(n) -> Array
   */
-  if( argc == 1 && v[1].tt == MRBC_TT_FIXNUM ) {
+  if( argc == 1 && v[1].tt == MRBC_TT_INTEGER ) {
     // TODO: not implement yet.
   }
 

@@ -630,7 +630,7 @@ int mrbc_print_sub(const mrbc_value *v)
   case MRBC_TT_NIL:					break;
   case MRBC_TT_FALSE:	console_print("false");		break;
   case MRBC_TT_TRUE:	console_print("true");		break;
-  case MRBC_TT_FIXNUM:	console_printf("%D", v->i);	break;
+  case MRBC_TT_INTEGER:	console_printf("%D", v->i);	break;
 #if MRBC_USE_FLOAT
   case MRBC_TT_FLOAT:	console_printf("%g", v->d);	break;
 #endif

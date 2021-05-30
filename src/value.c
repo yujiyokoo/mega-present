@@ -76,12 +76,12 @@ int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
   if( mrbc_type(*v1) != mrbc_type(*v2) ) {
 #if MRBC_USE_FLOAT
     // but Numeric?
-    if( mrbc_type(*v1) == MRBC_TT_FIXNUM && mrbc_type(*v2) == MRBC_TT_FLOAT ) {
+    if( mrbc_type(*v1) == MRBC_TT_INTEGER && mrbc_type(*v2) == MRBC_TT_FLOAT ) {
       d1 = v1->i;
       d2 = v2->d;
       goto CMP_FLOAT;
     }
-    if( mrbc_type(*v1) == MRBC_TT_FLOAT && mrbc_type(*v2) == MRBC_TT_FIXNUM ) {
+    if( mrbc_type(*v1) == MRBC_TT_FLOAT && mrbc_type(*v2) == MRBC_TT_INTEGER ) {
       d1 = v1->d;
       d2 = v2->i;
       goto CMP_FLOAT;
@@ -103,9 +103,9 @@ int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
   case MRBC_TT_TRUE:
     return 0;
 
-  case MRBC_TT_FIXNUM:
+  case MRBC_TT_INTEGER:
   case MRBC_TT_SYMBOL:
-    return mrbc_fixnum(*v1) - mrbc_fixnum(*v2);
+    return mrbc_integer(*v1) - mrbc_integer(*v2);
 
 #if MRBC_USE_FLOAT
   case MRBC_TT_FLOAT:

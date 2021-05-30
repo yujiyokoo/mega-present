@@ -1,10 +1,10 @@
 /*! @file
   @brief
-  mruby/c Fixnum and Float class
+  mruby/c Integer and Float class
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -30,7 +30,7 @@
 //================================================================
 /*! (operator) [] bit reference
  */
-static void c_fixnum_bitref(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_bitref(struct VM *vm, mrbc_value v[], int argc)
 {
   if( 0 <= v[1].i && v[1].i < 32 ) {
     SET_INT_RETURN( (v[0].i & (1 << v[1].i)) ? 1 : 0 );
@@ -43,7 +43,7 @@ static void c_fixnum_bitref(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (operator) unary +
 */
-static void c_fixnum_positive(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_positive(struct VM *vm, mrbc_value v[], int argc)
 {
   // do nothing
 }
@@ -52,7 +52,7 @@ static void c_fixnum_positive(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (operator) unary -
 */
-static void c_fixnum_negative(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_negative(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_int num = GET_INT_ARG(0);
   SET_INT_RETURN( -num );
@@ -62,9 +62,9 @@ static void c_fixnum_negative(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (operator) ** power
  */
-static void c_fixnum_power(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_power(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[1].tt == MRBC_TT_FIXNUM ) {
+  if( v[1].tt == MRBC_TT_INTEGER ) {
     mrbc_int x = 1;
     int i;
 
@@ -86,7 +86,7 @@ static void c_fixnum_power(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (operator) %
  */
-static void c_fixnum_mod(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_mod(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_int num = GET_INT_ARG(1);
   SET_INT_RETURN( v->i % num );
@@ -96,7 +96,7 @@ static void c_fixnum_mod(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (operator) &; bit operation AND
  */
-static void c_fixnum_and(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_and(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_int num = GET_INT_ARG(1);
   SET_INT_RETURN(v->i & num);
@@ -106,7 +106,7 @@ static void c_fixnum_and(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (operator) |; bit operation OR
  */
-static void c_fixnum_or(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_or(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_int num = GET_INT_ARG(1);
   SET_INT_RETURN(v->i | num);
@@ -116,7 +116,7 @@ static void c_fixnum_or(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (operator) ^; bit operation XOR
  */
-static void c_fixnum_xor(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_xor(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_int num = GET_INT_ARG(1);
   SET_INT_RETURN( v->i ^ num );
@@ -126,7 +126,7 @@ static void c_fixnum_xor(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (operator) ~; bit operation NOT
  */
-static void c_fixnum_not(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_not(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_int num = GET_INT_ARG(0);
   SET_INT_RETURN( ~num );
@@ -151,7 +151,7 @@ static mrbc_int shift(mrbc_int x, mrbc_int y)
 //================================================================
 /*! (operator) <<; bit operation LEFT_SHIFT
  */
-static void c_fixnum_lshift(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_lshift(struct VM *vm, mrbc_value v[], int argc)
 {
   int num = GET_INT_ARG(1);
   SET_INT_RETURN( shift(v->i, num) );
@@ -161,7 +161,7 @@ static void c_fixnum_lshift(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (operator) >>; bit operation RIGHT_SHIFT
  */
-static void c_fixnum_rshift(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_rshift(struct VM *vm, mrbc_value v[], int argc)
 {
   int num = GET_INT_ARG(1);
   SET_INT_RETURN( shift(v->i, -num) );
@@ -171,7 +171,7 @@ static void c_fixnum_rshift(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (method) abs
 */
-static void c_fixnum_abs(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_abs(struct VM *vm, mrbc_value v[], int argc)
 {
   if( v[0].i < 0 ) {
     v[0].i = -v[0].i;
@@ -183,7 +183,7 @@ static void c_fixnum_abs(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (method) to_f
 */
-static void c_fixnum_to_f(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_to_f(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_float f = GET_INT_ARG(0);
   SET_FLOAT_RETURN( f );
@@ -195,7 +195,7 @@ static void c_fixnum_to_f(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (method) chr
 */
-static void c_fixnum_chr(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_chr(struct VM *vm, mrbc_value v[], int argc)
 {
   char buf[2] = { GET_INT_ARG(0) };
 
@@ -207,7 +207,7 @@ static void c_fixnum_chr(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (method) to_s
 */
-static void c_fixnum_to_s(struct VM *vm, mrbc_value v[], int argc)
+static void c_integer_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   int base = 10;
   if( argc ) {
@@ -232,33 +232,33 @@ static void c_fixnum_to_s(struct VM *vm, mrbc_value v[], int argc)
 
 /* MRBC_AUTOGEN_METHOD_TABLE
 
-  CLASS("Fixnum")
-  FILE("method_table_fixnum.h")
-  FUNC("mrbc_init_class_fixnum")
+  CLASS("Integer")
+  FILE("method_table_integer.h")
+  FUNC("mrbc_init_class_integer")
 
-  METHOD( "[]",		c_fixnum_bitref )
-  METHOD( "+@",		c_fixnum_positive )
-  METHOD( "-@",		c_fixnum_negative )
-  METHOD( "**",		c_fixnum_power )
-  METHOD( "%",		c_fixnum_mod )
-  METHOD( "&",		c_fixnum_and )
-  METHOD( "|",		c_fixnum_or )
-  METHOD( "^",		c_fixnum_xor )
-  METHOD( "~",		c_fixnum_not )
-  METHOD( "<<",		c_fixnum_lshift )
-  METHOD( ">>",		c_fixnum_rshift )
-  METHOD( "abs",	c_fixnum_abs )
+  METHOD( "[]",		c_integer_bitref )
+  METHOD( "+@",		c_integer_positive )
+  METHOD( "-@",		c_integer_negative )
+  METHOD( "**",		c_integer_power )
+  METHOD( "%",		c_integer_mod )
+  METHOD( "&",		c_integer_and )
+  METHOD( "|",		c_integer_or )
+  METHOD( "^",		c_integer_xor )
+  METHOD( "~",		c_integer_not )
+  METHOD( "<<",		c_integer_lshift )
+  METHOD( ">>",		c_integer_rshift )
+  METHOD( "abs",	c_integer_abs )
   METHOD( "to_i",	c_ineffect )
 #if MRBC_USE_FLOAT
-  METHOD( "to_f",	c_fixnum_to_f )
+  METHOD( "to_f",	c_integer_to_f )
 #endif
 #if MRBC_USE_STRING
-  METHOD( "chr",	c_fixnum_chr )
-  METHOD( "inspect",	c_fixnum_to_s )
-  METHOD( "to_s",	c_fixnum_to_s )
+  METHOD( "chr",	c_integer_chr )
+  METHOD( "inspect",	c_integer_to_s )
+  METHOD( "to_s",	c_integer_to_s )
 #endif
 */
-#include "method_table_fixnum.h"
+#include "method_table_integer.h"
 
 
 
@@ -292,7 +292,7 @@ static void c_float_power(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_float n = 0;
   switch( v[1].tt ) {
-  case MRBC_TT_FIXNUM:	n = v[1].i;	break;
+  case MRBC_TT_INTEGER:	n = v[1].i;	break;
   case MRBC_TT_FLOAT:	n = v[1].d;	break;
   default:				break;
   }

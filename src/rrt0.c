@@ -163,7 +163,7 @@ static void c_sleep(mrbc_vm *vm, mrbc_value v[], int argc)
   }
 
   switch( v[1].tt ) {
-  case MRBC_TT_FIXNUM:
+  case MRBC_TT_INTEGER:
     mrbc_sleep_ms(tcb, GET_INT_ARG(1) * 1000);
     break;
 

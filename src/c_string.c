@@ -225,7 +225,7 @@ int mrbc_string_append(mrbc_value *s1, const mrbc_value *s2)
 
   if( s2->tt == MRBC_TT_STRING ) {
     memcpy(str + len1, s2->string->data, len2 + 1);
-  } else if( s2->tt == MRBC_TT_FIXNUM ) {
+  } else if( s2->tt == MRBC_TT_INTEGER ) {
     str[len1] = s2->i;
     str[len1+1] = '\0';
   }
@@ -402,7 +402,7 @@ static void c_string_add(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_string_mul(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[1].tt != MRBC_TT_FIXNUM ) {
+  if( v[1].tt != MRBC_TT_INTEGER ) {
     console_print( "TypeError\n" );	// raise?
     return;
   }
@@ -490,17 +490,17 @@ static void c_string_append(struct VM *vm, mrbc_value v[], int argc)
 static void c_string_slice(struct VM *vm, mrbc_value v[], int argc)
 {
   int target_len = mrbc_string_size(v);
-  int pos = mrbc_fixnum(v[1]);
+  int pos = mrbc_integer(v[1]);
   int len;
 
   // in case of slice!(nth) -> String | nil
-  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_FIXNUM ) {
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_INTEGER ) {
     len = 1;
 
   // in case of slice!(nth, len) -> String | nil
-  } else if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_FIXNUM &&
-	                  mrbc_type(v[2]) == MRBC_TT_FIXNUM ) {
-    len = mrbc_fixnum(v[2]);
+  } else if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_INTEGER &&
+	                  mrbc_type(v[2]) == MRBC_TT_INTEGER ) {
+    len = mrbc_integer(v[2]);
 
   // other case
   } else {
@@ -538,7 +538,7 @@ static void c_string_insert(struct VM *vm, mrbc_value v[], int argc)
     in case of self[nth] = val
   */
   if( argc == 2 &&
-      v[1].tt == MRBC_TT_FIXNUM &&
+      v[1].tt == MRBC_TT_INTEGER &&
       v[2].tt == MRBC_TT_STRING ) {
     nth = v[1].i;
     len = 1;
@@ -548,8 +548,8 @@ static void c_string_insert(struct VM *vm, mrbc_value v[], int argc)
     in case of self[nth, len] = val
   */
   else if( argc == 3 &&
-	   v[1].tt == MRBC_TT_FIXNUM &&
-	   v[2].tt == MRBC_TT_FIXNUM &&
+	   v[1].tt == MRBC_TT_INTEGER &&
+	   v[2].tt == MRBC_TT_INTEGER &&
 	   v[3].tt == MRBC_TT_STRING ) {
     nth = v[1].i;
     len = v[2].i;
@@ -642,7 +642,7 @@ static void c_string_empty(struct VM *vm, mrbc_value v[], int argc)
 static void c_string_getbyte(struct VM *vm, mrbc_value v[], int argc)
 {
   int len = mrbc_string_size(&v[0]);
-  mrbc_int idx = mrbc_fixnum(v[1]);
+  mrbc_int idx = mrbc_integer(v[1]);
 
   if( idx >= 0 ) {
     if( idx >= len ) idx = -1;
@@ -668,7 +668,7 @@ static void c_string_index(struct VM *vm, mrbc_value v[], int argc)
   if( argc == 1 ) {
     offset = 0;
 
-  } else if( argc == 2 && v[2].tt == MRBC_TT_FIXNUM ) {
+  } else if( argc == 2 && v[2].tt == MRBC_TT_INTEGER ) {
     offset = v[2].i;
     if( offset < 0 ) offset += mrbc_string_size(&v[0]);
     if( offset < 0 ) goto NIL_RETURN;
@@ -730,17 +730,17 @@ static void c_string_ord(struct VM *vm, mrbc_value v[], int argc)
 static void c_string_slice_self(struct VM *vm, mrbc_value v[], int argc)
 {
   int target_len = mrbc_string_size(v);
-  int pos = mrbc_fixnum(v[1]);
+  int pos = mrbc_integer(v[1]);
   int len;
 
   // in case of slice!(nth) -> String | nil
-  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_FIXNUM ) {
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_INTEGER ) {
     len = 1;
 
   // in case of slice!(nth, len) -> String | nil
-  } else if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_FIXNUM &&
-	                  mrbc_type(v[2]) == MRBC_TT_FIXNUM ) {
-    len = mrbc_fixnum(v[2]);
+  } else if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_INTEGER &&
+	                  mrbc_type(v[2]) == MRBC_TT_INTEGER ) {
+    len = mrbc_integer(v[2]);
 
   // other case
   } else {
@@ -783,7 +783,7 @@ static void c_string_split(struct VM *vm, mrbc_value v[], int argc)
   // check limit parameter.
   int limit = 0;
   if( argc >= 2 ) {
-    if( v[2].tt != MRBC_TT_FIXNUM ) {
+    if( v[2].tt != MRBC_TT_INTEGER ) {
       console_print( "TypeError\n" );     // raise?
       return;
     }

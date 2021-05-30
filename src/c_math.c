@@ -28,7 +28,7 @@
 static double to_double( const mrbc_value *v )
 {
   switch( v->tt ) {
-  case MRBC_TT_FIXNUM:	return (double)v->i;
+  case MRBC_TT_INTEGER:	return (double)v->i;
   case MRBC_TT_FLOAT:	return (double)v->d;
   default:		return 0;	// TypeError. raise?
   }
@@ -155,7 +155,7 @@ static void c_math_ldexp(struct VM *vm, mrbc_value v[], int argc)
 {
   int exp;
   switch( v[2].tt ) {
-  case MRBC_TT_FIXNUM:	exp = v[2].i;		break;
+  case MRBC_TT_INTEGER:	exp = v[2].i;		break;
   case MRBC_TT_FLOAT:	exp = (int)v[2].d;	break;
   default:		exp = 0;	// TypeError. raise?
   }
