@@ -4,8 +4,8 @@
         for POSIX
 
   <pre>
-  Copyright (C) 2016 Kyushu Institute of Technology.
-  Copyright (C) 2016 Shimane IT Open-Innovation Center.
+  Copyright (C) 2016-2021 Kyushu Institute of Technology.
+  Copyright (C) 2016-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -13,6 +13,8 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+#include <stdlib.h>
+#include <string.h>
 #include <signal.h>
 #include <sys/time.h>
 
@@ -26,14 +28,14 @@
 /***** Typedefs *************************************************************/
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
-#ifndef MRBC_NO_TIMER
+#if !defined(MRBC_NO_TIMER)
 static sigset_t sigset_, sigset2_;
 #endif
 
 
 /***** Global variables *****************************************************/
 /***** Signal catching functions ********************************************/
-#ifndef MRBC_NO_TIMER
+#if !defined(MRBC_NO_TIMER)
 //================================================================
 /*!@brief
   alarm signal handler
@@ -44,13 +46,12 @@ static void sig_alarm(int dummy)
   mrbc_tick();
 }
 
-
 #endif
 
 
 /***** Local functions ******************************************************/
 /***** Global functions *****************************************************/
-#ifndef MRBC_NO_TIMER
+#if !defined(MRBC_NO_TIMER)
 
 //================================================================
 /*!@brief
@@ -102,5 +103,21 @@ void hal_disable_irq(void)
   sigprocmask(SIG_BLOCK, &sigset_, &sigset2_);
 }
 
+#endif /* if !defined(MRBC_NO_TIMER) */
 
-#endif /* ifndef MRBC_NO_TIMER */
+
+
+//================================================================
+/*!@brief
+  abort program
+
+*/
+void hal_abort( const char *s )
+{
+  if( s ) {
+    hal_write(1, s, strlen(s));
+    abort();
+  } else {
+    exit( 0 );
+  }
+}

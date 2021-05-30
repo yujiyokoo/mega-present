@@ -4,8 +4,8 @@
         for POSIX
 
   <pre>
-  Copyright (C) 2016-2020 Kyushu Institute of Technology.
-  Copyright (C) 2016-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2016-2021 Kyushu Institute of Technology.
+  Copyright (C) 2016-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -13,10 +13,6 @@
 
 #ifndef MRBC_SRC_HAL_H_
 #define MRBC_SRC_HAL_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
@@ -50,21 +46,26 @@ extern "C" {
 /***** Typedefs *************************************************************/
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void mrbc_tick(void);
 
-#ifndef MRBC_NO_TIMER
+#if !defined(MRBC_NO_TIMER)
 void hal_init(void);
 void hal_enable_irq(void);
 void hal_disable_irq(void);
 # define hal_idle_cpu()    sleep(1) // maybe interrupt by SIGINT
 
 #else // MRBC_NO_TIMER
-# define hal_init()        ((void)0)
-# define hal_enable_irq()  ((void)0)
-# define hal_disable_irq() ((void)0)
-# define hal_idle_cpu()    (usleep(MRBC_TICK_UNIT * 1000), mrbc_tick())
-
+#define hal_init()	  ((void)0)
+#define hal_enable_irq()  ((void)0)
+#define hal_disable_irq() ((void)0)
+#define hal_idle_cpu()    (usleep(MRBC_TICK_UNIT * 1000), mrbc_tick())
 #endif
+
+void hal_abort( const char *s );
 
 
 /***** Inline functions *****************************************************/
