@@ -65,7 +65,7 @@ void hal_disable_irq(void);
 #define hal_idle_cpu()    (usleep(MRBC_TICK_UNIT * 1000), mrbc_tick())
 #endif
 
-void hal_abort( const char *s );
+void hal_abort(const char *s);
 
 
 /***** Inline functions *****************************************************/
