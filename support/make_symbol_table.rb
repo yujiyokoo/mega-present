@@ -20,7 +20,7 @@ require "optparse"
 require_relative "common_sub"
 
 OUTPUT_FILENAME = "symbol_builtin.h"
-APPEND_SYMBOL = ["initialize", "Exception", "message", "StandardError", "RuntimeError", "ZeroDivisionError", "ArgumentError", "IndexError", "TypeError", "collect", "map", "collect!", "map!", "delete_if", "each", "each_index", "each_with_index", "reject!", "reject", "sort!", "sort", "RUBY_VERSION", "MRUBYC_VERSION", "times", "loop", "each_byte", "each_char", "PI", "E"]
+APPEND_SYMBOL = ["initialize", "Exception", "message", "StandardError", "RuntimeError", "ZeroDivisionError", "ArgumentError", "IndexError", "TypeError", "collect", "map", "collect!", "map!", "delete_if", "each", "each_index", "each_with_index", "reject!", "reject", "sort!", "sort", "RUBY_VERSION", "MRUBY_VERSION", "MRUBYC_VERSION", "times", "loop", "each_byte", "each_char", "PI", "E"]
 
 
 ##
