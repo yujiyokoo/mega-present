@@ -40,7 +40,7 @@ $(TARGET): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 
 clean:
-	@rm -Rf $(TARGET) $(OBJS) $(AUTOGEN_SYMBOL_TABLE) $(AUTOGEN_METHOD_TABLE) *~
+	@rm -Rf $(TARGET) $(OBJS) *~
 
 
 # Auto generated files.
