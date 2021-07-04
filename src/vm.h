@@ -100,6 +100,8 @@ typedef struct VM {
   mrbc_value    regs[MAX_REGS_SIZE];
   mrbc_value   *current_regs;
   mrbc_callinfo *callinfo_tail;
+  int catch_stack_idx;
+  uint8_t *catch_stack[5];   // Catch/UW stack
 
   mrbc_class *target_class;
 

@@ -267,16 +267,16 @@ void mrbc_pop_callinfo( struct VM *vm )
 /*! Find exception, catch handler
 
 */
-static const struct mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm, int filter)
+static const mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm, int filter)
 {
   if( vm->pc_irep->clen <= 0 ){  // no catch handler
     return NULL;
   }
 
-  mrbc_irep_catch_handler *catch_table = (mrbc_irep_catch_handler*)(vm->pc_irep->code + vm->pc_irep->ilen);
+  const mrbc_irep_catch_handler *catch_table = (mrbc_irep_catch_handler*)(vm->pc_irep->code + vm->pc_irep->ilen);
   int cnt = vm->pc_irep->clen - 1;
   for( ; cnt >= 0 ; cnt-- ){
-    mrbc_irep_catch_handler *ptr = catch_table + cnt;
+    const mrbc_irep_catch_handler *ptr = catch_table + cnt;
     // Catch range check
     int pc = vm->inst - vm->pc_irep->code;
     if( (filter & (1 << ptr->type)) && (pc > bin_to_uint32(ptr->begin)) && (pc <= bin_to_uint32(ptr->end)) ){
@@ -983,6 +983,9 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
 
 
 
+//static uint8_t *my_jmpuw_inst;
+
+
 //================================================================
 /*! OP_JMPUW
 
@@ -997,8 +1000,9 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
   FETCH_S();
 
   // Check ensure
-  mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ENSURE);
+  const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ENSURE);
   if( handler ){
+    vm->catch_stack[ vm->catch_stack_idx++ ] = vm->inst + (int16_t)a;
     vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
   } else {
     vm->inst += (int16_t)a;
@@ -1068,7 +1072,6 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
   return 0;
 }
 
-
 //================================================================
 /*! OP_RAISEIF
 
@@ -1082,8 +1085,13 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrbc_incref( &regs[a] );
-  vm->exc = &regs[a];
+  if( vm->catch_stack_idx > 0 ){
+    vm->inst = vm->catch_stack[ --vm->catch_stack_idx ];
+    vm->exc = NULL;
+  } else {
+    mrbc_incref( &regs[a] );
+    vm->exc = &regs[a];
+  }
 
   return 0;
 }
@@ -2842,7 +2850,7 @@ int mrbc_vm_run( struct VM *vm )
     // Dispatch
     uint8_t op = *vm->inst++;
 
-    // console_printf("%04d: OP=%02x\n", vm->inst - vm->pc_irep->code - 1, op);
+    // console_printf("%03d: OP=%02x\n", (vm->inst-1) - vm->pc_irep->code, op);
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
@@ -2962,7 +2970,7 @@ int mrbc_vm_run( struct VM *vm )
     // Handle exception
     if( vm->exc ){
       // check
-      mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ALL);
+      const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ALL);
       if( handler != NULL ){
 	vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
       }
