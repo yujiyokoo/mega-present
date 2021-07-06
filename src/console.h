@@ -27,7 +27,6 @@ extern "C" {
 #include <string.h>
 
 /***** Local headers ********************************************************/
-#include "hal_selector.h"
 #include "value.h"
 
 /***** Constant values ******************************************************/

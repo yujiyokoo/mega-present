@@ -7,34 +7,16 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
-ifdef MRBC_USE_POSIX
-  HAL_DIR = hal_posix
-endif
-ifdef MRBC_USE_HAL_PSOC5LP
-  HAL_DIR = hal_psoc5lp
-endif
-ifdef MRBC_USE_HAL_ESP32
-  HAL_DIR = hal_esp32
-endif
-ifdef MRBC_USE_HAL_PIC24
-  HAL_DIR = hal_pic24
-endif
-ifdef MRBC_USE_HAL_USER_RESERVED
-  HAL_DIR = hal_user_reserved
-endif
-ifndef HAL_DIR
-  HAL_DIR = hal_posix
-endif
+include hal_selector.mk
 
 TARGET = libmrubyc.a
 CFLAGS += -Wall -Wpointer-arith -g  # -std=c99 -pedantic -pedantic-errors
-SRCS = $(HAL_DIR)/hal.c alloc.c keyvalue.c value.c global.c class.c symbol.c \
-  error.c  console.c c_array.c c_hash.c c_math.c c_numeric.c c_object.c \
-  c_range.c c_string.c mrblib.c vm.c load.c rrt0.c
+SRCS = $(HAL_DIR)/hal.c alloc.c c_array.c c_hash.c c_math.c c_numeric.c \
+	c_object.c c_range.c c_string.c class.c console.c error.c global.c \
+	keyvalue.c load.c mrblib.c rrt0.c symbol.c value.c vm.c
 OBJS = $(SRCS:.c=.o)
 
-all:
-	$(MAKE) $(TARGET)
+all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
@@ -56,6 +38,9 @@ AUTOGEN_METHOD_TABLE = method_table_array.h method_table_false.h \
   method_table_symbol.h method_table_true.h
 
 autogen: symboltable methodtable
+
+autogen_clean:
+	@rm -f $(AUTOGEN_SYMBOL_TABLE) $(AUTOGEN_METHOD_TABLE)
 
 symboltable:
 	$(MAKE_SYMBOL_TABLE) -a -v

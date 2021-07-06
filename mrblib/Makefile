@@ -7,18 +7,18 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
+TARGET = ../src/mrblib.c
 SRC = array.rb global.rb hash.rb numeric.rb object.rb range.rb string.rb
-OUTPUT = ../src/mrblib.c
 MRBC ?= mrbc
 
 
-all: $(OUTPUT)
+all: $(TARGET)
 
-$(OUTPUT): $(SRC)
-	$(MRBC) -E -Bmrblib_bytecode --remove-lv -o$(OUTPUT) $(SRC)
+$(TARGET): $(SRC)
+	$(MRBC) -Bmrblib_bytecode --remove-lv -o$(TARGET) $(SRC)
 
 clean:
 	@rm -f *~
 
-distclean: clean
-	@rm -f $(OUTPUT)
+distclean:
+	@rm -f $(TARGET) *~

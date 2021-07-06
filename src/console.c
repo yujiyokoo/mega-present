@@ -24,6 +24,7 @@
 #endif
 
 /***** Local headers ********************************************************/
+#include "hal_selector.h"
 #include "value.h"
 #include "class.h"
 #include "console.h"
