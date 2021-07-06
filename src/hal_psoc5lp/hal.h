@@ -4,8 +4,8 @@
         for PSoC5LP
 
   <pre>
-  Copyright (C) 2016 Kyushu Institute of Technology.
-  Copyright (C) 2016 Shimane IT Open-Innovation Center.
+  Copyright (C) 2016-2021 Kyushu Institute of Technology.
+  Copyright (C) 2016-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -13,10 +13,6 @@
 
 #ifndef MRBC_SRC_HAL_H_
 #define MRBC_SRC_HAL_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
@@ -41,7 +37,15 @@ extern "C" {
 #define MRBC_TIMESLICE_TICK_COUNT 10
 #endif
 
-#ifndef MRBC_NO_TIMER
+
+/***** Typedefs *************************************************************/
+/***** Global variables *****************************************************/
+/***** Function prototypes **************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if !defined(MRBC_NO_TIMER)
 # define hal_init()        ((void)0)
 # define hal_enable_irq()  CyGlobalIntEnable
 # define hal_disable_irq() CyGlobalIntDisable
@@ -56,12 +60,9 @@ extern "C" {
 
 #endif
 
-
-/***** Typedefs *************************************************************/
-/***** Global variables *****************************************************/
-/***** Function prototypes **************************************************/
 int hal_write(int fd, const void *buf, int nbytes);
 int hal_flush(int fd);
+void hal_abort(const char *s);
 
 
 /***** Inline functions *****************************************************/
