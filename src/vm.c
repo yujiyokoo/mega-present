@@ -3,8 +3,8 @@
   mruby bytecode executor.
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -402,7 +402,7 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  mrbc_set_fixnum(&regs[a], b);
+  mrbc_set_integer(&regs[a], b);
 
   return 0;
 }
@@ -422,7 +422,7 @@ static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  mrbc_set_fixnum(&regs[a], -b);
+  mrbc_set_integer(&regs[a], -b);
 
   return 0;
 }
@@ -446,7 +446,7 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
   int n = opcode - OP_LOADI_0;
 
   mrbc_decref(&regs[a]);
-  mrbc_set_fixnum(&regs[a], n);
+  mrbc_set_integer(&regs[a], n);
 
   return 0;
 }
@@ -467,7 +467,7 @@ static inline int op_loadi16( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_decref(&regs[a]);
   int16_t signed_b = (int16_t)b;
-  mrbc_set_fixnum(&regs[a], signed_b);
+  mrbc_set_integer(&regs[a], signed_b);
 
   return 0;
 }
@@ -487,7 +487,7 @@ static inline int op_loadi32( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BSS();
 
   mrbc_decref(&regs[a]);
-  mrbc_set_fixnum(&regs[a], (((int32_t)b<<16)+c));
+  mrbc_set_integer(&regs[a], (((int32_t)b<<16)+c));
 
   return 0;
 }
@@ -1623,20 +1623,20 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( regs[a].tt == MRBC_TT_FIXNUM ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Fixnum, Fixnum
+  if( regs[a].tt == MRBC_TT_INTEGER ) {
+    if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Integer, Integer
       regs[a].i += regs[a+1].i;
       return 0;
     }
 #if MRBC_USE_FLOAT
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Fixnum, Float
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Integer, Float
       regs[a].tt = MRBC_TT_FLOAT;
       regs[a].d = regs[a].i + regs[a+1].d;
       return 0;
     }
   }
   if( regs[a].tt == MRBC_TT_FLOAT ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Float, Fixnum
+    if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Float, Integer
       regs[a].d += regs[a+1].i;
       return 0;
     }
@@ -1667,7 +1667,7 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+  if( regs[a].tt == MRBC_TT_INTEGER ) {
     regs[a].i += b;
     return 0;
   }
@@ -1698,20 +1698,20 @@ static inline int op_sub( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( regs[a].tt == MRBC_TT_FIXNUM ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Fixnum, Fixnum
+  if( regs[a].tt == MRBC_TT_INTEGER ) {
+    if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Integer, Integer
       regs[a].i -= regs[a+1].i;
       return 0;
     }
 #if MRBC_USE_FLOAT
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Fixnum, Float
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Integer, Float
       regs[a].tt = MRBC_TT_FLOAT;
       regs[a].d = regs[a].i - regs[a+1].d;
       return 0;
     }
   }
   if( regs[a].tt == MRBC_TT_FLOAT ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Float, Fixnum
+    if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Float, Integer
       regs[a].d -= regs[a+1].i;
       return 0;
     }
@@ -1742,7 +1742,7 @@ static inline int op_subi( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  if( regs[a].tt == MRBC_TT_FIXNUM ) {
+  if( regs[a].tt == MRBC_TT_INTEGER ) {
     regs[a].i -= b;
     return 0;
   }
@@ -1773,20 +1773,20 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( regs[a].tt == MRBC_TT_FIXNUM ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Fixnum, Fixnum
+  if( regs[a].tt == MRBC_TT_INTEGER ) {
+    if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Integer, Integer
       regs[a].i *= regs[a+1].i;
       return 0;
     }
 #if MRBC_USE_FLOAT
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Fixnum, Float
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Integer, Float
       regs[a].tt = MRBC_TT_FLOAT;
       regs[a].d = regs[a].i * regs[a+1].d;
       return 0;
     }
   }
   if( regs[a].tt == MRBC_TT_FLOAT ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Float, Fixnum
+    if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Float, Integer
       regs[a].d *= regs[a+1].i;
       return 0;
     }
@@ -1817,20 +1817,20 @@ static inline int op_div( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( regs[a].tt == MRBC_TT_FIXNUM ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Fixnum, Fixnum
+  if( regs[a].tt == MRBC_TT_INTEGER ) {
+    if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Integer, Integer
       regs[a].i /= regs[a+1].i;
       return 0;
     }
 #if MRBC_USE_FLOAT
-    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Fixnum, Float
+    if( regs[a+1].tt == MRBC_TT_FLOAT ) {      // in case of Integer, Float
       regs[a].tt = MRBC_TT_FLOAT;
       regs[a].d = regs[a].i / regs[a+1].d;
       return 0;
     }
   }
   if( regs[a].tt == MRBC_TT_FLOAT ) {
-    if( regs[a+1].tt == MRBC_TT_FIXNUM ) {     // in case of Float, Fixnum
+    if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Float, Integer
       regs[a].d /= regs[a+1].i;
       return 0;
     }
@@ -2943,7 +2943,7 @@ int mrbc_vm_run( struct VM *vm )
     case OP_LAMBDA:     ret = op_dummy_BB  (vm, regs); break;
     case OP_BLOCK:      // fall through
     case OP_METHOD:     ret = op_method    (vm, regs); break;
-    case OP_BLOCK16:    // fall through, order of OP_METHOD and OP_BLOCK16 is changed. 
+    case OP_BLOCK16:    // fall through, order of OP_METHOD and OP_BLOCK16 is changed.
     case OP_METHOD16:   ret = op_method16  (vm, regs); break;
     case OP_RANGE_INC:  // fall through
     case OP_RANGE_EXC:  ret = op_range     (vm, regs); break;

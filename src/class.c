@@ -357,11 +357,11 @@ mrbc_class * mrbc_get_class_by_name( const char *name )
   @param  argc		num of params.
 
   @example
-  // (Fixnum).to_s(16)
-  static void c_fixnum_to_s(struct VM *vm, mrbc_value v[], int argc)
+  // (Integer).to_s(16)
+  static void c_integer_to_s(struct VM *vm, mrbc_value v[], int argc)
   {
     mrbc_value *recv = &v[1];
-    mrbc_value arg1 = mrbc_fixnum_value(16);
+    mrbc_value arg1 = mrbc_integer_value(16);
     mrbc_value ret = mrbc_send( vm, v, argc, recv, "to_s", 1, &arg1 );
     SET_RETURN(ret);
   }
@@ -455,7 +455,7 @@ void mrbc_init_class(void)
   mrbc_class *mrbc_init_class_true(struct VM *vm);
   mrbc_class *mrbc_init_class_false(struct VM *vm);
   mrbc_class *mrbc_init_class_symbol(struct VM *vm);
-  mrbc_class *mrbc_init_class_fixnum(struct VM *vm);
+  mrbc_class *mrbc_init_class_integer(struct VM *vm);
   mrbc_class *mrbc_init_class_float(struct VM *vm);
   mrbc_class *mrbc_init_class_math(struct VM *vm);
   mrbc_class *mrbc_init_class_string(struct VM *);
@@ -470,7 +470,7 @@ void mrbc_init_class(void)
   mrbc_class_true =	mrbc_init_class_true(0);
   mrbc_class_false =	mrbc_init_class_false(0);
   mrbc_class_symbol =	mrbc_init_class_symbol(0);
-  mrbc_class_fixnum =	mrbc_init_class_fixnum(0);
+  mrbc_class_integer =	mrbc_init_class_integer(0);
 #if MRBC_USE_FLOAT
   mrbc_class_float =	mrbc_init_class_float(0);
 #if MRBC_USE_MATH

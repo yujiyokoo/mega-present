@@ -32,7 +32,7 @@ MAKE_METHOD_TABLE ?= ../support/make_method_table.rb
 
 AUTOGEN_SYMBOL_TABLE = symbol_builtin.h
 AUTOGEN_METHOD_TABLE = method_table_array.h method_table_false.h \
-  method_table_fixnum.h method_table_float.h method_table_hash.h \
+  method_table_integer.h method_table_float.h method_table_hash.h \
   method_table_math.h method_table_nil.h method_table_object.h \
   method_table_proc.h method_table_range.h method_table_string.h \
   method_table_symbol.h method_table_true.h
@@ -62,7 +62,7 @@ method_table_array.h:	c_array.c
 	$(MAKE_METHOD_TABLE) $?
 method_table_false.h:	c_object.c
 	$(MAKE_METHOD_TABLE) $?
-method_table_fixnum.h:	c_numeric.c
+method_table_integer.h:	c_numeric.c
 	$(MAKE_METHOD_TABLE) $?
 method_table_float.h:	c_numeric.c
 	$(MAKE_METHOD_TABLE) $?
@@ -100,7 +100,7 @@ c_math.o: c_math.c vm_config.h value.h class.h keyvalue.h \
   method_table_math.h symbol_builtin.h
 c_numeric.o: c_numeric.c vm_config.h opcode.h value.h class.h keyvalue.h \
   console.h hal_selector.h $(HAL_DIR)/hal.h c_numeric.h vm.h c_string.h \
-  method_table_fixnum.h symbol_builtin.h method_table_float.h
+  method_table_integer.h symbol_builtin.h method_table_float.h
 c_object.o: c_object.c vm_config.h alloc.h value.h vm.h class.h \
   keyvalue.h symbol.h load.h c_object.h c_string.h c_array.h c_hash.h \
   console.h hal_selector.h $(HAL_DIR)/hal.h opcode.h \

@@ -501,7 +501,7 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
     // maybe ret == 1
     switch(pf.fmt.type) {
     case 'c':
-      if( v[i].tt == MRBC_TT_FIXNUM ) {
+      if( v[i].tt == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_char( &pf, v[i].i );
       } else if( v[i].tt == MRBC_TT_STRING ) {
 	ret = mrbc_printf_char( &pf, mrbc_string_cstr(&v[i])[0] );
@@ -519,7 +519,7 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
     case 'd':
     case 'i':
     case 'u':
-      if( v[i].tt == MRBC_TT_FIXNUM ) {
+      if( v[i].tt == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_int( &pf, v[i].i, 10);
 #if MRBC_USE_FLOAT
       } else if( v[i].tt == MRBC_TT_FLOAT ) {
@@ -533,20 +533,20 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
 
     case 'b':
     case 'B':
-      if( v[i].tt == MRBC_TT_FIXNUM ) {
+      if( v[i].tt == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_bit( &pf, v[i].i, 1);
       }
       break;
 
     case 'x':
     case 'X':
-      if( v[i].tt == MRBC_TT_FIXNUM ) {
+      if( v[i].tt == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_bit( &pf, v[i].i, 4);
       }
       break;
 
     case 'o':
-      if( v[i].tt == MRBC_TT_FIXNUM ) {
+      if( v[i].tt == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_bit( &pf, v[i].i, 3);
       }
       break;
@@ -559,7 +559,7 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
     case 'G':
       if( v[i].tt == MRBC_TT_FLOAT ) {
 	ret = mrbc_printf_float( &pf, v[i].d );
-      } else if( v[i].tt == MRBC_TT_FIXNUM ) {
+      } else if( v[i].tt == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_float( &pf, v[i].i );
       }
       break;
@@ -782,7 +782,7 @@ static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_nil_to_i(struct VM *vm, mrbc_value v[], int argc)
 {
-  v[0] = mrbc_fixnum_value(0);
+  v[0] = mrbc_integer_value(0);
 }
 
 

@@ -104,7 +104,8 @@ extern struct RClass *mrbc_class_tbl[];
 #define mrbc_class_nil		mrbc_class_tbl[ MRBC_TT_NIL ]
 #define mrbc_class_false	mrbc_class_tbl[ MRBC_TT_FALSE ]
 #define mrbc_class_true		mrbc_class_tbl[ MRBC_TT_TRUE ]
-#define mrbc_class_fixnum	mrbc_class_tbl[ MRBC_TT_FIXNUM ]
+#define mrbc_class_integer	mrbc_class_tbl[ MRBC_TT_INTEGER ]
+#define mrbc_class_fixnum	mrbc_class_integer
 #define mrbc_class_float	mrbc_class_tbl[ MRBC_TT_FLOAT ]
 #define mrbc_class_symbol	mrbc_class_tbl[ MRBC_TT_SYMBOL ]
 #define mrbc_class_proc		mrbc_class_tbl[ MRBC_TT_PROC ]

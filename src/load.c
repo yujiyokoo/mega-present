@@ -163,7 +163,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
     case IREP_TT_INT32: {
       int32_t value = bin_to_uint32(p);
       p += sizeof(int32_t);
-      obj->tt = MRBC_TT_FIXNUM;
+      obj->tt = MRBC_TT_INTEGER;
       obj->i = value;
     } break;
 #if MRBC_USE_FLOAT
@@ -182,7 +182,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
       value <<= 32;
       value |= bin_to_uint32(p);
       p += sizeof(uint32_t);
-      obj->tt = MRBC_TT_FIXNUM;
+      obj->tt = MRBC_TT_INTEGER;
       obj->i = value;
 #else
       p += sizeof(uint32_t) * 2;
