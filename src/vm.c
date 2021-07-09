@@ -1090,7 +1090,7 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
     vm->exc = NULL;
   } else {
     mrbc_incref( &regs[a] );
-    vm->exc = &regs[a];
+    vm->exc = (mrbc_class *)&regs[a];
   }
 
   return 0;

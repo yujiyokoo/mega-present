@@ -83,7 +83,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 
   mrbc_irep *org_pc_irep = vm->pc_irep;
   mrbc_value* org_regs = vm->current_regs;
-  uint8_t *org_inst = vm->inst;
+  const uint8_t *org_inst = vm->inst;
 
   vm->pc_irep = &irep;
   vm->current_regs = v;

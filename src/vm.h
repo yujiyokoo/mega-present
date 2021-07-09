@@ -53,11 +53,11 @@ typedef struct IREP {
   uint16_t nlocals;		//!< # of local variables
   uint16_t nregs;		//!< # of register variables
   uint16_t rlen;		//!< # of child IREP blocks
-  uint16_t ilen;		//!< # of irep
-  uint16_t plen;		//!< # of pool
-  uint16_t clen;                //!< # of catch
+  uint16_t clen;		//!< # of catch handlers
+  uint16_t ilen;		//!< # of bytes in OpCode
+  uint16_t plen;		//!< # of pools
 
-  uint8_t     *code;		//!< ISEQ (code) BLOCK
+  const uint8_t *code;		//!< ISEQ (code) BLOCK
   mrbc_object **pools;		//!< array of POOL objects pointer.
   uint8_t     *ptr_to_sym;
   struct IREP **reps;		//!< array of child IREP's pointer.
@@ -73,7 +73,7 @@ typedef struct IREP mrb_irep;
 typedef struct CALLINFO {
   struct CALLINFO *prev;	//!< previous linked list.
   mrbc_irep *pc_irep;		//!< copy from mrbc_vm.
-  uint8_t *inst;		//!< copy from mrbc_vm.
+  const uint8_t *inst;		//!< copy from mrbc_vm.
   mrbc_value *current_regs;	//!< copy from mrbc_vm.
   mrbc_class *target_class;	//!< copy from mrbc_vm.
   mrbc_class *own_class;	//!< class that owns method.
@@ -91,17 +91,17 @@ typedef struct CALLINFO mrb_callinfo;
 typedef struct VM {
   mrbc_irep *irep;
 
-  uint8_t        vm_id; // vm_id : 1..n
-  const uint8_t *mrb;   // bytecode
+  uint8_t vm_id;	// vm_id : 1..n
+  const uint8_t *mrb;	// bytecode
 
-  mrbc_irep *pc_irep;   // PC
-  uint8_t *inst;        // instruction
+  mrbc_irep *pc_irep;	// PC
+  const uint8_t *inst;	// instruction
 
   mrbc_value    regs[MAX_REGS_SIZE];
-  mrbc_value   *current_regs;
+  mrbc_value    *current_regs;
   mrbc_callinfo *callinfo_tail;
   int catch_stack_idx;
-  uint8_t *catch_stack[5];   // Catch/UW stack
+  const uint8_t *catch_stack[5];	// Catch/UW stack
 
   mrbc_class *target_class;
 

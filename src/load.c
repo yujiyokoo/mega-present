@@ -127,7 +127,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
   }
 
   // ISEQ (code) BLOCK
-  irep->code = (uint8_t *)p;
+  irep->code = p;
   p += irep->ilen + sizeof(mrbc_irep_catch_handler) * irep->clen;
   assert( sizeof(mrbc_irep_catch_handler) == 13 );
 
