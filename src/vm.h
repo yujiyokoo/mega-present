@@ -3,8 +3,8 @@
   mruby bytecode executor.
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -16,31 +16,16 @@
 #ifndef MRBC_SRC_VM_H_
 #define MRBC_SRC_VM_H_
 
+/***** Feature test switches ************************************************/
+/***** System headers *******************************************************/
+/***** Local headers ********************************************************/
 #include "vm_config.h"
 #include "value.h"
 #include "class.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-//================================================================
-/*!@brief
-  IREP Catch Handler, Catch Handler Type
-*/
-typedef enum mrbc_catch_type {
-  MRB_CATCH_RESCUE = 0,
-  MRB_CATCH_ENSURE = 1,
-} mrbc_catch_type;
-
-typedef struct IREP_CATCH_HANDLER {
-  uint8_t type;          /* enum mrb_catch_type, 1 byte */
-  uint8_t begin[4];      /* The starting address to match the hander. Includes this. */
-  uint8_t end[4];        /* The endpoint address that matches the hander. Not Includes this. */
-  uint8_t target[4];     /* The address to jump to if a match is made. */
-} mrbc_irep_catch_handler;
-
-
+/***** Constat values *******************************************************/
+/***** Macros ***************************************************************/
+/***** Typedefs *************************************************************/
 //================================================================
 /*!@brief
   IREP Internal REPresentation
@@ -64,6 +49,28 @@ typedef struct IREP {
 
 } mrbc_irep;
 typedef struct IREP mrb_irep;
+
+
+//================================================================
+/*!@brief
+  IREP Catch Handler, Catch Handler Type
+*/
+typedef enum mrbc_catch_type {
+  MRB_CATCH_RESCUE = 0,
+  MRB_CATCH_ENSURE = 1,
+} mrbc_catch_type;
+
+
+//================================================================
+/*!@brief
+  IREP Catch Handler
+*/
+typedef struct IREP_CATCH_HANDLER {
+  uint8_t type;		//!< enum mrb_catch_type, 1 byte
+  uint8_t begin[4];	//!< The starting address to match the hander. Includes this.
+  uint8_t end[4];	//!< The endpoint address that matches the hander. Not Includes this.
+  uint8_t target[4];	//!< The address to jump to if a match is made.
+} mrbc_irep_catch_handler;
 
 
 //================================================================
@@ -120,6 +127,11 @@ typedef struct VM {
 typedef struct VM mrb_vm;
 
 
+/***** Global variables *****************************************************/
+/***** Function prototypes **************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void mrbc_cleanup_vm(void);
 const char *mrbc_get_callee_name(struct VM *vm);
@@ -134,7 +146,7 @@ void mrbc_vm_end(struct VM *vm);
 int mrbc_vm_run(struct VM *vm);
 
 
-
+/***** Inline functions *****************************************************/
 //================================================================
 /*! Get 32bit value from memory.
 

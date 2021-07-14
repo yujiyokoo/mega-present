@@ -15,10 +15,6 @@
 #ifndef MRBC_SRC_VALUE_H_
 #define MRBC_SRC_VALUE_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
 #include <stdint.h>
@@ -34,6 +30,7 @@ struct RObject;
 struct RClass;
 struct RInstance;
 struct RProc;
+struct IREP;
 
 // mrbc types
 #if defined(MRBC_INT16)
@@ -267,6 +264,10 @@ extern void (* const mrbc_delfunc[])(mrbc_value *);
 
 
 /***** Function prototypes **************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2);
 void mrbc_clear_vm_id(mrbc_value *v);
 mrbc_int mrbc_atoi(const char *s, int base);
