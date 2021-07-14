@@ -70,7 +70,6 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
     .ilen = sizeof(code)/sizeof(uint8_t),
     .plen = 0,
     .code = (uint8_t *)code,
-    .pools = NULL,
     .ptr_to_sym = (uint8_t *)syms,
     .reps = NULL,
   };

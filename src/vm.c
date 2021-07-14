@@ -201,12 +201,6 @@ void mrbc_irep_free(mrbc_irep *irep)
 {
   int i;
 
-  // release pools.
-  for( i = 0; i < irep->plen; i++ ) {
-    mrbc_raw_free( irep->pools[i] );
-  }
-  if( irep->plen ) mrbc_raw_free( irep->pools );
-
   // release child ireps.
   for( i = 0; i < irep->rlen; i++ ) {
     mrbc_irep_free( irep->reps[i] );
@@ -362,7 +356,7 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  regs[a] = *(vm->pc_irep->pools[b]);
+  regs[a] = mrbc_get_irep_pool(vm, vm->pc_irep, b );
 
   return 0;
 }
@@ -382,7 +376,7 @@ static inline int op_loadl16( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   mrbc_decref(&regs[a]);
-  regs[a] = *(vm->pc_irep->pools[b]);
+  regs[a] = mrbc_get_irep_pool(vm, vm->pc_irep, b );
 
   return 0;
 }
@@ -982,10 +976,6 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-//static uint8_t *my_jmpuw_inst;
-
-
 //================================================================
 /*! OP_JMPUW
 
@@ -1071,6 +1061,7 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
 
   return 0;
 }
+
 
 //================================================================
 /*! OP_RAISEIF
@@ -2221,20 +2212,8 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-#if MRBC_USE_STRING
-  mrbc_object *pool_obj = vm->pc_irep->pools[b];
-
-  /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
-  int len = bin_to_uint16(pool_obj->str - 2);
-  mrbc_value value = mrbc_string_new(vm, pool_obj->str, len);
-  if( value.string == NULL ) return -1;         // ENOMEM
-
   mrbc_decref(&regs[a]);
-  regs[a] = value;
-
-#else
-  not_supported();
-#endif
+  regs[a] = mrbc_get_irep_pool(vm, vm->pc_irep, b );
 
   return 0;
 }
@@ -2253,20 +2232,8 @@ static inline int op_string16( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BS();
 
-#if MRBC_USE_STRING
-  mrbc_object *pool_obj = vm->pc_irep->pools[b];
-
-  /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
-  int len = bin_to_uint16(pool_obj->str - 2);
-  mrbc_value value = mrbc_string_new(vm, pool_obj->str, len);
-  if( value.string == NULL ) return -1;         // ENOMEM
-
   mrbc_decref(&regs[a]);
-  regs[a] = value;
-
-#else
-  not_supported();
-#endif
+  regs[a] = mrbc_get_irep_pool(vm, vm->pc_irep, b );
 
   return 0;
 }

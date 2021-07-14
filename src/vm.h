@@ -41,14 +41,21 @@ typedef struct IREP {
   uint16_t clen;		//!< # of catch handlers
   uint16_t ilen;		//!< # of bytes in OpCode
   uint16_t plen;		//!< # of pools
+  uint16_t slen;		//!< # of symbols
 
   const uint8_t *code;		//!< ISEQ (code) BLOCK
-  mrbc_object **pools;		//!< array of POOL objects pointer.
+  const uint8_t *mrb_pool;	//!< pointer to mrb's POOL.
   uint8_t     *ptr_to_sym;
   struct IREP **reps;		//!< array of child IREP's pointer.
 
+  uint8_t data[];		//!< variable data.
+				//!<  uint16_t   tbl_pools[plen]
 } mrbc_irep;
 typedef struct IREP mrb_irep;
+
+// manipulate macro.
+#define mrbc_irep_tbl_pools(irep) ((uint16_t *)((irep)->data))
+#define mrbc_irep_get_pools_ptr(irep, n) (irep)->mrb_pool + mrbc_irep_tbl_pools(irep)[(n)]
 
 
 //================================================================
