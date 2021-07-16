@@ -21,15 +21,18 @@
 #include <assert.h>
 #include "vm_config.h"
 
+
 /***** Local headers ********************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /***** Constant values ******************************************************/
 /***** Typedefs *************************************************************/
 // pre define of some struct
 struct VM;
 struct RObject;
-struct RClass;
-struct RInstance;
-struct RProc;
 struct IREP;
 
 // mrbc types
@@ -149,7 +152,6 @@ struct RObject {
     struct RProc *proc;		// MRBC_TT_PROC
     struct RArray *array;	// MRBC_TT_ARRAY
     struct RString *string;	// MRBC_TT_STRING
-    const char *str;		// C-string (only loader use.)
     struct RRange *range;	// MRBC_TT_RANGE
     struct RHash *hash;		// MRBC_TT_HASH
     void *handle;		// internal use only.
@@ -252,6 +254,7 @@ typedef struct RObject mrbc_value;
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
 #define GET_STRING_ARG(n)	(v[(n)].string->data)
 
+
 #if defined(MRBC_DEBUG)
 #define MRBC_INIT_OBJECT_HEADER(p, t)  (p)->ref_count = 1; (p)->type[0] = (t)[0]; (p)->type[1] = (t)[1]
 #else
@@ -264,10 +267,6 @@ extern void (* const mrbc_delfunc[])(mrbc_value *);
 
 
 /***** Function prototypes **************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2);
 void mrbc_clear_vm_id(mrbc_value *v);
 mrbc_int mrbc_atoi(const char *s, int base);

@@ -23,6 +23,9 @@
 #include "value.h"
 #include "class.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /***** Constat values *******************************************************/
 /***** Macros ***************************************************************/
 /***** Typedefs *************************************************************/
@@ -45,22 +48,19 @@ typedef struct IREP {
 
   const uint8_t *code;		//!< ISEQ (code) BLOCK
   const uint8_t *mrb_pool;	//!< pointer to mrb's POOL.
-  uint8_t     *ptr_to_sym;
+
   struct IREP **reps;		//!< array of child IREP's pointer.
 
-  uint8_t data[];		//!< variable data.
+  uint8_t data[];		//!< variable data. (see load.c)
+				//!<  mrbc_sym   tbl_syms[slen]
 				//!<  uint16_t   tbl_pools[plen]
 } mrbc_irep;
 typedef struct IREP mrb_irep;
 
-// manipulate macro.
-#define mrbc_irep_tbl_pools(irep) ((uint16_t *)((irep)->data))
-#define mrbc_irep_get_pools_ptr(irep, n) (irep)->mrb_pool + mrbc_irep_tbl_pools(irep)[(n)]
-
 
 //================================================================
 /*!@brief
-  IREP Catch Handler, Catch Handler Type
+  Catch Handler Type
 */
 typedef enum mrbc_catch_type {
   MRB_CATCH_RESCUE = 0,
@@ -136,9 +136,6 @@ typedef struct VM mrb_vm;
 
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void mrbc_cleanup_vm(void);
 const char *mrbc_get_callee_name(struct VM *vm);

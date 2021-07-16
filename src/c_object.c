@@ -26,6 +26,7 @@
 #include "vm.h"
 #include "class.h"
 #include "symbol.h"
+#include "symbol_builtin.h"
 #include "c_string.h"
 #include "c_array.h"
 #include "c_hash.h"
@@ -44,36 +45,25 @@
 static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
-
-  char syms[]="____initialize";
-  mrbc_sym sym_id = str_to_symid(&syms[4]);
+  if( new_obj.instance == NULL ) return;	// ENOMEM
   mrbc_method method;
 
-  if( mrbc_find_method( &method, v->cls, sym_id ) == 0 ) {
-    SET_RETURN(new_obj);
-    return;
+  if( mrbc_find_method( &method, v->cls, MRBC_SYMID_initialize ) == 0 ) {
+    goto DONE;
   }
-  uint16_to_bin( 1,(uint8_t*)&syms[0]);
-  uint16_to_bin(10,(uint8_t*)&syms[2]);
+
+  mrbc_irep *irep = mrbc_alloc( vm, sizeof(mrbc_irep) + sizeof(mrbc_sym) );
+  if( !irep ) goto DONE;		// ENOMEM
+
+  memset( irep, 0, sizeof(mrbc_irep) );
 
   uint8_t code[] = {
     OP_SEND, 0, 0, argc,
     OP_ABORT,
   };
-  mrbc_irep irep = {
-#if defined(MRBC_DEBUG)
-    .type = "IR",
-#endif
-    .nlocals = 0,
-    .nregs = 0,
-    .rlen = 0,
-    .ilen = sizeof(code)/sizeof(uint8_t),
-    .plen = 0,
-    .code = (uint8_t *)code,
-    .ptr_to_sym = (uint8_t *)syms,
-    .reps = NULL,
-  };
-
+  irep->ilen = sizeof(code);
+  irep->code = code;
+  *((mrbc_sym *)irep->data) = MRBC_SYMID_initialize;
   mrbc_class *cls = v->cls;
 
   mrbc_decref(&v[0]);
@@ -84,9 +74,9 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   mrbc_value* org_regs = vm->current_regs;
   const uint8_t *org_inst = vm->inst;
 
-  vm->pc_irep = &irep;
+  vm->pc_irep = irep;
   vm->current_regs = v;
-  vm->inst = irep.code;
+  vm->inst = irep->code;
 
   while( mrbc_vm_run(vm) == 0 )
     ;
@@ -96,9 +86,10 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   vm->current_regs = org_regs;
 
   new_obj.instance->cls = cls;
+  mrbc_free( vm, irep );
 
+DONE:
   SET_RETURN( new_obj );
-
   return;
 }
 

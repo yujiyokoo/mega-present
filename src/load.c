@@ -263,12 +263,12 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
   }
 
   // SYMS block
-  irep.slen = bin_to_uint16(p);
-  irep.ptr_to_sym = (uint8_t*)p;
-  p += 2;
+  irep.slen = bin_to_uint16(p);		p += 2;
+
 
   // allocate new irep
   int need_size = sizeof(mrbc_irep)
+		+ sizeof(mrbc_sym) * irep.slen
 		+ sizeof(uint16_t) * irep.plen;
   mrbc_irep *p_irep = mrbc_alloc(vm, need_size);
   if( !p_irep ) {
@@ -277,6 +277,13 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
   }
   *p_irep = irep;
 
+  // make a sym_id table.
+  mrbc_sym *tbl_syms = mrbc_irep_tbl_syms(p_irep);
+  for( i = 0; i < p_irep->slen; i++ ) {
+    int len = bin_to_uint16(p); p += 2;
+    *tbl_syms++ = mrbc_str_to_symid( (char*)p );
+    p += (len+1);
+  }
 
   // allocate memory for child irep's pointers
   if( p_irep->rlen ) {
@@ -381,18 +388,18 @@ int mrbc_load_mrb(struct VM *vm, const uint8_t *bin)
 }
 
 
+
 //================================================================
 /*! get a mrbc_value in irep pool.
 
   @param  vm		Pointer to VM.
-  @param  irep		Pointer to IREP
   @param  n		n'th
   @return mrbc_value	value
 */
-mrbc_value mrbc_get_irep_pool(struct VM *vm, const struct IREP *irep, int n )
+mrbc_value mrbc_irep_pool_value(struct VM *vm, int n)
 {
-  assert( irep->plen > n );
-  const uint8_t *p = mrbc_irep_get_pools_ptr(irep, n);
+  assert( vm->pc_irep->plen > n );
+  const uint8_t *p = mrbc_irep_pool_ptr(vm, n);
   mrbc_value obj;
 
   int tt = *p++;
