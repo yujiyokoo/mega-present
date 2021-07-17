@@ -49,11 +49,10 @@ typedef struct IREP {
   const uint8_t *code;		//!< ISEQ (code) BLOCK
   const uint8_t *mrb_pool;	//!< pointer to mrb's POOL.
 
-  struct IREP **reps;		//!< array of child IREP's pointer.
-
   uint8_t data[];		//!< variable data. (see load.c)
 				//!<  mrbc_sym   tbl_syms[slen]
 				//!<  uint16_t   tbl_pools[plen]
+				//!<  mrbc_irep *tbl_ireps[rlen]
 } mrbc_irep;
 typedef struct IREP mrb_irep;
 
@@ -136,12 +135,9 @@ typedef struct VM mrb_vm;
 
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
-
 void mrbc_cleanup_vm(void);
 const char *mrbc_get_callee_name(struct VM *vm);
-mrbc_irep *mrbc_irep_alloc(struct VM *vm);
-void mrbc_irep_free(mrbc_irep *irep);
-mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_offset, int n_args );
+mrbc_callinfo *mrbc_push_callinfo(struct VM *vm, mrbc_sym method_id, int reg_offset, int n_args);
 void mrbc_pop_callinfo(struct VM *vm);
 mrbc_vm *mrbc_vm_open(struct VM *vm_arg);
 void mrbc_vm_close(struct VM *vm);

@@ -151,46 +151,6 @@ const char *mrbc_get_callee_name( struct VM *vm )
 
 
 //================================================================
-/*! mrbc_irep allocator
-
-  @param  vm	Pointer to VM.
-  @return	Pointer to allocated memory or NULL.
-*/
-mrbc_irep *mrbc_irep_alloc(struct VM *vm)
-{
-  mrbc_irep *p = (mrbc_irep *)mrbc_alloc(vm, sizeof(mrbc_irep));
-  if( p ) {
-    memset(p, 0, sizeof(mrbc_irep));	// caution: assume NULL is zero.
-  }
-
-#if defined(MRBC_DEBUG)
-  p->type[0] = 'R';	// set "RP"
-  p->type[1] = 'P';
-#endif
-  return p;
-}
-
-
-//================================================================
-/*! release mrbc_irep holds memory
-
-  @param  irep	Pointer to allocated mrbc_irep.
-*/
-void mrbc_irep_free(mrbc_irep *irep)
-{
-  int i;
-
-  // release child ireps.
-  for( i = 0; i < irep->rlen; i++ ) {
-    mrbc_irep_free( irep->reps[i] );
-  }
-  if( irep->rlen ) mrbc_raw_free( irep->reps );
-
-  mrbc_raw_free( irep );
-}
-
-
-//================================================================
 /*! Push current status to callinfo stack
 */
 mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_offset, int n_args )
@@ -2214,7 +2174,7 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
   // call "to_s"
   mrbc_method method;
   if( mrbc_find_method( &method, find_class_by_object(&regs[a+1]),
-			str_to_symid("to_s")) == 0 ) return 0;
+			MRBC_SYMID_to_s) == 0 ) return 0;
   if( !method.c_func ) return 0;	// TODO: Not support?
 
   method.func( vm, regs + a + 1, 0 );
@@ -2270,7 +2230,7 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_value val = mrbc_proc_new( vm, vm->pc_irep->reps[b] );
+  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm, b));
   if( !val.proc ) return -1;	// ENOMEM
 
   mrbc_decref(&regs[a]);
@@ -2293,7 +2253,7 @@ static inline int op_method16( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BS();
 
-  mrbc_value val = mrbc_proc_new( vm, vm->pc_irep->reps[b] );
+  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm, b));
   if( !val.proc ) return -1;	// ENOMEM
 
   mrbc_decref(&regs[a]);
@@ -2371,7 +2331,7 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0, 0);
 
   // target irep
-  vm->pc_irep = vm->pc_irep->reps[b];
+  vm->pc_irep = mrbc_irep_child_irep(vm, b);
   vm->inst = vm->pc_irep->code;
 
   // new regs and class
@@ -2400,7 +2360,7 @@ static inline int op_exec16( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0, 0);
 
   // target irep
-  vm->pc_irep = vm->pc_irep->reps[b];
+  vm->pc_irep = mrbc_irep_child_irep(vm, b);
   vm->inst = vm->pc_irep->code;
 
   // new regs and class

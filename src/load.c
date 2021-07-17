@@ -235,42 +235,32 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
   assert( sizeof(mrbc_irep_catch_handler) == 13 );
 
   // POOL block
-  p += (irep.ilen + sizeof(mrbc_irep_catch_handler) * irep.clen);
+  p += irep.ilen + sizeof(mrbc_irep_catch_handler) * irep.clen;
   irep.mrb_pool = p;
   irep.plen = bin_to_uint16(p);		p += 2;
 
   // skip pool
   for( i = 0; i < irep.plen; i++ ) {
+    int len = 0;
     switch( *p++ ) {
     case IREP_TT_STR:
-    case IREP_TT_SSTR: {
-      int len = bin_to_uint16(p);
-      p += len + 3;
-    } break;
-
-    case IREP_TT_INT32:
-      p += 4;
-      break;
-
+    case IREP_TT_SSTR:	len = bin_to_uint16(p) + 3;	break;
+    case IREP_TT_INT32:	len = 4;	break;
     case IREP_TT_INT64:
-    case IREP_TT_FLOAT:
-      p += 8;
-      break;
-
-    default:
-      mrbc_raise(vm, E_BYTECODE_ERROR, "Unknown TT found.");
+    case IREP_TT_FLOAT:	len = 8;	break;
+    default: mrbc_raise(vm, E_BYTECODE_ERROR, "Unknown TT found.");
     }
+    p += len;
   }
 
   // SYMS block
   irep.slen = bin_to_uint16(p);		p += 2;
 
-
   // allocate new irep
-  int need_size = sizeof(mrbc_irep)
-		+ sizeof(mrbc_sym) * irep.slen
-		+ sizeof(uint16_t) * irep.plen;
-  mrbc_irep *p_irep = mrbc_alloc(vm, need_size);
+  mrbc_irep *p_irep = mrbc_alloc(vm, sizeof(mrbc_irep)
+				   + sizeof(mrbc_sym) * irep.slen
+				   + sizeof(uint16_t) * irep.plen
+				   + sizeof(mrbc_irep*) * irep.rlen );
   if( !p_irep ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return NULL;
@@ -279,42 +269,26 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
 
   // make a sym_id table.
   mrbc_sym *tbl_syms = mrbc_irep_tbl_syms(p_irep);
-  for( i = 0; i < p_irep->slen; i++ ) {
+  for( i = 0; i < irep.slen; i++ ) {
     int len = bin_to_uint16(p); p += 2;
     *tbl_syms++ = mrbc_str_to_symid( (char*)p );
     p += (len+1);
   }
 
-  // allocate memory for child irep's pointers
-  if( p_irep->rlen ) {
-    p_irep->reps = (mrbc_irep **)mrbc_alloc(0, sizeof(mrbc_irep *) * p_irep->rlen);
-    if( p_irep->reps == NULL ) {
-      mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
-      return NULL;
-    }
-  }
-
   // make a pool data's offset table.
   uint16_t *ofs_pools = mrbc_irep_tbl_pools(p_irep);
   p = p_irep->mrb_pool + 2;
-  for( i = 0; i < p_irep->plen; i++ ) {
-    *ofs_pools++ = (uint16_t)(p - p_irep->mrb_pool);
+  for( i = 0; i < irep.plen; i++ ) {
+    int len;
+    *ofs_pools++ = (uint16_t)(p - irep.mrb_pool);
     switch( *p++ ) {
     case IREP_TT_STR:
-    case IREP_TT_SSTR: {
-      int len = bin_to_uint16(p);
-      p += len + 3;
-    } break;
-
-    case IREP_TT_INT32:
-      p += 4;
-      break;
-
+    case IREP_TT_SSTR:	len = bin_to_uint16(p) + 3;	break;
+    case IREP_TT_INT32:	len = 4;	break;
     case IREP_TT_INT64:
-    case IREP_TT_FLOAT:
-      p += 8;
-      break;
+    case IREP_TT_FLOAT:	len = 8;	break;
     }
+    p += len;
   }
 
   // return length
@@ -338,10 +312,11 @@ static mrbc_irep *load_irep(struct VM *vm, const uint8_t *bin, int *len)
   if( !irep ) return NULL;
   int total_len = len1;
 
+  mrbc_irep **tbl_ireps = mrbc_irep_tbl_child_irep(irep);
   int i;
   for( i = 0; i < irep->rlen; i++ ) {
-    irep->reps[i] = load_irep(vm, bin + total_len, &len1);
-    if( ! irep->reps[i] ) return NULL;
+    tbl_ireps[i] = load_irep(vm, bin + total_len, &len1);
+    if( ! tbl_ireps[i] ) return NULL;
     total_len += len1;
   }
 
@@ -387,6 +362,23 @@ int mrbc_load_mrb(struct VM *vm, const uint8_t *bin)
   return 0;
 }
 
+
+//================================================================
+/*! release mrbc_irep holds memory
+
+  @param  irep	Pointer to allocated mrbc_irep.
+*/
+void mrbc_irep_free(struct IREP *irep)
+{
+  // release child ireps.
+  mrbc_irep **tbl_ireps = mrbc_irep_tbl_child_irep(irep);
+  int i;
+  for( i = 0; i < irep->rlen; i++ ) {
+    mrbc_irep_free( *tbl_ireps++ );
+  }
+
+  mrbc_raw_free( irep );
+}
 
 
 //================================================================
