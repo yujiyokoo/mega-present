@@ -18,7 +18,6 @@
 #include <string.h>
 #include <assert.h>
 #include "vm.h"
-#include "symbol_builtin.h"
 #include "alloc.h"
 #include "load.h"
 #include "global.h"
@@ -196,32 +195,31 @@ void mrbc_pop_callinfo( struct VM *vm )
 #define MRBC_CATCH_FILTER_ENSURE (0x01 << 1)
 #define MRBC_CATCH_FILTER_ALL (MRBC_CATCH_FILTER_ENSURE | MRBC_CATCH_FILTER_RESCUE)
 
+
 //================================================================
 /*! Find exception, catch handler
 
 */
 static const mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm, int filter)
 {
-  if( vm->pc_irep->clen <= 0 ){  // no catch handler
-    return NULL;
-  }
+  const mrbc_irep *irep = vm->pc_irep;
+  const mrbc_irep_catch_handler *catch_table = (const mrbc_irep_catch_handler *)(irep->code + irep->ilen);
+  int cnt = irep->clen - 1;
 
-  const mrbc_irep_catch_handler *catch_table = (mrbc_irep_catch_handler*)(vm->pc_irep->code + vm->pc_irep->ilen);
-  int cnt = vm->pc_irep->clen - 1;
-  for( ; cnt >= 0 ; cnt-- ){
-    const mrbc_irep_catch_handler *ptr = catch_table + cnt;
-    // Catch range check
-    int pc = vm->inst - vm->pc_irep->code;
-    if( (filter & (1 << ptr->type)) && (pc > bin_to_uint32(ptr->begin)) && (pc <= bin_to_uint32(ptr->end)) ){
-      return catch_table + cnt;
+  for( ; cnt >= 0 ; cnt-- ) {
+    const mrbc_irep_catch_handler *handler = catch_table + cnt;
+
+    // Catch type and range check
+    uint32_t pc = vm->inst - irep->code;
+    if( (filter & (1 << handler->type)) &&
+	(bin_to_uint32(handler->begin) < pc) &&
+	(pc <= bin_to_uint32(handler->end)) ) {
+      return handler;
     }
   }
 
   return NULL;
 }
-
-
-
 
 
 //================================================================
@@ -1557,7 +1555,7 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  send_by_name(vm, MRBC_SYMID_PLUS, regs, a, 1, 0);
+  send_by_name(vm, MRBC_SYM(PLUS), regs, a, 1, 0);
 
   return 0;
 }
@@ -1632,7 +1630,7 @@ static inline int op_sub( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  send_by_name(vm, MRBC_SYMID_MINUS, regs, a, 1, 0);
+  send_by_name(vm, MRBC_SYM(MINUS), regs, a, 1, 0);
 
   return 0;
 }
@@ -1707,7 +1705,7 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  send_by_name(vm, MRBC_SYMID_MUL, regs, a, 1, 0);
+  send_by_name(vm, MRBC_SYM(MUL), regs, a, 1, 0);
 
   return 0;
 }
@@ -1751,7 +1749,7 @@ static inline int op_div( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  send_by_name(vm, MRBC_SYMID_DIV, regs, a, 1, 0);
+  send_by_name(vm, MRBC_SYM(DIV), regs, a, 1, 0);
 
   return 0;
 }
@@ -2174,7 +2172,7 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
   // call "to_s"
   mrbc_method method;
   if( mrbc_find_method( &method, find_class_by_object(&regs[a+1]),
-			MRBC_SYMID_to_s) == 0 ) return 0;
+			MRBC_SYM(to_s)) == 0 ) return 0;
   if( !method.c_func ) return 0;	// TODO: Not support?
 
   method.func( vm, regs + a + 1, 0 );

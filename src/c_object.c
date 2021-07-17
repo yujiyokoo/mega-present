@@ -26,7 +26,6 @@
 #include "vm.h"
 #include "class.h"
 #include "symbol.h"
-#include "symbol_builtin.h"
 #include "c_string.h"
 #include "c_array.h"
 #include "c_hash.h"
@@ -48,7 +47,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   if( new_obj.instance == NULL ) return;	// ENOMEM
   mrbc_method method;
 
-  if( mrbc_find_method( &method, v->cls, MRBC_SYMID_initialize ) == 0 ) {
+  if( mrbc_find_method( &method, v->cls, MRBC_SYM(initialize) ) == 0 ) {
     goto DONE;
   }
 
@@ -63,7 +62,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   };
   irep->ilen = sizeof(code);
   irep->code = code;
-  *((mrbc_sym *)irep->data) = MRBC_SYMID_initialize;
+  *((mrbc_sym *)irep->data) = MRBC_SYM(initialize);
   mrbc_class *cls = v->cls;
 
   mrbc_decref(&v[0]);
