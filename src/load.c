@@ -405,21 +405,18 @@ mrbc_value mrbc_irep_pool_value(struct VM *vm, int n)
 #endif
 
   case IREP_TT_INT32:
-    obj.tt = MRBC_TT_FIXNUM;
-    obj.i = bin_to_uint32(p);
+    mrbc_set_integer(&obj, bin_to_uint32(p));
     break;
 
 #if MRBC_USE_FLOAT
   case IREP_TT_FLOAT:
-    obj.tt = MRBC_TT_FLOAT;
-    obj.d = bin_to_double64(p);
+    mrbc_set_float(&obj, bin_to_double64(p));
     break;
 #endif
 
 #ifdef MRBC_INT64
   case IREP_TT_INT64:
-    obj.tt = MRBC_TT_FIXNUM;
-    obj.i = bin_to_int64(p);
+    mrbc_set_integer(&obj, obj.i = bin_to_int64(p));
     break;
 #endif
   }

@@ -45,8 +45,8 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
   if( new_obj.instance == NULL ) return;	// ENOMEM
-  mrbc_method method;
 
+  mrbc_method method;
   if( mrbc_find_method( &method, v->cls, MRBC_SYM(initialize) ) == 0 ) {
     goto DONE;
   }
@@ -98,7 +98,7 @@ DONE:
  */
 static void c_object_not(struct VM *vm, mrbc_value v[], int argc)
 {
-  SET_BOOL_RETURN( v[0].tt == MRBC_TT_NIL || v[0].tt == MRBC_TT_FALSE );
+  SET_BOOL_RETURN( mrbc_type(v[0]) == MRBC_TT_NIL || mrbc_type(v[0]) == MRBC_TT_FALSE );
 }
 
 
@@ -129,7 +129,7 @@ static void c_object_equal3(struct VM *vm, mrbc_value v[], int argc)
 {
   int result;
 
-  if( v[0].tt == MRBC_TT_CLASS ) {
+  if( mrbc_type(v[0]) == MRBC_TT_CLASS ) {
     result = mrbc_obj_is_kind_of( &v[1], v[0].cls );
   } else {
     result = (mrbc_compare( &v[0], &v[1] ) == 0);
@@ -180,14 +180,14 @@ static void c_object_block_given(struct VM *vm, mrbc_value v[], int argc)
 
   mrbc_value *regs = callinfo->current_regs + callinfo->reg_offset;
 
-  if( regs[0].tt == MRBC_TT_PROC ) {
+  if( mrbc_type(regs[0]) == MRBC_TT_PROC ) {
     callinfo = regs[0].proc->callinfo_self;
     if( !callinfo ) goto RETURN_FALSE;
 
     regs = callinfo->current_regs + callinfo->reg_offset;
   }
 
-  SET_BOOL_RETURN( regs[callinfo->n_args].tt == MRBC_TT_PROC );
+  SET_BOOL_RETURN( mrbc_type(regs[callinfo->n_args]) == MRBC_TT_PROC );
   return;
 
  RETURN_FALSE:
@@ -215,7 +215,7 @@ static void c_object_kind_of(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_nil(struct VM *vm, mrbc_value v[], int argc)
 {
-  SET_BOOL_RETURN( v[0].tt == MRBC_TT_NIL );
+  SET_BOOL_RETURN( mrbc_type(v[0]) == MRBC_TT_NIL );
 }
 
 
@@ -277,7 +277,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
       vm->exc = mrbc_class_runtimeerror;
       vm->exc_message = mrbc_nil_value();
     } else if( argc == 1 ){
-      if( v[1].tt == MRBC_TT_CLASS ){
+      if( mrbc_type(v[1]) == MRBC_TT_CLASS ){
         // case 3. raise Exception
 	      vm->exc = v[1].cls;
 	      vm->exc_message = mrbc_nil_value();
@@ -309,7 +309,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 static void c_object_object_id(struct VM *vm, mrbc_value v[], int argc)
 {
   // tiny implementation.
-  SET_INT_RETURN( GET_INT_ARG(0) );
+  SET_INT_RETURN( mrbc_integer(v[0]) );
 }
 
 
@@ -422,7 +422,7 @@ static void c_object_attr_reader(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
-    if( v[i].tt != MRBC_TT_SYMBOL ) continue;	// TypeError raise?
+    if( mrbc_type(v[i]) != MRBC_TT_SYMBOL ) continue;	// TypeError raise?
 
     // define reader method
     const char *name = mrbc_symbol_cstr(&v[i]);
@@ -438,7 +438,7 @@ static void c_object_attr_accessor(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
-    if( v[i].tt != MRBC_TT_SYMBOL ) continue;	// TypeError raise?
+    if( mrbc_type(v[i]) != MRBC_TT_SYMBOL ) continue;	// TypeError raise?
 
     // define reader method
     const char *name = mrbc_symbol_cstr(&v[i]);
@@ -490,17 +490,17 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
     // maybe ret == 1
     switch(pf.fmt.type) {
     case 'c':
-      if( v[i].tt == MRBC_TT_INTEGER ) {
+      if( mrbc_type(v[i]) == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_char( &pf, v[i].i );
-      } else if( v[i].tt == MRBC_TT_STRING ) {
+      } else if( mrbc_type(v[i]) == MRBC_TT_STRING ) {
 	ret = mrbc_printf_char( &pf, mrbc_string_cstr(&v[i])[0] );
       }
       break;
 
     case 's':
-      if( v[i].tt == MRBC_TT_STRING ) {
+      if( mrbc_type(v[i]) == MRBC_TT_STRING ) {
 	ret = mrbc_printf_bstr( &pf, mrbc_string_cstr(&v[i]), mrbc_string_size(&v[i]),' ');
-      } else if( v[i].tt == MRBC_TT_SYMBOL ) {
+      } else if( mrbc_type(v[i]) == MRBC_TT_SYMBOL ) {
 	ret = mrbc_printf_str( &pf, mrbc_symbol_cstr( &v[i] ), ' ');
       }
       break;
@@ -508,13 +508,13 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
     case 'd':
     case 'i':
     case 'u':
-      if( v[i].tt == MRBC_TT_INTEGER ) {
+      if( mrbc_type(v[i]) == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_int( &pf, v[i].i, 10);
 #if MRBC_USE_FLOAT
-      } else if( v[i].tt == MRBC_TT_FLOAT ) {
+      } else if( mrbc_type(v[i]) == MRBC_TT_FLOAT ) {
 	ret = mrbc_printf_int( &pf, (mrbc_int)v[i].d, 10);
 #endif
-      } else if( v[i].tt == MRBC_TT_STRING ) {
+      } else if( mrbc_type(v[i]) == MRBC_TT_STRING ) {
 	mrbc_int ival = atol(mrbc_string_cstr(&v[i]));
 	ret = mrbc_printf_int( &pf, ival, 10 );
       }
@@ -522,20 +522,20 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
 
     case 'b':
     case 'B':
-      if( v[i].tt == MRBC_TT_INTEGER ) {
+      if( mrbc_type(v[i]) == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_bit( &pf, v[i].i, 1);
       }
       break;
 
     case 'x':
     case 'X':
-      if( v[i].tt == MRBC_TT_INTEGER ) {
+      if( mrbc_type(v[i]) == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_bit( &pf, v[i].i, 4);
       }
       break;
 
     case 'o':
-      if( v[i].tt == MRBC_TT_INTEGER ) {
+      if( mrbc_type(v[i]) == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_bit( &pf, v[i].i, 3);
       }
       break;
@@ -546,9 +546,9 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
     case 'E':
     case 'g':
     case 'G':
-      if( v[i].tt == MRBC_TT_FLOAT ) {
+      if( mrbc_type(v[i]) == MRBC_TT_FLOAT ) {
 	ret = mrbc_printf_float( &pf, v[i].d );
-      } else if( v[i].tt == MRBC_TT_INTEGER ) {
+      } else if( mrbc_type(v[i]) == MRBC_TT_INTEGER ) {
 	ret = mrbc_printf_float( &pf, v[i].i );
       }
       break;
@@ -689,7 +689,7 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[1].tt != MRBC_TT_PROC ) {
+  if( mrbc_type(v[1]) != MRBC_TT_PROC ) {
     console_printf("Not support Proc.new without block.\n");	// raise?
     return;
   }
@@ -704,7 +704,7 @@ static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
 */
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
-  assert( v[0].tt == MRBC_TT_PROC );
+  assert( mrbc_type(v[0]) == MRBC_TT_PROC );
 
   mrbc_callinfo *callinfo_self = v[0].proc->callinfo_self;
   mrbc_callinfo *callinfo = mrbc_push_callinfo(vm,

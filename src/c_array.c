@@ -475,13 +475,13 @@ static void c_array_new(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of new(num)
   */
-  if( argc == 1 && v[1].tt == MRBC_TT_INTEGER && v[1].i >= 0 ) {
-    mrbc_value ret = mrbc_array_new(vm, v[1].i);
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_INTEGER && mrbc_integer(v[1]) >= 0 ) {
+    int num = mrbc_integer(v[1]);
+    mrbc_value ret = mrbc_array_new(vm, num);
     if( ret.array == NULL ) return;		// ENOMEM
 
-    mrbc_value nil = mrbc_nil_value();
-    if( v[1].i > 0 ) {
-      mrbc_array_set(&ret, v[1].i - 1, &nil);
+    if( num > 0 ) {
+      mrbc_array_set(&ret, num - 1, &mrbc_nil_value());
     }
     SET_RETURN(ret);
     return;
@@ -490,12 +490,13 @@ static void c_array_new(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of new(num, value)
   */
-  if( argc == 2 && v[1].tt == MRBC_TT_INTEGER && v[1].i >= 0 ) {
-    mrbc_value ret = mrbc_array_new(vm, v[1].i);
+  if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_INTEGER && mrbc_integer(v[1]) >= 0 ) {
+    int num = mrbc_integer(v[1]);
+    mrbc_value ret = mrbc_array_new(vm, num);
     if( ret.array == NULL ) return;		// ENOMEM
 
     int i;
-    for( i = 0; i < v[1].i; i++ ) {
+    for( i = 0; i < num; i++ ) {
       mrbc_incref(&v[2]);
       mrbc_array_set(&ret, i, &v[2]);
     }
@@ -551,14 +552,14 @@ static void c_array_get(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of Array[...] -> Array
   */
-  if( v[0].tt == MRBC_TT_CLASS ) {
+  if( mrbc_type(v[0]) == MRBC_TT_CLASS ) {
     mrbc_value ret = mrbc_array_new(vm, argc);
     if( ret.array == NULL ) return;	// ENOMEM
 
     memcpy( ret.array->data, &v[1], sizeof(mrbc_value) * argc );
     int i;
     for( i = 1; i <= argc; i++ ) {
-      v[i].tt = MRBC_TT_EMPTY;
+      mrbc_type(v[i]) = MRBC_TT_EMPTY;
     }
     ret.array->n_stored = argc;
 
@@ -569,8 +570,8 @@ static void c_array_get(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of self[nth] -> object | nil
   */
-  if( argc == 1 && v[1].tt == MRBC_TT_INTEGER ) {
-    mrbc_value ret = mrbc_array_get(v, v[1].i);
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_INTEGER ) {
+    mrbc_value ret = mrbc_array_get(v, mrbc_integer(v[1]));
     mrbc_incref(&ret);
     SET_RETURN(ret);
     return;
@@ -579,14 +580,14 @@ static void c_array_get(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of self[start, length] -> Array | nil
   */
-  if( argc == 2 && v[1].tt == MRBC_TT_INTEGER && v[2].tt == MRBC_TT_INTEGER ) {
+  if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_INTEGER && mrbc_type(v[2]) == MRBC_TT_INTEGER ) {
     int len = mrbc_array_size(&v[0]);
-    int idx = v[1].i;
+    int idx = mrbc_integer(v[1]);
     if( idx < 0 ) idx += len;
     if( idx < 0 ) goto RETURN_NIL;
 
-    int size = (v[2].i < (len - idx)) ? v[2].i : (len - idx);
-					// min( v[2].i, (len - idx) )
+    int size = (mrbc_integer(v[2]) < (len - idx)) ? mrbc_integer(v[2]) : (len - idx);
+		// min( mrbc_integer(v[2]), (len - idx) )
     if( size < 0 ) goto RETURN_NIL;
 
     mrbc_value ret = mrbc_array_new(vm, size);
@@ -594,7 +595,7 @@ static void c_array_get(struct VM *vm, mrbc_value v[], int argc)
 
     int i;
     for( i = 0; i < size; i++ ) {
-      mrbc_value val = mrbc_array_get(v, v[1].i + i);
+      mrbc_value val = mrbc_array_get(v, mrbc_integer(v[1]) + i);
       mrbc_incref(&val);
       mrbc_array_push(&ret, &val);
     }
@@ -622,16 +623,16 @@ static void c_array_set(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of self[nth] = val
   */
-  if( argc == 2 && v[1].tt == MRBC_TT_INTEGER ) {
-    mrbc_array_set(v, v[1].i, &v[2]);	// raise? IndexError or ENOMEM
-    v[2].tt = MRBC_TT_EMPTY;
+  if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_INTEGER ) {
+    mrbc_array_set(v, mrbc_integer(v[1]), &v[2]); // raise? IndexError or ENOMEM
+    mrbc_type(v[2]) = MRBC_TT_EMPTY;
     return;
   }
 
   /*
     in case of self[start, length] = val
   */
-  if( argc == 3 && v[1].tt == MRBC_TT_INTEGER && v[2].tt == MRBC_TT_INTEGER ) {
+  if( argc == 3 && mrbc_type(v[1]) == MRBC_TT_INTEGER && mrbc_type(v[2]) == MRBC_TT_INTEGER ) {
     // TODO: not implement yet.
   }
 
@@ -656,8 +657,12 @@ static void c_array_clear(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_array_delete_at(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_value val = mrbc_array_remove(v, GET_INT_ARG(1));
-  SET_RETURN(val);
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_INTEGER ) {
+    mrbc_value val = mrbc_array_remove(v, mrbc_integer(v[1]));
+    SET_RETURN(val);
+  } else {
+    console_print( "ArgumentError\n" );	// raise?
+  }
 }
 
 
@@ -748,7 +753,7 @@ static void c_array_last(struct VM *vm, mrbc_value v[], int argc)
 static void c_array_push(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_array_push(&v[0], &v[1]);	// raise? ENOMEM
-  v[1].tt = MRBC_TT_EMPTY;
+  mrbc_type(v[1]) = MRBC_TT_EMPTY;
 }
 
 
@@ -769,7 +774,7 @@ static void c_array_pop(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of pop(n) -> Array
   */
-  if( argc == 1 && v[1].tt == MRBC_TT_INTEGER ) {
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_INTEGER ) {
     // TODO: not implement yet.
   }
 
@@ -786,7 +791,7 @@ static void c_array_pop(struct VM *vm, mrbc_value v[], int argc)
 static void c_array_unshift(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_array_unshift(&v[0], &v[1]);	// raise? IndexError or ENOMEM
-  v[1].tt = MRBC_TT_EMPTY;
+  mrbc_type(v[1]) = MRBC_TT_EMPTY;
 }
 
 
@@ -807,7 +812,7 @@ static void c_array_shift(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of pop(n) -> Array
   */
-  if( argc == 1 && v[1].tt == MRBC_TT_INTEGER ) {
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_INTEGER ) {
     // TODO: not implement yet.
   }
 
@@ -931,7 +936,7 @@ static void c_array_join_1(struct VM *vm, mrbc_value v[], int argc,
   int i = 0;
   int flag_error = 0;
   while( !flag_error ) {
-    if( src->array->data[i].tt == MRBC_TT_ARRAY ) {
+    if( mrbc_type(src->array->data[i]) == MRBC_TT_ARRAY ) {
       c_array_join_1(vm, v, argc, &src->array->data[i], ret, separator);
     } else {
       mrbc_value v1 = mrbc_send( vm, v, argc, &src->array->data[i], "to_s", 0 );

@@ -194,10 +194,10 @@ void mrbc_global_debug_dump(void)
       console_printf(" %04x:%s = ", kv->sym_id, s );
     }
     mrbc_p_sub( &kv->value );
-    if( kv->value.tt < MRBC_TT_INC_DEC_THRESHOLD ) {
-      console_printf(" .tt=%d\n", kv->value.tt);
+    if( mrbc_type(kv->value) < MRBC_TT_INC_DEC_THRESHOLD ) {
+      console_printf(" .tt=%d\n", mrbc_type(kv->value));
     } else {
-      console_printf(" .tt=%d refcnt=%d\n", kv->value.tt, kv->value.obj->ref_count);
+      console_printf(" .tt=%d refcnt=%d\n", mrbc_type(kv->value), kv->value.obj->ref_count);
     }
   }
 
@@ -208,10 +208,10 @@ void mrbc_global_debug_dump(void)
 
     console_printf(" %04x:%s = ", kv->sym_id, symid_to_str(kv->sym_id));
     mrbc_p_sub( &kv->value );
-    if( kv->value.tt < MRBC_TT_INC_DEC_THRESHOLD ) {
-      console_printf(" .tt=%d\n", kv->value.tt);
+    if( mrbc_type(kv->value) < MRBC_TT_INC_DEC_THRESHOLD ) {
+      console_printf(" .tt=%d\n", mrbc_type(kv->value));
     } else {
-      console_printf(" .tt=%d refcnt=%d\n", kv->value.tt, kv->value.obj->ref_count);
+      console_printf(" .tt=%d refcnt=%d\n", mrbc_type(kv->value), kv->value.obj->ref_count);
     }
   }
 }

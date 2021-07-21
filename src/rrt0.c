@@ -3,8 +3,8 @@
   Realtime multitask monitor for mruby/c
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -162,14 +162,14 @@ static void c_sleep(mrbc_vm *vm, mrbc_value v[], int argc)
     return;
   }
 
-  switch( v[1].tt ) {
+  switch( mrbc_type(v[1]) ) {
   case MRBC_TT_INTEGER:
-    mrbc_sleep_ms(tcb, GET_INT_ARG(1) * 1000);
+    mrbc_sleep_ms(tcb, mrbc_integer(v[1]) * 1000);
     break;
 
 #if MRBC_USE_FLOAT
   case MRBC_TT_FLOAT:
-    mrbc_sleep_ms(tcb, (mrbc_int)(GET_FLOAT_ARG(1) * 1000));
+    mrbc_sleep_ms(tcb, (mrbc_int)(mrbc_float(v[1]) * 1000));
     break;
 #endif
 
@@ -187,7 +187,7 @@ static void c_sleep_ms(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   mrbc_tcb *tcb = VM2TCB(vm);
 
-  mrbc_sleep_ms(tcb, GET_INT_ARG(1));
+  mrbc_sleep_ms(tcb, mrbc_integer(v[1]));
 }
 
 
@@ -211,7 +211,7 @@ static void c_change_priority(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   mrbc_tcb *tcb = VM2TCB(vm);
 
-  mrbc_change_priority(tcb, GET_INT_ARG(1));
+  mrbc_change_priority(tcb, mrbc_integer(v[1]));
 }
 
 
@@ -227,7 +227,7 @@ static void c_suspend_task(mrbc_vm *vm, mrbc_value v[], int argc)
     return;
   }
 
-  if( v[1].tt != MRBC_TT_HANDLE ) return;	// error.
+  if( mrbc_type(v[1]) != MRBC_TT_HANDLE ) return;	// error.
   mrbc_suspend_task( (mrbc_tcb *)(v[1].handle) );
 }
 
@@ -238,7 +238,7 @@ static void c_suspend_task(mrbc_vm *vm, mrbc_value v[], int argc)
 */
 static void c_resume_task(mrbc_vm *vm, mrbc_value v[], int argc)
 {
-  if( v[1].tt != MRBC_TT_HANDLE ) return;	// error.
+  if( mrbc_type(v[1]) != MRBC_TT_HANDLE ) return;	// error.
   mrbc_resume_task( (mrbc_tcb *)(v[1].handle) );
 }
 
