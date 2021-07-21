@@ -999,10 +999,12 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
+  
+  
   // Check ensure
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ENSURE);
   if( handler ){
-    vm->catch_stack[ vm->catch_stack_idx++ ] = vm->inst + (int16_t)a;
+    //    vm->catch_stack[ vm->catch_stack_idx++ ] = vm->inst + (int16_t)a;
     vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
   } else {
     vm->inst += (int16_t)a;
@@ -1085,13 +1087,9 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( vm->catch_stack_idx > 0 ){
-    vm->inst = vm->catch_stack[ --vm->catch_stack_idx ];
-    vm->exc = NULL;
-  } else {
-    mrbc_incref( &regs[a] );
-    vm->exc = &regs[a];
-  }
+  mrb_value *exc = &regs[a];
+  mrbc_incref( &regs[a] );
+  vm->exc = exc;
 
   return 0;
 }
