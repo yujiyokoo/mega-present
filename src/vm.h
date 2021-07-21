@@ -3,8 +3,8 @@
   mruby bytecode executor.
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -16,6 +16,9 @@
 #ifndef MRBC_SRC_VM_H_
 #define MRBC_SRC_VM_H_
 
+/***** Feature test switches ************************************************/
+/***** System headers *******************************************************/
+/***** Local headers ********************************************************/
 #include "vm_config.h"
 #include "value.h"
 #include "class.h"
@@ -23,24 +26,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-//================================================================
-/*!@brief
-  IREP Catch Handler, Catch Handler Type
-*/
-typedef enum mrbc_catch_type {
-  MRB_CATCH_RESCUE = 0,
-  MRB_CATCH_ENSURE = 1,
-} mrbc_catch_type;
-
-typedef struct IREP_CATCH_HANDLER {
-  uint8_t type;          /* enum mrb_catch_type, 1 byte */
-  uint8_t begin[4];      /* The starting address to match the hander. Includes this. */
-  uint8_t end[4];        /* The endpoint address that matches the hander. Not Includes this. */
-  uint8_t target[4];     /* The address to jump to if a match is made. */
-} mrbc_irep_catch_handler;
-
-
+/***** Constat values *******************************************************/
+/***** Macros ***************************************************************/
+/***** Typedefs *************************************************************/
 //================================================================
 /*!@brief
   IREP Internal REPresentation
@@ -53,17 +41,42 @@ typedef struct IREP {
   uint16_t nlocals;		//!< # of local variables
   uint16_t nregs;		//!< # of register variables
   uint16_t rlen;		//!< # of child IREP blocks
-  uint16_t ilen;		//!< # of irep
-  uint16_t plen;		//!< # of pool
-  uint16_t clen;                //!< # of catch
+  uint16_t clen;		//!< # of catch handlers
+  uint16_t ilen;		//!< # of bytes in OpCode
+  uint16_t plen;		//!< # of pools
+  uint16_t slen;		//!< # of symbols
 
-  uint8_t     *code;		//!< ISEQ (code) BLOCK
-  mrbc_object **pools;		//!< array of POOL objects pointer.
-  uint8_t     *ptr_to_sym;
-  struct IREP **reps;		//!< array of child IREP's pointer.
+  const uint8_t *code;		//!< ISEQ (code) BLOCK
+  const uint8_t *mrb_pool;	//!< pointer to mrb's POOL.
 
+  uint8_t data[];		//!< variable data. (see load.c)
+				//!<  mrbc_sym   tbl_syms[slen]
+				//!<  uint16_t   tbl_pools[plen]
+				//!<  mrbc_irep *tbl_ireps[rlen]
 } mrbc_irep;
 typedef struct IREP mrb_irep;
+
+
+//================================================================
+/*!@brief
+  Catch Handler Type
+*/
+typedef enum mrbc_catch_type {
+  MRB_CATCH_RESCUE = 0,
+  MRB_CATCH_ENSURE = 1,
+} mrbc_catch_type;
+
+
+//================================================================
+/*!@brief
+  IREP Catch Handler
+*/
+typedef struct IREP_CATCH_HANDLER {
+  uint8_t type;		//!< enum mrb_catch_type, 1 byte
+  uint8_t begin[4];	//!< The starting address to match the hander. Includes this.
+  uint8_t end[4];	//!< The endpoint address that matches the hander. Not Includes this.
+  uint8_t target[4];	//!< The address to jump to if a match is made.
+} mrbc_irep_catch_handler;
 
 
 //================================================================
@@ -73,7 +86,7 @@ typedef struct IREP mrb_irep;
 typedef struct CALLINFO {
   struct CALLINFO *prev;	//!< previous linked list.
   mrbc_irep *pc_irep;		//!< copy from mrbc_vm.
-  uint8_t *inst;		//!< copy from mrbc_vm.
+  const uint8_t *inst;		//!< copy from mrbc_vm.
   mrbc_value *current_regs;	//!< copy from mrbc_vm.
   mrbc_class *target_class;	//!< copy from mrbc_vm.
   mrbc_class *own_class;	//!< class that owns method.
@@ -91,14 +104,14 @@ typedef struct CALLINFO mrb_callinfo;
 typedef struct VM {
   mrbc_irep *irep;
 
-  uint8_t        vm_id; // vm_id : 1..n
-  const uint8_t *mrb;   // bytecode
+  uint8_t vm_id;	// vm_id : 1..n
+  const uint8_t *mrb;	// bytecode
 
-  mrbc_irep *pc_irep;   // PC
-  uint8_t *inst;        // instruction
+  mrbc_irep *pc_irep;	// PC
+  const uint8_t *inst;	// instruction
 
   mrbc_value    regs[MAX_REGS_SIZE];
-  mrbc_value   *current_regs;
+  mrbc_value    *current_regs;
   mrbc_callinfo *callinfo_tail;
 
   mrbc_class *target_class;
@@ -118,12 +131,11 @@ typedef struct VM {
 typedef struct VM mrb_vm;
 
 
-
+/***** Global variables *****************************************************/
+/***** Function prototypes **************************************************/
 void mrbc_cleanup_vm(void);
 const char *mrbc_get_callee_name(struct VM *vm);
-mrbc_irep *mrbc_irep_alloc(struct VM *vm);
-void mrbc_irep_free(mrbc_irep *irep);
-mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_offset, int n_args );
+mrbc_callinfo *mrbc_push_callinfo(struct VM *vm, mrbc_sym method_id, int reg_offset, int n_args);
 void mrbc_pop_callinfo(struct VM *vm);
 mrbc_vm *mrbc_vm_open(struct VM *vm_arg);
 void mrbc_vm_close(struct VM *vm);
@@ -132,7 +144,7 @@ void mrbc_vm_end(struct VM *vm);
 int mrbc_vm_run(struct VM *vm);
 
 
-
+/***** Inline functions *****************************************************/
 //================================================================
 /*! Get 32bit value from memory.
 

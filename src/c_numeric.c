@@ -32,8 +32,8 @@
  */
 static void c_integer_bitref(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( 0 <= v[1].i && v[1].i < 32 ) {
-    SET_INT_RETURN( (v[0].i & (1 << v[1].i)) ? 1 : 0 );
+  if( 0 <= mrbc_integer(v[1]) && mrbc_integer(v[1]) < 32 ) {
+    SET_INT_RETURN( (mrbc_integer(v[0]) & (1 << mrbc_integer(v[1]))) ? 1 : 0 );
   } else {
     SET_INT_RETURN( 0 );
   }
@@ -54,7 +54,7 @@ static void c_integer_positive(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_integer_negative(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_int num = GET_INT_ARG(0);
+  mrbc_int num = mrbc_integer(v[0]);
   SET_INT_RETURN( -num );
 }
 
@@ -64,20 +64,20 @@ static void c_integer_negative(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_integer_power(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[1].tt == MRBC_TT_INTEGER ) {
+  if( mrbc_type(v[1]) == MRBC_TT_INTEGER ) {
     mrbc_int x = 1;
     int i;
 
-    if( v[1].i < 0 ) x = 0;
-    for( i = 0; i < v[1].i; i++ ) {
-      x *= v[0].i;;
+    if( mrbc_integer(v[1]) < 0 ) x = 0;
+    for( i = 0; i < mrbc_integer(v[1]); i++ ) {
+      x *= mrbc_integer(v[0]);
     }
     SET_INT_RETURN( x );
   }
 
 #if MRBC_USE_FLOAT && MRBC_USE_MATH
-  else if( v[1].tt == MRBC_TT_FLOAT ) {
-    SET_FLOAT_RETURN( pow( v[0].i, v[1].d ) );
+  else if( mrbc_type(v[1]) == MRBC_TT_FLOAT ) {
+    SET_FLOAT_RETURN( pow( mrbc_integer(v[0]), mrbc_float(v[1])));
   }
 #endif
 }
@@ -88,7 +88,7 @@ static void c_integer_power(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_integer_mod(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_int num = GET_INT_ARG(1);
+  mrbc_int num = mrbc_integer(v[1]);
   SET_INT_RETURN( v->i % num );
 }
 
@@ -98,7 +98,7 @@ static void c_integer_mod(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_integer_and(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_int num = GET_INT_ARG(1);
+  mrbc_int num = mrbc_integer(v[1]);
   SET_INT_RETURN(v->i & num);
 }
 
@@ -108,7 +108,7 @@ static void c_integer_and(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_integer_or(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_int num = GET_INT_ARG(1);
+  mrbc_int num = mrbc_integer(v[1]);
   SET_INT_RETURN(v->i | num);
 }
 
@@ -118,7 +118,7 @@ static void c_integer_or(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_integer_xor(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_int num = GET_INT_ARG(1);
+  mrbc_int num = mrbc_integer(v[1]);
   SET_INT_RETURN( v->i ^ num );
 }
 
@@ -128,7 +128,7 @@ static void c_integer_xor(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_integer_not(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_int num = GET_INT_ARG(0);
+  mrbc_int num = mrbc_integer(v[0]);
   SET_INT_RETURN( ~num );
 }
 
@@ -153,7 +153,7 @@ static mrbc_int shift(mrbc_int x, mrbc_int y)
  */
 static void c_integer_lshift(struct VM *vm, mrbc_value v[], int argc)
 {
-  int num = GET_INT_ARG(1);
+  int num = mrbc_integer(v[1]);
   SET_INT_RETURN( shift(v->i, num) );
 }
 
@@ -163,7 +163,7 @@ static void c_integer_lshift(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_integer_rshift(struct VM *vm, mrbc_value v[], int argc)
 {
-  int num = GET_INT_ARG(1);
+  int num = mrbc_integer(v[1]);
   SET_INT_RETURN( shift(v->i, -num) );
 }
 
@@ -173,8 +173,8 @@ static void c_integer_rshift(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_integer_abs(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[0].i < 0 ) {
-    v[0].i = -v[0].i;
+  if( mrbc_integer(v[0]) < 0 ) {
+    mrbc_integer(v[0]) = -mrbc_integer(v[0]);
   }
 }
 
@@ -185,7 +185,7 @@ static void c_integer_abs(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_integer_to_f(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_float f = GET_INT_ARG(0);
+  mrbc_float f = mrbc_integer(v[0]);
   SET_FLOAT_RETURN( f );
 }
 #endif
@@ -197,7 +197,7 @@ static void c_integer_to_f(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_integer_chr(struct VM *vm, mrbc_value v[], int argc)
 {
-  char buf[2] = { GET_INT_ARG(0) };
+  char buf[2] = { mrbc_integer(v[0]) };
 
   mrbc_value value = mrbc_string_new(vm, buf, 1);
   SET_RETURN(value);
@@ -211,7 +211,7 @@ static void c_integer_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   int base = 10;
   if( argc ) {
-    base = GET_INT_ARG(1);
+    base = mrbc_integer(v[1]);
     if( base < 2 || base > 36 ) {
       return;	// raise ? ArgumentError
     }
@@ -279,7 +279,7 @@ static void c_float_positive(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_float_negative(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_float num = GET_FLOAT_ARG(0);
+  mrbc_float num = mrbc_float(v[0]);
   SET_FLOAT_RETURN( -num );
 }
 
@@ -291,13 +291,13 @@ static void c_float_negative(struct VM *vm, mrbc_value v[], int argc)
 static void c_float_power(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_float n = 0;
-  switch( v[1].tt ) {
-  case MRBC_TT_INTEGER:	n = v[1].i;	break;
-  case MRBC_TT_FLOAT:	n = v[1].d;	break;
-  default:				break;
+  switch( mrbc_type(v[1]) ) {
+  case MRBC_TT_INTEGER:	n = mrbc_integer(v[1]);	break;
+  case MRBC_TT_FLOAT:	n = mrbc_float(v[1]);	break;
+  default:					break;
   }
 
-  SET_FLOAT_RETURN( pow( v[0].d, n ));
+  SET_FLOAT_RETURN( pow( mrbc_float(v[0]), n ));
 }
 #endif
 
@@ -307,8 +307,8 @@ static void c_float_power(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_float_abs(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[0].d < 0 ) {
-    v[0].d = -v[0].d;
+  if( mrbc_float(v[0]) < 0 ) {
+    mrbc_float(v[0]) = -mrbc_float(v[0]);
   }
 }
 
@@ -318,7 +318,7 @@ static void c_float_abs(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_float_to_i(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_int i = (mrbc_int)GET_FLOAT_ARG(0);
+  mrbc_int i = (mrbc_int)mrbc_float(v[0]);
   SET_INT_RETURN( i );
 }
 

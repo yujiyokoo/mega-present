@@ -3,8 +3,8 @@
   mruby/c Symbol class
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -20,11 +20,13 @@
 #include <assert.h>
 
 /***** Local headers ********************************************************/
+#define MRBC_DEFINE_SYMBOL_TABLE
+#include "symbol.h"
+#undef MRBC_DEFINE_SYMBOL_TABLE
 #include "value.h"
 #include "vm.h"
 #include "alloc.h"
 #include "class.h"
-#include "symbol.h"
 #include "c_object.h"
 #include "c_string.h"
 #include "c_array.h"
@@ -58,13 +60,8 @@ struct SYM_INDEX {
 
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
-
 static struct SYM_INDEX sym_index[MAX_SYMBOLS_COUNT];
 static int sym_index_pos;	// point to the last(free) sym_index array.
-
-#define MRBC_DEFINE_SYMBOL_TABLE
-#include "symbol_builtin.h"	// built-in symbol table.
-#undef MRBC_DEFINE_SYMBOL_TABLE
 
 
 /***** Global variables *****************************************************/

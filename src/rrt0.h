@@ -13,10 +13,6 @@
 #ifndef MRBC_SRC_RRT0_H_
 #define MRBC_SRC_RRT0_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
 #include <stdint.h>
@@ -24,6 +20,9 @@ extern "C" {
 /***** Local headers ********************************************************/
 #include "vm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /***** Constant values ******************************************************/
 
 //================================================

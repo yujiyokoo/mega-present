@@ -15,25 +15,25 @@
 #ifndef MRBC_SRC_VALUE_H_
 #define MRBC_SRC_VALUE_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
 #include <stdint.h>
 #include <assert.h>
 #include "vm_config.h"
 
+
 /***** Local headers ********************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /***** Constant values ******************************************************/
 /***** Typedefs *************************************************************/
 // pre define of some struct
 struct VM;
 struct RObject;
-struct RClass;
-struct RInstance;
-struct RProc;
+struct IREP;
 
 // mrbc types
 #if defined(MRBC_INT16)
@@ -152,7 +152,6 @@ struct RObject {
     struct RProc *proc;		// MRBC_TT_PROC
     struct RArray *array;	// MRBC_TT_ARRAY
     struct RString *string;	// MRBC_TT_STRING
-    const char *str;		// C-string (only loader use.)
     struct RRange *range;	// MRBC_TT_RANGE
     struct RHash *hash;		// MRBC_TT_HASH
     void *handle;		// internal use only.
@@ -254,6 +253,7 @@ typedef struct RObject mrbc_value;
 #define GET_ARG(n)		(v[(n)])
 #define GET_FLOAT_ARG(n)	(v[(n)].d)
 #define GET_STRING_ARG(n)	(v[(n)].string->data)
+
 
 #if defined(MRBC_DEBUG)
 #define MRBC_INIT_OBJECT_HEADER(p, t)  (p)->ref_count = 1; (p)->type[0] = (t)[0]; (p)->type[1] = (t)[1]

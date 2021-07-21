@@ -51,27 +51,6 @@ static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
 #define CALL_MAXARGS 255
 
-//================================================================
-/*! get sym[n] from symbol table in irep
-
-  @param  vm	Pointer to VM
-  @param  n	n th
-  @return	symbol name string
-*/
-static const char * mrbc_get_irep_symbol( struct VM *vm, int n )
-{
-  const uint8_t *p = vm->pc_irep->ptr_to_sym;
-  int cnt = bin_to_uint16(p);
-  if( n >= cnt ) return 0;
-  p += 2;
-  while( n > 0 ) {
-   uint16_t s = bin_to_uint16(p);
-    p += 2+s+1;   // size(2 bytes) + symbol len + '\0'
-    n--;
-  }
-  return (char *)p+2;  // skip size(2 bytes)
-}
-
 
 //================================================================
 /*! display "not supported" message
@@ -83,17 +62,17 @@ static void not_supported(void)
 
 
 //================================================================
-/*! Method call by method name
+/*! Method call by method name's id
 
-  @param  vm		pointer of VM.
-  @param  method_name	method name
+  @param  vm		pointer to VM.
+  @param  sym_id	method name symbol id
   @param  regs		pointer to regs
   @param  a		operand a
   @param  c		operand c
   @param  is_sendb	Is called from OP_SENDB?
   @retval 0  No error.
 */
-static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *regs, int a, int c, int is_sendb )
+static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a, int c, int is_sendb )
 {
   mrbc_value *recv = &regs[a];
 
@@ -108,13 +87,12 @@ static int send_by_name( struct VM *vm, const char *method_name, mrbc_value *reg
     regs[bidx].tt = MRBC_TT_NIL;
   }
 
-  mrbc_sym sym_id = str_to_symid(method_name);
   mrbc_class *cls = find_class_by_object(recv);
   mrbc_method method;
 
   if( mrbc_find_method( &method, cls, sym_id ) == 0 ) {
     console_printf("Undefined local variable or method '%s' for %s\n",
-		   method_name, symid_to_str( cls->sym_id ));
+		   symid_to_str(sym_id), symid_to_str( cls->sym_id ));
     return 1;
   }
 
@@ -167,53 +145,7 @@ void mrbc_cleanup_vm(void)
 const char *mrbc_get_callee_name( struct VM *vm )
 {
   uint8_t rb = vm->inst[-2];
-  return mrbc_get_irep_symbol(vm, rb);
-}
-
-
-//================================================================
-/*! mrbc_irep allocator
-
-  @param  vm	Pointer to VM.
-  @return	Pointer to allocated memory or NULL.
-*/
-mrbc_irep *mrbc_irep_alloc(struct VM *vm)
-{
-  mrbc_irep *p = (mrbc_irep *)mrbc_alloc(vm, sizeof(mrbc_irep));
-  if( p ) {
-    memset(p, 0, sizeof(mrbc_irep));	// caution: assume NULL is zero.
-  }
-
-#if defined(MRBC_DEBUG)
-  p->type[0] = 'R';	// set "RP"
-  p->type[1] = 'P';
-#endif
-  return p;
-}
-
-
-//================================================================
-/*! release mrbc_irep holds memory
-
-  @param  irep	Pointer to allocated mrbc_irep.
-*/
-void mrbc_irep_free(mrbc_irep *irep)
-{
-  int i;
-
-  // release pools.
-  for( i = 0; i < irep->plen; i++ ) {
-    mrbc_raw_free( irep->pools[i] );
-  }
-  if( irep->plen ) mrbc_raw_free( irep->pools );
-
-  // release child ireps.
-  for( i = 0; i < irep->rlen; i++ ) {
-    mrbc_irep_free( irep->reps[i] );
-  }
-  if( irep->rlen ) mrbc_raw_free( irep->reps );
-
-  mrbc_raw_free( irep );
+  return mrbc_irep_symbol_cstr(vm, rb);
 }
 
 
@@ -263,32 +195,31 @@ void mrbc_pop_callinfo( struct VM *vm )
 #define MRBC_CATCH_FILTER_ENSURE (0x01 << 1)
 #define MRBC_CATCH_FILTER_ALL (MRBC_CATCH_FILTER_ENSURE | MRBC_CATCH_FILTER_RESCUE)
 
+
 //================================================================
 /*! Find exception, catch handler
 
 */
 static const mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm, int filter)
 {
-  if( vm->pc_irep->clen <= 0 ){  // no catch handler
-    return NULL;
-  }
+  const mrbc_irep *irep = vm->pc_irep;
+  const mrbc_irep_catch_handler *catch_table = (const mrbc_irep_catch_handler *)(irep->code + irep->ilen);
+  int cnt = irep->clen - 1;
 
-  const mrbc_irep_catch_handler *catch_table = (mrbc_irep_catch_handler*)(vm->pc_irep->code + vm->pc_irep->ilen);
-  int cnt = vm->pc_irep->clen - 1;
-  for( ; cnt >= 0 ; cnt-- ){
-    const mrbc_irep_catch_handler *ptr = catch_table + cnt;
-    // Catch range check
-    int pc = vm->inst - vm->pc_irep->code;
-    if( (filter & (1 << ptr->type)) && (pc > bin_to_uint32(ptr->begin)) && (pc <= bin_to_uint32(ptr->end)) ){
-      return catch_table + cnt;
+  for( ; cnt >= 0 ; cnt-- ) {
+    const mrbc_irep_catch_handler *handler = catch_table + cnt;
+
+    // Catch type and range check
+    uint32_t pc = vm->inst - irep->code;
+    if( (filter & (1 << handler->type)) &&
+	(bin_to_uint32(handler->begin) < pc) &&
+	(pc <= bin_to_uint32(handler->end)) ) {
+      return handler;
     }
   }
 
   return NULL;
 }
-
-
-
 
 
 //================================================================
@@ -362,7 +293,7 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  regs[a] = *(vm->pc_irep->pools[b]);
+  regs[a] = mrbc_irep_pool_value(vm, b);
 
   return 0;
 }
@@ -382,7 +313,7 @@ static inline int op_loadl16( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   mrbc_decref(&regs[a]);
-  regs[a] = *(vm->pc_irep->pools[b]);
+  regs[a] = mrbc_irep_pool_value(vm, b);
 
   return 0;
 }
@@ -506,12 +437,8 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id = str_to_symid(sym_name);
-
   mrbc_decref(&regs[a]);
-  regs[a].tt = MRBC_TT_SYMBOL;
-  regs[a].i = sym_id;
+  mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id( vm, b ));
 
   return 0;
 }
@@ -530,12 +457,8 @@ static inline int op_loadsym16( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BS();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id = str_to_symid(sym_name);
-
   mrbc_decref(&regs[a]);
-  regs[a].tt = MRBC_TT_SYMBOL;
-  regs[a].i = sym_id;
+  mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id( vm, b ));
 
   return 0;
 }
@@ -637,11 +560,8 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id = str_to_symid(sym_name);
-
   mrbc_decref(&regs[a]);
-  mrbc_value *v = mrbc_get_global(sym_id);
+  mrbc_value *v = mrbc_get_global( mrbc_irep_symbol_id(vm, b) );
   if( v == NULL ) {
     mrbc_set_nil(&regs[a]);
   } else {
@@ -666,10 +586,8 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id = str_to_symid(sym_name);
   mrbc_incref(&regs[a]);
-  mrbc_set_global(sym_id, &regs[a]);
+  mrbc_set_global( mrbc_irep_symbol_id(vm, b), &regs[a] );
 
   return 0;
 }
@@ -688,9 +606,10 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
+  const char *sym_name = mrbc_irep_symbol_cstr(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
   mrbc_value *self = mrbc_get_self( vm, regs );
+
   mrbc_decref(&regs[a]);
   regs[a] = mrbc_instance_getiv(self, sym_id);
 
@@ -711,9 +630,10 @@ static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
+  const char *sym_name = mrbc_irep_symbol_cstr(vm, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
   mrbc_value *self = mrbc_get_self( vm, regs );
+
   mrbc_instance_setiv(self, sym_id, &regs[a]);
 
   return 0;
@@ -733,8 +653,7 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id = str_to_symid(sym_name);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm, b);
   mrbc_class *cls = NULL;
   mrbc_value *v;
 
@@ -747,7 +666,8 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
 
   v = mrbc_get_const(sym_id);
   if( v == NULL ) {		// raise?
-    console_printf( "NameError: uninitialized constant %s\n", sym_name );
+    console_printf( "NameError: uninitialized constant %s\n",
+		    symid_to_str(sym_id) );
     return 0;
   }
 
@@ -773,8 +693,7 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id = str_to_symid(sym_name);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm, b);
 
   mrbc_incref(&regs[a]);
   if( mrbc_type(regs[0]) == MRBC_TT_CLASS ) {
@@ -800,8 +719,7 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id = str_to_symid(sym_name);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm, b);
   mrbc_class *cls = regs[a].cls;
   mrbc_value *v;
 
@@ -809,7 +727,7 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
     cls = cls->super;
     if( !cls ) {	// raise?
       console_printf( "NameError: uninitialized constant %s::%s\n",
-		      symid_to_str( regs[a].cls->sym_id ), sym_name );
+		symid_to_str( regs[a].cls->sym_id ), symid_to_str( sym_id ));
       return 0;
     }
   }
@@ -982,10 +900,6 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
-//static uint8_t *my_jmpuw_inst;
-
-
 //================================================================
 /*! OP_JMPUW
 
@@ -1074,6 +988,7 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
   return 0;
 }
 
+
 //================================================================
 /*! OP_RAISEIF
 
@@ -1108,9 +1023,7 @@ static inline int op_sendv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-
-  return send_by_name( vm, sym_name, regs, a, CALL_MAXARGS, 0 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm, b), regs, a, CALL_MAXARGS, 0 );
 }
 
 
@@ -1127,9 +1040,7 @@ static inline int op_sendvb( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-
-  return send_by_name( vm, sym_name, regs, a, CALL_MAXARGS, 1 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm, b), regs, a, CALL_MAXARGS, 1 );
 }
 
 
@@ -1146,9 +1057,7 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BBB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-
-  return send_by_name( vm, sym_name, regs, a, c, 0 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm, b), regs, a, c, 0 );
 }
 
 
@@ -1165,9 +1074,7 @@ static inline int op_sendb( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BBB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
-
-  return send_by_name( vm, sym_name, regs, a, c, 1 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm, b), regs, a, c, 1 );
 }
 
 
@@ -1646,7 +1553,7 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  send_by_name(vm, "+", regs, a, 1, 0);
+  send_by_name(vm, MRBC_SYM(PLUS), regs, a, 1, 0);
 
   return 0;
 }
@@ -1721,7 +1628,7 @@ static inline int op_sub( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  send_by_name(vm, "-", regs, a, 1, 0);
+  send_by_name(vm, MRBC_SYM(MINUS), regs, a, 1, 0);
 
   return 0;
 }
@@ -1796,7 +1703,7 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  send_by_name(vm, "*", regs, a, 1, 0);
+  send_by_name(vm, MRBC_SYM(MUL), regs, a, 1, 0);
 
   return 0;
 }
@@ -1840,7 +1747,7 @@ static inline int op_div( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // other case
-  send_by_name(vm, "/", regs, a, 1, 0);
+  send_by_name(vm, MRBC_SYM(DIV), regs, a, 1, 0);
 
   return 0;
 }
@@ -2219,20 +2126,8 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-#if MRBC_USE_STRING
-  mrbc_object *pool_obj = vm->pc_irep->pools[b];
-
-  /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
-  int len = bin_to_uint16(pool_obj->str - 2);
-  mrbc_value value = mrbc_string_new(vm, pool_obj->str, len);
-  if( value.string == NULL ) return -1;         // ENOMEM
-
   mrbc_decref(&regs[a]);
-  regs[a] = value;
-
-#else
-  not_supported();
-#endif
+  regs[a] = mrbc_irep_pool_value(vm, b);
 
   return 0;
 }
@@ -2251,20 +2146,8 @@ static inline int op_string16( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BS();
 
-#if MRBC_USE_STRING
-  mrbc_object *pool_obj = vm->pc_irep->pools[b];
-
-  /* CAUTION: pool_obj->str - 2. see IREP POOL structure. */
-  int len = bin_to_uint16(pool_obj->str - 2);
-  mrbc_value value = mrbc_string_new(vm, pool_obj->str, len);
-  if( value.string == NULL ) return -1;         // ENOMEM
-
   mrbc_decref(&regs[a]);
-  regs[a] = value;
-
-#else
-  not_supported();
-#endif
+  regs[a] = mrbc_irep_pool_value(vm, b);
 
   return 0;
 }
@@ -2287,7 +2170,7 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
   // call "to_s"
   mrbc_method method;
   if( mrbc_find_method( &method, find_class_by_object(&regs[a+1]),
-			str_to_symid("to_s")) == 0 ) return 0;
+			MRBC_SYM(to_s)) == 0 ) return 0;
   if( !method.c_func ) return 0;	// TODO: Not support?
 
   method.func( vm, regs + a + 1, 0 );
@@ -2343,7 +2226,7 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_value val = mrbc_proc_new( vm, vm->pc_irep->reps[b] );
+  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm, b));
   if( !val.proc ) return -1;	// ENOMEM
 
   mrbc_decref(&regs[a]);
@@ -2366,7 +2249,7 @@ static inline int op_method16( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BS();
 
-  mrbc_value val = mrbc_proc_new( vm, vm->pc_irep->reps[b] );
+  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm, b));
   if( !val.proc ) return -1;	// ENOMEM
 
   mrbc_decref(&regs[a]);
@@ -2412,9 +2295,9 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_get_irep_symbol(vm, b);
+  const char *class_name = mrbc_irep_symbol_cstr(vm, b);
   mrbc_class *super = (regs[a+1].tt == MRBC_TT_CLASS) ? regs[a+1].cls : 0;
-  mrbc_class *cls = mrbc_define_class(vm, sym_name, super);
+  mrbc_class *cls = mrbc_define_class(vm, class_name, super);
   if( !cls ) return -1;		// ENOMEM
 
   // (note)
@@ -2444,7 +2327,7 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0, 0);
 
   // target irep
-  vm->pc_irep = vm->pc_irep->reps[b];
+  vm->pc_irep = mrbc_irep_child_irep(vm, b);
   vm->inst = vm->pc_irep->code;
 
   // new regs and class
@@ -2473,7 +2356,7 @@ static inline int op_exec16( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0, 0);
 
   // target irep
-  vm->pc_irep = vm->pc_irep->reps[b];
+  vm->pc_irep = mrbc_irep_child_irep(vm, b);
   vm->inst = vm->pc_irep->code;
 
   // new regs and class
@@ -2501,8 +2384,7 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[a+1].tt == MRBC_TT_PROC );
 
   mrbc_class *cls = regs[a].cls;
-  const char *name = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id = str_to_symid( name );
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm, b);
   mrbc_proc *proc = regs[a+1].proc;
 
   mrbc_method *method = mrbc_raw_alloc( sizeof(mrbc_method) );
@@ -2552,15 +2434,14 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *name_new = mrbc_get_irep_symbol(vm, a);
-  const char *name_org = mrbc_get_irep_symbol(vm, b);
-  mrbc_sym sym_id_new = str_to_symid(name_new);
-  mrbc_sym sym_id_org = str_to_symid(name_org);
+  mrbc_sym sym_id_new = mrbc_irep_symbol_id(vm, a);
+  mrbc_sym sym_id_org = mrbc_irep_symbol_id(vm, b);
   mrbc_class *cls = vm->target_class;
   mrbc_method method_org;
 
   if( mrbc_find_method( &method_org, cls, sym_id_org ) == 0 ) {
-    console_printf("NameError: undefined method '%s'\n", name_org);
+    console_printf("NameError: undefined method '%s'\n",
+		   symid_to_str(sym_id_org));
     return 0;
   }
 
