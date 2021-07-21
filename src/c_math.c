@@ -17,7 +17,7 @@
 #include "value.h"
 #include "class.h"
 #include "global.h"
-#include "symbol_builtin.h"
+#include "symbol.h"
 
 
 #if MRBC_USE_FLOAT && MRBC_USE_MATH
