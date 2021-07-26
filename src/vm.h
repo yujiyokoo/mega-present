@@ -46,8 +46,8 @@ typedef struct IREP {
   uint16_t plen;		//!< # of pools
   uint16_t slen;		//!< # of symbols
 
-  const uint8_t *code;		//!< ISEQ (code) BLOCK
-  const uint8_t *mrb_pool;	//!< pointer to mrb's POOL.
+  const uint8_t *code;		//!< pointer to byte-code in RITE binary
+  const uint8_t *pool;		//!< pointer to pool in RITE binary
 
   uint8_t data[];		//!< variable data. (see load.c)
 				//!<  mrbc_sym   tbl_syms[slen]

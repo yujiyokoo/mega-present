@@ -173,7 +173,7 @@ static inline int64_t bin_to_int64( const void *p )
 */
 static int load_header(struct VM *vm, const uint8_t *bin)
 {
-  static const char IDENT[6] = "RITE02";
+  static const char IDENT[8] = "RITE0200";
 
   if( memcmp(bin, IDENT, sizeof(IDENT)) != 0 ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
@@ -236,7 +236,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
 
   // POOL block
   p += irep.ilen + sizeof(mrbc_irep_catch_handler) * irep.clen;
-  irep.mrb_pool = p;
+  irep.pool = p;
   irep.plen = bin_to_uint16(p);		p += 2;
 
   // skip pool
@@ -277,10 +277,10 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
 
   // make a pool data's offset table.
   uint16_t *ofs_pools = mrbc_irep_tbl_pools(p_irep);
-  p = p_irep->mrb_pool + 2;
+  p = p_irep->pool + 2;
   for( i = 0; i < irep.plen; i++ ) {
     int len;
-    *ofs_pools++ = (uint16_t)(p - irep.mrb_pool);
+    *ofs_pools++ = (uint16_t)(p - irep.pool);
     switch( *p++ ) {
     case IREP_TT_STR:
     case IREP_TT_SSTR:	len = bin_to_uint16(p) + 3;	break;

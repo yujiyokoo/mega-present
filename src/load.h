@@ -43,7 +43,7 @@ extern "C" {
 
 //! get a pointer to n'th pool data.
 #define mrbc_irep_pool_ptr(vm,n) (			\
-  (vm)->pc_irep->mrb_pool + mrbc_irep_tbl_pools( (vm)->pc_irep )[(n)] )
+  (vm)->pc_irep->pool + mrbc_irep_tbl_pools( (vm)->pc_irep )[(n)] )
 
 
 //! get a child irep table pointer.
