@@ -236,7 +236,7 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep)
   MRBC_INIT_OBJECT_HEADER( val.proc, "PR" );
   val.proc->callinfo = vm->callinfo_tail;
 
-  if(vm->current_regs[0].tt == MRBC_TT_PROC) {
+  if( mrbc_type(vm->current_regs[0]) == MRBC_TT_PROC ) {
     val.proc->callinfo_self = vm->current_regs[0].proc->callinfo_self;
   } else {
     val.proc->callinfo_self = vm->callinfo_tail;
