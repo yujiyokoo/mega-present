@@ -229,9 +229,11 @@ static void c_object_p(struct VM *vm, mrbc_value v[], int argc)
     mrbc_p_sub( &v[i] );
     console_putchar('\n');
   }
+
   if (argc == 0) {
     SET_NIL_RETURN();
   } else if (argc == 1) {
+    mrbc_incref( &v[1] );
     SET_RETURN(v[1]);
   } else {
     mrbc_value value = mrbc_array_new(vm, argc);
@@ -243,7 +245,6 @@ static void c_object_p(struct VM *vm, mrbc_value v[], int argc)
         value.array->data[i-1] = v[i];
       }
       value.array->n_stored = argc;
-      mrbc_incref(&value);
       SET_RETURN(value);
     }
   }
