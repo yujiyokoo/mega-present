@@ -1,10 +1,10 @@
 /*! @file
   @brief
-  mruby/c String object
+  mruby/c String class
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -13,10 +13,6 @@
 
 #ifndef MRBC_SRC_C_STRING_H_
 #define MRBC_SRC_C_STRING_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /***** Feature test switches ************************************************/
 #include "vm_config.h"
@@ -28,8 +24,14 @@ extern "C" {
 /***** Local headers ********************************************************/
 #include "value.h"
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 /***** Constant values ******************************************************/
+#if !defined(MRBC_STRING_SIZE_T)
+#define MRBC_STRING_SIZE_T uint16_t
+#endif
+
 /***** Macros ***************************************************************/
 #define RSTRING_LEN(str)	mrbc_string_size(&str)
 #define RSTRING_PTR(str)	mrbc_string_cstr(&str)
@@ -42,8 +44,8 @@ extern "C" {
 typedef struct RString {
   MRBC_OBJECT_HEADER;
 
-  uint16_t size;	//!< string length.
-  uint8_t *data;	//!< pointer to allocated buffer.
+  MRBC_STRING_SIZE_T size;	//!< string length.
+  uint8_t *data;		//!< pointer to allocated buffer.
 
 } mrbc_string;
 

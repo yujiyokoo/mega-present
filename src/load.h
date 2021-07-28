@@ -47,13 +47,13 @@ extern "C" {
 
 
 //! get a child irep table pointer.
-#define mrbc_irep_tbl_child_irep(irep) ((mrbc_irep **)(	\
+#define mrbc_irep_tbl_ireps(irep) ((mrbc_irep **)(	\
   (irep)->data + sizeof(mrbc_sym) * (irep)->slen	\
 	       + sizeof(uint16_t) * (irep)->plen ))
 
 //! get a n'th child irep
 #define mrbc_irep_child_irep(vm,n) (			\
-  mrbc_irep_tbl_child_irep((vm)->pc_irep)[(n)] )
+  mrbc_irep_tbl_ireps((vm)->pc_irep)[(n)] )
 
 
 /***** Typedefs *************************************************************/

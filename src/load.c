@@ -312,7 +312,7 @@ static mrbc_irep *load_irep(struct VM *vm, const uint8_t *bin, int *len)
   if( !irep ) return NULL;
   int total_len = len1;
 
-  mrbc_irep **tbl_ireps = mrbc_irep_tbl_child_irep(irep);
+  mrbc_irep **tbl_ireps = mrbc_irep_tbl_ireps(irep);
   int i;
   for( i = 0; i < irep->rlen; i++ ) {
     tbl_ireps[i] = load_irep(vm, bin + total_len, &len1);
@@ -371,7 +371,7 @@ int mrbc_load_mrb(struct VM *vm, const uint8_t *bin)
 void mrbc_irep_free(struct IREP *irep)
 {
   // release child ireps.
-  mrbc_irep **tbl_ireps = mrbc_irep_tbl_child_irep(irep);
+  mrbc_irep **tbl_ireps = mrbc_irep_tbl_ireps(irep);
   int i;
   for( i = 0; i < irep->rlen; i++ ) {
     mrbc_irep_free( *tbl_ireps++ );

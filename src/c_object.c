@@ -155,7 +155,7 @@ static void c_object_class(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_dup(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v->tt == MRBC_TT_OBJECT ) {
+  if( mrbc_type(v[0]) == MRBC_TT_OBJECT ) {
     mrbc_value new_obj = mrbc_instance_new(vm, v->instance->cls, 0);
     mrbc_kv_dup( &v->instance->ivar, &new_obj.instance->ivar );
 
@@ -484,7 +484,7 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
   static const int BUF_INC_STEP = 32;	// bytes.
 
   mrbc_value *format = &v[1];
-  if( format->tt != MRBC_TT_STRING ) {
+  if( mrbc_type(*format) != MRBC_TT_STRING ) {
     console_printf( "TypeError\n" );	// raise?
     return;
   }
@@ -621,7 +621,7 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
   char buf[32];
   const char *s = buf;
 
-  switch( v->tt ) {
+  switch( mrbc_type(v[0]) ) {
   case MRBC_TT_CLASS:
     s = symid_to_str( v->cls->sym_id );
     break;

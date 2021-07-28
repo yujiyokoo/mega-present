@@ -21,13 +21,11 @@
 #include <assert.h>
 #include "vm_config.h"
 
-
 /***** Local headers ********************************************************/
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 /***** Constant values ******************************************************/
 /***** Typedefs *************************************************************/
 // pre define of some struct
@@ -78,7 +76,7 @@ typedef enum {
 
   /* non-primitive */
   MRBC_TT_OBJECT  = 8,	// (note) inc/dec ref threshold.
-  MRBC_TT_PROC	  = 9,	// and same order as mrbc_delfunc[] variable.
+  MRBC_TT_PROC	  = 9,	// and must be same order as mrbc_delfunc[].
   MRBC_TT_ARRAY	  = 10,
   MRBC_TT_STRING  = 11,
   MRBC_TT_RANGE	  = 12,

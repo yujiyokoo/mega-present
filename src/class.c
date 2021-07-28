@@ -88,7 +88,7 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
   }
 
   // already
-  assert( obj->tt == MRBC_TT_CLASS );
+  assert( mrbc_type(*obj) == MRBC_TT_CLASS );
   return obj->cls;
 }
 
@@ -342,7 +342,7 @@ mrbc_class * mrbc_get_class_by_name( const char *name )
   mrbc_object *obj = mrbc_get_const( sym_id );
 
   if( obj == NULL ) return NULL;
-  return (obj->tt == MRBC_TT_CLASS) ? obj->cls : NULL;
+  return (mrbc_type(*obj) == MRBC_TT_CLASS) ? obj->cls : NULL;
 }
 
 
@@ -373,7 +373,7 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
 
   if( mrbc_find_method( &method, find_class_by_object(recv),
 			str_to_symid(method_name) ) == 0 ) {
-    console_printf("No method. vtype=%d method='%s'\n", recv->tt, method_name );
+    console_printf("No method. vtype=%d method='%s'\n", mrbc_type(*recv), method_name );
     goto ERROR;
   }
   if( !method.c_func ) {
