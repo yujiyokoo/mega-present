@@ -1,10 +1,10 @@
 /*! @file
   @brief
-  mruby/c String object
+  mruby/c String class
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -218,14 +218,14 @@ mrbc_value mrbc_string_add(struct VM *vm, const mrbc_value *s1, const mrbc_value
 int mrbc_string_append(mrbc_value *s1, const mrbc_value *s2)
 {
   int len1 = s1->string->size;
-  int len2 = (s2->tt == MRBC_TT_STRING) ? s2->string->size : 1;
+  int len2 = (mrbc_type(*s2) == MRBC_TT_STRING) ? s2->string->size : 1;
 
   uint8_t *str = mrbc_raw_realloc(s1->string->data, len1+len2+1);
   if( !str ) return E_NOMEMORY_ERROR;
 
-  if( s2->tt == MRBC_TT_STRING ) {
+  if( mrbc_type(*s2) == MRBC_TT_STRING ) {
     memcpy(str + len1, s2->string->data, len2 + 1);
-  } else if( s2->tt == MRBC_TT_INTEGER ) {
+  } else if( mrbc_type(*s2) == MRBC_TT_INTEGER ) {
     str[len1] = s2->i;
     str[len1+1] = '\0';
   }
@@ -362,7 +362,7 @@ int mrbc_string_chomp(mrbc_value *src)
 */
 static void c_string_new(struct VM *vm, mrbc_value v[], int argc)
 {
-  if (argc == 1 && v[1].tt != MRBC_TT_STRING) {
+  if (argc == 1 && mrbc_type(v[1]) != MRBC_TT_STRING) {
     console_print( "TypeError\n" ); // raise? TypeError
     return;
   }
@@ -386,7 +386,7 @@ static void c_string_new(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_string_add(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[1].tt != MRBC_TT_STRING ) {
+  if( mrbc_type(v[1]) != MRBC_TT_STRING ) {
     console_print( "Not support STRING + Other\n" );
     return;
   }
@@ -402,7 +402,7 @@ static void c_string_add(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_string_mul(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[1].tt != MRBC_TT_INTEGER ) {
+  if( mrbc_type(v[1]) != MRBC_TT_INTEGER ) {
     console_print( "TypeError\n" );	// raise?
     return;
   }
@@ -537,9 +537,8 @@ static void c_string_insert(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of self[nth] = val
   */
-  if( argc == 2 &&
-      v[1].tt == MRBC_TT_INTEGER &&
-      v[2].tt == MRBC_TT_STRING ) {
+  if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_INTEGER &&
+                   mrbc_type(v[2]) == MRBC_TT_STRING ) {
     nth = v[1].i;
     len = 1;
     val = &v[2];
@@ -547,10 +546,9 @@ static void c_string_insert(struct VM *vm, mrbc_value v[], int argc)
   /*
     in case of self[nth, len] = val
   */
-  else if( argc == 3 &&
-	   v[1].tt == MRBC_TT_INTEGER &&
-	   v[2].tt == MRBC_TT_INTEGER &&
-	   v[3].tt == MRBC_TT_STRING ) {
+  else if( argc == 3 && mrbc_type(v[1]) == MRBC_TT_INTEGER &&
+	                mrbc_type(v[2]) == MRBC_TT_INTEGER &&
+	                mrbc_type(v[3]) == MRBC_TT_STRING ) {
     nth = v[1].i;
     len = v[2].i;
     val = &v[3];
@@ -668,7 +666,7 @@ static void c_string_index(struct VM *vm, mrbc_value v[], int argc)
   if( argc == 1 ) {
     offset = 0;
 
-  } else if( argc == 2 && v[2].tt == MRBC_TT_INTEGER ) {
+  } else if( argc == 2 && mrbc_type(v[2]) == MRBC_TT_INTEGER ) {
     offset = v[2].i;
     if( offset < 0 ) offset += mrbc_string_size(&v[0]);
     if( offset < 0 ) goto NIL_RETURN;
@@ -783,7 +781,7 @@ static void c_string_split(struct VM *vm, mrbc_value v[], int argc)
   // check limit parameter.
   int limit = 0;
   if( argc >= 2 ) {
-    if( v[2].tt != MRBC_TT_INTEGER ) {
+    if( mrbc_type(v[2]) != MRBC_TT_INTEGER ) {
       console_print( "TypeError\n" );     // raise?
       return;
     }
@@ -797,7 +795,7 @@ static void c_string_split(struct VM *vm, mrbc_value v[], int argc)
 
   // check separator parameter.
   mrb_value sep = (argc == 0) ? mrbc_string_new_cstr(vm, " ") : v[1];
-  switch( sep.tt ) {
+  switch( mrbc_type(sep) ) {
   case MRBC_TT_NIL:
     sep = mrbc_string_new_cstr(vm, " ");
     break;
@@ -878,7 +876,7 @@ static void c_string_split(struct VM *vm, mrbc_value v[], int argc)
     }
   }
 
-  if( argc == 0 || v[1].tt == MRBC_TT_NIL ) {
+  if( argc == 0 || mrbc_type(v[1]) == MRBC_TT_NIL ) {
     mrbc_string_delete(&sep);
   }
 
@@ -1102,7 +1100,8 @@ static int tr_get_character( const struct tr_pattern *pat, int n_th )
 
 static int tr_main( struct VM *vm, mrbc_value v[], int argc )
 {
-  if( !(argc == 2 && v[1].tt == MRBC_TT_STRING && v[2].tt == MRBC_TT_STRING)) {
+  if( !(argc == 2 && mrbc_type(v[1]) == MRBC_TT_STRING &&
+	             mrbc_type(v[2]) == MRBC_TT_STRING)) {
     console_print("ArgumentError\n");	// raise?
     return -1;
   }
@@ -1165,7 +1164,7 @@ static void c_string_tr_self(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_string_start_with(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( !(argc == 1 && v[1].tt == MRBC_TT_STRING)) {
+  if( !(argc == 1 && mrbc_type(v[1]) == MRBC_TT_STRING)) {
     console_print("ArgumentError\n");	// raise?
     return;
   }
@@ -1187,7 +1186,7 @@ static void c_string_start_with(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_string_end_with(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( !(argc == 1 && v[1].tt == MRBC_TT_STRING)) {
+  if( !(argc == 1 && mrbc_type(v[1]) == MRBC_TT_STRING)) {
     console_print("ArgumentError\n");	// raise?
     return;
   }
@@ -1210,7 +1209,7 @@ static void c_string_end_with(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_string_include(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( !(argc == 1 && v[1].tt == MRBC_TT_STRING)) {
+  if( !(argc == 1 && mrbc_type(v[1]) == MRBC_TT_STRING)) {
     console_print("ArgumentError\n");	// raise?
     return;
   }

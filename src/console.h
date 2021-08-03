@@ -3,8 +3,8 @@
   console output module. (not yet input)
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -13,10 +13,6 @@
 
 #ifndef MRBC_SRC_CONSOLE_H_
 #define MRBC_SRC_CONSOLE_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /***** Feature test switches ************************************************/
 #include "vm_config.h"
@@ -29,6 +25,9 @@ extern "C" {
 /***** Local headers ********************************************************/
 #include "value.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /***** Constant values ******************************************************/
 /***** Macros ***************************************************************/
 #define mrb_p(vm, v)	mrbc_p(&v)

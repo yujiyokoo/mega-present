@@ -155,7 +155,7 @@ static void c_object_class(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_dup(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v->tt == MRBC_TT_OBJECT ) {
+  if( mrbc_type(v[0]) == MRBC_TT_OBJECT ) {
     mrbc_value new_obj = mrbc_instance_new(vm, v->instance->cls, 0);
     mrbc_kv_dup( &v->instance->ivar, &new_obj.instance->ivar );
 
@@ -228,6 +228,25 @@ static void c_object_p(struct VM *vm, mrbc_value v[], int argc)
   for( i = 1; i <= argc; i++ ) {
     mrbc_p_sub( &v[i] );
     console_putchar('\n');
+  }
+
+  if (argc == 0) {
+    SET_NIL_RETURN();
+  } else if (argc == 1) {
+    mrbc_incref( &v[1] );
+    SET_RETURN(v[1]);
+  } else {
+    mrbc_value value = mrbc_array_new(vm, argc);
+    if( value.array == NULL ) {
+      SET_NIL_RETURN();  // ENOMEM
+    } else {
+      for ( i = 1; i <= argc; i++ ) {
+        mrbc_incref( &v[i] );
+        value.array->data[i-1] = v[i];
+      }
+      value.array->n_stored = argc;
+      SET_RETURN(value);
+    }
   }
 }
 
@@ -465,7 +484,7 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
   static const int BUF_INC_STEP = 32;	// bytes.
 
   mrbc_value *format = &v[1];
-  if( format->tt != MRBC_TT_STRING ) {
+  if( mrbc_type(*format) != MRBC_TT_STRING ) {
     console_printf( "TypeError\n" );	// raise?
     return;
   }
@@ -602,7 +621,7 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
   char buf[32];
   const char *s = buf;
 
-  switch( v->tt ) {
+  switch( mrbc_type(v[0]) ) {
   case MRBC_TT_CLASS:
     s = symid_to_str( v->cls->sym_id );
     break;

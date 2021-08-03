@@ -3,8 +3,8 @@
   console output module. (not yet input)
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -564,7 +564,7 @@ void mrbc_printf_replace_buffer(mrbc_printf *pf, char *buf, int size)
  */
 int mrbc_p_sub(const mrbc_value *v)
 {
-  switch( v->tt ){
+  switch( mrbc_type(*v) ){
   case MRBC_TT_NIL:
     console_print("nil");
     break;
@@ -606,7 +606,7 @@ int mrbc_p_sub(const mrbc_value *v)
 
 #if 0
   // display reference counter
-  if( v->tt >= MRBC_TT_OBJECT ) {
+  if( mrbc_type(*v) >= MRBC_TT_OBJECT ) {
     console_printf("(%d)", v->instance->ref_count);
   }
 #endif
@@ -626,7 +626,7 @@ int mrbc_print_sub(const mrbc_value *v)
 {
   int ret = 0;
 
-  switch( v->tt ){
+  switch( mrbc_type(*v) ){
   case MRBC_TT_EMPTY:	console_print("(empty)");	break;
   case MRBC_TT_NIL:					break;
   case MRBC_TT_FALSE:	console_print("false");		break;
@@ -697,7 +697,7 @@ int mrbc_print_sub(const mrbc_value *v)
     break;
 
   default:
-    console_printf("Not support MRBC_TT_XX(%d)", v->tt);
+    console_printf("Not support MRBC_TT_XX(%d)", mrbc_type(*v));
     break;
   }
 
@@ -714,7 +714,7 @@ int mrbc_print_sub(const mrbc_value *v)
 */
 int mrbc_puts_sub(const mrbc_value *v)
 {
-  if( v->tt == MRBC_TT_ARRAY ) {
+  if( mrbc_type(*v) == MRBC_TT_ARRAY ) {
     int i;
     for( i = 0; i < mrbc_array_size(v); i++ ) {
       if( i != 0 ) console_putchar('\n');

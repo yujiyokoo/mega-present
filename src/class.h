@@ -22,6 +22,9 @@
 #include "keyvalue.h"
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /***** Constant values ******************************************************/
 /***** Macros ***************************************************************/
 /***** Typedefs *************************************************************/
@@ -125,10 +128,6 @@ extern struct RClass *mrbc_class_typeerror;
 
 
 /***** Function prototypes **************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 mrbc_class *mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super);
 mrbc_class *mrbc_define_builtin_class(const char *name, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method);
 void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_func_t cfunc);

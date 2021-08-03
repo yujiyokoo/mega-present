@@ -1,10 +1,10 @@
 /*! @file
   @brief
-  mruby/c Range object
+  mruby/c Range class
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -18,7 +18,6 @@
 #include "c_range.h"
 #include "c_string.h"
 #include "console.h"
-#include "opcode.h"
 
 
 //================================================================
@@ -102,7 +101,7 @@ int mrbc_range_compare(const mrbc_value *v1, const mrbc_value *v2)
 */
 static void c_range_equal3(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( v[0].tt == MRBC_TT_CLASS ) {
+  if( mrbc_type(v[0]) == MRBC_TT_CLASS ) {
     mrbc_value result = mrbc_send( vm, v, argc, &v[1], "kind_of?", 1, &v[0] );
     SET_RETURN( result );
     return;

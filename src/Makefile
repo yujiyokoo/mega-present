@@ -92,22 +92,20 @@ hal.o: $(HAL_DIR)/hal.c $(HAL_DIR)/hal.h
 alloc.o: alloc.c vm_config.h vm.h value.h class.h keyvalue.h alloc.h \
   hal_selector.h $(HAL_DIR)/hal.h console.h
 c_array.o: c_array.c vm_config.h value.h vm.h class.h keyvalue.h alloc.h \
-  c_array.h c_string.h console.h opcode.h method_table_array.h \
-  symbol_builtin.h
+  c_array.h c_string.h console.h method_table_array.h symbol_builtin.h
 c_hash.o: c_hash.c vm_config.h value.h vm.h class.h keyvalue.h alloc.h \
   c_array.h c_hash.h c_string.h method_table_hash.h symbol_builtin.h
 c_math.o: c_math.c vm_config.h value.h class.h keyvalue.h global.h \
   symbol.h symbol_builtin.h
-c_numeric.o: c_numeric.c vm_config.h opcode.h value.h class.h keyvalue.h \
-  console.h c_numeric.h vm.h c_string.h method_table_integer.h \
-  symbol_builtin.h method_table_float.h
+c_numeric.o: c_numeric.c vm_config.h value.h class.h keyvalue.h console.h \
+  c_numeric.h vm.h c_string.h method_table_integer.h symbol_builtin.h \
+  method_table_float.h
 c_object.o: c_object.c vm_config.h alloc.h value.h vm.h class.h \
   keyvalue.h symbol.h symbol_builtin.h c_string.h c_array.h c_hash.h \
   console.h opcode.h method_table_object.h method_table_proc.h \
   method_table_nil.h method_table_true.h method_table_false.h
 c_range.o: c_range.c vm_config.h value.h alloc.h class.h keyvalue.h \
-  c_range.h c_string.h console.h opcode.h method_table_range.h \
-  symbol_builtin.h
+  c_range.h c_string.h console.h method_table_range.h symbol_builtin.h
 c_string.o: c_string.c vm_config.h value.h vm.h class.h keyvalue.h \
   alloc.h symbol.h symbol_builtin.h c_array.h c_string.h console.h \
   method_table_string.h

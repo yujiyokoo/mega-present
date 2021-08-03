@@ -3,8 +3,8 @@
   mruby/c Array class
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -22,7 +22,6 @@
 #include "c_array.h"
 #include "c_string.h"
 #include "console.h"
-#include "opcode.h"
 
 /*
   function summary
@@ -697,7 +696,7 @@ static void c_array_size(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_array_index(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_value *value = &GET_ARG(1);
+  mrbc_value *value = &v[1];
   mrbc_value *data = v->array->data;
   int n = v->array->n_stored;
   int i;
