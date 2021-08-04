@@ -60,7 +60,9 @@ typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 */
 typedef enum {
   /* internal use */
-  MRBC_TT_HANDLE  = -1,
+  MRBC_TT_BREAK      = -3,  // raise-break
+  MRBC_TT_EXCEPTION  = -2,  // raise-exception
+  MRBC_TT_HANDLE     = -1,
 
   /* primitive */
   MRBC_TT_EMPTY	  = 0,
@@ -74,21 +76,16 @@ typedef enum {
   MRBC_TT_SYMBOL  = 6,
   MRBC_TT_CLASS	  = 7,
 
-  MRBC_TT_EXCEPTION  = 8,  // Exception
-  MRBC_TT_BREAK      = 9,  // Break
-
   /* non-primitive */
-  MRBC_TT_OBJECT  = 10,	// (note) inc/dec ref threshold.
-  MRBC_TT_PROC	  = 11,	// and must be same order as mrbc_delfunc[].
-  MRBC_TT_ARRAY	  = 12,
-  MRBC_TT_STRING  = 13,
-  MRBC_TT_RANGE	  = 14,
-  MRBC_TT_HASH	  = 15,
-
-  /* Internal use for exception, using in vm->exc */
-
+  MRBC_TT_OBJECT  = 8,	// (note) inc/dec ref threshold.
+  MRBC_TT_PROC	  = 9,	// and must be same order as mrbc_delfunc[].
+  MRBC_TT_ARRAY	  = 10,
+  MRBC_TT_STRING  = 11,
+  MRBC_TT_RANGE	  = 12,
+  MRBC_TT_HASH	  = 13,
 } mrbc_vtype;
 #define	MRBC_TT_INC_DEC_THRESHOLD MRBC_TT_OBJECT
+#define	MRBC_TT_MINVAL MRBC_TT_BREAK
 #define	MRBC_TT_MAXVAL MRBC_TT_HASH
 
 

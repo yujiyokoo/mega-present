@@ -155,7 +155,7 @@ void mrbc_init_class(void);
 */
 static inline mrbc_class *find_class_by_object(const mrbc_object *obj)
 {
-  assert( obj->tt > 0 );
+  assert( obj->tt >= MRBC_TT_MINVAL );
   assert( obj->tt <= MRBC_TT_MAXVAL );
 
   mrbc_class *cls = mrbc_class_tbl[ obj->tt ];
