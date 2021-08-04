@@ -31,7 +31,7 @@
 #include "c_hash.h"
 #include "console.h"
 #include "opcode.h"
-
+#include "error.h"
 
 /***** Functions ************************************************************/
 
@@ -289,31 +289,33 @@ static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( !vm->exc ){
+  if( mrbc_israised(vm->exc) ){
+    // in exception
+  } else {
     // raise exception
+    vm->exc.tt = MRBC_TT_EXCEPTION;
+
     if( argc == 0 ){
       // case 1. raise
-      vm->exc = mrbc_class_runtimeerror;
+      vm->exc.exception = mrbc_class_runtimeerror;
       vm->exc_message = mrbc_nil_value();
     } else if( argc == 1 ){
       if( mrbc_type(v[1]) == MRBC_TT_CLASS ){
         // case 3. raise Exception
-	      vm->exc = v[1].cls;
-	      vm->exc_message = mrbc_nil_value();
+	vm->exc.exception = v[1].cls;
+	vm->exc_message = mrbc_nil_value();
       } else {
-	      // case 2. raise "param"
-	      mrbc_incref( &v[1] );
-	      vm->exc = mrbc_class_runtimeerror;
-	      vm->exc_message = v[1];
+	// case 2. raise "param"
+	mrbc_incref( &v[1] );
+	vm->exc.exception = mrbc_class_runtimeerror;
+	vm->exc_message = v[1];
       }
     } else if( argc == 2 ){
       // case 4. raise Exception, "param"
       mrbc_incref( &v[2] );
-      vm->exc = v[1].cls;
+      vm->exc.exception = v[1].cls;
       vm->exc_message = v[2];
     }
-  } else {
-    // in exception
   }
 
   // NOT to return to OP_SEND

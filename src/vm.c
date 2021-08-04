@@ -25,6 +25,7 @@
 #include "class.h"
 #include "symbol.h"
 #include "console.h"
+#include "error.h"
 
 #include "c_object.h"
 #include "c_string.h"
@@ -101,7 +102,7 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
     method.func(vm, regs + a, c);
     if( method.func == c_proc_call ) return 0;
     //    if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
-    if( vm->exc != NULL ) return 0;
+    if( mrbc_israised(vm->exc) ) return 0;
 
     int release_reg = a+1;
     while( release_reg <= bidx ) {
@@ -922,7 +923,7 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
     vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
   } else {
     vm->inst += (int16_t)a;
-    vm->exc = 0;
+    vm->exc = mrbc_nil_value();
   }
 
   return 0;
@@ -943,11 +944,13 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  //  console_printf("OP_EXCEPT\n");
+
   mrbc_decref( &regs[a] );
-  if( vm->exc != NULL ){
-    regs[a].tt = MRBC_TT_CLASS;
-    regs[a].cls = vm->exc;
-    vm->exc = NULL;
+  if( mrbc_israised(vm->exc) ){
+    mrbc_incref( &regs[a] );
+    regs[a] = vm->exc;
+    vm->exc = mrbc_nil_value();
   } else {
     regs[a] = mrbc_nil_value();
   }
@@ -970,13 +973,14 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   //assert( regs[a].tt == MRBC_TT_CLASS );
-  assert( regs[b].tt == MRBC_TT_CLASS );
+  //assert( regs[b].tt == MRBC_TT_CLASS );
+
   mrbc_class *cls = regs[a].cls;
   while( cls != NULL ){
     if( regs[b].cls == cls ){
       mrbc_decref( &regs[b] );
       regs[b] = mrbc_true_value();
-      vm->exc = 0;
+      vm->exc = mrbc_nil_value();
       return 0;
     }
     cls = cls->super;
@@ -1002,9 +1006,10 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrb_value *exc = &regs[a];
+  //  console_printf("OP_RAISEIF tt:%d\n", regs[0].tt);
+
   mrbc_incref( &regs[a] );
-  vm->exc = exc;
+  vm->exc = regs[a];
 
   return 0;
 }
@@ -2685,8 +2690,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->callinfo_tail = NULL;
   vm->target_class = mrbc_class_object;
 
-  vm->exc = 0;
-  //  vm->exception_tail = 0;
+  vm->exc = mrbc_nil_value();
 
   vm->error_code = 0;
   vm->flag_preemption = 0;
@@ -2847,7 +2851,7 @@ int mrbc_vm_run( struct VM *vm )
     }
 
     // Handle exception
-    if( vm->exc ){
+    if( mrbc_israised(vm->exc) ){
       // check
       const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ALL);
       if( handler != NULL ){

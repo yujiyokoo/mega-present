@@ -74,16 +74,18 @@ typedef enum {
   MRBC_TT_SYMBOL  = 6,
   MRBC_TT_CLASS	  = 7,
 
-  /* non-primitive */
-  MRBC_TT_OBJECT  = 8,	// (note) inc/dec ref threshold.
-  MRBC_TT_PROC	  = 9,	// and must be same order as mrbc_delfunc[].
-  MRBC_TT_ARRAY	  = 10,
-  MRBC_TT_STRING  = 11,
-  MRBC_TT_RANGE	  = 12,
-  MRBC_TT_HASH	  = 13,
+  MRBC_TT_EXCEPTION  = 8,  // Exception
+  MRBC_TT_BREAK      = 9,  // Break
 
-  /* Internal use */
-  MRBC_TT_BREAK   = 14,  // Exception and break
+  /* non-primitive */
+  MRBC_TT_OBJECT  = 10,	// (note) inc/dec ref threshold.
+  MRBC_TT_PROC	  = 11,	// and must be same order as mrbc_delfunc[].
+  MRBC_TT_ARRAY	  = 12,
+  MRBC_TT_STRING  = 13,
+  MRBC_TT_RANGE	  = 14,
+  MRBC_TT_HASH	  = 15,
+
+  /* Internal use for exception, using in vm->exc */
 
 } mrbc_vtype;
 #define	MRBC_TT_INC_DEC_THRESHOLD MRBC_TT_OBJECT
@@ -152,6 +154,7 @@ struct RObject {
     struct RString *string;	// MRBC_TT_STRING
     struct RRange *range;	// MRBC_TT_RANGE
     struct RHash *hash;		// MRBC_TT_HASH
+    struct Rclass *exception;   // MRBC_TT_EXCEPTION, MRBC_TT_BREAK
     void *handle;		// internal use only.
   };
 };

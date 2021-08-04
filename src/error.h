@@ -25,6 +25,8 @@ extern "C" {
 void mrbc_init_class_exception(struct VM *vm);
 
 
+#define mrbc_israised(v) (!(v.tt == MRBC_TT_NIL))
+
 #ifdef __cplusplus
 }
 #endif

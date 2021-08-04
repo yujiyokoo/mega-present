@@ -35,7 +35,8 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
 
 void mrbc_raiseX(mrbc_vm *vm, mrbc_error_code err, char *msg)
 {
-  vm->exc = mrbc_class_runtimeerror;
+  vm->exc.tt = MRBC_TT_EXCEPTION;
+  vm->exc.exception = mrbc_class_runtimeerror;
   // vm->exc_message = mrbc_nil_value();
   // if( vm->exception_tail == NULL ) return;
 }
