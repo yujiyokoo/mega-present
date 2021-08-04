@@ -151,7 +151,7 @@ struct RObject {
     struct RString *string;	// MRBC_TT_STRING
     struct RRange *range;	// MRBC_TT_RANGE
     struct RHash *hash;		// MRBC_TT_HASH
-    struct Rclass *exception;   // MRBC_TT_EXCEPTION, MRBC_TT_BREAK
+    struct RClass *exception;   // MRBC_TT_EXCEPTION, MRBC_TT_BREAK
     void *handle;		// internal use only.
   };
 };
