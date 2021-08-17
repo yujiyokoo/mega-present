@@ -153,6 +153,7 @@ struct RObject {
     struct RHash *hash;		// MRBC_TT_HASH
     struct RClass *exception;   // MRBC_TT_EXCEPTION, MRBC_TT_BREAK
     void *handle;		// internal use only.
+    const uint8_t *jmpuw;       // jump point from break
   };
 };
 typedef struct RObject mrb_object;	// not recommended.
