@@ -914,13 +914,13 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
-  
-  
   // Check ensure
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ENSURE);
   if( handler ){
     //    vm->catch_stack[ vm->catch_stack_idx++ ] = vm->inst + (int16_t)a;
     vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
+    vm->exc.tt = MRBC_TT_BREAK;
+    vm->exc.jmpuw = vm->inst + (int16_t)a;
   } else {
     vm->inst += (int16_t)a;
     vm->exc = mrbc_nil_value();
@@ -944,11 +944,8 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  //  console_printf("OP_EXCEPT\n");
-
   mrbc_decref( &regs[a] );
   if( mrbc_israised(vm->exc) ){
-    mrbc_incref( &regs[a] );
     regs[a] = vm->exc;
     vm->exc = mrbc_nil_value();
   } else {
@@ -1008,8 +1005,14 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 
   //  console_printf("OP_RAISEIF tt:%d\n", regs[0].tt);
 
-  mrbc_incref( &regs[a] );
-  vm->exc = regs[a];
+  mrb_value *exc = &regs[a];
+
+  if( exc->tt == MRBC_TT_BREAK ){
+    vm->inst = exc->jmpuw;
+  } else {
+    mrbc_incref( &regs[a] );
+    vm->exc = regs[a];
+  }
 
   return 0;
 }
