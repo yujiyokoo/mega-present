@@ -146,7 +146,7 @@ void mrbc_cleanup_vm(void)
 const char *mrbc_get_callee_name( struct VM *vm )
 {
   uint8_t rb = vm->inst[-2];
-  return mrbc_irep_symbol_cstr(vm, rb);
+  return mrbc_irep_symbol_cstr(vm->pc_irep, rb);
 }
 
 
@@ -439,7 +439,7 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id( vm, b ));
+  mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id(vm->pc_irep, b));
 
   return 0;
 }
@@ -459,7 +459,7 @@ static inline int op_loadsym16( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   mrbc_decref(&regs[a]);
-  mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id( vm, b ));
+  mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id(vm->pc_irep, b));
 
   return 0;
 }
@@ -562,7 +562,7 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  mrbc_value *v = mrbc_get_global( mrbc_irep_symbol_id(vm, b) );
+  mrbc_value *v = mrbc_get_global( mrbc_irep_symbol_id(vm->pc_irep, b) );
   if( v == NULL ) {
     mrbc_set_nil(&regs[a]);
   } else {
@@ -588,7 +588,7 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_incref(&regs[a]);
-  mrbc_set_global( mrbc_irep_symbol_id(vm, b), &regs[a] );
+  mrbc_set_global( mrbc_irep_symbol_id(vm->pc_irep, b), &regs[a] );
 
   return 0;
 }
@@ -607,7 +607,7 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_irep_symbol_cstr(vm, b);
+  const char *sym_name = mrbc_irep_symbol_cstr(vm->pc_irep, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
   mrbc_value *self = mrbc_get_self( vm, regs );
 
@@ -631,7 +631,7 @@ static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_irep_symbol_cstr(vm, b);
+  const char *sym_name = mrbc_irep_symbol_cstr(vm->pc_irep, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
   mrbc_value *self = mrbc_get_self( vm, regs );
 
@@ -654,7 +654,7 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_sym sym_id = mrbc_irep_symbol_id(vm, b);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->pc_irep, b);
   mrbc_class *cls = NULL;
   mrbc_value *v;
 
@@ -694,7 +694,7 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_sym sym_id = mrbc_irep_symbol_id(vm, b);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->pc_irep, b);
 
   mrbc_incref(&regs[a]);
   if( mrbc_type(regs[0]) == MRBC_TT_CLASS ) {
@@ -720,7 +720,7 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_sym sym_id = mrbc_irep_symbol_id(vm, b);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->pc_irep, b);
   mrbc_class *cls = regs[a].cls;
   mrbc_value *v;
 
@@ -1031,7 +1031,7 @@ static inline int op_sendv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  return send_by_name( vm, mrbc_irep_symbol_id(vm, b), regs, a, CALL_MAXARGS, 0 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm->pc_irep, b), regs, a, CALL_MAXARGS, 0 );
 }
 
 
@@ -1048,7 +1048,7 @@ static inline int op_sendvb( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  return send_by_name( vm, mrbc_irep_symbol_id(vm, b), regs, a, CALL_MAXARGS, 1 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm->pc_irep, b), regs, a, CALL_MAXARGS, 1 );
 }
 
 
@@ -1065,7 +1065,7 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BBB();
 
-  return send_by_name( vm, mrbc_irep_symbol_id(vm, b), regs, a, c, 0 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm->pc_irep, b), regs, a, c, 0 );
 }
 
 
@@ -1082,7 +1082,7 @@ static inline int op_sendb( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BBB();
 
-  return send_by_name( vm, mrbc_irep_symbol_id(vm, b), regs, a, c, 1 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm->pc_irep, b), regs, a, c, 1 );
 }
 
 
@@ -2234,7 +2234,7 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm, b));
+  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm->pc_irep, b));
   if( !val.proc ) return -1;	// ENOMEM
 
   mrbc_decref(&regs[a]);
@@ -2257,7 +2257,7 @@ static inline int op_method16( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BS();
 
-  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm, b));
+  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm->pc_irep, b));
   if( !val.proc ) return -1;	// ENOMEM
 
   mrbc_decref(&regs[a]);
@@ -2303,7 +2303,7 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *class_name = mrbc_irep_symbol_cstr(vm, b);
+  const char *class_name = mrbc_irep_symbol_cstr(vm->pc_irep, b);
   mrbc_class *super = (regs[a+1].tt == MRBC_TT_CLASS) ? regs[a+1].cls : 0;
   mrbc_class *cls = mrbc_define_class(vm, class_name, super);
   if( !cls ) return -1;		// ENOMEM
@@ -2335,7 +2335,7 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0, 0);
 
   // target irep
-  vm->pc_irep = mrbc_irep_child_irep(vm, b);
+  vm->pc_irep = mrbc_irep_child_irep(vm->pc_irep, b);
   vm->inst = vm->pc_irep->code;
 
   // new regs and class
@@ -2364,7 +2364,7 @@ static inline int op_exec16( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0, 0);
 
   // target irep
-  vm->pc_irep = mrbc_irep_child_irep(vm, b);
+  vm->pc_irep = mrbc_irep_child_irep(vm->pc_irep, b);
   vm->inst = vm->pc_irep->code;
 
   // new regs and class
@@ -2392,7 +2392,7 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[a+1].tt == MRBC_TT_PROC );
 
   mrbc_class *cls = regs[a].cls;
-  mrbc_sym sym_id = mrbc_irep_symbol_id(vm, b);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->pc_irep, b);
   mrbc_proc *proc = regs[a+1].proc;
 
   mrbc_method *method = mrbc_raw_alloc( sizeof(mrbc_method) );
@@ -2442,8 +2442,8 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_sym sym_id_new = mrbc_irep_symbol_id(vm, a);
-  mrbc_sym sym_id_org = mrbc_irep_symbol_id(vm, b);
+  mrbc_sym sym_id_new = mrbc_irep_symbol_id(vm->pc_irep, a);
+  mrbc_sym sym_id_org = mrbc_irep_symbol_id(vm->pc_irep, b);
   mrbc_class *cls = vm->target_class;
   mrbc_method method_org;
 

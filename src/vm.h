@@ -45,6 +45,7 @@ typedef struct IREP {
   uint16_t ilen;		//!< # of bytes in OpCode
   uint16_t plen;		//!< # of pools
   uint16_t slen;		//!< # of symbols
+  uint16_t ofs_ireps;		//!< offset of data->tbl_ireps. (32bit aligned)
 
   const uint8_t *code;		//!< pointer to byte-code in RITE binary
   const uint8_t *pool;		//!< pointer to pool in RITE binary
@@ -55,6 +56,34 @@ typedef struct IREP {
 				//!<  mrbc_irep *tbl_ireps[rlen]
 } mrbc_irep;
 typedef struct IREP mrb_irep;
+
+// mrbc_irep manipulate macro.
+//! get a symbol id table pointer.
+#define mrbc_irep_tbl_syms(irep)  ((mrbc_sym *)(irep)->data)
+
+//! get a n'th symbol id in irep
+#define mrbc_irep_symbol_id(irep, n)	mrbc_irep_tbl_syms(irep)[(n)]
+
+//! get a n'th symbol string in irep
+#define mrbc_irep_symbol_cstr(irep, n)	mrbc_symid_to_str( mrbc_irep_symbol_id(irep, n) )
+
+
+//! get a pool data offset table pointer.
+#define mrbc_irep_tbl_pools(irep) \
+  ( (uint16_t *) ((irep)->data + (irep)->slen * sizeof(mrbc_sym)) )
+
+//! get a pointer to n'th pool data.
+#define mrbc_irep_pool_ptr(irep, n) \
+  ( (irep)->pool + mrbc_irep_tbl_pools(irep)[(n)] )
+
+
+//! get a child irep table pointer.
+#define mrbc_irep_tbl_ireps(irep) \
+  ( (mrbc_irep **) ((irep)->data + (irep)->ofs_ireps * 4) )
+
+//! get a n'th child irep
+#define mrbc_irep_child_irep(irep, n)	( mrbc_irep_tbl_ireps(irep)[(n)] )
+
 
 
 //================================================================
@@ -153,24 +182,23 @@ int mrbc_vm_run(struct VM *vm);
 */
 static inline uint32_t bin_to_uint32( const void *s )
 {
-  // Little endian, no alignment.
-  //  e.g. ARM Coretex-M4, Intel x86
 #if defined(MRBC_LITTLE_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Little endian, no alignment.
+  //  e.g. ARM Cortex-M4, Intel x86
   uint32_t x = *((uint32_t *)s);
-  return (x << 24) | ((x & 0xff00) << 8) | ((x >> 8) & 0xff00) | (x >> 24);
+  x = (x << 24) | ((x & 0xff00) << 8) | ((x >> 8) & 0xff00) | (x >> 24);
 
+#elif defined(MRBC_BIG_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
   // Big endian, no alignment.
   //  e.g. IBM PPC405
-#elif defined(MRBC_BIG_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
   uint32_t x = *((uint32_t *)s);
-  return x;
 
+#elif defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
   // 32bit alignment required.
   // Little endian
-  //  e.g. ARM Coretex-M0
+  //  e.g. ARM Cortex-M0
   // Big endian
   //  e.g. OpenRISC
-#elif defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
   uint8_t *p = (uint8_t *)s;
   uint32_t x = *p++;
   x <<= 8;
@@ -179,11 +207,12 @@ static inline uint32_t bin_to_uint32( const void *s )
   x |= *p++;
   x <<= 8;
   x |= *p;
-  return x;
 
 #else
   #error "Specify MRBC_BIG_ENDIAN or MRBC_LITTLE_ENDIAN"
 #endif
+
+  return x;
 }
 
 
@@ -195,25 +224,24 @@ static inline uint32_t bin_to_uint32( const void *s )
 */
 static inline uint16_t bin_to_uint16( const void *s )
 {
-  // Little endian, no alignment.
 #if defined(MRBC_LITTLE_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Little endian, no alignment.
   uint16_t x = *((uint16_t *)s);
-  return (x << 8) | (x >> 8);
+  x = (x << 8) | (x >> 8);
 
-  // Big endian, no alignment.
 #elif defined(MRBC_BIG_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Big endian, no alignment.
   uint16_t x = *((uint16_t *)s);
-  return x;
 
-  // 32bit alignment required.
 #elif defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // 32bit alignment required.
   uint8_t *p = (uint8_t *)s;
   uint16_t x = *p++;
   x <<= 8;
   x |= *p;
-  return x;
-
 #endif
+
+  return x;
 }
 
 

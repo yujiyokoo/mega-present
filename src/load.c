@@ -253,14 +253,15 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
     p += len;
   }
 
-  // SYMS block
+  // # of symbols, offset of tbl_ireps.
   irep.slen = bin_to_uint16(p);		p += 2;
+  int ofs = sizeof(mrbc_sym) * irep.slen + sizeof(uint16_t) * irep.plen;
+  ofs += (-ofs & 0x03);	// padding. 32bit align.
+  irep.ofs_ireps = ofs >> 2;
 
   // allocate new irep
-  mrbc_irep *p_irep = mrbc_alloc(vm, sizeof(mrbc_irep)
-				   + sizeof(mrbc_sym) * irep.slen
-				   + sizeof(uint16_t) * irep.plen
-				   + sizeof(mrbc_irep*) * irep.rlen );
+  mrbc_irep *p_irep = mrbc_alloc(vm, sizeof(mrbc_irep) + ofs
+				 + sizeof(mrbc_irep*) * irep.rlen);
   if( !p_irep ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
     return NULL;
@@ -391,7 +392,7 @@ void mrbc_irep_free(struct IREP *irep)
 mrbc_value mrbc_irep_pool_value(struct VM *vm, int n)
 {
   assert( vm->pc_irep->plen > n );
-  const uint8_t *p = mrbc_irep_pool_ptr(vm, n);
+  const uint8_t *p = mrbc_irep_pool_ptr(vm->pc_irep, n);
   mrbc_value obj;
 
   int tt = *p++;
