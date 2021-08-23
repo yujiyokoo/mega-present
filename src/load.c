@@ -64,7 +64,7 @@ static inline double bin_to_double64( const void *p )
 
 #if defined(MRBC_LITTLE_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
   // Little endian, no alignment.
-  //  e.g. ARM Coretex-M3, Intel x86
+  //  e.g. ARM Cortex-M3, Intel x86
   memcpy(&value, p, 8);
 
 #elif defined(MRBC_BIG_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
@@ -78,7 +78,7 @@ static inline double bin_to_double64( const void *p )
 
 #elif defined(MRBC_LITTLE_ENDIAN) && defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
   // Little endian, 32bit alignment required.
-  //  e.g. ARM Coretex-M0
+  //  e.g. ARM Cortex-M0
   int i;
   uint8_t *p2 = (uint8_t*)&value;
   for( i = 7; i >= 0; i-- ) {
@@ -115,7 +115,7 @@ static inline int64_t bin_to_int64( const void *p )
 
 #if defined(MRBC_LITTLE_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
   // Little endian, no alignment.
-  //  e.g. ARM Coretex-M3, Intel x86
+  //  e.g. ARM Cortex-M3, Intel x86
   int i;
   uint8_t *p2 = (uint8_t*)&value;
   for( i = 7; i >= 0; i-- ) {
@@ -129,7 +129,7 @@ static inline int64_t bin_to_int64( const void *p )
 
 #elif defined(MRBC_LITTLE_ENDIAN) && defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
   // Little endian, 32bit alignment required.
-  //  e.g. ARM Coretex-M0
+  //  e.g. ARM Cortex-M0
   int i;
   uint8_t *p2 = (uint8_t*)&value;
   for( i = 7; i >= 0; i-- ) {
