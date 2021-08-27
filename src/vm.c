@@ -917,7 +917,6 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
   // Check ensure
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ENSURE);
   if( handler ){
-    //    vm->catch_stack[ vm->catch_stack_idx++ ] = vm->inst + (int16_t)a;
     vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
     vm->exc.tt = MRBC_TT_BREAK;
     vm->exc.jmpuw = vm->inst + (int16_t)a;
@@ -2856,7 +2855,7 @@ int mrbc_vm_run( struct VM *vm )
     // Handle exception
     if( mrbc_israised(vm->exc) ){
       // check
-      const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ALL);
+      const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_RESCUE);
       if( handler != NULL ){
 	vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
       }
