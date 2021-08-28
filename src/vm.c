@@ -102,7 +102,7 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
     method.func(vm, regs + a, c);
     if( method.func == c_proc_call ) return 0;
     //    if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
-    if( mrbc_israised(vm->exc) ) return 0;
+    if( mrbc_israised(vm) ) return 0;
 
     int release_reg = a+1;
     while( release_reg <= bidx ) {
@@ -944,7 +944,7 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_decref( &regs[a] );
-  if( mrbc_israised(vm->exc) ){
+  if( mrbc_israised(vm) ){
     regs[a] = vm->exc;
     vm->exc = mrbc_nil_value();
   } else {
@@ -2853,9 +2853,9 @@ int mrbc_vm_run( struct VM *vm )
     }
 
     // Handle exception
-    if( mrbc_israised(vm->exc) ){
+    if( mrbc_israised(vm) ){
       // check
-      const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_RESCUE);
+      const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ALL);
       if( handler != NULL ){
 	vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
       }

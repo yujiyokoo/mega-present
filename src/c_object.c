@@ -289,7 +289,7 @@ static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( mrbc_israised(vm->exc) ){
+  if( mrbc_israised(vm) ){
     // in exception
   } else {
     // raise exception
