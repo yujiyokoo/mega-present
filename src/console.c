@@ -696,6 +696,10 @@ int mrbc_print_sub(const mrbc_value *v)
     console_printf( "#<Handle:%08x>", v->handle );
     break;
 
+  case MRBC_TT_EXCEPTION:
+    console_printf( "#<%s>", symid_to_str(v->cls->sym_id));
+    break;
+    
   default:
     console_printf("Not support MRBC_TT_XX(%d)", mrbc_type(*v));
     break;
