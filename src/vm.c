@@ -968,8 +968,8 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  //  assert( regs[a].tt == MRBC_TT_CLASS );
-  //  assert( regs[b].tt == MRBC_TT_CLASS );
+  assert( regs[a].tt == MRBC_TT_EXCEPTION );
+  assert( regs[b].tt == MRBC_TT_CLASS );
 
   mrbc_class *cls = regs[a].cls;
   while( cls != NULL ){
