@@ -35,7 +35,7 @@ extern "C" {
 */
 typedef struct IREP {
 #if defined(MRBC_DEBUG)
-  uint8_t type[2];		//!< # for debug.
+  uint8_t type[2];		//!< # set "RP" for debug.
 #endif
 
   uint16_t nlocals;		//!< # of local variables
