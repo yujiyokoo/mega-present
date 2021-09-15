@@ -138,6 +138,7 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id);
 void mrbc_instance_clear_vm_id(mrbc_value *v);
 mrbc_value mrbc_proc_new(struct VM *vm, void *irep);
 void mrbc_proc_delete(mrbc_value *val);
+void mrbc_proc_clear_vm_id(mrbc_value *v);
 int mrbc_obj_is_kind_of(const mrbc_value *obj, const mrb_class *cls);
 mrbc_method *mrbc_find_method(mrbc_method *r_method, mrbc_class *cls, mrbc_sym sym_id);
 mrbc_class *mrbc_get_class_by_name(const char *name);

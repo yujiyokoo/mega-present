@@ -153,6 +153,7 @@ void mrbc_clear_vm_id(mrbc_value *v)
 {
   switch( mrbc_type(*v) ) {
   case MRBC_TT_OBJECT:	mrbc_instance_clear_vm_id(v);	break;
+  case MRBC_TT_PROC:	mrbc_proc_clear_vm_id(v);	break;
   case MRBC_TT_ARRAY:	mrbc_array_clear_vm_id(v);	break;
 #if MRBC_USE_STRING
   case MRBC_TT_STRING:	mrbc_string_clear_vm_id(v);	break;
