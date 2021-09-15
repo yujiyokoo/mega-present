@@ -158,7 +158,7 @@ void mrbc_init_class(void);
 static inline mrbc_class *find_class_by_object(const mrbc_object *obj)
 {
   if( mrbc_type(*obj) == MRBC_TT_EXCEPTION ) {
-    return mrbc_class_runtimeerror;
+    return obj->cls;
   }
 
   assert( mrbc_type(*obj) >= 0 );
