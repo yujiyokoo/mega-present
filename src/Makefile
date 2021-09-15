@@ -22,7 +22,11 @@ $(TARGET): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 
 clean:
-	@rm -Rf $(TARGET) $(OBJS) *~
+	@rm -f $(TARGET) $(OBJS) *~
+
+clean_all:	clean
+	@rm -f $(AUTOGEN_SYMBOL_TABLE) $(AUTOGEN_METHOD_TABLE)
+
 
 
 # Auto generated files.
@@ -36,24 +40,6 @@ AUTOGEN_METHOD_TABLE = method_table_array.h method_table_false.h \
   method_table_math.h method_table_nil.h method_table_object.h \
   method_table_proc.h method_table_range.h method_table_string.h \
   method_table_symbol.h method_table_true.h
-
-autogen: symboltable methodtable
-
-autogen_clean:
-	@rm -f $(AUTOGEN_SYMBOL_TABLE) $(AUTOGEN_METHOD_TABLE)
-
-symboltable:
-	$(MAKE_SYMBOL_TABLE) -a -v
-
-methodtable:
-	$(MAKE_METHOD_TABLE) c_array.c
-	$(MAKE_METHOD_TABLE) c_hash.c
-	$(MAKE_METHOD_TABLE) c_math.c
-	$(MAKE_METHOD_TABLE) c_numeric.c
-	$(MAKE_METHOD_TABLE) c_object.c
-	$(MAKE_METHOD_TABLE) c_range.c
-	$(MAKE_METHOD_TABLE) c_string.c
-	$(MAKE_METHOD_TABLE) symbol.c
 
 $(AUTOGEN_SYMBOL_TABLE): $(AUTOGEN_METHOD_TABLE)
 	$(MAKE_SYMBOL_TABLE) -a

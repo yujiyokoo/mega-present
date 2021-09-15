@@ -52,7 +52,7 @@ def output_header_file( param )
   file.puts "  };"
   file.puts
 
-  file.puts "  return mrbc_define_builtin_class(\"#{param[:class]}\", #{param[:super]}, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );"
+  file.puts "  return mrbc_define_builtin_class(MRBC_SYM(#{param[:class]}), #{param[:super]}, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );"
   file.puts "}"
 
   file.close

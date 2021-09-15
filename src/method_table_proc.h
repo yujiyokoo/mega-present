@@ -23,5 +23,5 @@ struct RClass *mrbc_init_class_proc(struct VM *vm)
 #endif
   };
 
-  return mrbc_define_builtin_class("Proc", mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
+  return mrbc_define_builtin_class(MRBC_SYM(Proc), mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
 }

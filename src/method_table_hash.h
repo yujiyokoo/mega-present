@@ -55,5 +55,5 @@ struct RClass *mrbc_init_class_hash(struct VM *vm)
     c_hash_values,
   };
 
-  return mrbc_define_builtin_class("Hash", mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
+  return mrbc_define_builtin_class(MRBC_SYM(Hash), mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
 }

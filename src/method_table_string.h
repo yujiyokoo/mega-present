@@ -83,5 +83,5 @@ struct RClass *mrbc_init_class_string(struct VM *vm)
     c_string_tr_self,
   };
 
-  return mrbc_define_builtin_class("String", mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
+  return mrbc_define_builtin_class(MRBC_SYM(String), mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
 }

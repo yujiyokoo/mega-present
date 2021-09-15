@@ -93,5 +93,5 @@ struct RClass *mrbc_init_class_object(struct VM *vm)
 #endif
   };
 
-  return mrbc_define_builtin_class("Object", 0, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
+  return mrbc_define_builtin_class(MRBC_SYM(Object), 0, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
 }

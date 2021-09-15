@@ -53,5 +53,5 @@ struct RClass *mrbc_init_class_math_sub(struct VM *vm)
     c_math_tanh,
   };
 
-  return mrbc_define_builtin_class("Math", mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
+  return mrbc_define_builtin_class(MRBC_SYM(Math), mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
 }

@@ -129,7 +129,7 @@ extern struct RClass *mrbc_class_typeerror;
 
 /***** Function prototypes **************************************************/
 mrbc_class *mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super);
-mrbc_class *mrbc_define_builtin_class(const char *name, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method);
+mrbc_class *mrbc_define_builtin_class(mrbc_sym name_sym_id, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method);
 void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_func_t cfunc);
 mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size);
 void mrbc_instance_delete(mrbc_value *v);

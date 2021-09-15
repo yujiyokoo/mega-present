@@ -19,5 +19,5 @@ struct RClass *mrbc_init_class_true(struct VM *vm)
 #endif
   };
 
-  return mrbc_define_builtin_class("TrueClass", mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
+  return mrbc_define_builtin_class(MRBC_SYM(TrueClass), mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
 }

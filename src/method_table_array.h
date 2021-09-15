@@ -73,5 +73,5 @@ struct RClass *mrbc_init_class_array(struct VM *vm)
     c_array_unshift,
   };
 
-  return mrbc_define_builtin_class("Array", mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
+  return mrbc_define_builtin_class(MRBC_SYM(Array), mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
 }

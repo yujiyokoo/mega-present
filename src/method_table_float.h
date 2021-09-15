@@ -35,5 +35,5 @@ struct RClass *mrbc_init_class_float(struct VM *vm)
 #endif
   };
 
-  return mrbc_define_builtin_class("Float", mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
+  return mrbc_define_builtin_class(MRBC_SYM(Float), mrbc_class_object, method_symbols, method_functions, sizeof(method_symbols)/sizeof(mrbc_sym) );
 }
