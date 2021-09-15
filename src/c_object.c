@@ -69,7 +69,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   v[0] = new_obj;
   mrbc_incref(&new_obj);
 
-  mrbc_irep *org_pc_irep = vm->pc_irep;
+  const mrbc_irep *org_pc_irep = vm->pc_irep;
   mrbc_value* org_regs = vm->current_regs;
   const uint8_t *org_inst = vm->inst;
 
@@ -472,7 +472,7 @@ static void c_object_attr_accessor(struct VM *vm, mrbc_value v[], int argc)
     strcat(namebuf, "=");
     mrbc_symbol_new(vm, namebuf);
     mrbc_define_method(vm, v[0].cls, namebuf, c_object_setiv);
-    mrbc_raw_free(namebuf);
+    mrbc_free(vm, namebuf);
   }
 }
 

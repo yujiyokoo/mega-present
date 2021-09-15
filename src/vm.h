@@ -114,7 +114,7 @@ typedef struct IREP_CATCH_HANDLER {
 */
 typedef struct CALLINFO {
   struct CALLINFO *prev;	//!< previous linked list.
-  mrbc_irep *pc_irep;		//!< copy from mrbc_vm.
+  const mrbc_irep *pc_irep;	//!< copy from mrbc_vm.
   const uint8_t *inst;		//!< copy from mrbc_vm.
   mrbc_value *current_regs;	//!< copy from mrbc_vm.
   mrbc_class *target_class;	//!< copy from mrbc_vm.
@@ -134,9 +134,8 @@ typedef struct VM {
   mrbc_irep *irep;
 
   uint8_t vm_id;	// vm_id : 1..n
-  const uint8_t *mrb;	// bytecode
 
-  mrbc_irep *pc_irep;	// PC
+  const mrbc_irep *pc_irep;	// PC
   const uint8_t *inst;	// instruction
 
   mrbc_value    regs[MAX_REGS_SIZE];

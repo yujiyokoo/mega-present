@@ -107,6 +107,7 @@ void mrbc_array_delete(mrbc_value *ary)
 }
 
 
+#if defined(MRBC_ALLOC_VMID)
 //================================================================
 /*! clear vm_id
 
@@ -124,6 +125,7 @@ void mrbc_array_clear_vm_id(mrbc_value *ary)
     mrbc_clear_vm_id(p1++);
   }
 }
+#endif
 
 
 //================================================================

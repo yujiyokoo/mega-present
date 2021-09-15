@@ -85,7 +85,6 @@ typedef enum {
   MRBC_TT_HASH	  = 13,
 } mrbc_vtype;
 #define	MRBC_TT_INC_DEC_THRESHOLD MRBC_TT_OBJECT
-#define	MRBC_TT_MINVAL MRBC_TT_BREAK
 #define	MRBC_TT_MAXVAL MRBC_TT_HASH
 
 

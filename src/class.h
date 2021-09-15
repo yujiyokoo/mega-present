@@ -135,6 +135,7 @@ mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size);
 void mrbc_instance_delete(mrbc_value *v);
 void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v);
 mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id);
+void mrbc_instance_clear_vm_id(mrbc_value *v);
 mrbc_value mrbc_proc_new(struct VM *vm, void *irep);
 void mrbc_proc_delete(mrbc_value *val);
 int mrbc_obj_is_kind_of(const mrbc_value *obj, const mrb_class *cls);
@@ -155,7 +156,7 @@ void mrbc_init_class(void);
 */
 static inline mrbc_class *find_class_by_object(const mrbc_object *obj)
 {
-  assert( obj->tt >= MRBC_TT_MINVAL );
+  assert( obj->tt >= 0 );
   assert( obj->tt <= MRBC_TT_MAXVAL );
 
   mrbc_class *cls = mrbc_class_tbl[ obj->tt ];

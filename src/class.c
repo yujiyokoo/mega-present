@@ -69,27 +69,27 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
   mrbc_sym sym_id = str_to_symid(name);
   mrbc_object *obj = mrbc_get_const( sym_id );
 
-  // create a new class?
-  if( obj == NULL ) {
-    mrbc_class *cls = mrbc_raw_alloc_no_free( sizeof(mrbc_class) );
-    if( !cls ) return cls;	// ENOMEM
-
-    cls->sym_id = sym_id;
-    cls->num_builtin_method = 0;
-#ifdef MRBC_DEBUG
-    cls->names = name;	// for debug; delete soon.
-#endif
-    cls->super = (super == NULL) ? mrbc_class_object : super;
-    cls->method_link = 0;
-
-    // register to global constant.
-    mrbc_set_const( sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = cls} );
-    return cls;
+  // already defined
+  if( obj ) {
+    assert( mrbc_type(*obj) == MRBC_TT_CLASS );
+    return obj->cls;
   }
 
-  // already
-  assert( mrbc_type(*obj) == MRBC_TT_CLASS );
-  return obj->cls;
+  // create a new class.
+  mrbc_class *cls = mrbc_raw_alloc_no_free( sizeof(mrbc_class) );
+  if( !cls ) return cls;	// ENOMEM
+
+  cls->sym_id = sym_id;
+  cls->num_builtin_method = 0;
+#ifdef MRBC_DEBUG
+  cls->names = name;	// for debug; delete soon.
+#endif
+  cls->super = super ? super : mrbc_class_object;
+  cls->method_link = 0;
+
+  // register to global constant.
+  mrbc_set_const( sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = cls} );
+  return cls;
 }
 
 
@@ -102,6 +102,8 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
   @param  method_functions
   @param  num_builtin_method
   @return		pointer to defined class.
+  @note
+   called by auto-generated function created by make_method_table.rb
 */
 mrbc_class * mrbc_define_builtin_class(const char *name, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method)
 {
@@ -217,6 +219,20 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
   mrbc_incref(v);
   return *v;
 }
+
+
+#if defined(MRBC_ALLOC_VMID)
+//================================================================
+/*! clear vm_id
+
+  @param  v		pointer to target.
+*/
+void mrbc_instance_clear_vm_id(mrbc_value *v)
+{
+  mrbc_set_vm_id( v->instance, 0 );
+  mrbc_kv_clear_vm_id( &v->instance->ivar );
+}
+#endif
 
 
 //================================================================

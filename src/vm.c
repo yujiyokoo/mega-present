@@ -974,7 +974,6 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
   mrbc_class *cls = regs[a].cls;
   while( cls != NULL ){
     if( regs[b].cls == cls ){
-      mrbc_decref( &regs[b] );
       regs[b] = mrbc_true_value();
       vm->exc = mrbc_nil_value();
       return 0;
@@ -982,7 +981,6 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
     cls = cls->super;
   }
 
-  mrbc_decref( &regs[b] );
   regs[b] = mrbc_false_value();
 
   return 0;
@@ -2711,8 +2709,10 @@ void mrbc_vm_end( struct VM *vm )
     mrbc_decref_empty(&vm->regs[i]);
   }
 
+#if defined(MRBC_ALLOC_VMID)
   mrbc_global_clear_vm_id();
   mrbc_free_all(vm);
+#endif
 }
 
 

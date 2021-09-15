@@ -149,24 +149,16 @@ mrbc_value * mrbc_get_global( mrbc_sym sym_id )
 }
 
 
+#if defined(MRBC_ALLOC_VMID)
 //================================================================
 /*! clear vm_id in global object for process terminated.
 */
 void mrbc_global_clear_vm_id(void)
 {
-  int i;
-  mrbc_kv *p;
-
-  p = handle_const.data;
-  for( i = 0; i < mrbc_kv_size(&handle_const); i++, p++ ) {
-    mrbc_clear_vm_id( &p->value );
-  }
-
-  p = handle_global.data;
-  for( i = 0; i < mrbc_kv_size(&handle_global); i++, p++ ) {
-    mrbc_clear_vm_id( &p->value );
-  }
+  mrbc_kv_clear_vm_id( &handle_const );
+  mrbc_kv_clear_vm_id( &handle_global );
 }
+#endif
 
 
 #ifdef MRBC_DEBUG

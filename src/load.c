@@ -260,7 +260,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len)
   irep.ofs_ireps = ofs >> 2;
 
   // allocate new irep
-  mrbc_irep *p_irep = mrbc_alloc(vm, sizeof(mrbc_irep) + ofs
+  mrbc_irep *p_irep = mrbc_alloc(0, sizeof(mrbc_irep) + ofs
 				 + sizeof(mrbc_irep*) * irep.rlen);
   if( !p_irep ) {
     mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
@@ -342,7 +342,6 @@ int mrbc_load_mrb(struct VM *vm, const uint8_t *bin)
   static const char IREP[4] = "IREP";
   static const char END[4] = "END\0";
 
-  vm->mrb = bin;
   if( load_header(vm, bin) != 0 ) return -1;
   bin += SIZE_RITE_BINARY_HEADER;
 
