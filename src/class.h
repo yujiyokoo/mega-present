@@ -156,12 +156,17 @@ void mrbc_init_class(void);
 */
 static inline mrbc_class *find_class_by_object(const mrbc_object *obj)
 {
-  assert( obj->tt >= 0 );
-  assert( obj->tt <= MRBC_TT_MAXVAL );
+  if( mrbc_type(*obj) == MRBC_TT_EXCEPTION ) {
+    return mrbc_class_runtimeerror;
+  }
+
+  assert( mrbc_type(*obj) >= 0 );
+  assert( mrbc_type(*obj) <= MRBC_TT_MAXVAL );
 
   mrbc_class *cls = mrbc_class_tbl[ obj->tt ];
   if( !cls ) {
-    // obj->tt is MRBC_TT_OBJECT or MRBC_TT_CLASS
+    assert( mrbc_type(*obj) == MRBC_TT_OBJECT ||
+	    mrbc_type(*obj) == MRBC_TT_CLASS );
     cls = (obj->tt == MRBC_TT_OBJECT) ? obj->instance->cls : obj->cls;
   }
 
