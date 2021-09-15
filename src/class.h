@@ -119,12 +119,12 @@ extern struct RClass *mrbc_class_tbl[];
 extern struct RClass *mrbc_class_object;
 extern struct RClass *mrbc_class_math;
 extern struct RClass *mrbc_class_exception;
-extern struct RClass *mrbc_class_standarderror;
-extern struct RClass *mrbc_class_runtimeerror;
-extern struct RClass *mrbc_class_zerodivisionerror;
-extern struct RClass *mrbc_class_argumenterror;
-extern struct RClass *mrbc_class_indexerror;
-extern struct RClass *mrbc_class_typeerror;
+  extern struct RClass *mrbc_class_standarderror;
+  extern struct RClass *mrbc_class_runtimeerror;
+  //extern struct RClass *mrbc_class_zerodivisionerror;
+  //extern struct RClass *mrbc_class_argumenterror;
+  //extern struct RClass *mrbc_class_indexerror;
+  //extern struct RClass *mrbc_class_typeerror;
 
 
 /***** Function prototypes **************************************************/
