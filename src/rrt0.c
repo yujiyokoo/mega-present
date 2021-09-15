@@ -451,7 +451,7 @@ mrbc_tcb* mrbc_create_task(const uint8_t *vm_code, mrbc_tcb *tcb)
 {
   // allocate Task Control Block
   if( tcb == NULL ) {
-    tcb = (mrbc_tcb*)mrbc_raw_alloc( sizeof(mrbc_tcb) );
+    tcb = mrbc_raw_alloc( sizeof(mrbc_tcb) );
     if( tcb == NULL ) return NULL;	// ENOMEM
 
     mrbc_init_tcb( tcb );
@@ -667,7 +667,7 @@ void mrbc_resume_task(mrbc_tcb *tcb)
 mrbc_mutex * mrbc_mutex_init( mrbc_mutex *mutex )
 {
   if( mutex == NULL ) {
-    mutex = (mrbc_mutex*)mrbc_raw_alloc( sizeof(mrbc_mutex) );
+    mutex = mrbc_raw_alloc( sizeof(mrbc_mutex) );
     if( mutex == NULL ) return NULL;	// ENOMEM
   }
 

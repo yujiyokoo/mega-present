@@ -61,8 +61,7 @@ mrbc_value mrbc_string_new(struct VM *vm, const void *src, int len)
   /*
     Allocate handle and string buffer.
   */
-  mrbc_string *h;
-  h = (mrbc_string *)mrbc_alloc(vm, sizeof(mrbc_string));
+  mrbc_string *h = mrbc_alloc(vm, sizeof(mrbc_string));
   if( !h ) return value;		// ENOMEM
 
   uint8_t *str = mrbc_alloc(vm, len+1);
@@ -118,8 +117,7 @@ mrbc_value mrbc_string_new_alloc(struct VM *vm, void *buf, int len)
   /*
     Allocate handle
   */
-  mrbc_string *h;
-  h = (mrbc_string *)mrbc_alloc(vm, sizeof(mrbc_string));
+  mrbc_string *h = mrbc_alloc(vm, sizeof(mrbc_string));
   if( !h ) return value;		// ENOMEM
 
   MRBC_INIT_OBJECT_HEADER( h, "ST" );

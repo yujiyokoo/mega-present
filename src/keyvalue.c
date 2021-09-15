@@ -101,7 +101,6 @@ int mrbc_kv_init_handle(struct VM *vm, mrbc_kv_handle *kvh, int size)
 #endif
   }
 
-
   return 0;
 }
 

@@ -98,9 +98,9 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
 
   @param  name		class name.
   @param  super		super class.
-  @param  method_symbols
-  @param  method_functions
-  @param  num_builtin_method
+  @param  method_symbols	bulitin function's symbol id table
+  @param  method_functions	builtin method function table
+  @param  num_builtin_method	table size
   @return		pointer to defined class.
   @note
    called by auto-generated function created by make_method_table.rb
@@ -162,7 +162,7 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size)
 {
   mrbc_value v = {.tt = MRBC_TT_OBJECT};
-  v.instance = (mrbc_instance *)mrbc_alloc(vm, sizeof(mrbc_instance) + size);
+  v.instance = mrbc_alloc(vm, sizeof(mrbc_instance) + size);
   if( v.instance == NULL ) return v;	// ENOMEM
 
   if( mrbc_kv_init_handle(vm, &v.instance->ivar, 0) != 0 ) {
@@ -246,7 +246,7 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep)
 {
   mrbc_value val = {.tt = MRBC_TT_PROC};
 
-  val.proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
+  val.proc = mrbc_alloc(vm, sizeof(mrbc_proc));
   if( !val.proc ) return val;	// ENOMEM
 
   MRBC_INIT_OBJECT_HEADER( val.proc, "PR" );
@@ -297,7 +297,7 @@ int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls )
 //================================================================
 /*! find method
 
-  @param  method	pointer to mrbc_method to return values.
+  @param  r_method	pointer to mrbc_method to return values.
   @param  cls		search class.
   @param  sym_id	symbol id.
   @return		pointer to method or NULL.
@@ -369,7 +369,7 @@ mrbc_class * mrbc_get_class_by_name( const char *name )
   @param  v		see bellow example.
   @param  reg_ofs	see bellow example.
   @param  recv		pointer to receiver.
-  @param  method	method name.
+  @param  method_name	method name.
   @param  argc		num of params.
 
   @example
