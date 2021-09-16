@@ -47,10 +47,6 @@ mrbc_class *mrbc_class_math;
 mrbc_class *mrbc_class_exception;
 mrbc_class *mrbc_class_standarderror;
 mrbc_class *mrbc_class_runtimeerror;
-mrbc_class *mrbc_class_zerodivisionerror;
-mrbc_class *mrbc_class_argumenterror;
-mrbc_class *mrbc_class_indexerror;
-mrbc_class *mrbc_class_typeerror;
 
 
 /***** Signal catching functions ********************************************/
