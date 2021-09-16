@@ -3,8 +3,8 @@
   exception classes
 
   <pre>
-  Copyright (C) 2015-2019 Kyushu Institute of Technology.
-  Copyright (C) 2015-2019 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -42,31 +42,31 @@ void mrbc_raiseX(mrbc_vm *vm, mrbc_error_code err, char *msg)
 }
 
 
-void mrbc_init_class_exception(struct VM *vm)
+void mrbc_init_class_exception(void)
 {
-  mrbc_class_exception = mrbc_define_class(vm, "Exception", mrbc_class_object);
-  mrbc_define_method(vm, mrbc_class_exception, "message", c_exception_message);
+  mrbc_class_exception = mrbc_define_class(0, "Exception", mrbc_class_object);
+  mrbc_define_method(0, mrbc_class_exception, "message", c_exception_message);
 
   // Exception
   //  |
   //  +-- StandardError
-  mrbc_class_standarderror = mrbc_define_class(vm, "StandardError", mrbc_class_exception);
-  mrbc_class_runtimeerror = mrbc_define_class(vm, "RuntimeError", mrbc_class_standarderror);
-  mrbc_define_class(vm, "ZeroDivisionError", mrbc_class_standarderror);
-  mrbc_define_class(vm, "ArgumentError", mrbc_class_standarderror);
-  mrbc_define_class(vm, "IndexError", mrbc_class_standarderror);
-  mrbc_define_class(vm, "RangeError", mrbc_class_standarderror);
-  mrbc_define_class(vm, "TypeError", mrbc_class_standarderror);
+  mrbc_class_standarderror = mrbc_define_class(0, "StandardError", mrbc_class_exception);
+  mrbc_class_runtimeerror = mrbc_define_class(0, "RuntimeError", mrbc_class_standarderror);
+  mrbc_define_class(0, "ZeroDivisionError", mrbc_class_standarderror);
+  mrbc_define_class(0, "ArgumentError", mrbc_class_standarderror);
+  mrbc_define_class(0, "IndexError", mrbc_class_standarderror);
+  mrbc_define_class(0, "RangeError", mrbc_class_standarderror);
+  mrbc_define_class(0, "TypeError", mrbc_class_standarderror);
 
   // Exception
   //  |
   //  +--NoMemoryError
-  mrbc_define_class(vm, "NoMemoryError", mrbc_class_exception);
+  mrbc_define_class(0, "NoMemoryError", mrbc_class_exception);
 
   // NameError
   //  |
-  //  +--NoMethodError 
+  //  +--NoMethodError
   struct RClass *class_nameerror;
-  class_nameerror =  mrbc_define_class(vm, "NameError", mrbc_class_standarderror);
-  mrbc_define_class(vm, "NoMethodError", class_nameerror);
+  class_nameerror =  mrbc_define_class(0, "NameError", mrbc_class_standarderror);
+  mrbc_define_class(0, "NoMethodError", class_nameerror);
 }

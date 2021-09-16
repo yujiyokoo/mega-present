@@ -27,6 +27,9 @@ clean:
 clean_all:	clean
 	@rm -f $(AUTOGEN_SYMBOL_TABLE) $(AUTOGEN_METHOD_TABLE)
 
+autogen:
+	@rm -f $(AUTOGEN_SYMBOL_TABLE) $(AUTOGEN_METHOD_TABLE)
+	$(MAKE) $(AUTOGEN_SYMBOL_TABLE)
 
 
 # Auto generated files.

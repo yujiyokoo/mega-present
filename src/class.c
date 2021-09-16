@@ -478,41 +478,41 @@ static void mrbc_run_mrblib(const uint8_t bytecode[])
 void mrbc_init_class(void)
 {
   extern const uint8_t mrblib_bytecode[];
-  mrbc_class *mrbc_init_class_object(struct VM *vm);
-  mrbc_class *mrbc_init_class_proc(struct VM *vm);
-  mrbc_class *mrbc_init_class_nil(struct VM *vm);
-  mrbc_class *mrbc_init_class_true(struct VM *vm);
-  mrbc_class *mrbc_init_class_false(struct VM *vm);
-  mrbc_class *mrbc_init_class_symbol(struct VM *vm);
-  mrbc_class *mrbc_init_class_integer(struct VM *vm);
-  mrbc_class *mrbc_init_class_float(struct VM *vm);
-  mrbc_class *mrbc_init_class_math(struct VM *vm);
-  mrbc_class *mrbc_init_class_string(struct VM *);
-  mrbc_class *mrbc_init_class_array(struct VM *);
-  mrbc_class *mrbc_init_class_range(struct VM *);
-  mrbc_class *mrbc_init_class_hash(struct VM *);
-  void mrbc_init_class_exception(struct VM *);
+  mrbc_class *mrbc_init_class_object(void);
+  mrbc_class *mrbc_init_class_proc(void);
+  mrbc_class *mrbc_init_class_nil(void);
+  mrbc_class *mrbc_init_class_true(void);
+  mrbc_class *mrbc_init_class_false(void);
+  mrbc_class *mrbc_init_class_symbol(void);
+  mrbc_class *mrbc_init_class_integer(void);
+  mrbc_class *mrbc_init_class_float(void);
+  mrbc_class *mrbc_init_class_math(void);
+  mrbc_class *mrbc_init_class_string(void);
+  mrbc_class *mrbc_init_class_array(void);
+  mrbc_class *mrbc_init_class_range(void);
+  mrbc_class *mrbc_init_class_hash(void);
+  void mrbc_init_class_exception(void);
 
-  mrbc_class_object =	mrbc_init_class_object(0);
-  mrbc_class_proc =	mrbc_init_class_proc(0);
-  mrbc_class_nil =	mrbc_init_class_nil(0);
-  mrbc_class_true =	mrbc_init_class_true(0);
-  mrbc_class_false =	mrbc_init_class_false(0);
-  mrbc_class_symbol =	mrbc_init_class_symbol(0);
-  mrbc_class_integer =	mrbc_init_class_integer(0);
+  mrbc_class_object =	mrbc_init_class_object();
+  mrbc_class_proc =	mrbc_init_class_proc();
+  mrbc_class_nil =	mrbc_init_class_nil();
+  mrbc_class_true =	mrbc_init_class_true();
+  mrbc_class_false =	mrbc_init_class_false();
+  mrbc_class_symbol =	mrbc_init_class_symbol();
+  mrbc_class_integer =	mrbc_init_class_integer();
 #if MRBC_USE_FLOAT
-  mrbc_class_float =	mrbc_init_class_float(0);
+  mrbc_class_float =	mrbc_init_class_float();
 #if MRBC_USE_MATH
-  mrbc_class_math =	mrbc_init_class_math(0);
+  mrbc_class_math =	mrbc_init_class_math();
 #endif
 #endif
 #if MRBC_USE_STRING
-  mrbc_class_string =	mrbc_init_class_string(0);
+  mrbc_class_string =	mrbc_init_class_string();
 #endif
-  mrbc_class_array =	mrbc_init_class_array(0);
-  mrbc_class_range =	mrbc_init_class_range(0);
-  mrbc_class_hash =	mrbc_init_class_hash(0);
-  mrbc_init_class_exception(0);
+  mrbc_class_array =	mrbc_init_class_array();
+  mrbc_class_range =	mrbc_init_class_range();
+  mrbc_class_hash =	mrbc_init_class_hash();
+  mrbc_init_class_exception();
 
   mrbc_run_mrblib(mrblib_bytecode);
 }
