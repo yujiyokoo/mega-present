@@ -131,9 +131,12 @@ typedef struct CALLINFO mrb_callinfo;
   Virtual Machine
 */
 typedef struct VM {
+#if defined(MRBC_DEBUG)
+  char type[2];		// for debug
+#endif
   mrbc_irep *irep;
 
-  uint8_t vm_id;	// vm_id : 1..n
+  uint8_t vm_id;	// vm_id : 1..MAX_VM_COUNT
 
   const mrbc_irep *pc_irep;	// PC
   const uint8_t *inst;	// instruction

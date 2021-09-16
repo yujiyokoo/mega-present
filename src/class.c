@@ -464,10 +464,11 @@ static void mrbc_run_mrblib(const uint8_t bytecode[])
   mrbc_load_mrb(vm, bytecode);
   mrbc_vm_begin(vm);
   mrbc_vm_run(vm);
-
-  // not necessary to call mrbc_vm_end()
+  mrbc_vm_end(vm);
 
   // instead of mrbc_vm_close()
+  mrbc_raw_free( vm->irep );	// free only top-level mrbc_irep.
+				// (no need to free child ireps.)
   mrbc_raw_free( vm );
 }
 

@@ -2638,6 +2638,9 @@ mrbc_vm *mrbc_vm_open( struct VM *vm_arg )
 
   // initialize attributes.
   memset(vm, 0, sizeof(mrbc_vm));	// caution: assume NULL is zero.
+#if defined(MRBC_DEBUG)
+  memcpy(vm->type, "VM", 2);
+#endif
   if( vm_arg == NULL ) vm->flag_need_memfree = 1;
   vm->vm_id = vm_id;
 
@@ -2706,6 +2709,7 @@ void mrbc_vm_end( struct VM *vm )
   int n_used = 0;
   int i;
   for( i = 0; i < MAX_REGS_SIZE; i++ ) {
+    //console_printf("vm->regs[%d].tt = %d\n", i, mrbc_type(vm->regs[i]));
     if( mrbc_type(vm->regs[i]) != MRBC_TT_NIL ) n_used = i;
     mrbc_decref_empty(&vm->regs[i]);
   }
