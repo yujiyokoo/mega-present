@@ -230,10 +230,10 @@ static void c_math_tanh(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! initialize
 */
-mrbc_class *mrbc_init_class_math(struct VM *vm)
+mrbc_class *mrbc_init_class_math(void)
 {
-  mrbc_class *mrbc_init_class_math_sub(struct VM *vm);
-  mrbc_class *cls = mrbc_init_class_math_sub(vm);
+  mrbc_class *mrbc_init_class_math_sub();
+  mrbc_class *cls = mrbc_init_class_math_sub();
 
   static mrbc_value e = mrbc_float_value(0, M_E);
   mrbc_set_class_const( cls, MRBC_SYM(E), &e );
