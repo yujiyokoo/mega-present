@@ -2677,14 +2677,13 @@ void mrbc_vm_begin( struct VM *vm )
   vm->pc_irep = vm->irep;
   vm->inst = vm->pc_irep->code;
 
-  memset(vm->regs, 0, sizeof(vm->regs));
-  int i;
-  for( i = 1; i < MAX_REGS_SIZE; i++ ) {
-    vm->regs[i].tt = MRBC_TT_NIL;
-  }
-  // set self to reg[0]
+  // set self to reg[0], others nil
   vm->regs[0] = mrbc_instance_new(vm, mrbc_class_object, 0);
   if( vm->regs[0].instance == NULL ) return;	// ENOMEM
+  int i;
+  for( i = 1; i < MAX_REGS_SIZE; i++ ) {
+    vm->regs[i] = mrbc_nil_value();
+  }
 
   vm->current_regs = vm->regs;
   vm->callinfo_tail = NULL;
@@ -2704,10 +2703,16 @@ void mrbc_vm_begin( struct VM *vm )
 */
 void mrbc_vm_end( struct VM *vm )
 {
+  int n_used = 0;
   int i;
   for( i = 0; i < MAX_REGS_SIZE; i++ ) {
+    if( mrbc_type(vm->regs[i]) != MRBC_TT_NIL ) n_used = i;
     mrbc_decref_empty(&vm->regs[i]);
   }
+#if defined(MRBC_DEBUG_REGS)
+  console_printf("Finally number of registers used was %d in VM %d.\n",
+		 n_used, vm->vm_id );
+#endif
 
 #if defined(MRBC_ALLOC_VMID)
   mrbc_global_clear_vm_id();
