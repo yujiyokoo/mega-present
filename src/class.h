@@ -88,7 +88,7 @@ typedef struct RProc mrb_proc;
 /*! Method management structure.
 */
 typedef struct RMethod {
-  uint8_t type;		// set "M" for debug
+  uint8_t type;		//!< M:OP_DEF or OP_ALIAS, m:mrblib or define_method()
   uint8_t c_func;	//!< 0:IREP, 1:C Func, 2:C Func (built-in)
   mrbc_sym sym_id;	//!< function names symbol ID
   union {
@@ -97,7 +97,7 @@ typedef struct RMethod {
   };
   union {
     struct RMethod *next;	//!< link to next method.
-    struct RClass *cls;		//!< for return value for mrbc_find_method.
+    struct RClass *cls;		//!< return value for mrbc_find_method.
   };
 } mrbc_method;
 
@@ -119,12 +119,8 @@ extern struct RClass *mrbc_class_tbl[];
 extern struct RClass *mrbc_class_object;
 extern struct RClass *mrbc_class_math;
 extern struct RClass *mrbc_class_exception;
-  extern struct RClass *mrbc_class_standarderror;
-  extern struct RClass *mrbc_class_runtimeerror;
-  //extern struct RClass *mrbc_class_zerodivisionerror;
-  //extern struct RClass *mrbc_class_argumenterror;
-  //extern struct RClass *mrbc_class_indexerror;
-  //extern struct RClass *mrbc_class_typeerror;
+extern struct RClass *mrbc_class_standarderror;
+extern struct RClass *mrbc_class_runtimeerror;
 
 
 /***** Function prototypes **************************************************/

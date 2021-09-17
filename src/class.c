@@ -137,7 +137,7 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
   mrbc_method *method = mrbc_raw_alloc_no_free( sizeof(mrbc_method) );
   if( !method ) return; // ENOMEM
 
-  method->type = 'M';
+  method->type = 'm';
   method->c_func = 1;
   method->sym_id = str_to_symid( name );
   method->func = cfunc;
@@ -339,7 +339,7 @@ mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym
 
     if( c->method_symbols[right] == sym_id ) {
       *r_method = (mrbc_method){
-	.type = 'M',
+	.type = 'm',
 	.c_func = 2,
 	.sym_id = sym_id,
 	.func = c->method_functions[right],

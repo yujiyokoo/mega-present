@@ -2391,11 +2391,16 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
   mrbc_class *cls = regs[a].cls;
   mrbc_sym sym_id = mrbc_irep_symbol_id(vm->pc_irep, b);
   mrbc_proc *proc = regs[a+1].proc;
+  mrbc_method *method;
 
-  mrbc_method *method = mrbc_raw_alloc( sizeof(mrbc_method) );
+  if( vm->vm_id == 0 ) {
+    method = mrbc_raw_alloc_no_free( sizeof(mrbc_method) );
+  } else {
+    method = mrbc_raw_alloc( sizeof(mrbc_method) );
+  }
   if( !method ) return -1; // ENOMEM
 
-  method->type = 'M';
+  method->type = (vm->vm_id == 0) ? 'm' : 'M';
   method->c_func = 0;
   method->sym_id = sym_id;
   method->irep = proc->irep;
@@ -2409,14 +2414,7 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
       mrbc_method *del_method = method->next;
 
       method->next = del_method->next;
-      /* (note)
-         Case c_func == 0 is defined by this ope-code.
-         Case c_func == 1 is defined by mrbc_define_method() function.
-         That function uses mrbc_raw_alloc_no_free() to allocate memory.
-         Thus not free this memory.
-         Case c_func == 2 is builtin C function. maybe create by OP_ALIAS.
-      */
-      if( del_method->c_func != 1 ) mrbc_raw_free( del_method );
+      if( del_method->type == 'M' ) mrbc_raw_free( del_method );
 
       break;
     }
@@ -2442,30 +2440,28 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
   mrbc_sym sym_id_new = mrbc_irep_symbol_id(vm->pc_irep, a);
   mrbc_sym sym_id_org = mrbc_irep_symbol_id(vm->pc_irep, b);
   mrbc_class *cls = vm->target_class;
-  mrbc_method method_org;
+  mrbc_method *method = mrbc_raw_alloc( sizeof(mrbc_method) );
+  if( !method ) return 0;	// ENOMEM
 
-  if( mrbc_find_method( &method_org, cls, sym_id_org ) == 0 ) {
+  if( mrbc_find_method( method, cls, sym_id_org ) == 0 ) {
     console_printf("NameError: undefined method '%s'\n",
 		   symid_to_str(sym_id_org));
+    mrbc_raw_free( method );
     return 0;
   }
 
-  // copy method and chain link list.
-  mrbc_method *method_new = mrbc_raw_alloc( sizeof(mrbc_method) );
-  if( !method_new ) return 0;	// ENOMEM
-
-  *method_new = method_org;
-  method_new->sym_id = sym_id_new;
-  method_new->next = cls->method_link;
-  cls->method_link = method_new;
+  method->type = 'M';
+  method->sym_id = sym_id_new;
+  method->next = cls->method_link;
+  cls->method_link = method;
 
   // checking same method
   //  see OP_DEF function. same it.
-  for( ;method_new->next != NULL; method_new = method_new->next ) {
-    if( method_new->next->sym_id == sym_id_new ) {
-      mrbc_method *del_method = method_new->next;
-      method_new->next = del_method->next;
-      if( del_method->c_func != 1 ) mrbc_raw_free( del_method );
+  for( ;method->next != NULL; method = method->next ) {
+    if( method->next->sym_id == sym_id_new ) {
+      mrbc_method *del_method = method->next;
+      method->next = del_method->next;
+      if( del_method->type == 'M' ) mrbc_raw_free( del_method );
       break;
     }
   }
