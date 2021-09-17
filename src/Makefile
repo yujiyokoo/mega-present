@@ -47,32 +47,32 @@ AUTOGEN_METHOD_TABLE = method_table_array.h method_table_false.h \
 $(AUTOGEN_SYMBOL_TABLE): $(AUTOGEN_METHOD_TABLE)
 	$(MAKE_SYMBOL_TABLE) -a
 
-method_table_array.h:	c_array.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_false.h:	c_object.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_integer.h:	c_numeric.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_float.h:	c_numeric.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_hash.h:	c_hash.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_math.h:	c_math.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_nil.h:	c_object.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_object.h:	c_object.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_proc.h:	c_object.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_range.h:	c_range.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_string.h:	c_string.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_symbol.h:	symbol.c
-	$(MAKE_METHOD_TABLE) $?
-method_table_true.h:	c_object.c
-	$(MAKE_METHOD_TABLE) $?
+method_table_array.h:
+	$(MAKE_METHOD_TABLE) c_array.c
+method_table_false.h:
+	$(MAKE_METHOD_TABLE) c_object.c
+method_table_integer.h:
+	$(MAKE_METHOD_TABLE) c_numeric.c
+method_table_float.h:
+	$(MAKE_METHOD_TABLE) c_numeric.c
+method_table_hash.h:
+	$(MAKE_METHOD_TABLE) c_hash.c
+method_table_math.h:
+	$(MAKE_METHOD_TABLE) c_math.c
+method_table_nil.h:
+	$(MAKE_METHOD_TABLE) c_object.c
+method_table_object.h:
+	$(MAKE_METHOD_TABLE) c_object.c
+method_table_proc.h:
+	$(MAKE_METHOD_TABLE) c_object.c
+method_table_range.h:
+	$(MAKE_METHOD_TABLE) c_range.c
+method_table_string.h:
+	$(MAKE_METHOD_TABLE) c_string.c
+method_table_symbol.h:
+	$(MAKE_METHOD_TABLE) symbol.c
+method_table_true.h:
+	$(MAKE_METHOD_TABLE) c_object.c
 
 
 # File dependencies.
