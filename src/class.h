@@ -103,7 +103,7 @@ typedef struct RMethod {
 
 
 /***** Global variables *****************************************************/
-extern struct RClass *mrbc_class_tbl[];
+extern struct RClass * const mrbc_class_tbl[];
 #define mrbc_class_nil		mrbc_class_tbl[ MRBC_TT_NIL ]
 #define mrbc_class_false	mrbc_class_tbl[ MRBC_TT_FALSE ]
 #define mrbc_class_true		mrbc_class_tbl[ MRBC_TT_TRUE ]

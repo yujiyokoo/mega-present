@@ -45,7 +45,7 @@
   @note must be same order as mrbc_vtype.
   @see mrbc_vtype in value.h
 */
-mrbc_class *mrbc_class_tbl[MRBC_TT_MAXVAL+1] = {
+mrbc_class * const mrbc_class_tbl[MRBC_TT_MAXVAL+1] = {
   0,					// MRBC_TT_EMPTY   = 0,
   (mrbc_class *)&mrbc_class_NilClass,	// MRBC_TT_NIL	   = 1,
   (mrbc_class *)&mrbc_class_FalseClass,	// MRBC_TT_FALSE   = 2,
