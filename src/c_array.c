@@ -974,7 +974,6 @@ static void c_array_join(struct VM *vm, mrbc_value v[], int argc)
 
   CLASS("Array")
   FILE("method_table_array.h")
-  FUNC("mrbc_init_class_array")
 
   METHOD( "new",	c_array_new )
   METHOD( "+",		c_array_add )

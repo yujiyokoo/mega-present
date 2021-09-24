@@ -96,7 +96,6 @@ end
 # {
 #   class: "Range",
 #   file: "c_range_method_table.h",
-#   func: "mrbc_init_class_range",
 #   super: "mrbc_class_object",
 #   methods: [
 #     { name: "first", func: "c_range_first", if_exp: "" }
@@ -125,7 +124,7 @@ def parse_source_string( src )
       args = $2.split(",").map {|s| s.strip }
       flag_arg_ok = true
       case key
-      when "CLASS", "FILE", "FUNC", "SUPER"
+      when "CLASS", "FILE", "SUPER"
         if args.size == 1
           ret[key.downcase.to_sym] = strip_double_quot(args[0])
         else
@@ -173,10 +172,6 @@ def check_error( param )
   end
   if !param[:file]
     puts "Error: 'FILE' parameter required"
-    flag_error = true
-  end
-  if !param[:func]
-    puts "Error: 'FUNC' parameter required"
     flag_error = true
   end
 

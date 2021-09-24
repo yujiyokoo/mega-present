@@ -656,12 +656,10 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 #endif  // MRBC_USE_STRING
 
 
-
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Object")
   FILE("method_table_object.h")
-  FUNC("mrbc_init_class_object")
   SUPER(0)
 
   METHOD( "new",	c_object_new )
@@ -770,7 +768,6 @@ static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   CLASS("Proc")
   FILE("method_table_proc.h")
-  FUNC("mrbc_init_class_proc")
 
   METHOD( "new",	c_proc_new )
   METHOD( "call",	c_proc_call )
@@ -849,7 +846,6 @@ static void c_nil_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   CLASS("NilClass")
   FILE("method_table_nil.h")
-  FUNC("mrbc_init_class_nil")
 
   METHOD( "to_i",	c_nil_to_i )
   METHOD( "to_a",	c_nil_to_a )
@@ -887,7 +883,6 @@ static void c_true_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   CLASS("TrueClass")
   FILE("method_table_true.h")
-  FUNC("mrbc_init_class_true")
 
 #if MRBC_USE_STRING
   METHOD( "inspect",	c_true_to_s )
@@ -917,7 +912,6 @@ static void c_false_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   CLASS("FalseClass")
   FILE("method_table_false.h")
-  FUNC("mrbc_init_class_false")
 
 #if MRBC_USE_STRING
   METHOD( "inspect",	c_false_to_s )

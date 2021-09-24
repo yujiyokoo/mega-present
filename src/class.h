@@ -116,8 +116,23 @@ extern struct RClass *mrbc_class_tbl[];
 #define mrbc_class_string	mrbc_class_tbl[ MRBC_TT_STRING ]
 #define mrbc_class_range	mrbc_class_tbl[ MRBC_TT_RANGE ]
 #define mrbc_class_hash		mrbc_class_tbl[ MRBC_TT_HASH ]
-extern struct RClass *mrbc_class_object;
-extern struct RClass *mrbc_class_math;
+
+extern struct RBuiltinClass mrbc_class_Object;
+extern struct RBuiltinClass mrbc_class_NilClass;
+extern struct RBuiltinClass mrbc_class_FalseClass;
+extern struct RBuiltinClass mrbc_class_TrueClass;
+extern struct RBuiltinClass mrbc_class_Integer;
+extern struct RBuiltinClass mrbc_class_Float;
+extern struct RBuiltinClass mrbc_class_Symbol;
+extern struct RBuiltinClass mrbc_class_Proc;
+extern struct RBuiltinClass mrbc_class_Array;
+extern struct RBuiltinClass mrbc_class_String;
+extern struct RBuiltinClass mrbc_class_Range;
+extern struct RBuiltinClass mrbc_class_Hash;
+extern struct RBuiltinClass mrbc_class_Math;
+
+#define mrbc_class_object ((struct RClass*)(&mrbc_class_Object))
+
 extern struct RClass *mrbc_class_exception;
 extern struct RClass *mrbc_class_standarderror;
 extern struct RClass *mrbc_class_runtimeerror;

@@ -40,10 +40,28 @@
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
 /***** Global variables *****************************************************/
-// Builtin class table.
-mrbc_class *mrbc_class_tbl[MRBC_TT_MAXVAL+1];
-mrbc_class *mrbc_class_object;
-mrbc_class *mrbc_class_math;
+/*! Builtin class table.
+
+  @note must be same order as mrbc_vtype.
+  @see mrbc_vtype in value.h
+*/
+mrbc_class *mrbc_class_tbl[MRBC_TT_MAXVAL+1] = {
+  0,					// MRBC_TT_EMPTY   = 0,
+  (mrbc_class *)&mrbc_class_NilClass,	// MRBC_TT_NIL	   = 1,
+  (mrbc_class *)&mrbc_class_FalseClass,	// MRBC_TT_FALSE   = 2,
+  (mrbc_class *)&mrbc_class_TrueClass,	// MRBC_TT_TRUE	   = 3,
+  (mrbc_class *)&mrbc_class_Integer,	// MRBC_TT_INTEGER = 4,
+  (mrbc_class *)&mrbc_class_Float,	// MRBC_TT_FLOAT   = 5,
+  (mrbc_class *)&mrbc_class_Symbol,	// MRBC_TT_SYMBOL  = 6,
+  0,					// MRBC_TT_CLASS   = 7,
+  0,					// MRBC_TT_OBJECT  = 8,
+  (mrbc_class *)&mrbc_class_Proc,	// MRBC_TT_PROC	   = 9,
+  (mrbc_class *)&mrbc_class_Array,	// MRBC_TT_ARRAY   = 10,
+  (mrbc_class *)&mrbc_class_String,	// MRBC_TT_STRING  = 11,
+  (mrbc_class *)&mrbc_class_Range,	// MRBC_TT_RANGE   = 12,
+  (mrbc_class *)&mrbc_class_Hash,	// MRBC_TT_HASH	   = 13,
+};
+
 mrbc_class *mrbc_class_exception;
 mrbc_class *mrbc_class_standarderror;
 mrbc_class *mrbc_class_runtimeerror;
@@ -475,40 +493,55 @@ static void mrbc_run_mrblib(const uint8_t bytecode[])
 void mrbc_init_class(void)
 {
   extern const uint8_t mrblib_bytecode[];
-  mrbc_class *mrbc_init_class_object(void);
-  mrbc_class *mrbc_init_class_proc(void);
-  mrbc_class *mrbc_init_class_nil(void);
-  mrbc_class *mrbc_init_class_true(void);
-  mrbc_class *mrbc_init_class_false(void);
-  mrbc_class *mrbc_init_class_symbol(void);
-  mrbc_class *mrbc_init_class_integer(void);
-  mrbc_class *mrbc_init_class_float(void);
-  mrbc_class *mrbc_init_class_math(void);
-  mrbc_class *mrbc_init_class_string(void);
-  mrbc_class *mrbc_init_class_array(void);
-  mrbc_class *mrbc_init_class_range(void);
-  mrbc_class *mrbc_init_class_hash(void);
   void mrbc_init_class_exception(void);
+  void mrbc_init_class_math(void);
 
-  mrbc_class_object =	mrbc_init_class_object();
-  mrbc_class_proc =	mrbc_init_class_proc();
-  mrbc_class_nil =	mrbc_init_class_nil();
-  mrbc_class_true =	mrbc_init_class_true();
-  mrbc_class_false =	mrbc_init_class_false();
-  mrbc_class_symbol =	mrbc_init_class_symbol();
-  mrbc_class_integer =	mrbc_init_class_integer();
+  mrbc_set_const( MRBC_SYM(Object), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_Object)} );
+
+  mrbc_set_const( MRBC_SYM(NilClass), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_NilClass)} );
+
+  mrbc_set_const( MRBC_SYM(FalseClass), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_FalseClass)} );
+
+  mrbc_set_const( MRBC_SYM(TrueClass), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_TrueClass)} );
+
+  mrbc_set_const( MRBC_SYM(Integer), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_Integer)} );
+
 #if MRBC_USE_FLOAT
-  mrbc_class_float =	mrbc_init_class_float();
-#if MRBC_USE_MATH
-  mrbc_class_math =	mrbc_init_class_math();
+  mrbc_set_const( MRBC_SYM(Float), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_Float)} );
 #endif
-#endif
+
+  mrbc_set_const( MRBC_SYM(Symbol), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_Symbol)} );
+
+  mrbc_set_const( MRBC_SYM(Proc), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_Proc)} );
+
+  mrbc_set_const( MRBC_SYM(Array), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_Array)} );
+
 #if MRBC_USE_STRING
-  mrbc_class_string =	mrbc_init_class_string();
+  mrbc_set_const( MRBC_SYM(String), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_String)} );
 #endif
-  mrbc_class_array =	mrbc_init_class_array();
-  mrbc_class_range =	mrbc_init_class_range();
-  mrbc_class_hash =	mrbc_init_class_hash();
+
+  mrbc_set_const( MRBC_SYM(Range), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_Range)} );
+
+  mrbc_set_const( MRBC_SYM(Hash), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_Hash)} );
+
+#if MRBC_USE_MATH
+  mrbc_set_const( MRBC_SYM(Math), &(mrb_value){.tt = MRBC_TT_CLASS,
+	.cls = (mrbc_class *)(&mrbc_class_Math)} );
+  mrbc_init_class_math();
+#endif
+
   mrbc_init_class_exception();
 
   mrbc_run_mrblib(mrblib_bytecode);
