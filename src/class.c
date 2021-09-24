@@ -108,39 +108,6 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
 
 
 //================================================================
-/*! define built-in class
-
-  @param  name_sym_id	class name's symbol id.
-  @param  super		super class.
-  @param  method_symbols	bulitin function's symbol id table
-  @param  method_functions	builtin method function table
-  @param  num_builtin_method	table size
-  @return		pointer to defined class.
-  @note
-   called by auto-generated function created by make_method_table.rb
-*/
-mrbc_class * mrbc_define_builtin_class(mrbc_sym name_sym_id, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method)
-{
-  struct RBuiltinClass *cls = mrbc_raw_alloc_no_free( sizeof(struct RBuiltinClass));
-  if( !cls ) return 0;	// ENOMEM
-
-  cls->sym_id = name_sym_id;
-  cls->num_builtin_method = num_builtin_method;
-#ifdef MRBC_DEBUG
-  cls->names = mrbc_symid_to_str(name_sym_id);	// for debug; delete soon.
-#endif
-  cls->super = super;
-  cls->method_link = 0;
-  cls->method_symbols = method_symbols;
-  cls->method_functions = method_functions;
-
-  // register to global constant.
-  mrbc_set_const( name_sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = (mrbc_class *)cls} );
-  return (mrbc_class *)cls;
-}
-
-
-//================================================================
 /*! define method.
 
   @param  vm		pointer to vm.
