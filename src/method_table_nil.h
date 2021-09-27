@@ -2,16 +2,16 @@
 #include "symbol_builtin.h"
 static const mrbc_sym method_symbols_NilClass[] = {
 #if MRBC_USE_STRING
-  MRBC_SYMID_inspect,
+  MRBC_SYM(inspect),
 #endif
-  MRBC_SYMID_to_a,
+  MRBC_SYM(to_a),
 #if MRBC_USE_FLOAT
-  MRBC_SYMID_to_f,
+  MRBC_SYM(to_f),
 #endif
-  MRBC_SYMID_to_h,
-  MRBC_SYMID_to_i,
+  MRBC_SYM(to_h),
+  MRBC_SYM(to_i),
 #if MRBC_USE_STRING
-  MRBC_SYMID_to_s,
+  MRBC_SYM(to_s),
 #endif
 };
 static const mrbc_func_t method_functions_NilClass[] = {
@@ -35,7 +35,7 @@ struct RBuiltinClass mrbc_class_NilClass = {
 #if defined(MRBC_DEBUG)
   .names = "NilClass",
 #endif
-  .super = mrbc_class_object,
+  .super = MRBC_CLASS(Object),
   .method_link = 0,
   .method_symbols = method_symbols_NilClass,
   .method_functions = method_functions_NilClass,

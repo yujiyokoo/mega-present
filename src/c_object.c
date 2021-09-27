@@ -297,7 +297,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 
     if( argc == 0 ){
       // case 1. raise
-      vm->exc.exception = mrbc_class_runtimeerror;
+      vm->exc.exception = MRBC_CLASS(RuntimeError);
       vm->exc_message = mrbc_nil_value();
     } else if( argc == 1 ){
       if( mrbc_type(v[1]) == MRBC_TT_CLASS ){
@@ -307,7 +307,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
       } else {
 	// case 2. raise "param"
 	mrbc_incref( &v[1] );
-	vm->exc.exception = mrbc_class_runtimeerror;
+	vm->exc.exception = MRBC_CLASS(RuntimeError);
 	vm->exc_message = v[1];
       }
     } else if( argc == 2 ){

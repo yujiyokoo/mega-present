@@ -46,25 +46,21 @@
   @see mrbc_vtype in value.h
 */
 mrbc_class * const mrbc_class_tbl[MRBC_TT_MAXVAL+1] = {
-  0,					// MRBC_TT_EMPTY   = 0,
-  (mrbc_class *)&mrbc_class_NilClass,	// MRBC_TT_NIL	   = 1,
-  (mrbc_class *)&mrbc_class_FalseClass,	// MRBC_TT_FALSE   = 2,
-  (mrbc_class *)&mrbc_class_TrueClass,	// MRBC_TT_TRUE	   = 3,
-  (mrbc_class *)&mrbc_class_Integer,	// MRBC_TT_INTEGER = 4,
-  (mrbc_class *)&mrbc_class_Float,	// MRBC_TT_FLOAT   = 5,
-  (mrbc_class *)&mrbc_class_Symbol,	// MRBC_TT_SYMBOL  = 6,
-  0,					// MRBC_TT_CLASS   = 7,
-  0,					// MRBC_TT_OBJECT  = 8,
-  (mrbc_class *)&mrbc_class_Proc,	// MRBC_TT_PROC	   = 9,
-  (mrbc_class *)&mrbc_class_Array,	// MRBC_TT_ARRAY   = 10,
-  (mrbc_class *)&mrbc_class_String,	// MRBC_TT_STRING  = 11,
-  (mrbc_class *)&mrbc_class_Range,	// MRBC_TT_RANGE   = 12,
-  (mrbc_class *)&mrbc_class_Hash,	// MRBC_TT_HASH	   = 13,
+  0,				// MRBC_TT_EMPTY   = 0,
+  MRBC_CLASS(NilClass),		// MRBC_TT_NIL	   = 1,
+  MRBC_CLASS(FalseClass),	// MRBC_TT_FALSE   = 2,
+  MRBC_CLASS(TrueClass),	// MRBC_TT_TRUE	   = 3,
+  MRBC_CLASS(Integer),		// MRBC_TT_INTEGER = 4,
+  MRBC_CLASS(Float),		// MRBC_TT_FLOAT   = 5,
+  MRBC_CLASS(Symbol),		// MRBC_TT_SYMBOL  = 6,
+  0,				// MRBC_TT_CLASS   = 7,
+  0,				// MRBC_TT_OBJECT  = 8,
+  MRBC_CLASS(Proc),		// MRBC_TT_PROC	   = 9,
+  MRBC_CLASS(Array),		// MRBC_TT_ARRAY   = 10,
+  MRBC_CLASS(String),		// MRBC_TT_STRING  = 11,
+  MRBC_CLASS(Range),		// MRBC_TT_RANGE   = 12,
+  MRBC_CLASS(Hash),		// MRBC_TT_HASH	   = 13,
 };
-
-mrbc_class *mrbc_class_exception;
-mrbc_class *mrbc_class_standarderror;
-mrbc_class *mrbc_class_runtimeerror;
 
 
 /***** Signal catching functions ********************************************/
@@ -460,56 +456,87 @@ static void mrbc_run_mrblib(const uint8_t bytecode[])
 void mrbc_init_class(void)
 {
   extern const uint8_t mrblib_bytecode[];
-  void mrbc_init_class_exception(void);
   void mrbc_init_class_math(void);
+  mrbc_value cls = {.tt = MRBC_TT_CLASS};
 
-  mrbc_set_const( MRBC_SYM(Object), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_Object)} );
+  cls.cls = MRBC_CLASS(Object);
+  mrbc_set_const( MRBC_SYM(Object), &cls );
 
-  mrbc_set_const( MRBC_SYM(NilClass), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_NilClass)} );
+  cls.cls = MRBC_CLASS(NilClass);
+  mrbc_set_const( MRBC_SYM(NilClass), &cls );
 
-  mrbc_set_const( MRBC_SYM(FalseClass), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_FalseClass)} );
+  cls.cls = MRBC_CLASS(FalseClass);
+  mrbc_set_const( MRBC_SYM(FalseClass), &cls );
 
-  mrbc_set_const( MRBC_SYM(TrueClass), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_TrueClass)} );
+  cls.cls = MRBC_CLASS(TrueClass);
+  mrbc_set_const( MRBC_SYM(TrueClass), &cls );
 
-  mrbc_set_const( MRBC_SYM(Integer), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_Integer)} );
+  cls.cls = MRBC_CLASS(Integer);
+  mrbc_set_const( MRBC_SYM(Integer), &cls );
 
 #if MRBC_USE_FLOAT
-  mrbc_set_const( MRBC_SYM(Float), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_Float)} );
+  cls.cls = MRBC_CLASS(Float);
+  mrbc_set_const( MRBC_SYM(Float), &cls );
 #endif
 
-  mrbc_set_const( MRBC_SYM(Symbol), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_Symbol)} );
+  cls.cls = MRBC_CLASS(Symbol);
+  mrbc_set_const( MRBC_SYM(Symbol), &cls );
 
-  mrbc_set_const( MRBC_SYM(Proc), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_Proc)} );
+  cls.cls = MRBC_CLASS(Proc);
+  mrbc_set_const( MRBC_SYM(Proc), &cls );
 
-  mrbc_set_const( MRBC_SYM(Array), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_Array)} );
+  cls.cls = MRBC_CLASS(Array);
+  mrbc_set_const( MRBC_SYM(Array), &cls );
 
 #if MRBC_USE_STRING
-  mrbc_set_const( MRBC_SYM(String), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_String)} );
+  cls.cls = MRBC_CLASS(String);
+  mrbc_set_const( MRBC_SYM(String), &cls );
 #endif
 
-  mrbc_set_const( MRBC_SYM(Range), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_Range)} );
+  cls.cls = MRBC_CLASS(Range);
+  mrbc_set_const( MRBC_SYM(Range), &cls );
 
-  mrbc_set_const( MRBC_SYM(Hash), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_Hash)} );
+  cls.cls = MRBC_CLASS(Hash);
+  mrbc_set_const( MRBC_SYM(Hash), &cls );
 
 #if MRBC_USE_MATH
-  mrbc_set_const( MRBC_SYM(Math), &(mrb_value){.tt = MRBC_TT_CLASS,
-	.cls = (mrbc_class *)(&mrbc_class_Math)} );
+  cls.cls = MRBC_CLASS(Math);
+  mrbc_set_const( MRBC_SYM(Math), &cls );
   mrbc_init_class_math();
 #endif
 
-  mrbc_init_class_exception();
+  cls.cls = MRBC_CLASS(Exception);
+  mrbc_set_const( MRBC_SYM(Exception), &cls );
+
+  cls.cls = MRBC_CLASS(NoMemoryError);
+  mrbc_set_const( MRBC_SYM(NoMemoryError), &cls );
+
+  cls.cls = MRBC_CLASS(StandardError);
+  mrbc_set_const( MRBC_SYM(StandardError), &cls );
+
+  cls.cls = MRBC_CLASS(ArgumentError);
+  mrbc_set_const( MRBC_SYM(ArgumentError), &cls );
+
+  cls.cls = MRBC_CLASS(IndexError);
+  mrbc_set_const( MRBC_SYM(IndexError), &cls );
+
+  cls.cls = MRBC_CLASS(NameError);
+  mrbc_set_const( MRBC_SYM(NameError), &cls );
+
+  cls.cls = MRBC_CLASS(NoMethodError);
+  mrbc_set_const( MRBC_SYM(NoMethodError), &cls );
+
+  cls.cls = MRBC_CLASS(RangeError);
+  mrbc_set_const( MRBC_SYM(RangeError), &cls );
+
+  cls.cls = MRBC_CLASS(RuntimeError);
+  mrbc_set_const( MRBC_SYM(RuntimeError), &cls );
+
+  cls.cls = MRBC_CLASS(TypeError);
+  mrbc_set_const( MRBC_SYM(TypeError), &cls );
+
+  cls.cls = MRBC_CLASS(ZeroDivisionError);
+  mrbc_set_const( MRBC_SYM(ZeroDivisionError), &cls );
 
   mrbc_run_mrblib(mrblib_bytecode);
 }

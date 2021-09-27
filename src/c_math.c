@@ -233,10 +233,10 @@ static void c_math_tanh(struct VM *vm, mrbc_value v[], int argc)
 void mrbc_init_class_math(void)
 {
   static mrbc_value e = mrbc_float_value(0, M_E);
-  mrbc_set_class_const( (mrbc_class *)&mrbc_class_Math, MRBC_SYM(E), &e );
+  mrbc_set_class_const( MRBC_CLASS(Math), MRBC_SYM(E), &e );
 
   static mrbc_value pi = mrbc_float_value(0, M_PI);
-  mrbc_set_class_const( (mrbc_class *)&mrbc_class_Math, MRBC_SYM(PI), &pi );
+  mrbc_set_class_const( MRBC_CLASS(Math), MRBC_SYM(PI), &pi );
 }
 
 /* MRBC_AUTOGEN_METHOD_TABLE

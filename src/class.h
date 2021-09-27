@@ -27,6 +27,9 @@ extern "C" {
 #endif
 /***** Constant values ******************************************************/
 /***** Macros ***************************************************************/
+#define MRBC_CLASS(cls)	((mrbc_class *)(&mrbc_class_##cls))
+
+
 /***** Typedefs *************************************************************/
 //================================================================
 /*! mruby/c class object.
@@ -104,19 +107,6 @@ typedef struct RMethod {
 
 /***** Global variables *****************************************************/
 extern struct RClass * const mrbc_class_tbl[];
-#define mrbc_class_nil		mrbc_class_tbl[ MRBC_TT_NIL ]
-#define mrbc_class_false	mrbc_class_tbl[ MRBC_TT_FALSE ]
-#define mrbc_class_true		mrbc_class_tbl[ MRBC_TT_TRUE ]
-#define mrbc_class_integer	mrbc_class_tbl[ MRBC_TT_INTEGER ]
-#define mrbc_class_fixnum	mrbc_class_integer
-#define mrbc_class_float	mrbc_class_tbl[ MRBC_TT_FLOAT ]
-#define mrbc_class_symbol	mrbc_class_tbl[ MRBC_TT_SYMBOL ]
-#define mrbc_class_proc		mrbc_class_tbl[ MRBC_TT_PROC ]
-#define mrbc_class_array	mrbc_class_tbl[ MRBC_TT_ARRAY ]
-#define mrbc_class_string	mrbc_class_tbl[ MRBC_TT_STRING ]
-#define mrbc_class_range	mrbc_class_tbl[ MRBC_TT_RANGE ]
-#define mrbc_class_hash		mrbc_class_tbl[ MRBC_TT_HASH ]
-
 extern struct RBuiltinClass mrbc_class_Object;
 extern struct RBuiltinClass mrbc_class_NilClass;
 extern struct RBuiltinClass mrbc_class_FalseClass;
@@ -130,12 +120,20 @@ extern struct RBuiltinClass mrbc_class_String;
 extern struct RBuiltinClass mrbc_class_Range;
 extern struct RBuiltinClass mrbc_class_Hash;
 extern struct RBuiltinClass mrbc_class_Math;
+extern struct RBuiltinClass mrbc_class_Exception;
+extern struct RClass mrbc_class_NoMemoryError;
+extern struct RClass mrbc_class_StandardError;
+extern struct RClass mrbc_class_ArgumentError;
+extern struct RClass mrbc_class_IndexError;
+extern struct RClass mrbc_class_NameError;
+extern struct RClass mrbc_class_NoMethodError;
+extern struct RClass mrbc_class_RangeError;
+extern struct RClass mrbc_class_RuntimeError;
+extern struct RClass mrbc_class_TypeError;
+extern struct RClass mrbc_class_ZeroDivisionError;
 
+// for old version compatibility.
 #define mrbc_class_object ((struct RClass*)(&mrbc_class_Object))
-
-extern struct RClass *mrbc_class_exception;
-extern struct RClass *mrbc_class_standarderror;
-extern struct RClass *mrbc_class_runtimeerror;
 
 
 /***** Function prototypes **************************************************/

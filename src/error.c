@@ -36,37 +36,99 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
 void mrbc_raiseX(mrbc_vm *vm, mrbc_error_code err, char *msg)
 {
   vm->exc.tt = MRBC_TT_EXCEPTION;
-  vm->exc.exception = mrbc_class_runtimeerror;
+  vm->exc.exception = MRBC_CLASS(RuntimeError);
   // vm->exc_message = mrbc_nil_value();
   // if( vm->exception_tail == NULL ) return;
 }
 
+/* mruby/c Exception class hierarchy.
 
-void mrbc_init_class_exception(void)
-{
-  mrbc_class_exception = mrbc_define_class(0, "Exception", mrbc_class_object);
-  mrbc_define_method(0, mrbc_class_exception, "message", c_exception_message);
+    Exception
+      NoMemoryError
+      StandardError
+        ArgumentError
+        IndexError
+        NameError
+          NoMethodError
+        RangeError
+        RuntimeError
+        TypeError
+        ZeroDivisionError
+*/
 
-  // Exception
-  //  |
-  //  +-- StandardError
-  mrbc_class_standarderror = mrbc_define_class(0, "StandardError", mrbc_class_exception);
-  mrbc_class_runtimeerror = mrbc_define_class(0, "RuntimeError", mrbc_class_standarderror);
-  mrbc_define_class(0, "ZeroDivisionError", mrbc_class_standarderror);
-  mrbc_define_class(0, "ArgumentError", mrbc_class_standarderror);
-  mrbc_define_class(0, "IndexError", mrbc_class_standarderror);
-  mrbc_define_class(0, "RangeError", mrbc_class_standarderror);
-  mrbc_define_class(0, "TypeError", mrbc_class_standarderror);
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("Exception")
+  FILE("method_table_exception.h")
+  METHOD("message",	c_exception_message )
+*/
+#include "method_table_exception.h"
 
-  // Exception
-  //  |
-  //  +--NoMemoryError
-  mrbc_define_class(0, "NoMemoryError", mrbc_class_exception);
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("NoMemoryError")
+  SUPER("Exception")
+  FILE("method_table_nomemoryerror.h")
+*/
+#include "method_table_nomemoryerror.h"
 
-  // NameError
-  //  |
-  //  +--NoMethodError
-  struct RClass *class_nameerror;
-  class_nameerror =  mrbc_define_class(0, "NameError", mrbc_class_standarderror);
-  mrbc_define_class(0, "NoMethodError", class_nameerror);
-}
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("StandardError")
+  SUPER("Exception")
+  FILE("method_table_standarderror.h")
+*/
+#include "method_table_standarderror.h"
+
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("ArgumentError")
+  SUPER("StandardError")
+  FILE("method_table_argumenterror.h")
+*/
+#include "method_table_argumenterror.h"
+
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("IndexError")
+  SUPER("StandardError")
+  FILE("method_table_indexerror.h")
+*/
+#include "method_table_indexerror.h"
+
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("NameError")
+  SUPER("StandardError")
+  FILE("method_table_nameerror.h")
+*/
+#include "method_table_nameerror.h"
+
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("NoMethodError")
+  SUPER("NameError")
+  FILE("method_table_nomethoderror.h")
+*/
+#include "method_table_nomethoderror.h"
+
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("RangeError")
+  SUPER("StandardError")
+  FILE("method_table_rangeerror.h")
+*/
+#include "method_table_rangeerror.h"
+
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("RuntimeError")
+  SUPER("StandardError")
+  FILE("method_table_runtimeerror.h")
+*/
+#include "method_table_runtimeerror.h"
+
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("TypeError")
+  SUPER("StandardError")
+  FILE("method_table_typeerror.h")
+*/
+#include "method_table_typeerror.h"
+
+/* MRBC_AUTOGEN_METHOD_TABLE
+  CLASS("ZeroDivisionError")
+  SUPER("StandardError")
+  FILE("method_table_zerodivisionerror.h")
+*/
+#include "method_table_zerodivisionerror.h"

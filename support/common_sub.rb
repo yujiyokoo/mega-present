@@ -154,8 +154,6 @@ def parse_source_string( src )
     flag_error = true
   }
 
-  ret[:super] ||= "mrbc_class_object"
-
   return flag_error ? nil : ret
 end
 

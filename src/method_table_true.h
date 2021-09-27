@@ -2,10 +2,10 @@
 #include "symbol_builtin.h"
 static const mrbc_sym method_symbols_TrueClass[] = {
 #if MRBC_USE_STRING
-  MRBC_SYMID_inspect,
+  MRBC_SYM(inspect),
 #endif
 #if MRBC_USE_STRING
-  MRBC_SYMID_to_s,
+  MRBC_SYM(to_s),
 #endif
 };
 static const mrbc_func_t method_functions_TrueClass[] = {
@@ -23,7 +23,7 @@ struct RBuiltinClass mrbc_class_TrueClass = {
 #if defined(MRBC_DEBUG)
   .names = "TrueClass",
 #endif
-  .super = mrbc_class_object,
+  .super = MRBC_CLASS(Object),
   .method_link = 0,
   .method_symbols = method_symbols_TrueClass,
   .method_functions = method_functions_TrueClass,

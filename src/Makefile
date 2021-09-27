@@ -42,7 +42,14 @@ AUTOGEN_METHOD_TABLE = method_table_array.h method_table_false.h \
   method_table_integer.h method_table_float.h method_table_hash.h \
   method_table_math.h method_table_nil.h method_table_object.h \
   method_table_proc.h method_table_range.h method_table_string.h \
-  method_table_symbol.h method_table_true.h
+  method_table_symbol.h method_table_true.h \
+  method_table_exception.h method_table_nomemoryerror.h \
+  method_table_standarderror.h method_table_argumenterror.h \
+  method_table_indexerror.h method_table_nameerror.h \
+  method_table_nomethoderror.h method_table_rangeerror.h \
+  method_table_runtimeerror.h method_table_typeerror.h \
+  method_table_zerodivisionerror.h
+
 
 $(AUTOGEN_SYMBOL_TABLE): $(AUTOGEN_METHOD_TABLE)
 	$(MAKE_SYMBOL_TABLE) -a
@@ -73,6 +80,28 @@ method_table_symbol.h:
 	$(MAKE_METHOD_TABLE) symbol.c
 method_table_true.h:
 	$(MAKE_METHOD_TABLE) c_object.c
+method_table_exception.h:
+	$(MAKE_METHOD_TABLE) error.c
+method_table_nomemoryerror.h:
+	$(MAKE_METHOD_TABLE) error.c
+method_table_standarderror.h:
+	$(MAKE_METHOD_TABLE) error.c
+method_table_argumenterror.h:
+	$(MAKE_METHOD_TABLE) error.c
+method_table_indexerror.h:
+	$(MAKE_METHOD_TABLE) error.c
+method_table_nameerror.h:
+	$(MAKE_METHOD_TABLE) error.c
+method_table_nomethoderror.h:
+	$(MAKE_METHOD_TABLE) error.c
+method_table_rangeerror.h:
+	$(MAKE_METHOD_TABLE) error.c
+method_table_runtimeerror.h:
+	$(MAKE_METHOD_TABLE) error.c
+method_table_typeerror.h:
+	$(MAKE_METHOD_TABLE) error.c
+method_table_zerodivisionerror.h:
+	$(MAKE_METHOD_TABLE) error.c
 
 
 # File dependencies.

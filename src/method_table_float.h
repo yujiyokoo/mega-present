@@ -2,18 +2,18 @@
 #include "symbol_builtin.h"
 static const mrbc_sym method_symbols_Float[] = {
 #if MRBC_USE_MATH
-  MRBC_SYMID_MUL_MUL,
+  MRBC_SYM(MUL_MUL),
 #endif
-  MRBC_SYMID_PLUS_AT,
-  MRBC_SYMID_MINUS_AT,
-  MRBC_SYMID_abs,
+  MRBC_SYM(PLUS_AT),
+  MRBC_SYM(MINUS_AT),
+  MRBC_SYM(abs),
 #if MRBC_USE_STRING
-  MRBC_SYMID_inspect,
+  MRBC_SYM(inspect),
 #endif
-  MRBC_SYMID_to_f,
-  MRBC_SYMID_to_i,
+  MRBC_SYM(to_f),
+  MRBC_SYM(to_i),
 #if MRBC_USE_STRING
-  MRBC_SYMID_to_s,
+  MRBC_SYM(to_s),
 #endif
 };
 static const mrbc_func_t method_functions_Float[] = {
@@ -39,7 +39,7 @@ struct RBuiltinClass mrbc_class_Float = {
 #if defined(MRBC_DEBUG)
   .names = "Float",
 #endif
-  .super = mrbc_class_object,
+  .super = MRBC_CLASS(Object),
   .method_link = 0,
   .method_symbols = method_symbols_Float,
   .method_functions = method_functions_Float,
