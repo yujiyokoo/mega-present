@@ -351,7 +351,6 @@ static void c_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   CLASS("Symbol")
   FILE("method_table_symbol.h")
-  FUNC("mrbc_init_class_symbol")
 
   METHOD( "all_symbols", c_all_symbols )
 #if MRBC_USE_STRING

@@ -40,13 +40,27 @@
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
 /***** Global variables *****************************************************/
-// Builtin class table.
-mrbc_class *mrbc_class_tbl[MRBC_TT_MAXVAL+1];
-mrbc_class *mrbc_class_object;
-mrbc_class *mrbc_class_math;
-mrbc_class *mrbc_class_exception;
-mrbc_class *mrbc_class_standarderror;
-mrbc_class *mrbc_class_runtimeerror;
+/*! Builtin class table.
+
+  @note must be same order as mrbc_vtype.
+  @see mrbc_vtype in value.h
+*/
+mrbc_class * const mrbc_class_tbl[MRBC_TT_MAXVAL+1] = {
+  0,				// MRBC_TT_EMPTY   = 0,
+  MRBC_CLASS(NilClass),		// MRBC_TT_NIL	   = 1,
+  MRBC_CLASS(FalseClass),	// MRBC_TT_FALSE   = 2,
+  MRBC_CLASS(TrueClass),	// MRBC_TT_TRUE	   = 3,
+  MRBC_CLASS(Integer),		// MRBC_TT_INTEGER = 4,
+  MRBC_CLASS(Float),		// MRBC_TT_FLOAT   = 5,
+  MRBC_CLASS(Symbol),		// MRBC_TT_SYMBOL  = 6,
+  0,				// MRBC_TT_CLASS   = 7,
+  0,				// MRBC_TT_OBJECT  = 8,
+  MRBC_CLASS(Proc),		// MRBC_TT_PROC	   = 9,
+  MRBC_CLASS(Array),		// MRBC_TT_ARRAY   = 10,
+  MRBC_CLASS(String),		// MRBC_TT_STRING  = 11,
+  MRBC_CLASS(Range),		// MRBC_TT_RANGE   = 12,
+  MRBC_CLASS(Hash),		// MRBC_TT_HASH	   = 13,
+};
 
 
 /***** Signal catching functions ********************************************/
@@ -86,39 +100,6 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
   // register to global constant.
   mrbc_set_const( sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = cls} );
   return cls;
-}
-
-
-//================================================================
-/*! define built-in class
-
-  @param  name_sym_id	class name's symbol id.
-  @param  super		super class.
-  @param  method_symbols	bulitin function's symbol id table
-  @param  method_functions	builtin method function table
-  @param  num_builtin_method	table size
-  @return		pointer to defined class.
-  @note
-   called by auto-generated function created by make_method_table.rb
-*/
-mrbc_class * mrbc_define_builtin_class(mrbc_sym name_sym_id, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method)
-{
-  struct RBuiltinClass *cls = mrbc_raw_alloc_no_free( sizeof(struct RBuiltinClass));
-  if( !cls ) return 0;	// ENOMEM
-
-  cls->sym_id = name_sym_id;
-  cls->num_builtin_method = num_builtin_method;
-#ifdef MRBC_DEBUG
-  cls->names = mrbc_symid_to_str(name_sym_id);	// for debug; delete soon.
-#endif
-  cls->super = super;
-  cls->method_link = 0;
-  cls->method_symbols = method_symbols;
-  cls->method_functions = method_functions;
-
-  // register to global constant.
-  mrbc_set_const( name_sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = (mrbc_class *)cls} );
-  return (mrbc_class *)cls;
 }
 
 
@@ -475,41 +456,87 @@ static void mrbc_run_mrblib(const uint8_t bytecode[])
 void mrbc_init_class(void)
 {
   extern const uint8_t mrblib_bytecode[];
-  mrbc_class *mrbc_init_class_object(void);
-  mrbc_class *mrbc_init_class_proc(void);
-  mrbc_class *mrbc_init_class_nil(void);
-  mrbc_class *mrbc_init_class_true(void);
-  mrbc_class *mrbc_init_class_false(void);
-  mrbc_class *mrbc_init_class_symbol(void);
-  mrbc_class *mrbc_init_class_integer(void);
-  mrbc_class *mrbc_init_class_float(void);
-  mrbc_class *mrbc_init_class_math(void);
-  mrbc_class *mrbc_init_class_string(void);
-  mrbc_class *mrbc_init_class_array(void);
-  mrbc_class *mrbc_init_class_range(void);
-  mrbc_class *mrbc_init_class_hash(void);
-  void mrbc_init_class_exception(void);
+  void mrbc_init_class_math(void);
+  mrbc_value cls = {.tt = MRBC_TT_CLASS};
 
-  mrbc_class_object =	mrbc_init_class_object();
-  mrbc_class_proc =	mrbc_init_class_proc();
-  mrbc_class_nil =	mrbc_init_class_nil();
-  mrbc_class_true =	mrbc_init_class_true();
-  mrbc_class_false =	mrbc_init_class_false();
-  mrbc_class_symbol =	mrbc_init_class_symbol();
-  mrbc_class_integer =	mrbc_init_class_integer();
+  cls.cls = MRBC_CLASS(Object);
+  mrbc_set_const( MRBC_SYM(Object), &cls );
+
+  cls.cls = MRBC_CLASS(NilClass);
+  mrbc_set_const( MRBC_SYM(NilClass), &cls );
+
+  cls.cls = MRBC_CLASS(FalseClass);
+  mrbc_set_const( MRBC_SYM(FalseClass), &cls );
+
+  cls.cls = MRBC_CLASS(TrueClass);
+  mrbc_set_const( MRBC_SYM(TrueClass), &cls );
+
+  cls.cls = MRBC_CLASS(Integer);
+  mrbc_set_const( MRBC_SYM(Integer), &cls );
+
 #if MRBC_USE_FLOAT
-  mrbc_class_float =	mrbc_init_class_float();
-#if MRBC_USE_MATH
-  mrbc_class_math =	mrbc_init_class_math();
+  cls.cls = MRBC_CLASS(Float);
+  mrbc_set_const( MRBC_SYM(Float), &cls );
 #endif
-#endif
+
+  cls.cls = MRBC_CLASS(Symbol);
+  mrbc_set_const( MRBC_SYM(Symbol), &cls );
+
+  cls.cls = MRBC_CLASS(Proc);
+  mrbc_set_const( MRBC_SYM(Proc), &cls );
+
+  cls.cls = MRBC_CLASS(Array);
+  mrbc_set_const( MRBC_SYM(Array), &cls );
+
 #if MRBC_USE_STRING
-  mrbc_class_string =	mrbc_init_class_string();
+  cls.cls = MRBC_CLASS(String);
+  mrbc_set_const( MRBC_SYM(String), &cls );
 #endif
-  mrbc_class_array =	mrbc_init_class_array();
-  mrbc_class_range =	mrbc_init_class_range();
-  mrbc_class_hash =	mrbc_init_class_hash();
-  mrbc_init_class_exception();
+
+  cls.cls = MRBC_CLASS(Range);
+  mrbc_set_const( MRBC_SYM(Range), &cls );
+
+  cls.cls = MRBC_CLASS(Hash);
+  mrbc_set_const( MRBC_SYM(Hash), &cls );
+
+#if MRBC_USE_MATH
+  cls.cls = MRBC_CLASS(Math);
+  mrbc_set_const( MRBC_SYM(Math), &cls );
+  mrbc_init_class_math();
+#endif
+
+  cls.cls = MRBC_CLASS(Exception);
+  mrbc_set_const( MRBC_SYM(Exception), &cls );
+
+  cls.cls = MRBC_CLASS(NoMemoryError);
+  mrbc_set_const( MRBC_SYM(NoMemoryError), &cls );
+
+  cls.cls = MRBC_CLASS(StandardError);
+  mrbc_set_const( MRBC_SYM(StandardError), &cls );
+
+  cls.cls = MRBC_CLASS(ArgumentError);
+  mrbc_set_const( MRBC_SYM(ArgumentError), &cls );
+
+  cls.cls = MRBC_CLASS(IndexError);
+  mrbc_set_const( MRBC_SYM(IndexError), &cls );
+
+  cls.cls = MRBC_CLASS(NameError);
+  mrbc_set_const( MRBC_SYM(NameError), &cls );
+
+  cls.cls = MRBC_CLASS(NoMethodError);
+  mrbc_set_const( MRBC_SYM(NoMethodError), &cls );
+
+  cls.cls = MRBC_CLASS(RangeError);
+  mrbc_set_const( MRBC_SYM(RangeError), &cls );
+
+  cls.cls = MRBC_CLASS(RuntimeError);
+  mrbc_set_const( MRBC_SYM(RuntimeError), &cls );
+
+  cls.cls = MRBC_CLASS(TypeError);
+  mrbc_set_const( MRBC_SYM(TypeError), &cls );
+
+  cls.cls = MRBC_CLASS(ZeroDivisionError);
+  mrbc_set_const( MRBC_SYM(ZeroDivisionError), &cls );
 
   mrbc_run_mrblib(mrblib_bytecode);
 }

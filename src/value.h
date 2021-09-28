@@ -55,8 +55,9 @@ typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 
 
 //================================================================
-/*!@brief
-  define the value type.
+/*! define the value type.
+
+  @note  Must be same order as mrbc_class_tbl[], mrbc_delfunc[].
 */
 typedef enum {
   /* internal use */
@@ -78,7 +79,7 @@ typedef enum {
 
   /* non-primitive */
   MRBC_TT_OBJECT  = 8,	// (note) inc/dec ref threshold.
-  MRBC_TT_PROC	  = 9,	// and must be same order as mrbc_delfunc[].
+  MRBC_TT_PROC	  = 9,
   MRBC_TT_ARRAY	  = 10,
   MRBC_TT_STRING  = 11,
   MRBC_TT_RANGE	  = 12,
@@ -89,8 +90,7 @@ typedef enum {
 
 
 //================================================================
-/*!@brief
-  define the error code. (BETA TEST)
+/*! define the error code. (BETA TEST)
 */
 typedef enum {
   E_NOMEMORY_ERROR = 1,
@@ -114,10 +114,8 @@ typedef enum {
 } mrbc_error_code;
 
 
-
 //================================================================
-/*!@brief
-  Define the object structure having reference counter.
+/*! Define the object structure having reference counter.
 */
 #if defined(MRBC_DEBUG)
 #define MRBC_OBJECT_HEADER  uint8_t type[2]; uint16_t ref_count;
@@ -130,10 +128,8 @@ struct RBasic {
 };
 
 
-
 //================================================================
-/*!@brief
-  mruby/c value object.
+/*! mruby/c value object.
 */
 struct RObject {
   mrbc_vtype tt : 8;

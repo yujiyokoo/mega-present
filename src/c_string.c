@@ -1223,7 +1223,6 @@ static void c_string_include(struct VM *vm, mrbc_value v[], int argc)
 
   CLASS("String")
   FILE("method_table_string.h")
-  FUNC("mrbc_init_class_string")
 
   METHOD( "new",	c_string_new )
   METHOD( "+",		c_string_add )

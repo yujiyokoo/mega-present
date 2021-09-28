@@ -59,7 +59,7 @@ int mrbc_set_const( mrbc_sym sym_id, mrbc_value *v )
   @param  v		pointer to mrbc_value.
   @return		mrbc_error_code.
 */
-int mrbc_set_class_const( mrbc_class *cls, mrbc_sym sym_id, mrbc_value *v )
+int mrbc_set_class_const( const mrbc_class *cls, mrbc_sym sym_id, mrbc_value *v )
 {
   char buf[10];
   mrbc_sym id = cls->sym_id;
@@ -99,7 +99,7 @@ mrbc_value * mrbc_get_const( mrbc_sym sym_id )
   @param  sym_id	symbol ID.
   @return		pointer to mrbc_value or NULL.
 */
-mrbc_value * mrbc_get_class_const( mrbc_class *cls, mrbc_sym sym_id )
+mrbc_value * mrbc_get_class_const( const mrbc_class *cls, mrbc_sym sym_id )
 {
   char buf[10];
   mrbc_sym id = cls->sym_id;
