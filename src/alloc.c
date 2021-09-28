@@ -837,6 +837,7 @@ void mrbc_alloc_print_memory_pool( void )
 {
   int i;
   MEMORY_POOL *pool = memory_pool;
+  const int DUMP_BYTES = 32;
 
   console_printf("== MEMORY POOL HEADER DUMP ==\n");
   console_printf(" Address: %p - %p - %p  ", pool,
@@ -881,13 +882,13 @@ void mrbc_alloc_print_memory_pool( void )
 		   !!(block->size & 0x01), !!(block->size & 0x02) );
 
     if( IS_USED_BLOCK(block) ) {
-      int n = 32;
+      int n = DUMP_BYTES;
       if( n > (BLOCK_SIZE(block) - sizeof(USED_BLOCK)) ) {
 	n = BLOCK_SIZE(block) - sizeof(USED_BLOCK);
       }
       uint8_t *p = (uint8_t *)block + sizeof(USED_BLOCK);
       for( i = 0; i < n; i++) console_printf(" %02x", *p++ );
-      for( ; i < 32; i++ ) console_printf("   ");
+      for( ; i < DUMP_BYTES; i++ ) console_printf("   ");
 
       console_printf("  ");
       p = (uint8_t *)block + sizeof(USED_BLOCK);
