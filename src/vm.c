@@ -58,7 +58,7 @@ static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 */
 static void not_supported(void)
 {
-  console_printf("Not supported!\n");
+  mrbc_printf("Not supported!\n");
 }
 
 
@@ -92,8 +92,8 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
   mrbc_method method;
 
   if( mrbc_find_method( &method, cls, sym_id ) == 0 ) {
-    console_printf("Undefined local variable or method '%s' for %s\n",
-		   symid_to_str(sym_id), symid_to_str( cls->sym_id ));
+    mrbc_printf("Undefined local variable or method '%s' for %s\n",
+		symid_to_str(sym_id), symid_to_str( cls->sym_id ));
     return 1;
   }
 
@@ -667,8 +667,8 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
 
   v = mrbc_get_const(sym_id);
   if( v == NULL ) {		// raise?
-    console_printf( "NameError: uninitialized constant %s\n",
-		    symid_to_str(sym_id) );
+    mrbc_printf("NameError: uninitialized constant %s\n",
+		symid_to_str(sym_id) );
     return 0;
   }
 
@@ -727,8 +727,8 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
   while( !(v = mrbc_get_class_const(cls, sym_id)) ) {
     cls = cls->super;
     if( !cls ) {	// raise?
-      console_printf( "NameError: uninitialized constant %s::%s\n",
-		symid_to_str( regs[a].cls->sym_id ), symid_to_str( sym_id ));
+      mrbc_printf("NameError: uninitialized constant %s::%s\n",
+		  symid_to_str( regs[a].cls->sym_id ), symid_to_str( sym_id ));
       return 0;
     }
   }
@@ -1000,7 +1000,7 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  //  console_printf("OP_RAISEIF tt:%d\n", regs[0].tt);
+  //  mrbc_printf("OP_RAISEIF tt:%d\n", regs[0].tt);
 
   mrb_value *exc = &regs[a];
 
@@ -1134,13 +1134,13 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   cls = cls->super;
   assert( cls );
   if( mrbc_find_method( &method, cls, callinfo->method_id ) == 0 ) {
-    console_printf("Undefined method '%s' for %s\n",
-		   symid_to_str(callinfo->method_id), symid_to_str(cls->sym_id));
+    mrbc_printf("Undefined method '%s' for %s\n",
+		symid_to_str(callinfo->method_id), symid_to_str(cls->sym_id));
     return 1;
   }
 
   if( method.c_func ) {
-    console_printf("Not support.\n");	// TODO
+    mrbc_printf("Not support.\n");	// TODO
     return 1;
   }
 
@@ -1176,11 +1176,11 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs )
 
   if( b & 0x400 ) {	// check REST parameter.
     // TODO: want to support.
-    console_printf("Not support rest parameter by super.\n");
+    mrbc_printf("Not support rest parameter by super.\n");
     return 1;
   }
   if( b & 0x3e0 ) {	// check m2 parameter.
-    console_printf("ArgumentError: not support m2 or keyword argument.\n");
+    mrbc_printf("ArgumentError: not support m2 or keyword argument.\n");
     return 1;		// raise?
   }
 
@@ -1233,12 +1233,12 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   }
 
   if( a & 0xffc ) {	// check m2 and k parameter.
-    console_printf("ArgumentError: not support m2 or keyword argument.\n");
+    mrbc_printf("ArgumentError: not support m2 or keyword argument.\n");
     return 1;		// raise?
   }
 
   if( !flag_sendv_pattern && argc < m1 && regs[0].tt != MRBC_TT_PROC ) {
-    console_printf("ArgumentError: wrong number of arguments.\n");
+    mrbc_printf("ArgumentError: wrong number of arguments.\n");
     return 1;		// raise?
   }
 
@@ -1330,7 +1330,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   if( jmp_ofs > 0 ) {
     if( jmp_ofs > o ) {
       if( !FLAG_REST_PARAM && regs[0].tt != MRBC_TT_PROC ) {
-	console_printf("ArgumentError: wrong number of arguments.\n");
+	mrbc_printf("ArgumentError: wrong number of arguments.\n");
 	return 1;	// raise?
       }
       jmp_ofs = o;
@@ -1362,7 +1362,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   regs[a].tt = MRBC_TT_EMPTY;
 
   vm->exc = mrbc_nil_value();
-  
+
   STOP_IF_TOPLEVEL();
 
   mrbc_pop_callinfo(vm);
@@ -1491,7 +1491,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
   int lv = (b      ) & 0x0f;
 
   if( m2 ) {
-    console_printf("ArgumentError: not support m2 or keyword argument.\n");
+    mrbc_printf("ArgumentError: not support m2 or keyword argument.\n");
     return 1;		// raise?
   }
 
@@ -1509,7 +1509,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     blk = callinfo->current_regs + callinfo->reg_offset + offset;
   }
   if( blk->tt != MRBC_TT_PROC ) {
-    console_printf("no block given (yield) (LocalJumpError)\n");
+    mrbc_printf("no block given (yield) (LocalJumpError)\n");
     return 1;	// raise?
   }
 
@@ -2445,8 +2445,8 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
   if( !method ) return 0;	// ENOMEM
 
   if( mrbc_find_method( method, cls, sym_id_org ) == 0 ) {
-    console_printf("NameError: undefined method '%s'\n",
-		   symid_to_str(sym_id_org));
+    mrbc_printf("NameError: undefined method '%s'\n",
+		symid_to_str(sym_id_org));
     mrbc_raw_free( method );
     return 0;
   }
@@ -2555,7 +2555,7 @@ static inline int op_dummy_Z( mrbc_vm *vm, mrbc_value *regs )
   uint8_t op = *(vm->inst - 1);
   FETCH_Z();
 
-  console_printf("# Skip OP 0x%02x\n", op);
+  mrbc_printf("# Skip OP 0x%02x\n", op);
   return 0;
 }
 
@@ -2568,7 +2568,7 @@ static inline int op_dummy_B( mrbc_vm *vm, mrbc_value *regs )
   uint8_t op = *(vm->inst - 1);
   FETCH_B();
 
-  console_printf("# Skip OP 0x%02x\n", op);
+  mrbc_printf("# Skip OP 0x%02x\n", op);
   return 0;
 }
 
@@ -2581,7 +2581,7 @@ static inline int op_dummy_BB( mrbc_vm *vm, mrbc_value *regs )
   uint8_t op = *(vm->inst - 1);
   FETCH_BB();
 
-  console_printf("# Skip OP 0x%02x\n", op);
+  mrbc_printf("# Skip OP 0x%02x\n", op);
   return 0;
 }
 
@@ -2594,7 +2594,7 @@ static inline int op_dummy_BBB( mrbc_vm *vm, mrbc_value *regs )
   uint8_t op = *(vm->inst - 1);
   FETCH_BBB();
 
-  console_printf("# Skip OP 0x%02x\n", op);
+  mrbc_printf("# Skip OP 0x%02x\n", op);
   return 0;
 }
 
@@ -2706,13 +2706,13 @@ void mrbc_vm_end( struct VM *vm )
   int n_used = 0;
   int i;
   for( i = 0; i < MAX_REGS_SIZE; i++ ) {
-    //console_printf("vm->regs[%d].tt = %d\n", i, mrbc_type(vm->regs[i]));
+    //mrbc_printf("vm->regs[%d].tt = %d\n", i, mrbc_type(vm->regs[i]));
     if( mrbc_type(vm->regs[i]) != MRBC_TT_NIL ) n_used = i;
     mrbc_decref_empty(&vm->regs[i]);
   }
 #if defined(MRBC_DEBUG_REGS)
-  console_printf("Finally number of registers used was %d in VM %d.\n",
-		 n_used, vm->vm_id );
+  mrbc_printf("Finally number of registers used was %d in VM %d.\n",
+	      n_used, vm->vm_id );
 #endif
 
 #if defined(MRBC_ALLOC_VMID)
@@ -2741,7 +2741,7 @@ int mrbc_vm_run( struct VM *vm )
     // Dispatch
     uint8_t op = *vm->inst++;
 
-    // console_printf("%03d: OP=%02x\n", (vm->inst-1) - vm->pc_irep->code, op);
+    // mrbc_printf("%03d: OP=%02x\n", (vm->inst-1) - vm->pc_irep->code, op);
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
@@ -2854,7 +2854,7 @@ int mrbc_vm_run( struct VM *vm )
 
     case OP_ABORT:      ret = op_abort     (vm, regs); break;
     default:
-      console_printf("Unknown OP 0x%02x\n", op);
+      mrbc_printf("Unknown OP 0x%02x\n", op);
       break;
     }
 

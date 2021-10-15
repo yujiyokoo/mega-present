@@ -508,7 +508,7 @@ static void c_array_new(struct VM *vm, mrbc_value v[], int argc)
   /*
     other case
   */
-  console_print( "ArgumentError\n" );	// raise?
+  mrbc_print("ArgumentError\n");	// raise?
 }
 
 
@@ -518,7 +518,7 @@ static void c_array_new(struct VM *vm, mrbc_value v[], int argc)
 static void c_array_add(struct VM *vm, mrbc_value v[], int argc)
 {
   if( mrb_type(v[1]) != MRBC_TT_ARRAY ) {
-    console_print( "TypeError\n" );	// raise?
+    mrbc_print("TypeError\n");	// raise?
     return;
   }
 
@@ -608,7 +608,7 @@ static void c_array_get(struct VM *vm, mrbc_value v[], int argc)
   /*
     other case
   */
-  console_print( "Not support such case in Array#[].\n" );
+  mrbc_print("Not support such case in Array#[].\n");
   return;
 
  RETURN_NIL:
@@ -640,7 +640,7 @@ static void c_array_set(struct VM *vm, mrbc_value v[], int argc)
   /*
     other case
   */
-  console_print( "Not support such case in Array#[].\n" );
+  mrbc_print("Not support such case in Array#[].\n");
 }
 
 
@@ -662,7 +662,7 @@ static void c_array_delete_at(struct VM *vm, mrbc_value v[], int argc)
     mrbc_value val = mrbc_array_remove(v, mrbc_integer(v[1]));
     SET_RETURN(val);
   } else {
-    console_print( "ArgumentError\n" );	// raise?
+    mrbc_print("ArgumentError\n");	// raise?
   }
 }
 
@@ -782,7 +782,7 @@ static void c_array_pop(struct VM *vm, mrbc_value v[], int argc)
   /*
     other case
   */
-  console_print( "Not support such case in Array#pop.\n" );
+  mrbc_print("Not support such case in Array#pop.\n");
 }
 
 
@@ -820,7 +820,7 @@ static void c_array_shift(struct VM *vm, mrbc_value v[], int argc)
   /*
     other case
   */
-  console_print( "Not support such case in Array#shift.\n" );
+  mrbc_print("Not support such case in Array#shift.\n");
 }
 
 

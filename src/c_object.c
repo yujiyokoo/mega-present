@@ -227,7 +227,7 @@ static void c_object_p(struct VM *vm, mrbc_value v[], int argc)
   int i;
   for( i = 1; i <= argc; i++ ) {
     mrbc_p_sub( &v[i] );
-    console_putchar('\n');
+    mrbc_putchar('\n');
   }
 
   if (argc == 0) {
@@ -271,10 +271,10 @@ static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
   int i;
   if( argc ){
     for( i = 1; i <= argc; i++ ) {
-      if( mrbc_puts_sub( &v[i] ) == 0 ) console_putchar('\n');
+      if( mrbc_puts_sub( &v[i] ) == 0 ) mrbc_putchar('\n');
     }
   } else {
-    console_putchar('\n');
+    mrbc_putchar('\n');
   }
   SET_NIL_RETURN();
 }
@@ -342,19 +342,19 @@ static void c_object_instance_methods(struct VM *vm, mrbc_value v[], int argc)
   // TODO: check argument.
 
   // temporary code for operation check.
-  console_printf( "[" );
+  mrbc_printf("[");
   int flag_first = 1;
 
   mrbc_class *cls = find_class_by_object( v );
   mrbc_method *method = cls->method_link;
   while( method ) {
-    console_printf( "%s:%s", (flag_first ? "" : ", "),
-		    symid_to_str(method->sym_id) );
+    mrbc_printf("%s:%s", (flag_first ? "" : ", "),
+		symid_to_str(method->sym_id) );
     flag_first = 0;
     method = method->next;
   }
 
-  console_printf( "]" );
+  mrbc_printf("]");
 
   SET_NIL_RETURN();
 }
@@ -369,16 +369,16 @@ static void c_object_instance_variables(struct VM *vm, mrbc_value v[], int argc)
 #if 1
   mrbc_kv_handle *kvh = &v[0].instance->ivar;
 
-  console_printf( "n = %d/%d ", kvh->n_stored, kvh->data_size );
-  console_printf( "[" );
+  mrbc_printf("n = %d/%d ", kvh->n_stored, kvh->data_size);
+  mrbc_printf("[");
 
   int i;
   for( i = 0; i < kvh->n_stored; i++ ) {
-    console_printf( "%s:@%s", (i == 0 ? "" : ", "),
-		    symid_to_str( kvh->data[i].sym_id ));
+    mrbc_printf("%s:@%s", (i == 0 ? "" : ", "),
+		symid_to_str( kvh->data[i].sym_id ));
   }
 
-  console_printf( "]\n" );
+  mrbc_printf("]\n");
 #endif
   SET_NIL_RETURN();
 }
@@ -393,11 +393,11 @@ static void c_object_memory_statistics(struct VM *vm, mrbc_value v[], int argc)
   int total, used, free, frag;
   mrbc_alloc_statistics(&total, &used, &free, &frag);
 
-  console_printf("Memory Statistics\n");
-  console_printf("  Total: %d\n", total);
-  console_printf("  Used : %d\n", used);
-  console_printf("  Free : %d\n", free);
-  console_printf("  Frag.: %d\n", frag);
+  mrbc_printf("Memory Statistics\n");
+  mrbc_printf("  Total: %d\n", total);
+  mrbc_printf("  Used : %d\n", used);
+  mrbc_printf("  Free : %d\n", free);
+  mrbc_printf("  Frag.: %d\n", frag);
 
   SET_NIL_RETURN();
 }
@@ -487,7 +487,7 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
 
   mrbc_value *format = &v[1];
   if( mrbc_type(*format) != MRBC_TT_STRING ) {
-    console_printf( "TypeError\n" );	// raise?
+    mrbc_printf("TypeError\n");		// raise?
     return;
   }
 
@@ -495,18 +495,18 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
   char *buf = mrbc_alloc(vm, buflen);
   if( !buf ) { return; }	// ENOMEM raise?
 
-  mrbc_printf pf;
+  mrbc_printf_t pf;
   mrbc_printf_init( &pf, buf, buflen, mrbc_string_cstr(format) );
 
   int i = 2;
   int ret;
   while( 1 ) {
-    mrbc_printf pf_bak = pf;
+    mrbc_printf_t pf_bak = pf;
     ret = mrbc_printf_main( &pf );
     if( ret == 0 ) break;	// normal break loop.
     if( ret < 0 ) goto INCREASE_BUFFER;
 
-    if( i > argc ) {console_print("ArgumentError\n"); break;}	// raise?
+    if( i > argc ) {mrbc_print("ArgumentError\n"); break;}	// raise?
 
     // maybe ret == 1
     switch(pf.fmt.type) {
@@ -610,7 +610,7 @@ static void c_object_sprintf(struct VM *vm, mrbc_value v[], int argc)
 static void c_object_printf(struct VM *vm, mrbc_value v[], int argc)
 {
   c_object_sprintf(vm, v, argc);
-  console_nprint( mrbc_string_cstr(v), mrbc_string_size(v) );
+  mrbc_nprint( mrbc_string_cstr(v), mrbc_string_size(v) );
   SET_NIL_RETURN();
 }
 
@@ -630,7 +630,7 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   case MRBC_TT_OBJECT:{
     // (NOTE) address part assumes 32bit. but enough for this.
-    mrbc_printf pf;
+    mrbc_printf_t pf;
 
     mrbc_printf_init( &pf, buf, sizeof(buf), "#<%s:%08x>" );
     while( mrbc_printf_main( &pf ) > 0 ) {
@@ -709,7 +709,7 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
 {
   if( mrbc_type(v[1]) != MRBC_TT_PROC ) {
-    console_printf("Not support Proc.new without block.\n");	// raise?
+    mrbc_printf("Not support Proc.new without block.\n");	// raise?
     return;
   }
 
@@ -751,7 +751,7 @@ static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   // (NOTE) address part assumes 32bit. but enough for this.
   char buf[32];
-  mrbc_printf pf;
+  mrbc_printf_t pf;
 
   mrbc_printf_init( &pf, buf, sizeof(buf), "#<Proc:%08x>" );
   while( mrbc_printf_main( &pf ) > 0 ) {

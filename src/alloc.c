@@ -839,47 +839,47 @@ void mrbc_alloc_print_memory_pool( void )
   MEMORY_POOL *pool = memory_pool;
   const int DUMP_BYTES = 32;
 
-  console_printf("== MEMORY POOL HEADER DUMP ==\n");
-  console_printf(" Address: %p - %p - %p  ", pool,
-		 BLOCK_TOP(pool), BLOCK_END(pool));
-  console_printf(" Size Total: %d User: %d\n",
-		 pool->size, pool->size - sizeof(MEMORY_POOL));
-  console_printf(" sizeof MEMORY_POOL: %d(%04x), USED_BLOCK: %d(%02x), FREE_BLOCK: %d(%02x)\n",
-		 sizeof(MEMORY_POOL), sizeof(MEMORY_POOL),
-		 sizeof(USED_BLOCK), sizeof(USED_BLOCK),
-		 sizeof(FREE_BLOCK), sizeof(FREE_BLOCK) );
+  mrbc_printf("== MEMORY POOL HEADER DUMP ==\n");
+  mrbc_printf(" Address: %p - %p - %p  ", pool,
+		BLOCK_TOP(pool), BLOCK_END(pool));
+  mrbc_printf(" Size Total: %d User: %d\n",
+		pool->size, pool->size - sizeof(MEMORY_POOL));
+  mrbc_printf(" sizeof MEMORY_POOL: %d(%04x), USED_BLOCK: %d(%02x), FREE_BLOCK: %d(%02x)\n",
+		sizeof(MEMORY_POOL), sizeof(MEMORY_POOL),
+		sizeof(USED_BLOCK), sizeof(USED_BLOCK),
+		sizeof(FREE_BLOCK), sizeof(FREE_BLOCK) );
 
-  console_printf(" FLI/SLI bitmap and free_blocks table.\n");
-  console_printf("    FLI :S[0123 4567] -- free_blocks ");
-  for( i = 0; i < 64; i++ ) { console_printf("-"); }
-  console_printf("\n");
+  mrbc_printf(" FLI/SLI bitmap and free_blocks table.\n");
+  mrbc_printf("    FLI :S[0123 4567] -- free_blocks ");
+  for( i = 0; i < 64; i++ ) { mrbc_printf("-"); }
+  mrbc_printf("\n");
   for( i = 0; i < sizeof(pool->free_sli_bitmap); i++ ) {
-    console_printf(" [%2d] %d :  ", i, !!((pool->free_fli_bitmap << i) & MSB_BIT1_FLI));
+    mrbc_printf(" [%2d] %d :  ", i, !!((pool->free_fli_bitmap << i) & MSB_BIT1_FLI));
     int j;
     for( j = 0; j < 8; j++ ) {
-      console_printf("%d", !!((pool->free_sli_bitmap[i] << j) & MSB_BIT1_SLI));
-      if( (j % 4) == 3 ) console_printf(" ");
+      mrbc_printf("%d", !!((pool->free_sli_bitmap[i] << j) & MSB_BIT1_SLI));
+      if( (j % 4) == 3 ) mrbc_printf(" ");
     }
 
     for( j = 0; j < 8; j++ ) {
       int idx = i * 8 + j;
       if( idx >= sizeof(pool->free_blocks) / sizeof(FREE_BLOCK *) ) break;
-      console_printf(" %p", pool->free_blocks[idx] );
+      mrbc_printf(" %p", pool->free_blocks[idx] );
     }
-    console_printf( "\n" );
+    mrbc_printf( "\n" );
   }
 
-  console_printf("== MEMORY BLOCK DUMP ==\n");
+  mrbc_printf("== MEMORY BLOCK DUMP ==\n");
   FREE_BLOCK *block = BLOCK_TOP(pool);
 
   while( block < (FREE_BLOCK *)BLOCK_END(pool) ) {
-    console_printf("%p", block );
+    mrbc_printf("%p", block );
 #if defined(MRBC_ALLOC_VMID)
-    console_printf(" id:%02x", block->vm_id );
+    mrbc_printf(" id:%02x", block->vm_id );
 #endif
-    console_printf(" size:%5d(%04x) use:%d prv:%d ",
-		   block->size & ~0x03, block->size & ~0x03,
-		   !!(block->size & 0x01), !!(block->size & 0x02) );
+    mrbc_printf(" size:%5d(%04x) use:%d prv:%d ",
+		block->size & ~0x03, block->size & ~0x03,
+		!!(block->size & 0x01), !!(block->size & 0x02) );
 
     if( IS_USED_BLOCK(block) ) {
       int n = DUMP_BYTES;
@@ -887,24 +887,24 @@ void mrbc_alloc_print_memory_pool( void )
 	n = BLOCK_SIZE(block) - sizeof(USED_BLOCK);
       }
       uint8_t *p = (uint8_t *)block + sizeof(USED_BLOCK);
-      for( i = 0; i < n; i++) console_printf(" %02x", *p++ );
-      for( ; i < DUMP_BYTES; i++ ) console_printf("   ");
+      for( i = 0; i < n; i++) mrbc_printf(" %02x", *p++ );
+      for( ; i < DUMP_BYTES; i++ ) mrbc_printf("   ");
 
-      console_printf("  ");
+      mrbc_printf("  ");
       p = (uint8_t *)block + sizeof(USED_BLOCK);
       for( i = 0; i < n; i++) {
 	int ch = *p++;
-	console_printf("%c", (' ' <= ch && ch < 0x7f)? ch : '.');
+	mrbc_printf("%c", (' ' <= ch && ch < 0x7f)? ch : '.');
       }
     }
 
     if( IS_FREE_BLOCK(block) ) {
       unsigned int index = calc_index(BLOCK_SIZE(block));
-      console_printf(" fli:%d sli:%d pf:%p nf:%p",
-	     FLI(index), SLI(index), block->prev_free, block->next_free);
+      mrbc_printf(" fli:%d sli:%d pf:%p nf:%p",
+		FLI(index), SLI(index), block->prev_free, block->next_free);
     }
 
-    console_printf( "\n" );
+    mrbc_printf("\n");
     block = PHYS_NEXT(block);
   }
 }

@@ -461,12 +461,12 @@ mrbc_tcb* mrbc_create_task(const uint8_t *vm_code, mrbc_tcb *tcb)
 
   // assign VM ID
   if( mrbc_vm_open( &tcb->vm ) == NULL ) {
-    console_printf("Error: Can't assign VM-ID.\n");
+    mrbc_printf("Error: Can't assign VM-ID.\n");
     return NULL;
   }
 
   if( mrbc_load_mrb(&tcb->vm, vm_code) != 0 ) {
-    console_printf("Error: Illegal bytecode.\n");
+    mrbc_printf("Error: Illegal bytecode.\n");
     mrbc_vm_close( &tcb->vm );
     return NULL;
   }
@@ -809,50 +809,50 @@ void pq(mrbc_tcb *p_tcb)
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf("%08x  ", (uint32_t)p);
+    mrbc_printf("%08x  ", (uint32_t)p);
     p = p->next;
   }
-  console_printf("\n");
+  mrbc_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" nx:%04x  ", (uint16_t)p->next);
+    mrbc_printf(" nx:%04x  ", (uint16_t)p->next);
     p = p->next;
   }
-  console_printf("\n");
+  mrbc_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" pri:%3d  ", p->priority_preemption);
+    mrbc_printf(" pri:%3d  ", p->priority_preemption);
     p = p->next;
   }
-  console_printf("\n");
+  mrbc_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" st:%c%c%c%c  ",
+    mrbc_printf(" st:%c%c%c%c  ",
                    (p->state & TASKSTATE_SUSPENDED)?'S':'-',
                    (p->state & TASKSTATE_WAITING)?("sm"[p->reason]):'-',
                    (p->state &(TASKSTATE_RUNNING & ~TASKSTATE_READY))?'R':'-',
                    (p->state & TASKSTATE_READY)?'r':'-' );
     p = p->next;
   }
-  console_printf("\n");
+  mrbc_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" tmsl:%2d ", p->timeslice);
+    mrbc_printf(" tmsl:%2d ", p->timeslice);
     p = p->next;
   }
-  console_printf("\n");
+  mrbc_printf("\n");
 }
 
 
 void pqall(void)
 {
-//  console_printf("<<<<< DORMANT >>>>>\n");	pq(q_dormant_);
-  console_printf("<<<<< READY >>>>>\n");	pq(q_ready_);
-  console_printf("<<<<< WAITING >>>>>\n");	pq(q_waiting_);
-  console_printf("<<<<< SUSPENDED >>>>>\n");	pq(q_suspended_);
+//  mrbc_printf("<<<<< DORMANT >>>>>\n");	pq(q_dormant_);
+  mrbc_printf("<<<<< READY >>>>>\n");	pq(q_ready_);
+  mrbc_printf("<<<<< WAITING >>>>>\n");	pq(q_waiting_);
+  mrbc_printf("<<<<< SUSPENDED >>>>>\n");	pq(q_suspended_);
 }
 #endif

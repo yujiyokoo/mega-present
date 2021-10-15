@@ -43,7 +43,7 @@ enum irep_pool_type {
 //
 // This is a dummy code for raise
 //
-#define mrbc_raise(vm,err,msg) console_printf("<raise> %s:%d\n", __FILE__, __LINE__);
+#define mrbc_raise(vm,err,msg) mrbc_printf("<raise> %s:%d\n", __FILE__, __LINE__);
 
 /***** Typedefs *************************************************************/
 /***** Function prototypes **************************************************/

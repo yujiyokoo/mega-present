@@ -44,7 +44,7 @@ void mrbc_init_global(void)
 int mrbc_set_const( mrbc_sym sym_id, mrbc_value *v )
 {
   if( mrbc_kv_get( &handle_const, sym_id ) != NULL ) {
-    console_printf( "warning: already initialized constant.\n" );
+    mrbc_printf("warning: already initialized constant.\n");
   }
 
   return mrbc_kv_set( &handle_const, sym_id, v );
@@ -167,7 +167,7 @@ void mrbc_global_clear_vm_id(void)
 */
 void mrbc_global_debug_dump(void)
 {
-  console_print("<< Const table dump. >>\n(s_id:identifier = value)\n");
+  mrbc_print("<< Const table dump. >>\n(s_id:identifier = value)\n");
   mrbc_kv_iterator ite = mrbc_kv_iterator_new( &handle_const );
   while( mrbc_kv_i_has_next( &ite ) ) {
     mrbc_kv *kv = mrbc_kv_i_next( &ite );
@@ -181,29 +181,29 @@ void mrbc_global_debug_dump(void)
       s1 = mrbc_symid_to_str(id);
       id = (s[4]-'0') << 12 | (s[5]-'0') << 8 | (s[6]-'0') << 4 | (s[7]-'0');
       s2 = mrbc_symid_to_str(id);
-      console_printf(" %04x:%s (%s::%s) = ", kv->sym_id, s, s1, s2 );
+      mrbc_printf(" %04x:%s (%s::%s) = ", kv->sym_id, s, s1, s2 );
     } else {
-      console_printf(" %04x:%s = ", kv->sym_id, s );
+      mrbc_printf(" %04x:%s = ", kv->sym_id, s );
     }
     mrbc_p_sub( &kv->value );
     if( mrbc_type(kv->value) < MRBC_TT_INC_DEC_THRESHOLD ) {
-      console_printf(" .tt=%d\n", mrbc_type(kv->value));
+      mrbc_printf(" .tt=%d\n", mrbc_type(kv->value));
     } else {
-      console_printf(" .tt=%d refcnt=%d\n", mrbc_type(kv->value), kv->value.obj->ref_count);
+      mrbc_printf(" .tt=%d refcnt=%d\n", mrbc_type(kv->value), kv->value.obj->ref_count);
     }
   }
 
-  console_print("<< Global table dump. >>\n(s_id:identifier = value)\n");
+  mrbc_print("<< Global table dump. >>\n(s_id:identifier = value)\n");
   ite = mrbc_kv_iterator_new( &handle_global );
   while( mrbc_kv_i_has_next( &ite ) ) {
     mrbc_kv *kv = mrbc_kv_i_next( &ite );
 
-    console_printf(" %04x:%s = ", kv->sym_id, symid_to_str(kv->sym_id));
+    mrbc_printf(" %04x:%s = ", kv->sym_id, symid_to_str(kv->sym_id));
     mrbc_p_sub( &kv->value );
     if( mrbc_type(kv->value) < MRBC_TT_INC_DEC_THRESHOLD ) {
-      console_printf(" .tt=%d\n", mrbc_type(kv->value));
+      mrbc_printf(" .tt=%d\n", mrbc_type(kv->value));
     } else {
-      console_printf(" .tt=%d refcnt=%d\n", mrbc_type(kv->value), kv->value.obj->ref_count);
+      mrbc_printf(" .tt=%d refcnt=%d\n", mrbc_type(kv->value), kv->value.obj->ref_count);
     }
   }
 }

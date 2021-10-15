@@ -216,7 +216,7 @@ static void c_integer_to_s(struct VM *vm, mrbc_value v[], int argc)
     }
   }
 
-  mrbc_printf pf;
+  mrbc_printf_t pf;
   char buf[16];
   mrbc_printf_init( &pf, buf, sizeof(buf), NULL );
   pf.fmt.type = 'd';

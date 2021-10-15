@@ -379,11 +379,11 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
 
   if( mrbc_find_method( &method, find_class_by_object(recv),
 			str_to_symid(method_name) ) == 0 ) {
-    console_printf("No method. vtype=%d method='%s'\n", mrbc_type(*recv), method_name );
+    mrbc_printf("No method. vtype=%d method='%s'\n", mrbc_type(*recv), method_name );
     goto ERROR;
   }
   if( !method.c_func ) {
-    console_printf("Method %s needs to be C function.\n", method_name );
+    mrbc_printf("Method %s needs to be C function.\n", method_name );
     goto ERROR;
   }
 
