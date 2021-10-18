@@ -47,7 +47,7 @@ typedef struct IREP {
   uint16_t slen;		//!< # of symbols
   uint16_t ofs_ireps;		//!< offset of data->tbl_ireps. (32bit aligned)
 
-  const uint8_t *code;		//!< pointer to byte-code in RITE binary
+  const uint8_t *inst;		//!< pointer to instruction in RITE binary
   const uint8_t *pool;		//!< pointer to pool in RITE binary
 
   uint8_t data[];		//!< variable data. (see load.c)
@@ -114,9 +114,9 @@ typedef struct IREP_CATCH_HANDLER {
 */
 typedef struct CALLINFO {
   struct CALLINFO *prev;	//!< previous linked list.
-  const mrbc_irep *pc_irep;	//!< copy from mrbc_vm.
+  const mrbc_irep *cur_irep;	//!< copy from mrbc_vm.
   const uint8_t *inst;		//!< copy from mrbc_vm.
-  mrbc_value *current_regs;	//!< copy from mrbc_vm.
+  mrbc_value *cur_regs;		//!< copy from mrbc_vm.
   mrbc_class *target_class;	//!< copy from mrbc_vm.
   mrbc_class *own_class;	//!< class that owns method.
   mrbc_sym method_id;		//!< called method ID.
@@ -134,22 +134,16 @@ typedef struct VM {
 #if defined(MRBC_DEBUG)
   char type[2];		// for debug
 #endif
-  mrbc_irep *irep;
-
   uint8_t vm_id;	// vm_id : 1..MAX_VM_COUNT
 
-  const mrbc_irep *pc_irep;	// PC
-  const uint8_t *inst;	// instruction
+  mrbc_irep       *top_irep;	// IREP tree top.
+  const mrbc_irep *cur_irep;	// IREP currently running.
+  const uint8_t   *inst;	// instruction
 
   mrbc_value    regs[MAX_REGS_SIZE];
-  mrbc_value    *current_regs;
+  mrbc_value    *cur_regs;
   mrbc_callinfo *callinfo_tail;
-
-  mrbc_class *target_class;
-
-#ifdef MRBC_DEBUG
-  uint8_t flag_debug_mode;
-#endif
+  mrbc_class    *target_class;
 
   mrbc_value exc;
   mrbc_value exc_message;
@@ -158,6 +152,7 @@ typedef struct VM {
 
   volatile int8_t flag_preemption;
   int8_t flag_need_memfree;
+
 } mrbc_vm;
 typedef struct VM mrb_vm;
 

@@ -228,8 +228,8 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep)
   MRBC_INIT_OBJECT_HEADER( val.proc, "PR" );
   val.proc->callinfo = vm->callinfo_tail;
 
-  if( mrbc_type(vm->current_regs[0]) == MRBC_TT_PROC ) {
-    val.proc->callinfo_self = vm->current_regs[0].proc->callinfo_self;
+  if( mrbc_type(vm->cur_regs[0]) == MRBC_TT_PROC ) {
+    val.proc->callinfo_self = vm->cur_regs[0].proc->callinfo_self;
   } else {
     val.proc->callinfo_self = vm->callinfo_tail;
   }
@@ -444,8 +444,8 @@ static void mrbc_run_mrblib(const uint8_t bytecode[])
   mrbc_vm_end(vm);
 
   // instead of mrbc_vm_close()
-  mrbc_raw_free( vm->irep );	// free only top-level mrbc_irep.
-				// (no need to free child ireps.)
+  mrbc_raw_free( vm->top_irep );	// free only top-level mrbc_irep.
+					// (no need to free child ireps.)
   mrbc_raw_free( vm );
 }
 
