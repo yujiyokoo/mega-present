@@ -12,7 +12,6 @@
 
   </pre>
 */
-
 #include "vm_config.h"
 #include <stddef.h>
 #include <string.h>
@@ -201,20 +200,29 @@ void mrbc_pop_callinfo( struct VM *vm )
 /*! Find exception, catch handler
 
 */
-static const mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm, int filter)
+static const mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm, const mrbc_callinfo *callinfo, int filter )
 {
-  const mrbc_irep *irep = vm->cur_irep;
-  const mrbc_irep_catch_handler *catch_table = (const mrbc_irep_catch_handler *)(irep->inst + irep->ilen);
+  const mrbc_irep *irep;
+  uint32_t inst;
+
+  if( callinfo ) {
+    irep = callinfo->cur_irep;
+    inst = callinfo->inst - irep->inst;
+  } else {
+    irep = vm->cur_irep;
+    inst = vm->inst - irep->inst;
+  }
+
+  const mrbc_irep_catch_handler *catch_table =
+    (const mrbc_irep_catch_handler *)(irep->inst + irep->ilen);
   int cnt = irep->clen - 1;
 
   for( ; cnt >= 0 ; cnt-- ) {
     const mrbc_irep_catch_handler *handler = catch_table + cnt;
-
     // Catch type and range check
-    uint32_t pc = vm->inst - irep->inst;
     if( (filter & (1 << handler->type)) &&
-	(bin_to_uint32(handler->begin) < pc) &&
-	(pc <= bin_to_uint32(handler->end)) ) {
+	(bin_to_uint32(handler->begin) < inst) &&
+	(inst <= bin_to_uint32(handler->end)) ) {
       return handler;
     }
   }
@@ -915,7 +923,7 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
   FETCH_S();
 
   // Check ensure
-  const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ENSURE);
+  const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
   if( handler ){
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     vm->exc.tt = MRBC_TT_BREAK;
@@ -2855,17 +2863,29 @@ int mrbc_vm_run( struct VM *vm )
     }
 
     // Handle exception
-    if( mrbc_israised(vm) ){
-      // check
-      const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ALL);
-      if( handler != NULL ){
-	vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    if( mrbc_israised(vm) ) {
+      const mrbc_irep_catch_handler *handler;
+
+      handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ALL);
+      if( !handler ) {
+	const mrbc_callinfo *callinfo = vm->callinfo_tail;
+
+	while( callinfo ) {
+	  handler = catch_handler_find(0, callinfo, MRBC_CATCH_FILTER_ALL);
+	  if( handler ) break;
+	  callinfo = callinfo->prev;
+	}
+	if( !callinfo ) return 1;	// to raise in top level.
+
+	while( vm->callinfo_tail != callinfo ) {
+	  mrbc_pop_callinfo( vm );
+	}
+	mrbc_pop_callinfo( vm );
       }
+
+      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     }
 
-    // raise in top level
-    // exit vm
-    // if( vm->callinfo_tail == NULL && vm->exc ) return 0;
   } while( !vm->flag_preemption );
 
   vm->flag_preemption = 0;

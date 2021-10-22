@@ -282,44 +282,53 @@ static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
 
 //================================================================
 /*! (method) raise
- *    case 1. raise
- *    case 2. raise "param"
- *    case 3. raise Exception
- *    case 4. raise Exception, "param"
- */
+
+  case 1. raise
+  case 2. raise "message"
+  case 3. raise Exception
+  case 4. raise Exception, "message"
+*/
 static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( mrbc_israised(vm) ){
-    // in exception
-  } else {
-    // raise exception
-    vm->exc.tt = MRBC_TT_EXCEPTION;
+  assert( !mrbc_israised(vm) );
+  // if( mrbc_israised(vm) ) goto DONE;	// in exception
 
-    if( argc == 0 ){
-      // case 1. raise
-      vm->exc.exception = MRBC_CLASS(RuntimeError);
-      vm->exc_message = mrbc_nil_value();
-    } else if( argc == 1 ){
-      if( mrbc_type(v[1]) == MRBC_TT_CLASS ){
-        // case 3. raise Exception
-	vm->exc.exception = v[1].cls;
-	vm->exc_message = mrbc_nil_value();
-      } else {
-	// case 2. raise "param"
-	mrbc_incref( &v[1] );
-	vm->exc.exception = MRBC_CLASS(RuntimeError);
-	vm->exc_message = v[1];
-      }
-    } else if( argc == 2 ){
-      // case 4. raise Exception, "param"
-      mrbc_incref( &v[2] );
-      vm->exc.exception = v[1].cls;
-      vm->exc_message = v[2];
-    }
+  vm->exc.tt = MRBC_TT_EXCEPTION;
+
+  // case 1. raise (no argument)
+  if( argc == 0 ) {
+    vm->exc.exception = MRBC_CLASS(RuntimeError);
+    vm->exc_message = mrbc_nil_value();
+    return;
   }
 
-  // NOT to return to OP_SEND
-  mrbc_pop_callinfo(vm);
+  // case 2. raise "message"
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_STRING ) {
+    mrbc_incref( &v[1] );
+    vm->exc.exception = MRBC_CLASS(RuntimeError);
+    vm->exc_message = v[1];
+    return;
+  }
+
+  // case 3. raise Exception
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_CLASS ) {
+    vm->exc.exception = v[1].cls;
+    vm->exc_message = mrbc_nil_value();
+    return;
+  }
+
+  // case 4. raise Exception, "param"
+  if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_CLASS
+                && mrbc_type(v[2]) == MRBC_TT_STRING ) {
+    mrbc_incref( &v[2] );
+    vm->exc.exception = v[1].cls;
+    vm->exc_message = v[2];
+    return;
+  }
+
+  // fail.
+  vm->exc.exception = MRBC_CLASS(TypeError);
+  vm->exc_message = mrbc_nil_value();
 }
 
 

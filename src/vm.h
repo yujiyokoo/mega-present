@@ -35,7 +35,7 @@ extern "C" {
 */
 typedef struct IREP {
 #if defined(MRBC_DEBUG)
-  uint8_t type[2];		//!< # set "RP" for debug.
+  uint8_t type[2];		//!< set "RP" for debug.
 #endif
 
   uint16_t nlocals;		//!< # of local variables
@@ -132,13 +132,13 @@ typedef struct CALLINFO mrb_callinfo;
 */
 typedef struct VM {
 #if defined(MRBC_DEBUG)
-  char type[2];		// for debug
+  char type[2];		// set "VM" for debug
 #endif
   uint8_t vm_id;	// vm_id : 1..MAX_VM_COUNT
 
   mrbc_irep       *top_irep;	// IREP tree top.
   const mrbc_irep *cur_irep;	// IREP currently running.
-  const uint8_t   *inst;	// instruction
+  const uint8_t   *inst;	// instruction pointer
 
   mrbc_value    regs[MAX_REGS_SIZE];
   mrbc_value    *cur_regs;
