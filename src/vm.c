@@ -100,7 +100,6 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
   if( method.c_func ) {
     method.func(vm, regs + a, c);
     if( method.func == c_proc_call ) return 0;
-    //    if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
     if( mrbc_israised(vm) ) return 0;
 
     int release_reg = a+1;
@@ -1400,6 +1399,13 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
+
+  // check if in an ensure block.
+  const mrbc_irep_catch_handler *catch_handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+  if( catch_handler ) {
+    vm->inst = vm->cur_irep->inst + bin_to_uint32(catch_handler->target);
+    return 0;
+  }
 
   int nregs = vm->cur_irep->nregs;
   mrbc_value *p_reg;

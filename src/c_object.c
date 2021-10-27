@@ -291,14 +291,14 @@ static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
 static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
   assert( !mrbc_israised(vm) );
-  // if( mrbc_israised(vm) ) goto DONE;	// in exception
 
   vm->exc.tt = MRBC_TT_EXCEPTION;
 
   // case 1. raise (no argument)
   if( argc == 0 ) {
     vm->exc.exception = MRBC_CLASS(RuntimeError);
-    vm->exc_message = mrbc_nil_value();
+    mrbc_decref( &vm->exc_message );
+    mrbc_set_nil( &vm->exc_message );
     return;
   }
 
@@ -306,6 +306,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_STRING ) {
     mrbc_incref( &v[1] );
     vm->exc.exception = MRBC_CLASS(RuntimeError);
+    mrbc_decref( &vm->exc_message );
     vm->exc_message = v[1];
     return;
   }
@@ -313,22 +314,41 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
   // case 3. raise Exception
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_CLASS ) {
     vm->exc.exception = v[1].cls;
-    vm->exc_message = mrbc_nil_value();
+    mrbc_decref( &vm->exc_message );
+    mrbc_set_nil( &vm->exc_message );
+    return;
+  }
+
+  // case 3-1. raise in rescue or ensure block.
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_EXCEPTION ) {
+    vm->exc.exception = v[1].cls;
     return;
   }
 
   // case 4. raise Exception, "param"
   if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_CLASS
                 && mrbc_type(v[2]) == MRBC_TT_STRING ) {
-    mrbc_incref( &v[2] );
     vm->exc.exception = v[1].cls;
+    mrbc_incref( &v[2] );
+    mrbc_decref( &vm->exc_message );
+    vm->exc_message = v[2];
+    return;
+  }
+
+  // case 4-2. raise in rescue or ensure block.
+  if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_EXCEPTION
+                && mrbc_type(v[2]) == MRBC_TT_STRING ) {
+    vm->exc.exception = v[1].cls;
+    mrbc_incref( &v[2] );
+    mrbc_decref( &vm->exc_message );
     vm->exc_message = v[2];
     return;
   }
 
   // fail.
   vm->exc.exception = MRBC_CLASS(TypeError);
-  vm->exc_message = mrbc_nil_value();
+  mrbc_decref( &vm->exc_message );
+  mrbc_set_nil( &vm->exc_message );
 }
 
 
