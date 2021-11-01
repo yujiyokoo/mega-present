@@ -923,15 +923,22 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
 
   // Check ensure
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
-  if( handler ){
-    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
-    vm->exc.tt = MRBC_TT_BREAK;
-    vm->exc.jmpuw = vm->inst + (int16_t)a;
-  } else {
+  if( !handler ) {
     vm->inst += (int16_t)a;
-    vm->exc = mrbc_nil_value();
+    return 0;
   }
 
+  // found the ensure.
+  uint32_t jump_point = vm->inst - vm->cur_irep->inst + (int16_t)a;
+  if( (bin_to_uint32(handler->begin) < jump_point) &&
+      (jump_point <= bin_to_uint32(handler->end)) ) {
+    vm->inst += (int16_t)a;
+    return 0;
+  }
+
+  vm->exc.tt = MRBC_TT_BREAK;
+  vm->exc.jmpuw = vm->inst + (int16_t)a;
+  vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
   return 0;
 }
 
@@ -951,12 +958,8 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_decref( &regs[a] );
-  if( mrbc_israised(vm) ){
-    regs[a] = vm->exc;
-    vm->exc = mrbc_nil_value();
-  } else {
-    regs[a] = mrbc_nil_value();
-  }
+  regs[a] = vm->exc;
+  vm->exc = mrbc_nil_value();
 
   return 0;
 }
@@ -1007,14 +1010,13 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  //  mrbc_printf("OP_RAISEIF tt:%d\n", regs[0].tt);
-
   mrb_value *exc = &regs[a];
 
   if( exc->tt == MRBC_TT_BREAK ){
     vm->inst = exc->jmpuw;
   } else {
-    mrbc_incref( &regs[a] );
+    assert( mrbc_type(regs[a]) == MRBC_TT_EXCEPTION ||
+	    mrbc_type(regs[a]) == MRBC_TT_NIL );
     vm->exc = regs[a];
   }
 
@@ -2700,6 +2702,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->target_class = mrbc_class_object;
 
   vm->exc = mrbc_nil_value();
+  vm->exc_message = mrbc_nil_value();
 
   vm->error_code = 0;
   vm->flag_preemption = 0;
