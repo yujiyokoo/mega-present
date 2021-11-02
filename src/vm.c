@@ -943,7 +943,6 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
-
 //================================================================
 /*! OP_EXCEPT
 
@@ -1010,16 +1009,29 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  mrb_value *exc = &regs[a];
-
-  if( exc->tt == MRBC_TT_BREAK ){
-    vm->inst = exc->jmpuw;
-  } else {
+  if( regs[a].tt != MRBC_TT_BREAK ) {
     assert( mrbc_type(regs[a]) == MRBC_TT_EXCEPTION ||
 	    mrbc_type(regs[a]) == MRBC_TT_NIL );
     vm->exc = regs[a];
+    return 0;
   }
 
+  // check catch handler (ensure)
+  const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+  if( handler ) {
+    uint32_t jump_point = regs[a].jmpuw - vm->cur_irep->inst;
+    if( (bin_to_uint32(handler->begin) < jump_point) &&
+	(jump_point <= bin_to_uint32(handler->end)) ) {
+      vm->inst = regs[a].jmpuw;
+      return 0;
+    }
+
+    vm->exc = regs[a];
+    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    return 0;
+  }
+
+  vm->inst = regs[a].jmpuw;
   return 0;
 }
 
