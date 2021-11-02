@@ -921,7 +921,7 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
-  // Check ensure
+  // check catch handler (ensure)
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
   if( !handler ) {
     vm->inst += (int16_t)a;
@@ -983,14 +983,14 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
   mrbc_class *cls = regs[a].cls;
   while( cls != NULL ){
     if( regs[b].cls == cls ){
-      regs[b] = mrbc_true_value();
-      vm->exc = mrbc_nil_value();
+      mrbc_set_true( &regs[b] );
+      mrbc_set_nil( &vm->exc );
       return 0;
     }
     cls = cls->super;
   }
 
-  regs[b] = mrbc_false_value();
+  mrbc_set_false( &regs[b] );
 
   return 0;
 }
@@ -1016,22 +1016,21 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
     return 0;
   }
 
-  // check catch handler (ensure)
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
-  if( handler ) {
-    uint32_t jump_point = regs[a].jmpuw - vm->cur_irep->inst;
-    if( (bin_to_uint32(handler->begin) < jump_point) &&
-	(jump_point <= bin_to_uint32(handler->end)) ) {
-      vm->inst = regs[a].jmpuw;
-      return 0;
-    }
-
-    vm->exc = regs[a];
-    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+  if( !handler ) {
+    vm->inst = regs[a].jmpuw;
     return 0;
   }
 
-  vm->inst = regs[a].jmpuw;
+  uint32_t jump_point = regs[a].jmpuw - vm->cur_irep->inst;
+  if( (bin_to_uint32(handler->begin) < jump_point) &&
+      (jump_point <= bin_to_uint32(handler->end)) ) {
+    vm->inst = regs[a].jmpuw;
+    return 0;
+  }
+
+  vm->exc = regs[a];
+  vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
   return 0;
 }
 
@@ -1382,7 +1381,8 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   regs[0] = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
-  vm->exc = mrbc_nil_value();
+  //vm->exc = mrbc_nil_value();		// TODO
+  assert( vm->exc.tt == MRBC_TT_NIL );
 
   STOP_IF_TOPLEVEL();
 
