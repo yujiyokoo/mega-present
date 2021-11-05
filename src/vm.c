@@ -936,7 +936,7 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
     return 0;
   }
 
-  vm->exc.tt = MRBC_TT_BREAK;
+  vm->exc.tt = MRBC_TT_JMPUW;
   vm->exc.jmpuw = vm->inst + (int16_t)a;
   vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
   return 0;
@@ -1009,7 +1009,7 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( regs[a].tt != MRBC_TT_BREAK ) {
+  if( regs[a].tt != MRBC_TT_JMPUW ) {
     assert( mrbc_type(regs[a]) == MRBC_TT_EXCEPTION ||
 	    mrbc_type(regs[a]) == MRBC_TT_NIL );
     vm->exc = regs[a];
