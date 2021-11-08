@@ -40,7 +40,7 @@
  */
 #define STOP_IF_TOPLEVEL()            \
   do {                                \
-    if( vm->callinfo_tail == NULL ){  \
+    if( vm->callinfo_tail == NULL ) { \
       vm->flag_preemption = 1;        \
       return -1;                      \
     }                                 \
@@ -82,7 +82,7 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
 
   // if not OP_SENDB, blcok does not exist
   int bidx = a + c + 1;
-  if( !is_sendb ){
+  if( !is_sendb ) {
     mrbc_decref( &regs[bidx] );
     regs[bidx].tt = MRBC_TT_NIL;
   }
@@ -923,22 +923,22 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
 
   // check catch handler (ensure)
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
-  if( !handler ) {
-    vm->inst += (int16_t)a;
-    return 0;
-  }
+  if( !handler ) goto JUMP_TO_A_REG;
 
-  // found the ensure.
+  // check whether the jump point is inside or outside the catch handler.
   uint32_t jump_point = vm->inst - vm->cur_irep->inst + (int16_t)a;
   if( (bin_to_uint32(handler->begin) < jump_point) &&
-      (jump_point <= bin_to_uint32(handler->end)) ) {
-    vm->inst += (int16_t)a;
-    return 0;
-  }
+      (jump_point <= bin_to_uint32(handler->end)) ) goto JUMP_TO_A_REG;
 
+  // jump point is outside, thus jump to ensure.
   vm->exc.tt = MRBC_TT_JMPUW;
   vm->exc.jmpuw = vm->inst + (int16_t)a;
   vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+  return 0;
+
+
+ JUMP_TO_A_REG:
+  vm->inst += (int16_t)a;
   return 0;
 }
 
@@ -958,7 +958,7 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_decref( &regs[a] );
   regs[a] = vm->exc;
-  vm->exc = mrbc_nil_value();
+  mrbc_set_nil( &vm->exc );
 
   return 0;
 }
@@ -981,17 +981,15 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[b].tt == MRBC_TT_CLASS );
 
   mrbc_class *cls = regs[a].cls;
-  while( cls != NULL ){
-    if( regs[b].cls == cls ){
+  while( cls != NULL ) {
+    if( regs[b].cls == cls ) {
       mrbc_set_true( &regs[b] );
-      mrbc_set_nil( &vm->exc );
       return 0;
     }
     cls = cls->super;
   }
 
   mrbc_set_false( &regs[b] );
-
   return 0;
 }
 
@@ -1248,7 +1246,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 
   // OP_SENDV or OP_SENDVB
   int flag_sendv_pattern = ( argc == CALL_MAXARGS );
-  if( flag_sendv_pattern ){
+  if( flag_sendv_pattern ) {
     argc = 1;
   }
 
@@ -1270,13 +1268,13 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   // support op_sendv pattern
   int flag_yield_pattern = ( regs[0].tt == MRBC_TT_PROC &&
 			     regs[1].tt == MRBC_TT_ARRAY && argc != m1 );
-  if( flag_yield_pattern || flag_sendv_pattern ){
+  if( flag_yield_pattern || flag_sendv_pattern ) {
     mrbc_value argary = regs[1];
     regs[1].tt = MRBC_TT_EMPTY;
 
     int i;
     int copy_size;
-    if( flag_sendv_pattern ){
+    if( flag_sendv_pattern ) {
       copy_size = mrbc_array_size(&argary);
     } else {
       copy_size = m1;
@@ -1335,8 +1333,8 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // proc の位置を求める
-  if( proc.tt == MRBC_TT_PROC ){
-    if( flag_sendv_pattern ){
+  if( proc.tt == MRBC_TT_PROC ) {
+    if( flag_sendv_pattern ) {
       // Nothing
     } else {
       if( argc >= i ) i = argc + 1;
@@ -1946,7 +1944,7 @@ static inline int op_array2( mrbc_vm *vm, mrbc_value *regs )
   if( value.array == NULL ) return -1;  // ENOMEM
 
   int i;
-  for( i=0 ; i<c ; i++ ){
+  for( i=0 ; i<c ; i++ ) {
     mrbc_incref( &regs[b+i] );
     value.array->data[i] = regs[b+i];
   }
@@ -1972,7 +1970,7 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( regs[a].tt == MRBC_TT_NIL ){
+  if( regs[a].tt == MRBC_TT_NIL ) {
     // arycat(nil, [...]) #=> [...]
     assert( regs[a+1].tt == MRBC_TT_ARRAY );
     regs[a] = regs[a+1];
@@ -1989,7 +1987,7 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
   int new_size = size_1 + regs[a+1].array->n_stored;
 
   // need resize?
-  if( regs[a].array->data_size < new_size ){
+  if( regs[a].array->data_size < new_size ) {
     mrbc_array_resize(&regs[a], new_size);
   }
 
@@ -2043,13 +2041,13 @@ static inline int op_aref( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_decref( dst );
 
-  if( src->tt == MRBC_TT_ARRAY ){
+  if( src->tt == MRBC_TT_ARRAY ) {
     // src is Array
     *dst = mrbc_array_get(src, c);
     mrbc_incref(dst);
   } else {
     // src is not Array
-    if( c == 0 ){
+    if( c == 0 ) {
       mrbc_incref(src);
       *dst = *src;
     } else {
@@ -2094,7 +2092,7 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BBB();
 
   mrbc_value src = regs[a];
-  if( src.tt != MRBC_TT_ARRAY ){
+  if( src.tt != MRBC_TT_ARRAY ) {
     src = mrbc_array_new(vm, 1);
     src.array->data[0] = regs[a];
     src.array->n_stored = 1;
@@ -2104,7 +2102,7 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
   int post = c;
   int len = src.array->n_stored;
 
-  if( len > pre + post ){
+  if( len > pre + post ) {
     int ary_size = len-pre-post;
     regs[a] = mrbc_array_new(vm, ary_size);
     // copy elements
