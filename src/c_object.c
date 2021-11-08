@@ -61,7 +61,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
     OP_ABORT,
   };
   irep->ilen = sizeof(code);
-  irep->code = code;
+  irep->inst = code;
   *((mrbc_sym *)irep->data) = MRBC_SYM(initialize);
   mrbc_class *cls = v->cls;
 
@@ -69,20 +69,20 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   v[0] = new_obj;
   mrbc_incref(&new_obj);
 
-  const mrbc_irep *org_pc_irep = vm->pc_irep;
-  mrbc_value* org_regs = vm->current_regs;
+  const mrbc_irep *org_cur_irep = vm->cur_irep;
+  mrbc_value* org_regs = vm->cur_regs;
   const uint8_t *org_inst = vm->inst;
 
-  vm->pc_irep = irep;
-  vm->current_regs = v;
-  vm->inst = irep->code;
+  vm->cur_irep = irep;
+  vm->cur_regs = v;
+  vm->inst = irep->inst;
 
   while( mrbc_vm_run(vm) == 0 )
     ;
 
-  vm->pc_irep = org_pc_irep;
+  vm->cur_irep = org_cur_irep;
   vm->inst = org_inst;
-  vm->current_regs = org_regs;
+  vm->cur_regs = org_regs;
 
   new_obj.instance->cls = cls;
   mrbc_free( vm, irep );
@@ -178,13 +178,13 @@ static void c_object_block_given(struct VM *vm, mrbc_value v[], int argc)
   mrbc_callinfo *callinfo = vm->callinfo_tail;
   if( !callinfo ) goto RETURN_FALSE;
 
-  mrbc_value *regs = callinfo->current_regs + callinfo->reg_offset;
+  mrbc_value *regs = callinfo->cur_regs + callinfo->reg_offset;
 
   if( mrbc_type(regs[0]) == MRBC_TT_PROC ) {
     callinfo = regs[0].proc->callinfo_self;
     if( !callinfo ) goto RETURN_FALSE;
 
-    regs = callinfo->current_regs + callinfo->reg_offset;
+    regs = callinfo->cur_regs + callinfo->reg_offset;
   }
 
   SET_BOOL_RETURN( mrbc_type(regs[callinfo->n_args]) == MRBC_TT_PROC );
@@ -728,7 +728,7 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
   mrbc_callinfo *callinfo_self = v[0].proc->callinfo_self;
   mrbc_callinfo *callinfo = mrbc_push_callinfo(vm,
 				(callinfo_self ? callinfo_self->method_id : 0),
-				v - vm->current_regs, argc);
+				v - vm->cur_regs, argc);
   if( !callinfo ) return;
 
   if( callinfo_self ) {
@@ -736,10 +736,10 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
   }
 
   // target irep
-  vm->pc_irep = v[0].proc->irep;
-  vm->inst = vm->pc_irep->code;
+  vm->cur_irep = v[0].proc->irep;
+  vm->inst = vm->cur_irep->inst;
 
-  vm->current_regs = v;
+  vm->cur_regs = v;
 }
 
 

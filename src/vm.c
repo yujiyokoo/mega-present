@@ -118,11 +118,11 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
   callinfo->own_class = method.cls;
 
   // target irep
-  vm->pc_irep = method.irep;
-  vm->inst = method.irep->code;
+  vm->cur_irep = method.irep;
+  vm->inst = method.irep->inst;
 
   // new regs
-  vm->current_regs += a;
+  vm->cur_regs += a;
 
   return 0;
 }
@@ -146,7 +146,7 @@ void mrbc_cleanup_vm(void)
 const char *mrbc_get_callee_name( struct VM *vm )
 {
   uint8_t rb = vm->inst[-2];
-  return mrbc_irep_symbol_cstr(vm->pc_irep, rb);
+  return mrbc_irep_symbol_cstr(vm->cur_irep, rb);
 }
 
 
@@ -158,8 +158,8 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_o
   mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
   if( !callinfo ) return callinfo;
 
-  callinfo->current_regs = vm->current_regs;
-  callinfo->pc_irep = vm->pc_irep;
+  callinfo->cur_regs = vm->cur_regs;
+  callinfo->cur_irep = vm->cur_irep;
   callinfo->inst = vm->inst;
   callinfo->reg_offset = reg_offset;
   callinfo->method_id = method_id;
@@ -182,8 +182,8 @@ void mrbc_pop_callinfo( struct VM *vm )
   if( !callinfo ) return;
 
   vm->callinfo_tail = callinfo->prev;
-  vm->current_regs = callinfo->current_regs;
-  vm->pc_irep = callinfo->pc_irep;
+  vm->cur_regs = callinfo->cur_regs;
+  vm->cur_irep = callinfo->cur_irep;
   vm->inst = callinfo->inst;
   vm->target_class = callinfo->target_class;
 
@@ -203,15 +203,15 @@ void mrbc_pop_callinfo( struct VM *vm )
 */
 static const mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm, int filter)
 {
-  const mrbc_irep *irep = vm->pc_irep;
-  const mrbc_irep_catch_handler *catch_table = (const mrbc_irep_catch_handler *)(irep->code + irep->ilen);
+  const mrbc_irep *irep = vm->cur_irep;
+  const mrbc_irep_catch_handler *catch_table = (const mrbc_irep_catch_handler *)(irep->inst + irep->ilen);
   int cnt = irep->clen - 1;
 
   for( ; cnt >= 0 ; cnt-- ) {
     const mrbc_irep_catch_handler *handler = catch_table + cnt;
 
     // Catch type and range check
-    uint32_t pc = vm->inst - irep->code;
+    uint32_t pc = vm->inst - irep->inst;
     if( (filter & (1 << handler->type)) &&
 	(bin_to_uint32(handler->begin) < pc) &&
 	(pc <= bin_to_uint32(handler->end)) ) {
@@ -232,7 +232,7 @@ static mrbc_value * mrbc_get_self( struct VM *vm, mrbc_value *regs )
   if( self->tt == MRBC_TT_PROC ) {
     mrbc_callinfo *callinfo = regs[0].proc->callinfo_self;
     if( callinfo ) {
-      self = callinfo->current_regs + callinfo->reg_offset;
+      self = callinfo->cur_regs + callinfo->reg_offset;
     } else {
       self = &vm->regs[0];
     }
@@ -439,7 +439,7 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id(vm->pc_irep, b));
+  mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id(vm->cur_irep, b));
 
   return 0;
 }
@@ -459,7 +459,7 @@ static inline int op_loadsym16( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BS();
 
   mrbc_decref(&regs[a]);
-  mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id(vm->pc_irep, b));
+  mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id(vm->cur_irep, b));
 
   return 0;
 }
@@ -562,7 +562,7 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  mrbc_value *v = mrbc_get_global( mrbc_irep_symbol_id(vm->pc_irep, b) );
+  mrbc_value *v = mrbc_get_global( mrbc_irep_symbol_id(vm->cur_irep, b) );
   if( v == NULL ) {
     mrbc_set_nil(&regs[a]);
   } else {
@@ -588,7 +588,7 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BB();
 
   mrbc_incref(&regs[a]);
-  mrbc_set_global( mrbc_irep_symbol_id(vm->pc_irep, b), &regs[a] );
+  mrbc_set_global( mrbc_irep_symbol_id(vm->cur_irep, b), &regs[a] );
 
   return 0;
 }
@@ -607,7 +607,7 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_irep_symbol_cstr(vm->pc_irep, b);
+  const char *sym_name = mrbc_irep_symbol_cstr(vm->cur_irep, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
   mrbc_value *self = mrbc_get_self( vm, regs );
 
@@ -631,7 +631,7 @@ static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *sym_name = mrbc_irep_symbol_cstr(vm->pc_irep, b);
+  const char *sym_name = mrbc_irep_symbol_cstr(vm->cur_irep, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
   mrbc_value *self = mrbc_get_self( vm, regs );
 
@@ -654,7 +654,7 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->pc_irep, b);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->cur_irep, b);
   mrbc_class *cls = NULL;
   mrbc_value *v;
 
@@ -694,7 +694,7 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->pc_irep, b);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->cur_irep, b);
 
   mrbc_incref(&regs[a]);
   if( mrbc_type(regs[0]) == MRBC_TT_CLASS ) {
@@ -720,7 +720,7 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->pc_irep, b);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->cur_irep, b);
   mrbc_class *cls = regs[a].cls;
   mrbc_value *v;
 
@@ -760,7 +760,7 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs )
   int i;
   for( i = 0; i < c; i++ ) {
     assert( callinfo );
-    mrbc_value *regs0 = callinfo->current_regs + callinfo->reg_offset;
+    mrbc_value *regs0 = callinfo->cur_regs + callinfo->reg_offset;
     assert( regs0->tt == MRBC_TT_PROC );
     callinfo = regs0->proc->callinfo;
   }
@@ -769,7 +769,7 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs )
   if( callinfo == 0 ) {
     p_val = vm->regs + b;
   } else {
-    p_val = callinfo->current_regs + callinfo->reg_offset + b;
+    p_val = callinfo->cur_regs + callinfo->reg_offset + b;
   }
   mrbc_incref( p_val );
 
@@ -799,7 +799,7 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
   int i;
   for( i = 0; i < c; i++ ) {
     assert( callinfo );
-    mrbc_value *regs0 = callinfo->current_regs + callinfo->reg_offset;
+    mrbc_value *regs0 = callinfo->cur_regs + callinfo->reg_offset;
     assert( regs0->tt == MRBC_TT_PROC );
     callinfo = regs0->proc->callinfo;
   }
@@ -808,7 +808,7 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
   if( callinfo == 0 ) {
     p_val = vm->regs + b;
   } else {
-    p_val = callinfo->current_regs + callinfo->reg_offset + b;
+    p_val = callinfo->cur_regs + callinfo->reg_offset + b;
   }
   mrbc_decref( p_val );
 
@@ -917,7 +917,7 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
   // Check ensure
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ENSURE);
   if( handler ){
-    vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
+    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     vm->exc.tt = MRBC_TT_BREAK;
     vm->exc.jmpuw = vm->inst + (int16_t)a;
   } else {
@@ -1028,7 +1028,7 @@ static inline int op_sendv( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  return send_by_name( vm, mrbc_irep_symbol_id(vm->pc_irep, b), regs, a, CALL_MAXARGS, 0 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, CALL_MAXARGS, 0 );
 }
 
 
@@ -1045,7 +1045,7 @@ static inline int op_sendvb( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  return send_by_name( vm, mrbc_irep_symbol_id(vm->pc_irep, b), regs, a, CALL_MAXARGS, 1 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, CALL_MAXARGS, 1 );
 }
 
 
@@ -1062,7 +1062,7 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BBB();
 
-  return send_by_name( vm, mrbc_irep_symbol_id(vm->pc_irep, b), regs, a, c, 0 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 0 );
 }
 
 
@@ -1079,7 +1079,7 @@ static inline int op_sendb( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BBB();
 
-  return send_by_name( vm, mrbc_irep_symbol_id(vm->pc_irep, b), regs, a, c, 1 );
+  return send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 1 );
 }
 
 
@@ -1148,11 +1148,11 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
   callinfo->own_class = method.cls;
 
   // target irep
-  vm->pc_irep = method.irep;
-  vm->inst = method.irep->code;
+  vm->cur_irep = method.irep;
+  vm->inst = method.irep->inst;
 
   // new regs
-  vm->current_regs += a;
+  vm->cur_regs += a;
 
   return 0;
 }
@@ -1366,7 +1366,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   mrbc_pop_callinfo(vm);
 
   // nregs to release
-  int nregs = vm->pc_irep->nregs;
+  int nregs = vm->cur_irep->nregs;
 
   // clear stacked arguments
   int i;
@@ -1391,7 +1391,7 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  int nregs = vm->pc_irep->nregs;
+  int nregs = vm->cur_irep->nregs;
   mrbc_value *p_reg;
 
   if( regs[0].tt == MRBC_TT_PROC ) {
@@ -1404,7 +1404,7 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
       callinfo = vm->callinfo_tail;
     } while( callinfo != caller_callinfo );
 
-    p_reg = callinfo->current_regs + callinfo->reg_offset;
+    p_reg = callinfo->cur_regs + callinfo->reg_offset;
 
   } else {
     p_reg = &regs[0];
@@ -1443,14 +1443,14 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
 
   assert( regs[0].tt == MRBC_TT_PROC );
 
-  int nregs = vm->pc_irep->nregs;
+  int nregs = vm->cur_irep->nregs;
   mrbc_callinfo *callinfo = vm->callinfo_tail;
   mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo;
   mrbc_value *p_reg;
 
   // trace back to caller
   do {
-    p_reg = callinfo->current_regs + callinfo->reg_offset;
+    p_reg = callinfo->cur_regs + callinfo->reg_offset;
     mrbc_pop_callinfo(vm);
     callinfo = vm->callinfo_tail;
   } while( callinfo != caller_callinfo );
@@ -1504,7 +1504,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
     assert( regs[0].tt == MRBC_TT_PROC );
 
     mrbc_callinfo *callinfo = regs[0].proc->callinfo_self;
-    blk = callinfo->current_regs + callinfo->reg_offset + offset;
+    blk = callinfo->cur_regs + callinfo->reg_offset + offset;
   }
   if( blk->tt != MRBC_TT_PROC ) {
     mrbc_printf("no block given (yield) (LocalJumpError)\n");
@@ -2230,7 +2230,7 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm->pc_irep, b));
+  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm->cur_irep, b));
   if( !val.proc ) return -1;	// ENOMEM
 
   mrbc_decref(&regs[a]);
@@ -2253,7 +2253,7 @@ static inline int op_method16( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BS();
 
-  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm->pc_irep, b));
+  mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm->cur_irep, b));
   if( !val.proc ) return -1;	// ENOMEM
 
   mrbc_decref(&regs[a]);
@@ -2299,7 +2299,7 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  const char *class_name = mrbc_irep_symbol_cstr(vm->pc_irep, b);
+  const char *class_name = mrbc_irep_symbol_cstr(vm->cur_irep, b);
   mrbc_class *super = (regs[a+1].tt == MRBC_TT_CLASS) ? regs[a+1].cls : 0;
   mrbc_class *cls = mrbc_define_class(vm, class_name, super);
   if( !cls ) return -1;		// ENOMEM
@@ -2331,11 +2331,11 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0, 0);
 
   // target irep
-  vm->pc_irep = mrbc_irep_child_irep(vm->pc_irep, b);
-  vm->inst = vm->pc_irep->code;
+  vm->cur_irep = mrbc_irep_child_irep(vm->cur_irep, b);
+  vm->inst = vm->cur_irep->inst;
 
   // new regs and class
-  vm->current_regs += a;
+  vm->cur_regs += a;
   vm->target_class = regs[a].cls;
 
   return 0;
@@ -2360,11 +2360,11 @@ static inline int op_exec16( mrbc_vm *vm, mrbc_value *regs )
   mrbc_push_callinfo(vm, 0, 0, 0);
 
   // target irep
-  vm->pc_irep = mrbc_irep_child_irep(vm->pc_irep, b);
-  vm->inst = vm->pc_irep->code;
+  vm->cur_irep = mrbc_irep_child_irep(vm->cur_irep, b);
+  vm->inst = vm->cur_irep->inst;
 
   // new regs and class
-  vm->current_regs += a;
+  vm->cur_regs += a;
   vm->target_class = regs[a].cls;
 
   return 0;
@@ -2388,7 +2388,7 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[a+1].tt == MRBC_TT_PROC );
 
   mrbc_class *cls = regs[a].cls;
-  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->pc_irep, b);
+  mrbc_sym sym_id = mrbc_irep_symbol_id(vm->cur_irep, b);
   mrbc_proc *proc = regs[a+1].proc;
   mrbc_method *method;
 
@@ -2436,8 +2436,8 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  mrbc_sym sym_id_new = mrbc_irep_symbol_id(vm->pc_irep, a);
-  mrbc_sym sym_id_org = mrbc_irep_symbol_id(vm->pc_irep, b);
+  mrbc_sym sym_id_new = mrbc_irep_symbol_id(vm->cur_irep, a);
+  mrbc_sym sym_id_org = mrbc_irep_symbol_id(vm->cur_irep, b);
   mrbc_class *cls = vm->target_class;
   mrbc_method *method = mrbc_raw_alloc( sizeof(mrbc_method) );
   if( !method ) return 0;	// ENOMEM
@@ -2639,10 +2639,6 @@ mrbc_vm *mrbc_vm_open( struct VM *vm_arg )
   if( vm_arg == NULL ) vm->flag_need_memfree = 1;
   vm->vm_id = vm_id;
 
-#ifdef MRBC_DEBUG
-  vm->flag_debug_mode = 1;
-#endif
-
   return vm;
 }
 
@@ -2660,7 +2656,7 @@ void mrbc_vm_close( struct VM *vm )
   free_vm_bitmap[idx] &= ~bit;
 
   // free irep and vm
-  if( vm->irep ) mrbc_irep_free( vm->irep );
+  if( vm->top_irep ) mrbc_irep_free( vm->top_irep );
   if( vm->flag_need_memfree ) mrbc_raw_free(vm);
 }
 
@@ -2672,8 +2668,8 @@ void mrbc_vm_close( struct VM *vm )
 */
 void mrbc_vm_begin( struct VM *vm )
 {
-  vm->pc_irep = vm->irep;
-  vm->inst = vm->pc_irep->code;
+  vm->cur_irep = vm->top_irep;
+  vm->inst = vm->cur_irep->inst;
 
   // set self to reg[0], others nil
   vm->regs[0] = mrbc_instance_new(vm, mrbc_class_object, 0);
@@ -2683,7 +2679,7 @@ void mrbc_vm_begin( struct VM *vm )
     vm->regs[i] = mrbc_nil_value();
   }
 
-  vm->current_regs = vm->regs;
+  vm->cur_regs = vm->regs;
   vm->callinfo_tail = NULL;
   vm->target_class = mrbc_class_object;
 
@@ -2734,12 +2730,12 @@ int mrbc_vm_run( struct VM *vm )
 
   do {
     // regs
-    mrbc_value *regs = vm->current_regs;
+    mrbc_value *regs = vm->cur_regs;
 
     // Dispatch
     uint8_t op = *vm->inst++;
 
-    // mrbc_printf("%03d: OP=%02x\n", (vm->inst-1) - vm->pc_irep->code, op);
+    // mrbc_printf("%03d: OP=%02x\n", (vm->inst-1) - vm->cur_irep->code, op);
 
     switch( op ) {
     case OP_NOP:        ret = op_nop       (vm, regs); break;
@@ -2861,7 +2857,7 @@ int mrbc_vm_run( struct VM *vm )
       // check
       const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ALL);
       if( handler != NULL ){
-	vm->inst = vm->pc_irep->code + bin_to_uint32(handler->target);
+	vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
       }
     }
 

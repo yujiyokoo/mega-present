@@ -232,7 +232,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len, int 
   irep.rlen = bin_to_uint16(p);		p += 2;
   irep.clen = bin_to_uint16(p);		p += 2;
   irep.ilen = bin_to_uint16(p);		p += 2;
-  irep.code = (uint8_t *)p;
+  irep.inst = (uint8_t *)p;
   assert( sizeof(mrbc_irep_catch_handler) == 13 );
 
   // POOL block
@@ -355,8 +355,8 @@ int mrbc_load_mrb(struct VM *vm, const uint8_t *bin)
     uint32_t section_size = bin_to_uint32(bin+4);
 
     if( memcmp(bin, IREP, sizeof(IREP)) == 0 ) {
-      vm->irep = load_irep(vm, bin + SIZE_RITE_SECTION_HEADER, 0);
-      if( vm->irep == NULL ) return -1;
+      vm->top_irep = load_irep(vm, bin + SIZE_RITE_SECTION_HEADER, 0);
+      if( vm->top_irep == NULL ) return -1;
 
     } else if( memcmp(bin, END, sizeof(END)) == 0 ) {
       break;
@@ -396,8 +396,8 @@ void mrbc_irep_free(struct IREP *irep)
 */
 mrbc_value mrbc_irep_pool_value(struct VM *vm, int n)
 {
-  assert( vm->pc_irep->plen > n );
-  const uint8_t *p = mrbc_irep_pool_ptr(vm->pc_irep, n);
+  assert( vm->cur_irep->plen > n );
+  const uint8_t *p = mrbc_irep_pool_ptr(vm->cur_irep, n);
   mrbc_value obj;
 
   int tt = *p++;
