@@ -1361,8 +1361,6 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   regs[0] = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
-  vm->exc = mrbc_nil_value();
-
   STOP_IF_TOPLEVEL();
 
   mrbc_pop_callinfo(vm);
