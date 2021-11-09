@@ -296,7 +296,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 
   // case 1. raise (no argument)
   if( argc == 0 ) {
-    vm->exc.exception = MRBC_CLASS(RuntimeError);
+    vm->exc.cls = MRBC_CLASS(RuntimeError);
     mrbc_decref( &vm->exc_message );
     mrbc_set_nil( &vm->exc_message );
     return;
@@ -305,7 +305,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
   // case 2. raise "message"
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_STRING ) {
     mrbc_incref( &v[1] );
-    vm->exc.exception = MRBC_CLASS(RuntimeError);
+    vm->exc.cls = MRBC_CLASS(RuntimeError);
     mrbc_decref( &vm->exc_message );
     vm->exc_message = v[1];
     return;
@@ -313,7 +313,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 
   // case 3. raise Exception
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_CLASS ) {
-    vm->exc.exception = v[1].cls;
+    vm->exc.cls = v[1].cls;
     mrbc_decref( &vm->exc_message );
     mrbc_set_nil( &vm->exc_message );
     return;
@@ -321,14 +321,14 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 
   // case 3-1. raise in rescue or ensure block.
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_EXCEPTION ) {
-    vm->exc.exception = v[1].cls;
+    vm->exc.cls = v[1].cls;
     return;
   }
 
   // case 4. raise Exception, "param"
   if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_CLASS
                 && mrbc_type(v[2]) == MRBC_TT_STRING ) {
-    vm->exc.exception = v[1].cls;
+    vm->exc.cls = v[1].cls;
     mrbc_incref( &v[2] );
     mrbc_decref( &vm->exc_message );
     vm->exc_message = v[2];
@@ -338,7 +338,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
   // case 4-2. raise in rescue or ensure block.
   if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_EXCEPTION
                 && mrbc_type(v[2]) == MRBC_TT_STRING ) {
-    vm->exc.exception = v[1].cls;
+    vm->exc.cls = v[1].cls;
     mrbc_incref( &v[2] );
     mrbc_decref( &vm->exc_message );
     vm->exc_message = v[2];
@@ -346,7 +346,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
   }
 
   // fail.
-  vm->exc.exception = MRBC_CLASS(TypeError);
+  vm->exc.cls = MRBC_CLASS(TypeError);
   mrbc_decref( &vm->exc_message );
   mrbc_set_nil( &vm->exc_message );
 }
