@@ -61,7 +61,8 @@ typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 */
 typedef enum {
   /* internal use */
-  MRBC_TT_BREAK      = -3,  // raise-break
+  MRBC_TT_JMPUW      = -4,  // use in OP_JMPUW
+  MRBC_TT_BREAK      = -3,  // use in OP_BREAK
   MRBC_TT_EXCEPTION  = -2,  // raise-exception
   MRBC_TT_HANDLE     = -1,
 

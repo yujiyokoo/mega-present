@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 
-#define mrbc_israised(v) (!((v)->exc.tt == MRBC_TT_NIL))
+#define mrbc_israised(v) ((v)->exc.tt == MRBC_TT_EXCEPTION)
 
 #ifdef __cplusplus
 }
