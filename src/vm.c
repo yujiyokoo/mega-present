@@ -33,20 +33,6 @@
 #include "c_hash.h"
 
 
-/***** Macros ***************************************************************/
-/*
-   Top-level return immediately stops the program (task) and
-   doesn't handle its arguments
- */
-#define STOP_IF_TOPLEVEL()            \
-  do {                                \
-    if( vm->callinfo_tail == NULL ) { \
-      vm->flag_preemption = 1;        \
-      return -1;                      \
-    }                                 \
-  } while (0)
-
-
 static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
 #define CALL_MAXARGS 255
@@ -176,8 +162,8 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_o
 */
 void mrbc_pop_callinfo( struct VM *vm )
 {
+  assert( vm->callinfo_tail );
   mrbc_callinfo *callinfo = vm->callinfo_tail;
-  if( !callinfo ) return;
 
   vm->callinfo_tail = callinfo->prev;
   vm->cur_regs = callinfo->cur_regs;
@@ -1386,18 +1372,21 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  // return without anything if top level.
+  if( vm->callinfo_tail == NULL ) {
+    vm->flag_preemption = 1;
+    return -1;
+  }
+
+  // set return value
   mrbc_decref(&regs[0]);
   regs[0] = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
-  assert( vm->exc.tt == MRBC_TT_NIL );
-
-  STOP_IF_TOPLEVEL();
-
-  mrbc_pop_callinfo(vm);
-
   // nregs to release
   int nregs = vm->cur_irep->nregs;
+
+  mrbc_pop_callinfo(vm);
 
   // clear stacked arguments
   int i;
@@ -1453,18 +1442,28 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
       callinfo = vm->callinfo_tail;
     } while( callinfo != caller_callinfo );
 
+    // return without anything if top level.
+    if( callinfo == NULL ) {
+      vm->flag_preemption = 1;
+      return -1;
+    }
+
     p_reg = callinfo->cur_regs + callinfo->reg_offset;
 
   } else {
     p_reg = &regs[0];
   }
 
+  // return without anything if top level.
+  if( vm->callinfo_tail == NULL ) {
+    vm->flag_preemption = 1;
+    return -1;
+  }
+
   // set return value
   mrbc_decref( p_reg );
   *p_reg = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
-
-  STOP_IF_TOPLEVEL();
 
   mrbc_pop_callinfo(vm);
 
