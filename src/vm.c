@@ -993,7 +993,7 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( regs[a].tt == MRBC_TT_BREAK ) {
+  if( regs[a].tt == MRBC_TT_RETBLK ) {
     vm->exc = regs[a];
     const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
     if( handler ) {
@@ -1372,6 +1372,24 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  // check return from ensure.
+  if( vm->exc.tt == MRBC_TT_RETBLK ) {
+    vm->exc.tt = MRBC_TT_NIL;
+    goto RETURN;
+  }
+
+  // if in catch handler, jump to ensure.
+  // and then return back via OP_RAISEIF.
+  const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+  if( handler ) {
+    vm->exc.tt = MRBC_TT_RETBLK;
+    vm->exc.jmpuw = vm->inst - 2;	// 2 is size of OP_RETURN
+    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    return 0;
+  }
+
+
+ RETURN:
   // return without anything if top level.
   if( vm->callinfo_tail == NULL ) {
     vm->flag_preemption = 1;
@@ -1412,7 +1430,7 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   // check return from ensure.
-  if( vm->exc.tt == MRBC_TT_BREAK ) {
+  if( vm->exc.tt == MRBC_TT_RETBLK ) {
     vm->exc.tt = MRBC_TT_NIL;
     goto RETURN_TO_OUT_OF_BLOCK;
   }
@@ -1421,7 +1439,7 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
   // and then return back via OP_RAISEIF.
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
   if( handler ) {
-    vm->exc.tt = MRBC_TT_BREAK;
+    vm->exc.tt = MRBC_TT_RETBLK;
     vm->exc.jmpuw = vm->inst - 2;	// 2 is size of OP_RETURN_BRK
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     return 0;
@@ -1492,7 +1510,7 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[0].tt == MRBC_TT_PROC );
 
   // check return from ensure.
-  if( vm->exc.tt == MRBC_TT_BREAK ) {
+  if( vm->exc.tt == MRBC_TT_RETBLK ) {
     vm->exc.tt = MRBC_TT_NIL;
     goto RETURN_TO_OUT_OF_BLOCK;
   }
@@ -1501,7 +1519,7 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
   // and then return back via OP_RAISEIF.
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
   if( handler ) {
-    vm->exc.tt = MRBC_TT_BREAK;
+    vm->exc.tt = MRBC_TT_RETBLK;
     vm->exc.jmpuw = vm->inst - 2;	// 2 is size of OP_BREAK
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     return 0;
