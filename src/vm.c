@@ -993,19 +993,9 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( regs[a].tt == MRBC_TT_RETBLK ) {
-    vm->exc = regs[a];
-    const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
-    if( handler ) {
-      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
-    } else {
-      vm->inst = regs[a].jmpuw;
-    }
-    return 0;
-  }
-
   if( regs[a].tt == MRBC_TT_JMPUW ) {
-    const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+    const mrbc_irep_catch_handler *handler =
+      catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
     if( !handler ) {
       vm->inst = regs[a].jmpuw;
       return 0;
@@ -1020,6 +1010,18 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 
     vm->exc = regs[a];
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    return 0;
+  }
+
+  if( regs[a].tt == MRBC_TT_RETBLK ) {
+    const mrbc_irep_catch_handler *handler =
+      catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+    vm->exc = regs[a];
+    if( handler ) {
+      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    } else {
+      vm->inst = regs[a].jmpuw;
+    }
     return 0;
   }
 
