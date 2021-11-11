@@ -2784,6 +2784,14 @@ void mrbc_vm_begin( struct VM *vm )
 */
 void mrbc_vm_end( struct VM *vm )
 {
+  if( mrbc_israised(vm) ) {
+    mrbc_printf("unhandled exception %s (%s)\n",
+	((mrbc_type(vm->exc_message) == MRBC_TT_STRING) ?
+	 mrbc_string_cstr( &vm->exc_message ) : ""),
+	symid_to_str(vm->exc.cls->sym_id) );
+  }
+  mrbc_decref_empty(&vm->exc_message);
+
   int n_used = 0;
   int i;
   for( i = 0; i < MAX_REGS_SIZE; i++ ) {
@@ -2952,7 +2960,7 @@ int mrbc_vm_run( struct VM *vm )
 	  if( handler ) break;
 	  callinfo = callinfo->prev;
 	}
-	if( !callinfo ) return 1;	// to raise in top level.
+	if( !callinfo ) return -2;	// to raise in top level.
 
 	while( vm->callinfo_tail != callinfo ) {
 	  mrbc_pop_callinfo( vm );
