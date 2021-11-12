@@ -668,7 +668,11 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 	mrbc_printf_str( &pf, symid_to_str(v->instance->cls->sym_id), ' ' );
 	break;
       case 'x':
+#if defined(UINTPTR_MAX)
+	mrbc_printf_int( &pf, (uint32_t)(uintptr_t)v->instance, 16 );
+#else
 	mrbc_printf_int( &pf, (uint32_t)v->instance, 16 );
+#endif
 	break;
       }
     }
@@ -784,7 +788,11 @@ static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   mrbc_printf_init( &pf, buf, sizeof(buf), "#<Proc:%08x>" );
   while( mrbc_printf_main( &pf ) > 0 ) {
+#if defined(UINTPTR_MAX)
+    mrbc_printf_int( &pf, (uint32_t)(uintptr_t)v->proc, 16 );
+#else
     mrbc_printf_int( &pf, (uint32_t)v->proc, 16 );
+#endif
   }
   mrbc_printf_end( &pf );
 
