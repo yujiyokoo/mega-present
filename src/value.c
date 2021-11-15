@@ -21,6 +21,7 @@
 /***** Local headers ********************************************************/
 #include "value.h"
 #include "class.h"
+#include "error.h"
 #include "c_string.h"
 #include "c_range.h"
 #include "c_array.h"
@@ -40,16 +41,17 @@
   @see mrbc_vtype in value.h
 */
 void (* const mrbc_delfunc[])(mrbc_value *) = {
-  mrbc_instance_delete,		// MRBC_TT_OBJECT  = 8,
-  mrbc_proc_delete,		// MRBC_TT_PROC	   = 9,
-  mrbc_array_delete,		// MRBC_TT_ARRAY   = 10,
+  mrbc_instance_delete,		// MRBC_TT_OBJECT    = 8,
+  mrbc_proc_delete,		// MRBC_TT_PROC	     = 9,
+  mrbc_array_delete,		// MRBC_TT_ARRAY     = 10,
 #if MRBC_USE_STRING
-  mrbc_string_delete,		// MRBC_TT_STRING  = 11,
+  mrbc_string_delete,		// MRBC_TT_STRING    = 11,
 #else
   NULL,
 #endif
-  mrbc_range_delete,		// MRBC_TT_RANGE   = 12,
-  mrbc_hash_delete,		// MRBC_TT_HASH	   = 13,
+  mrbc_range_delete,		// MRBC_TT_RANGE     = 12,
+  mrbc_hash_delete,		// MRBC_TT_HASH	     = 13,
+  mrbc_exception_delete,	// MRBC_TT_EXCEPTION = 14,
 };
 
 

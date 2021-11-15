@@ -12,7 +12,6 @@
 
   </pre>
 */
-
 #include "vm_config.h"
 #include <stddef.h>
 #include <string.h>
@@ -32,20 +31,6 @@
 #include "c_range.h"
 #include "c_array.h"
 #include "c_hash.h"
-
-
-/***** Macros ***************************************************************/
-/*
-   Top-level return immediately stops the program (task) and
-   doesn't handle its arguments
- */
-#define STOP_IF_TOPLEVEL()            \
-  do {                                \
-    if( vm->callinfo_tail == NULL ){  \
-      vm->flag_preemption = 1;        \
-      return -1;                      \
-    }                                 \
-  } while (0)
 
 
 static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
@@ -83,7 +68,7 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
 
   // if not OP_SENDB, blcok does not exist
   int bidx = a + c + 1;
-  if( !is_sendb ){
+  if( !is_sendb ) {
     mrbc_decref( &regs[bidx] );
     regs[bidx].tt = MRBC_TT_NIL;
   }
@@ -101,8 +86,6 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
   if( method.c_func ) {
     method.func(vm, regs + a, c);
     if( method.func == c_proc_call ) return 0;
-    //    if( vm->exc != NULL || vm->exc_pending != NULL ) return 0;
-    if( mrbc_israised(vm) ) return 0;
 
     int release_reg = a+1;
     while( release_reg <= bidx ) {
@@ -178,8 +161,8 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_o
 */
 void mrbc_pop_callinfo( struct VM *vm )
 {
+  assert( vm->callinfo_tail );
   mrbc_callinfo *callinfo = vm->callinfo_tail;
-  if( !callinfo ) return;
 
   vm->callinfo_tail = callinfo->prev;
   vm->cur_regs = callinfo->cur_regs;
@@ -201,20 +184,29 @@ void mrbc_pop_callinfo( struct VM *vm )
 /*! Find exception, catch handler
 
 */
-static const mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm, int filter)
+static const mrbc_irep_catch_handler *catch_handler_find(mrbc_vm *vm, const mrbc_callinfo *callinfo, int filter )
 {
-  const mrbc_irep *irep = vm->cur_irep;
-  const mrbc_irep_catch_handler *catch_table = (const mrbc_irep_catch_handler *)(irep->inst + irep->ilen);
+  const mrbc_irep *irep;
+  uint32_t inst;
+
+  if( callinfo ) {
+    irep = callinfo->cur_irep;
+    inst = callinfo->inst - irep->inst;
+  } else {
+    irep = vm->cur_irep;
+    inst = vm->inst - irep->inst;
+  }
+
+  const mrbc_irep_catch_handler *catch_table =
+    (const mrbc_irep_catch_handler *)(irep->inst + irep->ilen);
   int cnt = irep->clen - 1;
 
   for( ; cnt >= 0 ; cnt-- ) {
     const mrbc_irep_catch_handler *handler = catch_table + cnt;
-
     // Catch type and range check
-    uint32_t pc = vm->inst - irep->inst;
     if( (filter & (1 << handler->type)) &&
-	(bin_to_uint32(handler->begin) < pc) &&
-	(pc <= bin_to_uint32(handler->end)) ) {
+	(bin_to_uint32(handler->begin) < inst) &&
+	(inst <= bin_to_uint32(handler->end)) ) {
       return handler;
     }
   }
@@ -914,20 +906,27 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_S();
 
-  // Check ensure
-  const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ENSURE);
-  if( handler ){
-    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
-    vm->exc.tt = MRBC_TT_BREAK;
-    vm->exc.jmpuw = vm->inst + (int16_t)a;
-  } else {
-    vm->inst += (int16_t)a;
-    vm->exc = mrbc_nil_value();
-  }
+  // check catch handler (ensure)
+  const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+  if( !handler ) goto JUMP_TO_A_REG;
 
+  // check whether the jump point is inside or outside the catch handler.
+  uint32_t jump_point = vm->inst - vm->cur_irep->inst + (int16_t)a;
+  if( (bin_to_uint32(handler->begin) < jump_point) &&
+      (jump_point <= bin_to_uint32(handler->end)) ) goto JUMP_TO_A_REG;
+
+  // jump point is outside, thus jump to ensure.
+  assert( vm->exception.tt == MRBC_TT_NIL );
+  vm->exception.tt = MRBC_TT_JMPUW;
+  vm->exception.jmpuw = vm->inst + (int16_t)a;
+  vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+  return 0;
+
+
+ JUMP_TO_A_REG:
+  vm->inst += (int16_t)a;
   return 0;
 }
-
 
 
 //================================================================
@@ -944,12 +943,8 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_decref( &regs[a] );
-  if( mrbc_israised(vm) ){
-    regs[a] = vm->exc;
-    vm->exc = mrbc_nil_value();
-  } else {
-    regs[a] = mrbc_nil_value();
-  }
+  regs[a] = vm->exception;
+  mrbc_set_nil( &vm->exception );
 
   return 0;
 }
@@ -971,17 +966,8 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[a].tt == MRBC_TT_EXCEPTION );
   assert( regs[b].tt == MRBC_TT_CLASS );
 
-  mrbc_class *cls = regs[a].cls;
-  while( cls != NULL ){
-    if( regs[b].cls == cls ){
-      regs[b] = mrbc_true_value();
-      vm->exc = mrbc_nil_value();
-      return 0;
-    }
-    cls = cls->super;
-  }
-
-  regs[b] = mrbc_false_value();
+  int res = mrbc_obj_is_kind_of( &regs[a], regs[b].cls );
+  mrbc_set_bool( &regs[b], res );
 
   return 0;
 }
@@ -1000,17 +986,44 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  //  mrbc_printf("OP_RAISEIF tt:%d\n", regs[0].tt);
+  if( regs[a].tt == MRBC_TT_JMPUW ) {
+    const mrbc_irep_catch_handler *handler =
+      catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+    if( !handler ) {
+      vm->inst = regs[a].jmpuw;
+      return 0;
+    }
 
-  mrb_value *exc = &regs[a];
+    uint32_t jump_point = regs[a].jmpuw - vm->cur_irep->inst;
+    if( (bin_to_uint32(handler->begin) < jump_point) &&
+	(jump_point <= bin_to_uint32(handler->end)) ) {
+      vm->inst = regs[a].jmpuw;
+      return 0;
+    }
 
-  if( exc->tt == MRBC_TT_BREAK ){
-    vm->inst = exc->jmpuw;
-  } else {
     mrbc_incref( &regs[a] );
-    vm->exc = regs[a];
+    vm->exception = regs[a];
+    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    return 0;
   }
 
+  if( regs[a].tt == MRBC_TT_RETBLK ) {
+    const mrbc_irep_catch_handler *handler =
+      catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+    mrbc_incref( &regs[a] );
+    vm->exception = regs[a];
+    if( handler ) {
+      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    } else {
+      vm->inst = regs[a].jmpuw;
+    }
+    return 0;
+  }
+
+  assert( mrbc_type(regs[a]) == MRBC_TT_EXCEPTION ||
+	  mrbc_type(regs[a]) == MRBC_TT_NIL );
+  mrbc_incref( &regs[a] );
+  vm->exception = regs[a];
   return 0;
 }
 
@@ -1228,7 +1241,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 
   // OP_SENDV or OP_SENDVB
   int flag_sendv_pattern = ( argc == CALL_MAXARGS );
-  if( flag_sendv_pattern ){
+  if( flag_sendv_pattern ) {
     argc = 1;
   }
 
@@ -1250,13 +1263,13 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   // support op_sendv pattern
   int flag_yield_pattern = ( regs[0].tt == MRBC_TT_PROC &&
 			     regs[1].tt == MRBC_TT_ARRAY && argc != m1 );
-  if( flag_yield_pattern || flag_sendv_pattern ){
+  if( flag_yield_pattern || flag_sendv_pattern ) {
     mrbc_value argary = regs[1];
     regs[1].tt = MRBC_TT_EMPTY;
 
     int i;
     int copy_size;
-    if( flag_sendv_pattern ){
+    if( flag_sendv_pattern ) {
       copy_size = mrbc_array_size(&argary);
     } else {
       copy_size = m1;
@@ -1315,8 +1328,8 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // proc の位置を求める
-  if( proc.tt == MRBC_TT_PROC ){
-    if( flag_sendv_pattern ){
+  if( proc.tt == MRBC_TT_PROC ) {
+    if( flag_sendv_pattern ) {
       // Nothing
     } else {
       if( argc >= i ) i = argc + 1;
@@ -1357,16 +1370,40 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  // check return from ensure.
+  if( vm->exception.tt == MRBC_TT_RETBLK ) {
+    vm->exception.tt = MRBC_TT_NIL;
+    goto RETURN;
+  }
+
+  // if in catch handler, jump to ensure.
+  // and then return back via OP_RAISEIF.
+  const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+  if( handler ) {
+    assert( vm->exception.tt == MRBC_TT_NIL );
+    vm->exception.tt = MRBC_TT_RETBLK;
+    vm->exception.jmpuw = vm->inst - 2;	// 2 is size of OP_RETURN
+    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    return 0;
+  }
+
+
+ RETURN:
+  // return without anything if top level.
+  if( vm->callinfo_tail == NULL ) {
+    vm->flag_preemption = 1;
+    return -1;
+  }
+
+  // set return value
   mrbc_decref(&regs[0]);
   regs[0] = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
-  STOP_IF_TOPLEVEL();
-
-  mrbc_pop_callinfo(vm);
-
   // nregs to release
   int nregs = vm->cur_irep->nregs;
+
+  mrbc_pop_callinfo(vm);
 
   // clear stacked arguments
   int i;
@@ -1391,6 +1428,25 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  // check return from ensure.
+  if( vm->exception.tt == MRBC_TT_RETBLK ) {
+    vm->exception.tt = MRBC_TT_NIL;
+    goto RETURN_TO_OUT_OF_BLOCK;
+  }
+
+  // if in catch handler, jump to ensure.
+  // and then return back via OP_RAISEIF.
+  const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+  if( handler ) {
+    assert( vm->exception.tt == MRBC_TT_NIL );
+    vm->exception.tt = MRBC_TT_RETBLK;
+    vm->exception.jmpuw = vm->inst - 2;	// 2 is size of OP_RETURN_BRK
+    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    return 0;
+  }
+
+
+ RETURN_TO_OUT_OF_BLOCK:;
   int nregs = vm->cur_irep->nregs;
   mrbc_value *p_reg;
 
@@ -1404,18 +1460,28 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
       callinfo = vm->callinfo_tail;
     } while( callinfo != caller_callinfo );
 
+    // return without anything if top level.
+    if( callinfo == NULL ) {
+      vm->flag_preemption = 1;
+      return -1;
+    }
+
     p_reg = callinfo->cur_regs + callinfo->reg_offset;
 
   } else {
     p_reg = &regs[0];
   }
 
+  // return without anything if top level.
+  if( vm->callinfo_tail == NULL ) {
+    vm->flag_preemption = 1;
+    return -1;
+  }
+
   // set return value
   mrbc_decref( p_reg );
   *p_reg = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
-
-  STOP_IF_TOPLEVEL();
 
   mrbc_pop_callinfo(vm);
 
@@ -1443,6 +1509,25 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
 
   assert( regs[0].tt == MRBC_TT_PROC );
 
+  // check return from ensure.
+  if( vm->exception.tt == MRBC_TT_RETBLK ) {
+    vm->exception.tt = MRBC_TT_NIL;
+    goto RETURN_TO_OUT_OF_BLOCK;
+  }
+
+  // if in catch handler, jump to ensure.
+  // and then return back via OP_RAISEIF.
+  const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+  if( handler ) {
+    assert( vm->exception.tt == MRBC_TT_NIL );
+    vm->exception.tt = MRBC_TT_RETBLK;
+    vm->exception.jmpuw = vm->inst - 2;	// 2 is size of OP_BREAK
+    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    return 0;
+  }
+
+
+ RETURN_TO_OUT_OF_BLOCK:;
   int nregs = vm->cur_irep->nregs;
   mrbc_callinfo *callinfo = vm->callinfo_tail;
   mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo;
@@ -1916,7 +2001,7 @@ static inline int op_array2( mrbc_vm *vm, mrbc_value *regs )
   if( value.array == NULL ) return -1;  // ENOMEM
 
   int i;
-  for( i=0 ; i<c ; i++ ){
+  for( i=0 ; i<c ; i++ ) {
     mrbc_incref( &regs[b+i] );
     value.array->data[i] = regs[b+i];
   }
@@ -1942,7 +2027,7 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( regs[a].tt == MRBC_TT_NIL ){
+  if( regs[a].tt == MRBC_TT_NIL ) {
     // arycat(nil, [...]) #=> [...]
     assert( regs[a+1].tt == MRBC_TT_ARRAY );
     regs[a] = regs[a+1];
@@ -1959,7 +2044,7 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
   int new_size = size_1 + regs[a+1].array->n_stored;
 
   // need resize?
-  if( regs[a].array->data_size < new_size ){
+  if( regs[a].array->data_size < new_size ) {
     mrbc_array_resize(&regs[a], new_size);
   }
 
@@ -2013,13 +2098,13 @@ static inline int op_aref( mrbc_vm *vm, mrbc_value *regs )
 
   mrbc_decref( dst );
 
-  if( src->tt == MRBC_TT_ARRAY ){
+  if( src->tt == MRBC_TT_ARRAY ) {
     // src is Array
     *dst = mrbc_array_get(src, c);
     mrbc_incref(dst);
   } else {
     // src is not Array
-    if( c == 0 ){
+    if( c == 0 ) {
       mrbc_incref(src);
       *dst = *src;
     } else {
@@ -2064,7 +2149,7 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BBB();
 
   mrbc_value src = regs[a];
-  if( src.tt != MRBC_TT_ARRAY ){
+  if( src.tt != MRBC_TT_ARRAY ) {
     src = mrbc_array_new(vm, 1);
     src.array->data[0] = regs[a];
     src.array->n_stored = 1;
@@ -2074,7 +2159,7 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
   int post = c;
   int len = src.array->n_stored;
 
-  if( len > pre + post ){
+  if( len > pre + post ) {
     int ary_size = len-pre-post;
     regs[a] = mrbc_array_new(vm, ary_size);
     // copy elements
@@ -2682,10 +2767,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->cur_regs = vm->regs;
   vm->callinfo_tail = NULL;
   vm->target_class = mrbc_class_object;
-
-  vm->exc = mrbc_nil_value();
-
-  vm->error_code = 0;
+  vm->exception = mrbc_nil_value();
   vm->flag_preemption = 0;
 }
 
@@ -2697,6 +2779,15 @@ void mrbc_vm_begin( struct VM *vm )
 */
 void mrbc_vm_end( struct VM *vm )
 {
+  if( mrbc_israised(vm) ) {
+    mrbc_printf( "Exception : %s (%s)\n",
+		 symid_to_str(vm->exception.exception->cls->sym_id),
+		 vm->exception.exception->message ?
+		   (const char *)vm->exception.exception->message :
+		   symid_to_str(vm->exception.exception->cls->sym_id) );
+    mrbc_decref(&vm->exception);
+  }
+
   int n_used = 0;
   int i;
   for( i = 0; i < MAX_REGS_SIZE; i++ ) {
@@ -2853,17 +2944,29 @@ int mrbc_vm_run( struct VM *vm )
     }
 
     // Handle exception
-    if( mrbc_israised(vm) ){
-      // check
-      const mrbc_irep_catch_handler *handler = catch_handler_find(vm, MRBC_CATCH_FILTER_ALL);
-      if( handler != NULL ){
-	vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    if( mrbc_israised(vm) ) {
+      const mrbc_irep_catch_handler *handler;
+
+      handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ALL);
+      if( !handler ) {
+	const mrbc_callinfo *callinfo = vm->callinfo_tail;
+
+	while( callinfo ) {
+	  handler = catch_handler_find(0, callinfo, MRBC_CATCH_FILTER_ALL);
+	  if( handler ) break;
+	  callinfo = callinfo->prev;
+	}
+	if( !callinfo ) return -2;	// to raise in top level.
+
+	while( vm->callinfo_tail != callinfo ) {
+	  mrbc_pop_callinfo( vm );
+	}
+	mrbc_pop_callinfo( vm );
       }
+
+      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     }
 
-    // raise in top level
-    // exit vm
-    // if( vm->callinfo_tail == NULL && vm->exc ) return 0;
   } while( !vm->flag_preemption );
 
   vm->flag_preemption = 0;

@@ -46,20 +46,21 @@
   @see mrbc_vtype in value.h
 */
 mrbc_class * const mrbc_class_tbl[MRBC_TT_MAXVAL+1] = {
-  0,				// MRBC_TT_EMPTY   = 0,
-  MRBC_CLASS(NilClass),		// MRBC_TT_NIL	   = 1,
-  MRBC_CLASS(FalseClass),	// MRBC_TT_FALSE   = 2,
-  MRBC_CLASS(TrueClass),	// MRBC_TT_TRUE	   = 3,
-  MRBC_CLASS(Integer),		// MRBC_TT_INTEGER = 4,
-  MRBC_CLASS(Float),		// MRBC_TT_FLOAT   = 5,
-  MRBC_CLASS(Symbol),		// MRBC_TT_SYMBOL  = 6,
-  0,				// MRBC_TT_CLASS   = 7,
-  0,				// MRBC_TT_OBJECT  = 8,
-  MRBC_CLASS(Proc),		// MRBC_TT_PROC	   = 9,
-  MRBC_CLASS(Array),		// MRBC_TT_ARRAY   = 10,
-  MRBC_CLASS(String),		// MRBC_TT_STRING  = 11,
-  MRBC_CLASS(Range),		// MRBC_TT_RANGE   = 12,
-  MRBC_CLASS(Hash),		// MRBC_TT_HASH	   = 13,
+  0,				// MRBC_TT_EMPTY     = 0,
+  MRBC_CLASS(NilClass),		// MRBC_TT_NIL	     = 1,
+  MRBC_CLASS(FalseClass),	// MRBC_TT_FALSE     = 2,
+  MRBC_CLASS(TrueClass),	// MRBC_TT_TRUE	     = 3,
+  MRBC_CLASS(Integer),		// MRBC_TT_INTEGER   = 4,
+  MRBC_CLASS(Float),		// MRBC_TT_FLOAT     = 5,
+  MRBC_CLASS(Symbol),		// MRBC_TT_SYMBOL    = 6,
+  0,				// MRBC_TT_CLASS     = 7,
+  0,				// MRBC_TT_OBJECT    = 8,
+  MRBC_CLASS(Proc),		// MRBC_TT_PROC	     = 9,
+  MRBC_CLASS(Array),		// MRBC_TT_ARRAY     = 10,
+  MRBC_CLASS(String),		// MRBC_TT_STRING    = 11,
+  MRBC_CLASS(Range),		// MRBC_TT_RANGE     = 12,
+  MRBC_CLASS(Hash),		// MRBC_TT_HASH	     = 13,
+  0,				// MRBC_TT_EXCEPTION = 14,
 };
 
 
