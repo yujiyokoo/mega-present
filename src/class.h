@@ -20,6 +20,7 @@
 #include "vm_config.h"
 #include "value.h"
 #include "keyvalue.h"
+#include "error.h"
 
 
 #ifdef __cplusplus
@@ -166,18 +167,18 @@ void mrbc_init_class(void);
 */
 static inline mrbc_class *find_class_by_object(const mrbc_object *obj)
 {
-  if( mrbc_type(*obj) == MRBC_TT_EXCEPTION ) {
-    return obj->cls;
-  }
-
   assert( mrbc_type(*obj) >= 0 );
   assert( mrbc_type(*obj) <= MRBC_TT_MAXVAL );
 
   mrbc_class *cls = mrbc_class_tbl[ obj->tt ];
   if( !cls ) {
-    assert( mrbc_type(*obj) == MRBC_TT_OBJECT ||
-	    mrbc_type(*obj) == MRBC_TT_CLASS );
-    cls = (obj->tt == MRBC_TT_OBJECT) ? obj->instance->cls : obj->cls;
+    switch( mrbc_type(*obj) ) {
+    case MRBC_TT_CLASS:		cls = obj->cls;			break;
+    case MRBC_TT_OBJECT:	cls = obj->instance->cls;	break;
+    case MRBC_TT_EXCEPTION:	cls = obj->exception->cls;	break;
+    default:
+      assert(!"Invalid value type.");
+    }
   }
 
   return cls;
