@@ -2767,10 +2767,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->cur_regs = vm->regs;
   vm->callinfo_tail = NULL;
   vm->target_class = mrbc_class_object;
-
   vm->exception = mrbc_nil_value();
-
-  vm->error_code = 0;
   vm->flag_preemption = 0;
 }
 

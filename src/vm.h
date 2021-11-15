@@ -147,8 +147,6 @@ typedef struct VM {
 
   mrbc_value exception;		//!< Raised exception.
 
-  int32_t error_code;
-
   volatile int8_t flag_preemption;
   int8_t flag_need_memfree;
 
