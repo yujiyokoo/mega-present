@@ -809,14 +809,22 @@ void pq(mrbc_tcb *p_tcb)
 
   p = p_tcb;
   while( p != NULL ) {
+#if defined(UINTPTR_MAX)
+    mrbc_printf("%08x  ", (uint32_t)(uintptr_t)p);
+#else
     mrbc_printf("%08x  ", (uint32_t)p);
+#endif
     p = p->next;
   }
   mrbc_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
+#if defined(UINTPTR_MAX)
+    mrbc_printf(" nx:%04x  ", (uint16_t)(uintptr_t)p->next);
+#else
     mrbc_printf(" nx:%04x  ", (uint16_t)p->next);
+#endif
     p = p->next;
   }
   mrbc_printf("\n");

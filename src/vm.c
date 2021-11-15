@@ -86,7 +86,6 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
   if( method.c_func ) {
     method.func(vm, regs + a, c);
     if( method.func == c_proc_call ) return 0;
-    if( mrbc_israised(vm) ) return 0;
 
     int release_reg = a+1;
     while( release_reg <= bidx ) {
@@ -917,8 +916,9 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
       (jump_point <= bin_to_uint32(handler->end)) ) goto JUMP_TO_A_REG;
 
   // jump point is outside, thus jump to ensure.
-  vm->exc.tt = MRBC_TT_JMPUW;
-  vm->exc.jmpuw = vm->inst + (int16_t)a;
+  assert( vm->exception.tt == MRBC_TT_NIL );
+  vm->exception.tt = MRBC_TT_JMPUW;
+  vm->exception.jmpuw = vm->inst + (int16_t)a;
   vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
   return 0;
 
@@ -943,8 +943,8 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   mrbc_decref( &regs[a] );
-  regs[a] = vm->exc;
-  mrbc_set_nil( &vm->exc );
+  regs[a] = vm->exception;
+  mrbc_set_nil( &vm->exception );
 
   return 0;
 }
@@ -966,16 +966,9 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[a].tt == MRBC_TT_EXCEPTION );
   assert( regs[b].tt == MRBC_TT_CLASS );
 
-  mrbc_class *cls = regs[a].cls;
-  while( cls != NULL ) {
-    if( regs[b].cls == cls ) {
-      mrbc_set_true( &regs[b] );
-      return 0;
-    }
-    cls = cls->super;
-  }
+  int res = mrbc_obj_is_kind_of( &regs[a], regs[b].cls );
+  mrbc_set_bool( &regs[b], res );
 
-  mrbc_set_false( &regs[b] );
   return 0;
 }
 
@@ -993,19 +986,9 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
-  if( regs[a].tt == MRBC_TT_RETBLK ) {
-    vm->exc = regs[a];
-    const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
-    if( handler ) {
-      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
-    } else {
-      vm->inst = regs[a].jmpuw;
-    }
-    return 0;
-  }
-
   if( regs[a].tt == MRBC_TT_JMPUW ) {
-    const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+    const mrbc_irep_catch_handler *handler =
+      catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
     if( !handler ) {
       vm->inst = regs[a].jmpuw;
       return 0;
@@ -1018,14 +1001,29 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
       return 0;
     }
 
-    vm->exc = regs[a];
+    mrbc_incref( &regs[a] );
+    vm->exception = regs[a];
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    return 0;
+  }
+
+  if( regs[a].tt == MRBC_TT_RETBLK ) {
+    const mrbc_irep_catch_handler *handler =
+      catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
+    mrbc_incref( &regs[a] );
+    vm->exception = regs[a];
+    if( handler ) {
+      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+    } else {
+      vm->inst = regs[a].jmpuw;
+    }
     return 0;
   }
 
   assert( mrbc_type(regs[a]) == MRBC_TT_EXCEPTION ||
 	  mrbc_type(regs[a]) == MRBC_TT_NIL );
-  vm->exc = regs[a];
+  mrbc_incref( &regs[a] );
+  vm->exception = regs[a];
   return 0;
 }
 
@@ -1373,8 +1371,8 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   // check return from ensure.
-  if( vm->exc.tt == MRBC_TT_RETBLK ) {
-    vm->exc.tt = MRBC_TT_NIL;
+  if( vm->exception.tt == MRBC_TT_RETBLK ) {
+    vm->exception.tt = MRBC_TT_NIL;
     goto RETURN;
   }
 
@@ -1382,8 +1380,9 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   // and then return back via OP_RAISEIF.
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
   if( handler ) {
-    vm->exc.tt = MRBC_TT_RETBLK;
-    vm->exc.jmpuw = vm->inst - 2;	// 2 is size of OP_RETURN
+    assert( vm->exception.tt == MRBC_TT_NIL );
+    vm->exception.tt = MRBC_TT_RETBLK;
+    vm->exception.jmpuw = vm->inst - 2;	// 2 is size of OP_RETURN
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     return 0;
   }
@@ -1430,8 +1429,8 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
   FETCH_B();
 
   // check return from ensure.
-  if( vm->exc.tt == MRBC_TT_RETBLK ) {
-    vm->exc.tt = MRBC_TT_NIL;
+  if( vm->exception.tt == MRBC_TT_RETBLK ) {
+    vm->exception.tt = MRBC_TT_NIL;
     goto RETURN_TO_OUT_OF_BLOCK;
   }
 
@@ -1439,8 +1438,9 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
   // and then return back via OP_RAISEIF.
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
   if( handler ) {
-    vm->exc.tt = MRBC_TT_RETBLK;
-    vm->exc.jmpuw = vm->inst - 2;	// 2 is size of OP_RETURN_BRK
+    assert( vm->exception.tt == MRBC_TT_NIL );
+    vm->exception.tt = MRBC_TT_RETBLK;
+    vm->exception.jmpuw = vm->inst - 2;	// 2 is size of OP_RETURN_BRK
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     return 0;
   }
@@ -1510,8 +1510,8 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
   assert( regs[0].tt == MRBC_TT_PROC );
 
   // check return from ensure.
-  if( vm->exc.tt == MRBC_TT_RETBLK ) {
-    vm->exc.tt = MRBC_TT_NIL;
+  if( vm->exception.tt == MRBC_TT_RETBLK ) {
+    vm->exception.tt = MRBC_TT_NIL;
     goto RETURN_TO_OUT_OF_BLOCK;
   }
 
@@ -1519,8 +1519,9 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
   // and then return back via OP_RAISEIF.
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
   if( handler ) {
-    vm->exc.tt = MRBC_TT_RETBLK;
-    vm->exc.jmpuw = vm->inst - 2;	// 2 is size of OP_BREAK
+    assert( vm->exception.tt == MRBC_TT_NIL );
+    vm->exception.tt = MRBC_TT_RETBLK;
+    vm->exception.jmpuw = vm->inst - 2;	// 2 is size of OP_BREAK
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     return 0;
   }
@@ -2766,11 +2767,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->cur_regs = vm->regs;
   vm->callinfo_tail = NULL;
   vm->target_class = mrbc_class_object;
-
-  vm->exc = mrbc_nil_value();
-  vm->exc_message = mrbc_nil_value();
-
-  vm->error_code = 0;
+  vm->exception = mrbc_nil_value();
   vm->flag_preemption = 0;
 }
 
@@ -2782,6 +2779,15 @@ void mrbc_vm_begin( struct VM *vm )
 */
 void mrbc_vm_end( struct VM *vm )
 {
+  if( mrbc_israised(vm) ) {
+    mrbc_printf( "Exception : %s (%s)\n",
+		 symid_to_str(vm->exception.exception->cls->sym_id),
+		 vm->exception.exception->message ?
+		   (const char *)vm->exception.exception->message :
+		   symid_to_str(vm->exception.exception->cls->sym_id) );
+    mrbc_decref(&vm->exception);
+  }
+
   int n_used = 0;
   int i;
   for( i = 0; i < MAX_REGS_SIZE; i++ ) {
@@ -2950,7 +2956,7 @@ int mrbc_vm_run( struct VM *vm )
 	  if( handler ) break;
 	  callinfo = callinfo->prev;
 	}
-	if( !callinfo ) return 1;	// to raise in top level.
+	if( !callinfo ) return -2;	// to raise in top level.
 
 	while( vm->callinfo_tail != callinfo ) {
 	  mrbc_pop_callinfo( vm );

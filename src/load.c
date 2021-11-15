@@ -26,11 +26,18 @@
 #include "alloc.h"
 #include "symbol.h"
 #include "c_string.h"
-#include "console.h"
+
 
 /***** Constat values *******************************************************/
-/*! IREP TT
-*/
+// for mrb file structure.
+static const char IDENT[8] = "RITE0200";
+static const int SIZE_RITE_BINARY_HEADER = 20;
+static const int SIZE_RITE_SECTION_HEADER = 12;
+static const char IREP[4] = "IREP";
+static const char END[4] = "END\0";
+
+
+/*! IREP TT */
 enum irep_pool_type {
   IREP_TT_STR   = 0,	// string (need free)
   IREP_TT_SSTR  = 2,	// string (static)
@@ -39,12 +46,8 @@ enum irep_pool_type {
   IREP_TT_FLOAT = 5,	// float (double/float)
 };
 
-/***** Macros ***************************************************************/
-//
-// This is a dummy code for raise
-//
-#define mrbc_raise(vm,err,msg) mrbc_printf("<raise> %s:%d\n", __FILE__, __LINE__);
 
+/***** Macros ***************************************************************/
 /***** Typedefs *************************************************************/
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
@@ -173,12 +176,7 @@ static inline int64_t bin_to_int64( const void *p )
 */
 static int load_header(struct VM *vm, const uint8_t *bin)
 {
-  static const char IDENT[8] = "RITE0200";
-
-  if( memcmp(bin, IDENT, sizeof(IDENT)) != 0 ) {
-    mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
-    return -1;
-  }
+  if( memcmp(bin, IDENT, sizeof(IDENT)) != 0 ) return -1;
 
   /* Ignore others. */
 
@@ -249,7 +247,9 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len, int 
     case IREP_TT_INT32:	siz = 4;	break;
     case IREP_TT_INT64:
     case IREP_TT_FLOAT:	siz = 8;	break;
-    default: mrbc_raise(vm, E_BYTECODE_ERROR, "Unknown TT found.");
+    default:
+      assert(!"Loader unknown TT found.");
+      return NULL;
     }
     p += siz;
   }
@@ -268,10 +268,8 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len, int 
   } else {
     p_irep = mrbc_raw_alloc( siz );
   }
-  if( !p_irep ) {
-    mrbc_raise(vm, E_BYTECODE_ERROR, NULL);
-    return NULL;
-  }
+  if( !p_irep ) return NULL;
+
   *p_irep = irep;
 
   // make a sym_id table.
@@ -343,12 +341,8 @@ static mrbc_irep *load_irep(struct VM *vm, const uint8_t *bin, int *len)
 */
 int mrbc_load_mrb(struct VM *vm, const uint8_t *bin)
 {
-  static const int SIZE_RITE_BINARY_HEADER = 20;
-  static const int SIZE_RITE_SECTION_HEADER = 12;
-  static const char IREP[4] = "IREP";
-  static const char END[4] = "END\0";
-
   if( load_header(vm, bin) != 0 ) return -1;
+
   bin += SIZE_RITE_BINARY_HEADER;
 
   while( 1 ) {

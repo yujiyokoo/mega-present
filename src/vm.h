@@ -132,23 +132,20 @@ typedef struct CALLINFO mrb_callinfo;
 */
 typedef struct VM {
 #if defined(MRBC_DEBUG)
-  char type[2];		// set "VM" for debug
+  char type[2];			// set "VM" for debug
 #endif
-  uint8_t vm_id;	// vm_id : 1..MAX_VM_COUNT
+  uint8_t vm_id;		//!< vm_id : 1..MAX_VM_COUNT
 
-  mrbc_irep       *top_irep;	// IREP tree top.
-  const mrbc_irep *cur_irep;	// IREP currently running.
-  const uint8_t   *inst;	// instruction pointer
+  mrbc_irep       *top_irep;	//!< IREP tree top.
+  const mrbc_irep *cur_irep;	//!< IREP currently running.
+  const uint8_t   *inst;	//!< instruction pointer
 
   mrbc_value    regs[MAX_REGS_SIZE];
   mrbc_value    *cur_regs;
   mrbc_callinfo *callinfo_tail;
   mrbc_class    *target_class;
 
-  mrbc_value exc;
-  mrbc_value exc_message;
-
-  int32_t error_code;
+  mrbc_value exception;		//!< Raised exception.
 
   volatile int8_t flag_preemption;
   int8_t flag_need_memfree;

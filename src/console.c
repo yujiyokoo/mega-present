@@ -29,6 +29,7 @@
 #include "class.h"
 #include "console.h"
 #include "symbol.h"
+#include "error.h"
 #include "c_string.h"
 #include "c_array.h"
 #include "c_hash.h"
@@ -518,7 +519,11 @@ int mrbc_printf_float( mrbc_printf_t *pf, double value )
 */
 int mrbc_printf_pointer( mrbc_printf_t *pf, void *ptr )
 {
+#if defined(UINTPTR_MAX)
+  uintptr_t v = (uintptr_t)ptr;
+#else
   int v = (int)ptr; // regal (void* to int), but implementation defined.
+#endif
   int n = sizeof(ptr) * 2;
   if( n > 8 ) n = 8;
 
@@ -697,7 +702,10 @@ int mrbc_print_sub(const mrbc_value *v)
     break;
 
   case MRBC_TT_EXCEPTION:
-    mrbc_printf( "#<%s>", symid_to_str(v->cls->sym_id));
+    mrbc_printf( "#<%s: %s>", symid_to_str(v->exception->cls->sym_id),
+		 v->exception->message ?
+		   (const char *)v->exception->message :
+		   symid_to_str(v->exception->cls->sym_id) );
     break;
 
   default:

@@ -292,63 +292,63 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
   assert( !mrbc_israised(vm) );
 
-  vm->exc.tt = MRBC_TT_EXCEPTION;
-
   // case 1. raise (no argument)
   if( argc == 0 ) {
-    vm->exc.cls = MRBC_CLASS(RuntimeError);
-    mrbc_decref( &vm->exc_message );
-    mrbc_set_nil( &vm->exc_message );
+    vm->exception = mrbc_exception_new( vm,
+					MRBC_CLASS(RuntimeError),
+					"",
+					0 );
     return;
   }
 
   // case 2. raise "message"
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_STRING ) {
-    mrbc_incref( &v[1] );
-    vm->exc.cls = MRBC_CLASS(RuntimeError);
-    mrbc_decref( &vm->exc_message );
-    vm->exc_message = v[1];
+    vm->exception = mrbc_exception_new( vm,
+					MRBC_CLASS(RuntimeError),
+					mrbc_string_cstr(&v[1]),
+					mrbc_string_size(&v[1]) );
     return;
   }
 
-  // case 3. raise Exception
+  // case 3-1. raise ExceptionClass
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_CLASS ) {
-    vm->exc.cls = v[1].cls;
-    mrbc_decref( &vm->exc_message );
-    mrbc_set_nil( &vm->exc_message );
+    vm->exception = mrbc_exception_new( vm,
+					v[1].cls,
+					NULL,
+					0 );
     return;
   }
 
-  // case 3-1. raise in rescue or ensure block.
+  // case 3-2. raise ExceptionObject
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_EXCEPTION ) {
-    vm->exc.cls = v[1].cls;
+    mrbc_incref( &v[1] );
+    vm->exception = v[1];
     return;
   }
 
-  // case 4. raise Exception, "param"
+  // case 4-1. raise Exception, "param"
   if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_CLASS
                 && mrbc_type(v[2]) == MRBC_TT_STRING ) {
-    vm->exc.cls = v[1].cls;
-    mrbc_incref( &v[2] );
-    mrbc_decref( &vm->exc_message );
-    vm->exc_message = v[2];
+    vm->exception = mrbc_exception_new( vm,
+					v[1].cls,
+					mrbc_string_cstr(&v[2]),
+					mrbc_string_size(&v[2]) );
     return;
   }
 
-  // case 4-2. raise in rescue or ensure block.
+  // case 4-2. raise ExceptionObject, "param"
   if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_EXCEPTION
                 && mrbc_type(v[2]) == MRBC_TT_STRING ) {
-    vm->exc.cls = v[1].cls;
-    mrbc_incref( &v[2] );
-    mrbc_decref( &vm->exc_message );
-    vm->exc_message = v[2];
+    mrbc_incref( &v[1] );
+    vm->exception = v[1];
+    mrbc_exception_set_message( vm, &vm->exception,
+				mrbc_string_cstr(&v[2]),
+				mrbc_string_size(&v[2]) );
     return;
   }
 
   // fail.
-  vm->exc.cls = MRBC_CLASS(TypeError);
-  mrbc_decref( &vm->exc_message );
-  mrbc_set_nil( &vm->exc_message );
+  vm->exception = mrbc_exception_new( vm, MRBC_CLASS(ArgumentError), NULL, 0 );
 }
 
 
@@ -668,7 +668,11 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 	mrbc_printf_str( &pf, symid_to_str(v->instance->cls->sym_id), ' ' );
 	break;
       case 'x':
+#if defined(UINTPTR_MAX)
+	mrbc_printf_int( &pf, (uint32_t)(uintptr_t)v->instance, 16 );
+#else
 	mrbc_printf_int( &pf, (uint32_t)v->instance, 16 );
+#endif
 	break;
       }
     }
@@ -784,7 +788,11 @@ static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   mrbc_printf_init( &pf, buf, sizeof(buf), "#<Proc:%08x>" );
   while( mrbc_printf_main( &pf ) > 0 ) {
+#if defined(UINTPTR_MAX)
+    mrbc_printf_int( &pf, (uint32_t)(uintptr_t)v->proc, 16 );
+#else
     mrbc_printf_int( &pf, (uint32_t)v->proc, 16 );
+#endif
   }
   mrbc_printf_end( &pf );
 

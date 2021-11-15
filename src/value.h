@@ -30,6 +30,7 @@ extern "C" {
 /***** Typedefs *************************************************************/
 // pre define of some struct
 struct VM;
+struct RClass;
 struct RObject;
 struct IREP;
 
@@ -61,9 +62,8 @@ typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 */
 typedef enum {
   /* internal use */
-  MRBC_TT_JMPUW      = -4,  // use in OP_JMPUW
-  MRBC_TT_RETBLK     = -3,  // use in OP_RETURN, OP_RETURN_BLK, OP_BREAK
-  MRBC_TT_EXCEPTION  = -2,  // raise-exception
+  MRBC_TT_JMPUW      = -3,  // use in OP_JMPUW
+  MRBC_TT_RETBLK     = -2,  // use in OP_RETURN, OP_RETURN_BLK, OP_BREAK
   MRBC_TT_HANDLE     = -1,
 
   /* primitive */
@@ -79,15 +79,16 @@ typedef enum {
   MRBC_TT_CLASS	  = 7,
 
   /* non-primitive */
-  MRBC_TT_OBJECT  = 8,	// (note) inc/dec ref threshold.
-  MRBC_TT_PROC	  = 9,
-  MRBC_TT_ARRAY	  = 10,
-  MRBC_TT_STRING  = 11,
-  MRBC_TT_RANGE	  = 12,
-  MRBC_TT_HASH	  = 13,
+  MRBC_TT_OBJECT    = 8,	// (note) inc/dec ref threshold.
+  MRBC_TT_PROC	    = 9,
+  MRBC_TT_ARRAY	    = 10,
+  MRBC_TT_STRING    = 11,
+  MRBC_TT_RANGE	    = 12,
+  MRBC_TT_HASH	    = 13,
+  MRBC_TT_EXCEPTION = 14,
 } mrbc_vtype;
 #define	MRBC_TT_INC_DEC_THRESHOLD MRBC_TT_OBJECT
-#define	MRBC_TT_MAXVAL MRBC_TT_HASH
+#define	MRBC_TT_MAXVAL MRBC_TT_EXCEPTION
 
 
 //================================================================
@@ -147,6 +148,7 @@ struct RObject {
     struct RString *string;	// MRBC_TT_STRING
     struct RRange *range;	// MRBC_TT_RANGE
     struct RHash *hash;		// MRBC_TT_HASH
+    struct RException *exception; // MRBC_TT_EXCEPTION
     void *handle;		// internal use only.
     const uint8_t *jmpuw;       // jump point from break
   };

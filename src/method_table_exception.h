@@ -2,9 +2,11 @@
 #include "symbol_builtin.h"
 static const mrbc_sym method_symbols_Exception[] = {
   MRBC_SYM(message),
+  MRBC_SYM(new),
 };
 static const mrbc_func_t method_functions_Exception[] = {
   c_exception_message,
+  c_exception_new,
 };
 
 struct RBuiltinClass mrbc_class_Exception = {
