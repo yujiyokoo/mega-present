@@ -129,10 +129,11 @@ void mrbc_exception_set_message(struct VM *vm, mrbc_value *value, const void *me
 */
 void mrbc_raise( struct VM *vm, struct RClass *exc_cls, const char *msg )
 {
-  vm->exception =  mrbc_exception_new( vm,
+  vm->exception = mrbc_exception_new( vm,
 			exc_cls ? exc_cls : MRBC_CLASS(RuntimeError),
 			msg,
 			msg ? strlen(msg) : 0 );
+  vm->flag_preemption = 2;
 }
 
 
