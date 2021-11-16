@@ -141,14 +141,15 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_o
   mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
   if( !callinfo ) return callinfo;
 
-  callinfo->cur_regs = vm->cur_regs;
   callinfo->cur_irep = vm->cur_irep;
   callinfo->inst = vm->inst;
-  callinfo->reg_offset = reg_offset;
-  callinfo->method_id = method_id;
-  callinfo->n_args = n_args;
+  callinfo->cur_regs = vm->cur_regs;
   callinfo->target_class = vm->target_class;
   callinfo->own_class = 0;
+  callinfo->method_id = method_id;
+  callinfo->reg_offset = reg_offset;
+  callinfo->n_args = n_args;
+
   callinfo->prev = vm->callinfo_tail;
   vm->callinfo_tail = callinfo;
 
@@ -161,14 +162,22 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_o
 */
 void mrbc_pop_callinfo( struct VM *vm )
 {
-  assert( vm->callinfo_tail );
-  mrbc_callinfo *callinfo = vm->callinfo_tail;
 
-  vm->callinfo_tail = callinfo->prev;
-  vm->cur_regs = callinfo->cur_regs;
+  assert( vm->callinfo_tail );
+
+  // clear used register.
+  int i;
+  for( i = 1; i < vm->cur_irep->nregs; i++ ) {
+    mrbc_decref_empty( vm->cur_regs + i );
+  }
+
+  // copy callinfo to vm
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
   vm->cur_irep = callinfo->cur_irep;
   vm->inst = callinfo->inst;
+  vm->cur_regs = callinfo->cur_regs;
   vm->target_class = callinfo->target_class;
+  vm->callinfo_tail = callinfo->prev;
 
   mrbc_free(vm, callinfo);
 }
@@ -1400,16 +1409,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
   regs[0] = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
-  // nregs to release
-  int nregs = vm->cur_irep->nregs;
-
   mrbc_pop_callinfo(vm);
-
-  // clear stacked arguments
-  int i;
-  for( i = 1; i < nregs; i++ ) {
-    mrbc_decref_empty( &regs[i] );
-  }
 
   return 0;
 }
@@ -1447,8 +1447,11 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 
 
  RETURN_TO_OUT_OF_BLOCK:;
-  int nregs = vm->cur_irep->nregs;
-  mrbc_value *p_reg;
+  // save return value.
+  mrbc_value ret_val = regs[a];
+  regs[a].tt = MRBC_TT_EMPTY;
+
+  mrbc_value *ret_reg;
 
   if( regs[0].tt == MRBC_TT_PROC ) {
     mrbc_callinfo *callinfo = vm->callinfo_tail;
@@ -1466,10 +1469,10 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
       return -1;
     }
 
-    p_reg = callinfo->cur_regs + callinfo->reg_offset;
+    ret_reg = callinfo->cur_regs + callinfo->reg_offset;
 
   } else {
-    p_reg = &regs[0];
+    ret_reg = &regs[0];
   }
 
   // return without anything if top level.
@@ -1479,16 +1482,10 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
   }
 
   // set return value
-  mrbc_decref( p_reg );
-  *p_reg = regs[a];
-  regs[a].tt = MRBC_TT_EMPTY;
+  mrbc_decref( ret_reg );
+  *ret_reg = ret_val;
 
   mrbc_pop_callinfo(vm);
-
-  // clear stacked arguments
-  while( ++p_reg < &regs[nregs] ) {
-    mrbc_decref_empty( p_reg );
-  }
 
   return 0;
 }
@@ -1528,27 +1525,24 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
 
 
  RETURN_TO_OUT_OF_BLOCK:;
-  int nregs = vm->cur_irep->nregs;
-  mrbc_callinfo *callinfo = vm->callinfo_tail;
-  mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo;
-  mrbc_value *p_reg;
+  // save return value.
+  mrbc_value ret_val = regs[a];
+  regs[a].tt = MRBC_TT_EMPTY;
 
   // trace back to caller
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo;
+  mrbc_value *ret_reg;
+
   do {
-    p_reg = callinfo->cur_regs + callinfo->reg_offset;
+    ret_reg = callinfo->cur_regs + callinfo->reg_offset;
     mrbc_pop_callinfo(vm);
     callinfo = vm->callinfo_tail;
   } while( callinfo != caller_callinfo );
 
   // set return value
-  mrbc_decref( p_reg );
-  *p_reg = regs[a];
-  regs[a].tt = MRBC_TT_EMPTY;
-
-  // clear stacked arguments
-  while( ++p_reg < &regs[nregs] ) {
-    mrbc_decref_empty( p_reg );
-  }
+  mrbc_decref( ret_reg );
+  *ret_reg = ret_val;
 
   return 0;
 }
