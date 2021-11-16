@@ -1024,6 +1024,7 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 	  mrbc_type(regs[a]) == MRBC_TT_NIL );
   mrbc_incref( &regs[a] );
   vm->exception = regs[a];
+  if( mrbc_israised(vm) ) vm->flag_preemption = 2;
   return 0;
 }
 
@@ -2819,157 +2820,152 @@ int mrbc_vm_run( struct VM *vm )
 {
   int ret = 0;
 
-  do {
-    // regs
-    mrbc_value *regs = vm->cur_regs;
+  while( 1 ) {
+    do {
+      // regs
+      mrbc_value *regs = vm->cur_regs;
 
-    // Dispatch
-    uint8_t op = *vm->inst++;
+      // Dispatch
+      uint8_t op = *vm->inst++;
 
-    // mrbc_printf("%03d: OP=%02x\n", (vm->inst-1) - vm->cur_irep->code, op);
+      switch( op ) {
+      case OP_NOP:        ret = op_nop       (vm, regs); break;
+      case OP_MOVE:       ret = op_move      (vm, regs); break;
+      case OP_LOADL:      ret = op_loadl     (vm, regs); break;
+      case OP_LOADL16:    ret = op_loadl16   (vm, regs); break;
+      case OP_LOADI:      ret = op_loadi     (vm, regs); break;
+      case OP_LOADINEG:   ret = op_loadineg  (vm, regs); break;
+      case OP_LOADI__1:   // fall through
+      case OP_LOADI_0:    // fall through
+      case OP_LOADI_1:    // fall through
+      case OP_LOADI_2:    // fall through
+      case OP_LOADI_3:    // fall through
+      case OP_LOADI_4:    // fall through
+      case OP_LOADI_5:    // fall through
+      case OP_LOADI_6:    // fall through
+      case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
+      case OP_LOADI16:    ret = op_loadi16   (vm, regs); break;
+      case OP_LOADI32:    ret = op_loadi32   (vm, regs); break;
+      case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
+      case OP_LOADSYM16:  ret = op_loadsym16 (vm, regs); break;
+      case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
+      case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
+      case OP_LOADT:      ret = op_loadt     (vm, regs); break;
+      case OP_LOADF:      ret = op_loadf     (vm, regs); break;
+      case OP_GETGV:      ret = op_getgv     (vm, regs); break;
+      case OP_SETGV:      ret = op_setgv     (vm, regs); break;
+      case OP_GETSV:      ret = op_dummy_BB  (vm, regs); break;
+      case OP_SETSV:      ret = op_dummy_BB  (vm, regs); break;
+      case OP_GETIV:      ret = op_getiv     (vm, regs); break;
+      case OP_SETIV:      ret = op_setiv     (vm, regs); break;
+      case OP_GETCV:      ret = op_dummy_BB  (vm, regs); break;
+      case OP_SETCV:      ret = op_dummy_BB  (vm, regs); break;
+      case OP_GETCONST:   ret = op_getconst  (vm, regs); break;
+      case OP_SETCONST:   ret = op_setconst  (vm, regs); break;
+      case OP_GETMCNST:   ret = op_getmcnst  (vm, regs); break;
+      case OP_SETMCNST:   ret = op_dummy_BB  (vm, regs); break;
+      case OP_GETUPVAR:   ret = op_getupvar  (vm, regs); break;
+      case OP_SETUPVAR:   ret = op_setupvar  (vm, regs); break;
+      case OP_JMP:        ret = op_jmp       (vm, regs); break;
+      case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
+      case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
+      case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
+      case OP_JMPUW:      ret = op_jmpuw     (vm, regs); break;
+      case OP_EXCEPT:     ret = op_except    (vm, regs); break;
+      case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
+      case OP_RAISEIF:    ret = op_raiseif   (vm, regs); break;
+      case OP_SENDV:      ret = op_sendv     (vm, regs); break;
+      case OP_SENDVB:     ret = op_sendvb    (vm, regs); break;
+      case OP_SEND:       ret = op_send      (vm, regs); break;
+      case OP_SENDB:      ret = op_sendb     (vm, regs); break;
+	//case OP_SENDVK:     ret = op_sendvk    (vm, regs); break;
+      case OP_CALL:       ret = op_dummy_Z   (vm, regs); break;
+      case OP_SUPER:      ret = op_super     (vm, regs); break;
+      case OP_ARGARY:     ret = op_argary    (vm, regs); break;
+      case OP_ENTER:      ret = op_enter     (vm, regs); break;
+      case OP_KEY_P:      ret = op_dummy_BB  (vm, regs); break;
+      case OP_KEYEND:     ret = op_dummy_Z   (vm, regs); break;
+      case OP_KARG:       ret = op_dummy_BB  (vm, regs); break;
+      case OP_RETURN:     ret = op_return    (vm, regs); break;
+      case OP_RETURN_BLK: ret = op_return_blk(vm, regs); break;
+      case OP_BREAK:      ret = op_break     (vm, regs); break;
+      case OP_BLKPUSH:    ret = op_blkpush   (vm, regs); break;
+      case OP_ADD:        ret = op_add       (vm, regs); break;
+      case OP_ADDI:       ret = op_addi      (vm, regs); break;
+      case OP_SUB:        ret = op_sub       (vm, regs); break;
+      case OP_SUBI:       ret = op_subi      (vm, regs); break;
+      case OP_MUL:        ret = op_mul       (vm, regs); break;
+      case OP_DIV:        ret = op_div       (vm, regs); break;
+      case OP_EQ:         ret = op_eq        (vm, regs); break;
+      case OP_LT:         ret = op_lt        (vm, regs); break;
+      case OP_LE:         ret = op_le        (vm, regs); break;
+      case OP_GT:         ret = op_gt        (vm, regs); break;
+      case OP_GE:         ret = op_ge        (vm, regs); break;
+      case OP_ARRAY:      ret = op_array     (vm, regs); break;
+      case OP_ARRAY2:     ret = op_array2    (vm, regs); break;
+      case OP_ARYCAT:     ret = op_arycat    (vm, regs); break;
+      case OP_ARYPUSH:    ret = op_dummy_B   (vm, regs); break;
+      case OP_ARYDUP:     ret = op_arydup    (vm, regs); break;
+      case OP_AREF:       ret = op_aref      (vm, regs); break;
+      case OP_ASET:       ret = op_aset      (vm, regs); break;
+      case OP_APOST:      ret = op_apost     (vm, regs); break;
+      case OP_INTERN:     ret = op_intern    (vm, regs); break;
+      case OP_STRING:     ret = op_string    (vm, regs); break;
+      case OP_STRING16:   ret = op_string16  (vm, regs); break;
+      case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
+      case OP_HASH:       ret = op_hash      (vm, regs); break;
+      case OP_HASHADD:    ret = op_dummy_BB  (vm, regs); break;
+      case OP_HASHCAT:    ret = op_dummy_B   (vm, regs); break;
+      case OP_LAMBDA:     ret = op_dummy_BB  (vm, regs); break;
+      case OP_BLOCK:      // fall through
+      case OP_METHOD:     ret = op_method    (vm, regs); break;
+      case OP_BLOCK16:    // fall through, order of OP_METHOD and OP_BLOCK16 is changed.
+      case OP_METHOD16:   ret = op_method16  (vm, regs); break;
+      case OP_RANGE_INC:  // fall through
+      case OP_RANGE_EXC:  ret = op_range     (vm, regs); break;
+      case OP_OCLASS:     ret = op_dummy_B   (vm, regs); break;
+      case OP_CLASS:      ret = op_class     (vm, regs); break;
+      case OP_MODULE:     ret = op_dummy_BB  (vm, regs); break;
+      case OP_EXEC:       ret = op_exec      (vm, regs); break;
+      case OP_EXEC16:     ret = op_exec16    (vm, regs); break;
+      case OP_DEF:        ret = op_def       (vm, regs); break;
+      case OP_ALIAS:      ret = op_alias     (vm, regs); break;
+      case OP_UNDEF:      ret = op_dummy_B   (vm, regs); break;
+      case OP_SCLASS:     ret = op_sclass    (vm, regs); break;
+      case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
+      case OP_DEBUG:      ret = op_dummy_BBB (vm, regs); break;
+      case OP_ERR:        ret = op_dummy_B   (vm, regs); break;
+      case OP_STOP:       ret = op_stop      (vm, regs); break;
 
-    switch( op ) {
-    case OP_NOP:        ret = op_nop       (vm, regs); break;
-    case OP_MOVE:       ret = op_move      (vm, regs); break;
-    case OP_LOADL:      ret = op_loadl     (vm, regs); break;
-    case OP_LOADL16:    ret = op_loadl16   (vm, regs); break;
-    case OP_LOADI:      ret = op_loadi     (vm, regs); break;
-    case OP_LOADINEG:   ret = op_loadineg  (vm, regs); break;
-    case OP_LOADI__1:   // fall through
-    case OP_LOADI_0:    // fall through
-    case OP_LOADI_1:    // fall through
-    case OP_LOADI_2:    // fall through
-    case OP_LOADI_3:    // fall through
-    case OP_LOADI_4:    // fall through
-    case OP_LOADI_5:    // fall through
-    case OP_LOADI_6:    // fall through
-    case OP_LOADI_7:    ret = op_loadi_n   (vm, regs); break;
-    case OP_LOADI16:    ret = op_loadi16   (vm, regs); break;
-    case OP_LOADI32:    ret = op_loadi32   (vm, regs); break;
-    case OP_LOADSYM:    ret = op_loadsym   (vm, regs); break;
-    case OP_LOADSYM16:  ret = op_loadsym16 (vm, regs); break;
-    case OP_LOADNIL:    ret = op_loadnil   (vm, regs); break;
-    case OP_LOADSELF:   ret = op_loadself  (vm, regs); break;
-    case OP_LOADT:      ret = op_loadt     (vm, regs); break;
-    case OP_LOADF:      ret = op_loadf     (vm, regs); break;
-    case OP_GETGV:      ret = op_getgv     (vm, regs); break;
-    case OP_SETGV:      ret = op_setgv     (vm, regs); break;
-    case OP_GETSV:      ret = op_dummy_BB  (vm, regs); break;
-    case OP_SETSV:      ret = op_dummy_BB  (vm, regs); break;
-    case OP_GETIV:      ret = op_getiv     (vm, regs); break;
-    case OP_SETIV:      ret = op_setiv     (vm, regs); break;
-    case OP_GETCV:      ret = op_dummy_BB  (vm, regs); break;
-    case OP_SETCV:      ret = op_dummy_BB  (vm, regs); break;
-    case OP_GETCONST:   ret = op_getconst  (vm, regs); break;
-    case OP_SETCONST:   ret = op_setconst  (vm, regs); break;
-    case OP_GETMCNST:   ret = op_getmcnst  (vm, regs); break;
-    case OP_SETMCNST:   ret = op_dummy_BB  (vm, regs); break;
-    case OP_GETUPVAR:   ret = op_getupvar  (vm, regs); break;
-    case OP_SETUPVAR:   ret = op_setupvar  (vm, regs); break;
-    case OP_JMP:        ret = op_jmp       (vm, regs); break;
-    case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
-    case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
-    case OP_JMPNIL:     ret = op_jmpnil    (vm, regs); break;
-    case OP_JMPUW:      ret = op_jmpuw     (vm, regs); break;
-    case OP_EXCEPT:     ret = op_except    (vm, regs); break;
-    case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
-    case OP_RAISEIF:    ret = op_raiseif   (vm, regs); break;
-    case OP_SENDV:      ret = op_sendv     (vm, regs); break;
-    case OP_SENDVB:     ret = op_sendvb    (vm, regs); break;
-    case OP_SEND:       ret = op_send      (vm, regs); break;
-    case OP_SENDB:      ret = op_sendb     (vm, regs); break;
-  //case OP_SENDVK:     ret = op_sendvk    (vm, regs); break;
-    case OP_CALL:       ret = op_dummy_Z   (vm, regs); break;
-    case OP_SUPER:      ret = op_super     (vm, regs); break;
-    case OP_ARGARY:     ret = op_argary    (vm, regs); break;
-    case OP_ENTER:      ret = op_enter     (vm, regs); break;
-    case OP_KEY_P:      ret = op_dummy_BB  (vm, regs); break;
-    case OP_KEYEND:     ret = op_dummy_Z   (vm, regs); break;
-    case OP_KARG:       ret = op_dummy_BB  (vm, regs); break;
-    case OP_RETURN:     ret = op_return    (vm, regs); break;
-    case OP_RETURN_BLK: ret = op_return_blk(vm, regs); break;
-    case OP_BREAK:      ret = op_break     (vm, regs); break;
-    case OP_BLKPUSH:    ret = op_blkpush   (vm, regs); break;
-    case OP_ADD:        ret = op_add       (vm, regs); break;
-    case OP_ADDI:       ret = op_addi      (vm, regs); break;
-    case OP_SUB:        ret = op_sub       (vm, regs); break;
-    case OP_SUBI:       ret = op_subi      (vm, regs); break;
-    case OP_MUL:        ret = op_mul       (vm, regs); break;
-    case OP_DIV:        ret = op_div       (vm, regs); break;
-    case OP_EQ:         ret = op_eq        (vm, regs); break;
-    case OP_LT:         ret = op_lt        (vm, regs); break;
-    case OP_LE:         ret = op_le        (vm, regs); break;
-    case OP_GT:         ret = op_gt        (vm, regs); break;
-    case OP_GE:         ret = op_ge        (vm, regs); break;
-    case OP_ARRAY:      ret = op_array     (vm, regs); break;
-    case OP_ARRAY2:     ret = op_array2    (vm, regs); break;
-    case OP_ARYCAT:     ret = op_arycat    (vm, regs); break;
-    case OP_ARYPUSH:    ret = op_dummy_B   (vm, regs); break;
-    case OP_ARYDUP:     ret = op_arydup    (vm, regs); break;
-    case OP_AREF:       ret = op_aref      (vm, regs); break;
-    case OP_ASET:       ret = op_aset      (vm, regs); break;
-    case OP_APOST:      ret = op_apost     (vm, regs); break;
-    case OP_INTERN:     ret = op_intern    (vm, regs); break;
-    case OP_STRING:     ret = op_string    (vm, regs); break;
-    case OP_STRING16:   ret = op_string16  (vm, regs); break;
-    case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
-    case OP_HASH:       ret = op_hash      (vm, regs); break;
-    case OP_HASHADD:    ret = op_dummy_BB  (vm, regs); break;
-    case OP_HASHCAT:    ret = op_dummy_B   (vm, regs); break;
-    case OP_LAMBDA:     ret = op_dummy_BB  (vm, regs); break;
-    case OP_BLOCK:      // fall through
-    case OP_METHOD:     ret = op_method    (vm, regs); break;
-    case OP_BLOCK16:    // fall through, order of OP_METHOD and OP_BLOCK16 is changed.
-    case OP_METHOD16:   ret = op_method16  (vm, regs); break;
-    case OP_RANGE_INC:  // fall through
-    case OP_RANGE_EXC:  ret = op_range     (vm, regs); break;
-    case OP_OCLASS:     ret = op_dummy_B   (vm, regs); break;
-    case OP_CLASS:      ret = op_class     (vm, regs); break;
-    case OP_MODULE:     ret = op_dummy_BB  (vm, regs); break;
-    case OP_EXEC:       ret = op_exec      (vm, regs); break;
-    case OP_EXEC16:     ret = op_exec16    (vm, regs); break;
-    case OP_DEF:        ret = op_def       (vm, regs); break;
-    case OP_ALIAS:      ret = op_alias     (vm, regs); break;
-    case OP_UNDEF:      ret = op_dummy_B   (vm, regs); break;
-    case OP_SCLASS:     ret = op_sclass    (vm, regs); break;
-    case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
-    case OP_DEBUG:      ret = op_dummy_BBB (vm, regs); break;
-    case OP_ERR:        ret = op_dummy_B   (vm, regs); break;
-    case OP_STOP:       ret = op_stop      (vm, regs); break;
+      case OP_ABORT:      ret = op_abort     (vm, regs); break;
+      default:
+	mrbc_printf("Unknown OP 0x%02x\n", op);
+	break;
+      }
+    } while( !vm->flag_preemption );
 
-    case OP_ABORT:      ret = op_abort     (vm, regs); break;
-    default:
-      mrbc_printf("Unknown OP 0x%02x\n", op);
-      break;
-    }
+    if( !mrbc_israised(vm) ) return ret;	// normal return.
 
     // Handle exception
-    if( mrbc_israised(vm) ) {
-      const mrbc_irep_catch_handler *handler;
+    vm->flag_preemption = 0;
+    const mrbc_irep_catch_handler *handler =
+      catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ALL);
+    if( !handler ) {
+      const mrbc_callinfo *callinfo = vm->callinfo_tail;
 
-      handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ALL);
-      if( !handler ) {
-	const mrbc_callinfo *callinfo = vm->callinfo_tail;
+      while( callinfo ) {
+	handler = catch_handler_find(0, callinfo, MRBC_CATCH_FILTER_ALL);
+	if( handler ) break;
+	callinfo = callinfo->prev;
+      }
+      if( !callinfo ) return -2;	// to raise in top level.
 
-	while( callinfo ) {
-	  handler = catch_handler_find(0, callinfo, MRBC_CATCH_FILTER_ALL);
-	  if( handler ) break;
-	  callinfo = callinfo->prev;
-	}
-	if( !callinfo ) return -2;	// to raise in top level.
-
-	while( vm->callinfo_tail != callinfo ) {
-	  mrbc_pop_callinfo( vm );
-	}
+      while( vm->callinfo_tail != callinfo ) {
 	mrbc_pop_callinfo( vm );
       }
-
-      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+      mrbc_pop_callinfo( vm );
     }
 
-  } while( !vm->flag_preemption );
-
-  vm->flag_preemption = 0;
-
-  return ret;
+    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+  }
 }

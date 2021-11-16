@@ -80,6 +80,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   while( mrbc_vm_run(vm) == 0 )
     ;
 
+  vm->flag_preemption = 0;
   vm->cur_irep = org_cur_irep;
   vm->inst = org_inst;
   vm->cur_regs = org_regs;
@@ -298,8 +299,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 					MRBC_CLASS(RuntimeError),
 					"",
 					0 );
-    return;
-  }
+  } else
 
   // case 2. raise "message"
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_STRING ) {
@@ -307,8 +307,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 					MRBC_CLASS(RuntimeError),
 					mrbc_string_cstr(&v[1]),
 					mrbc_string_size(&v[1]) );
-    return;
-  }
+  } else
 
   // case 3-1. raise ExceptionClass
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_CLASS ) {
@@ -316,15 +315,13 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 					v[1].cls,
 					NULL,
 					0 );
-    return;
-  }
+  } else
 
   // case 3-2. raise ExceptionObject
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_EXCEPTION ) {
     mrbc_incref( &v[1] );
     vm->exception = v[1];
-    return;
-  }
+  } else
 
   // case 4-1. raise Exception, "param"
   if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_CLASS
@@ -333,8 +330,7 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 					v[1].cls,
 					mrbc_string_cstr(&v[2]),
 					mrbc_string_size(&v[2]) );
-    return;
-  }
+  } else
 
   // case 4-2. raise ExceptionObject, "param"
   if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_EXCEPTION
@@ -344,11 +340,13 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
     mrbc_exception_set_message( vm, &vm->exception,
 				mrbc_string_cstr(&v[2]),
 				mrbc_string_size(&v[2]) );
-    return;
+  } else {
+
+    // fail.
+    vm->exception = mrbc_exception_new( vm, MRBC_CLASS(ArgumentError), NULL, 0 );
   }
 
-  // fail.
-  vm->exception = mrbc_exception_new( vm, MRBC_CLASS(ArgumentError), NULL, 0 );
+  vm->flag_preemption = 2;
 }
 
 
