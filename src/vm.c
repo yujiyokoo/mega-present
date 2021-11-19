@@ -1243,6 +1243,13 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_W();
 
+  // Check the number of registers to use.
+  int reg_use_max = regs - vm->regs + vm->cur_irep->nregs;
+  if( reg_use_max >= MAX_REGS_SIZE ) {
+    mrbc_raise(vm, MRBC_CLASS(Exception), "MAX_REGS_SIZE overflow.");
+    return -1;
+  }
+
   int m1 = (a >> 18) & 0x1f;	// # of required parameters 1
   int o  = (a >> 13) & 0x1f;	// # of optional parameters
 #define FLAG_REST_PARAM (a & 0x1000)
@@ -2800,8 +2807,6 @@ void mrbc_vm_end( struct VM *vm )
   mrbc_free_all(vm);
 #endif
 }
-
-
 
 
 //================================================================
