@@ -139,12 +139,11 @@ extern struct RClass mrbc_class_ZeroDivisionError;
 
 /***** Function prototypes **************************************************/
 mrbc_class *mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super);
-mrbc_class *mrbc_define_builtin_class(mrbc_sym name_sym_id, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method);
 void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_func_t cfunc);
 mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size);
 void mrbc_instance_delete(mrbc_value *v);
-void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v);
-mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id);
+void mrbc_instance_setiv(mrbc_value *obj, mrbc_sym sym_id, mrbc_value *v);
+mrbc_value mrbc_instance_getiv(mrbc_value *obj, mrbc_sym sym_id);
 void mrbc_instance_clear_vm_id(mrbc_value *v);
 mrbc_value mrbc_proc_new(struct VM *vm, void *irep);
 void mrbc_proc_delete(mrbc_value *val);
@@ -165,7 +164,7 @@ void mrbc_init_class(void);
   @param  obj	pointer to object
   @return	pointer to mrbc_class
 */
-static inline mrbc_class *find_class_by_object(const mrbc_object *obj)
+static inline mrbc_class *find_class_by_object(const mrbc_value *obj)
 {
   assert( mrbc_type(*obj) >= 0 );
   assert( mrbc_type(*obj) <= MRBC_TT_MAXVAL );
