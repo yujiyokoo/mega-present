@@ -78,12 +78,12 @@ mrbc_class * const mrbc_class_tbl[MRBC_TT_MAXVAL+1] = {
 mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super)
 {
   mrbc_sym sym_id = str_to_symid(name);
-  mrbc_object *obj = mrbc_get_const( sym_id );
 
-  // already defined
-  if( obj ) {
-    assert( mrbc_type(*obj) == MRBC_TT_CLASS );
-    return obj->cls;
+  // already defined?
+  mrbc_value *val = mrbc_get_const(sym_id);
+  if( val ) {
+    assert( mrbc_type(*val) == MRBC_TT_CLASS );
+    return val->cls;
   }
 
   // create a new class.
@@ -174,7 +174,7 @@ void mrbc_instance_delete(mrbc_value *v)
   @param  sym_id	key symbol ID.
   @param  v		pointer to value.
 */
-void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v)
+void mrbc_instance_setiv(mrbc_value *obj, mrbc_sym sym_id, mrbc_value *v)
 {
   mrbc_incref(v);
   mrbc_kv_set( &obj->instance->ivar, sym_id, v );
@@ -188,7 +188,7 @@ void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v)
   @param  sym_id	key symbol ID.
   @return		value.
 */
-mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
+mrbc_value mrbc_instance_getiv(mrbc_value *obj, mrbc_sym sym_id)
 {
   mrbc_value *v = mrbc_kv_get( &obj->instance->ivar, sym_id );
   if( !v ) return mrbc_nil_value();
@@ -346,7 +346,7 @@ mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym
 mrbc_class * mrbc_get_class_by_name( const char *name )
 {
   mrbc_sym sym_id = str_to_symid(name);
-  mrbc_object *obj = mrbc_get_const( sym_id );
+  mrbc_value *obj = mrbc_get_const(sym_id);
 
   if( obj == NULL ) return NULL;
   return (mrbc_type(*obj) == MRBC_TT_CLASS) ? obj->cls : NULL;

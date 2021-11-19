@@ -88,16 +88,6 @@ typedef struct IREP mrb_irep;
 
 //================================================================
 /*!@brief
-  Catch Handler Type
-*/
-typedef enum mrbc_catch_type {
-  MRB_CATCH_RESCUE = 0,
-  MRB_CATCH_ENSURE = 1,
-} mrbc_catch_type;
-
-
-//================================================================
-/*!@brief
   IREP Catch Handler
 */
 typedef struct IREP_CATCH_HANDLER {
@@ -157,6 +147,7 @@ typedef struct VM mrb_vm;
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
 void mrbc_cleanup_vm(void);
+mrbc_sym mrbc_get_callee_symid(struct VM *vm);
 const char *mrbc_get_callee_name(struct VM *vm);
 mrbc_callinfo *mrbc_push_callinfo(struct VM *vm, mrbc_sym method_id, int reg_offset, int n_args);
 void mrbc_pop_callinfo(struct VM *vm);
