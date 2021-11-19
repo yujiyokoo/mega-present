@@ -88,16 +88,6 @@ typedef struct IREP mrb_irep;
 
 //================================================================
 /*!@brief
-  Catch Handler Type
-*/
-typedef enum mrbc_catch_type {
-  MRB_CATCH_RESCUE = 0,
-  MRB_CATCH_ENSURE = 1,
-} mrbc_catch_type;
-
-
-//================================================================
-/*!@brief
   IREP Catch Handler
 */
 typedef struct IREP_CATCH_HANDLER {
