@@ -433,7 +433,7 @@ static void c_object_memory_statistics(struct VM *vm, mrbc_value v[], int argc)
 
 
 //================================================================
-/*! (method) instance variable getter
+/*! (method) instance variable getter used by attr_reader.
  */
 static void c_object_getiv(struct VM *vm, mrbc_value v[], int argc)
 {
@@ -445,7 +445,7 @@ static void c_object_getiv(struct VM *vm, mrbc_value v[], int argc)
 
 
 //================================================================
-/*! (method) instance variable setter
+/*! (method) instance variable setter used by attr_accessor.
  */
 static void c_object_setiv(struct VM *vm, mrbc_value v[], int argc)
 {

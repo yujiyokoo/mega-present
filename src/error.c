@@ -40,7 +40,7 @@
 
   @param  vm		pointer to VM.
   @param  exc_cls	pointer to Exception class.
-  @param  msg		message.
+  @param  message	message.
   @param  len		message length.
   @return		exception object.
 */
@@ -93,7 +93,7 @@ void mrbc_exception_delete(mrbc_value *value)
 
   @param  vm		pointer to VM.
   @param  value		target.
-  @param  msg		message.
+  @param  message	message.
   @param  len		message length.
 */
 void mrbc_exception_set_message(struct VM *vm, mrbc_value *value, const void *message, int len)
