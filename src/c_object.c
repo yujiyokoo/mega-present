@@ -437,8 +437,7 @@ static void c_object_memory_statistics(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_getiv(struct VM *vm, mrbc_value v[], int argc)
 {
-  const char *name = mrbc_get_callee_name(vm);
-  mrbc_sym sym_id = str_to_symid( name );
+  mrbc_sym sym_id = mrbc_get_callee_symid(vm);
   mrbc_value ret = mrbc_instance_getiv(&v[0], sym_id);
 
   SET_RETURN(ret);
@@ -451,11 +450,12 @@ static void c_object_getiv(struct VM *vm, mrbc_value v[], int argc)
 static void c_object_setiv(struct VM *vm, mrbc_value v[], int argc)
 {
   const char *name = mrbc_get_callee_name(vm);
-
-  char *namebuf = mrbc_alloc(vm, strlen(name));
+  int len = strlen(name);
+  char *namebuf = mrbc_alloc(vm, len);
   if( !namebuf ) return;
-  strcpy(namebuf, name);
-  namebuf[strlen(name)-1] = '\0';	// delete '='
+
+  memcpy( namebuf, name, len-1 );
+  namebuf[len-1] = '\0';	// delete '='
   mrbc_sym sym_id = str_to_symid(namebuf);
 
   mrbc_instance_setiv(&v[0], sym_id, &v[1]);

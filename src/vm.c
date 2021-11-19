@@ -121,6 +121,23 @@ void mrbc_cleanup_vm(void)
 
 
 //================================================================
+/*! get callee symbol id
+
+  @param  vm	Pointer to VM
+  @return	string
+*/
+mrbc_sym mrbc_get_callee_symid( struct VM *vm )
+{
+  uint8_t rb = vm->inst[-2];
+  /* NOTE
+     -2 is not always better value.
+     This value is OP_SEND operator's B register.
+  */
+  return mrbc_irep_symbol_id(vm->cur_irep, rb);
+}
+
+
+//================================================================
 /*! get callee name
 
   @param  vm	Pointer to VM
