@@ -1040,6 +1040,30 @@ static inline int op_ssend( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
+/*! OP_SSENDB
+
+  R[a] = self.send(Syms[b],R[a+1]..,R[a+n+1]:R[a+n+2]..,&R[a+n+2k+1])
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_ssendb( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BBB();
+
+  mrbc_value *self = mrbc_get_self( vm, regs );
+    
+  mrbc_decref( &regs[a] );
+  regs[a] = *self;
+  mrbc_incref( &regs[a] );
+    
+  return send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 1 );
+}
+
+
+
+//================================================================
 /*! OP_SEND
 
   R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
@@ -2767,6 +2791,7 @@ int mrbc_vm_run( struct VM *vm )
       case OP_RESCUE:     ret = op_rescue    (vm, regs); break;
       case OP_RAISEIF:    ret = op_raiseif   (vm, regs); break;
       case OP_SSEND:      ret = op_ssend     (vm, regs); break;
+      case OP_SSENDB:     ret = op_ssendb    (vm, regs); break;
       case OP_SEND:       ret = op_send      (vm, regs); break;
       case OP_SENDB:      ret = op_sendb     (vm, regs); break;
       case OP_CALL:       ret = op_dummy_Z   (vm, regs); break;
