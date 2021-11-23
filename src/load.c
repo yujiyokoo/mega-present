@@ -30,7 +30,7 @@
 
 /***** Constat values *******************************************************/
 // for mrb file structure.
-static const char IDENT[8] = "RITE0200";
+static const char IDENT[8] = "RITE0300";
 static const int SIZE_RITE_BINARY_HEADER = 20;
 static const int SIZE_RITE_SECTION_HEADER = 12;
 static const char IREP[4] = "IREP";
