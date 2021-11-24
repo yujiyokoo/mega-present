@@ -280,7 +280,7 @@ static inline int op_nop( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_MOVE
 
-  R(a) = R(b)
+  R[a] = R[b]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -301,7 +301,7 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADL
 
-  R(a) = Pool(b)
+  R[a] = Pool[b]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -321,7 +321,7 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADI
 
-  R(a) = mrb_int(b)
+  R[a] = mrb_int(b)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -341,7 +341,7 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADINEG
 
-  R(a) = mrb_int(-b)
+  R[a] = mrb_int(-b)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -361,7 +361,7 @@ static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADI_n (n=-1,0,1..7)
 
-  R(a) = mrb_int(n)
+  R[a] = mrb_int(n)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -385,7 +385,7 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADI16
 
-  R(a) = mrb_int(b)
+  R[a] = mrb_int(b)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -406,7 +406,7 @@ static inline int op_loadi16( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADI32
 
-  R(a) = mrb_int((b<<16)+c)
+  R[a] = mrb_int((b<<16)+c)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -426,7 +426,7 @@ static inline int op_loadi32( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADSYM
 
-  R(a) = Syms(b)
+  R[a] = Syms[b]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -446,7 +446,7 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADNIL
 
-  R(a) = nil
+  R[a] = nil
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -466,7 +466,7 @@ static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADSELF
 
-  R(a) = self
+  R[a] = self
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -489,7 +489,7 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADT
 
-  R(a) = true
+  R[a] = true
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -509,7 +509,7 @@ static inline int op_loadt( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LOADF
 
-  R(a) = false
+  R[a] = false
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -529,7 +529,7 @@ static inline int op_loadf( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_GETGV
 
-  R(a) = getglobal(Syms(b))
+  R[a] = getglobal(Syms[b])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -555,7 +555,7 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SETGV
 
-  setglobal(Syms(b), R(a))
+  setglobal(Syms[b], R[a])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -575,7 +575,7 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_GETIV
 
-  R(a) = ivget(Syms(b))
+  R[a] = ivget(Syms[b])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -599,7 +599,7 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SETIV
 
-  ivset(Syms(b),R(a))
+  ivset(Syms[b],R[a])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -622,7 +622,7 @@ static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_GETCONST
 
-  R(a) = constget(Syms(b))
+  R[a] = constget(Syms[b])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -662,7 +662,7 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SETCONST
 
-  constset(Syms(b),R(a))
+  constset(Syms[b],R[a])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -688,7 +688,7 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_GETMCNST
 
-  R(a) = R(a)::Syms(b)
+  R[a] = R[a]::Syms[b]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -722,7 +722,7 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_GETUPVAR
 
-  R(a) = uvget(b,c)
+  R[a] = uvget(b,c)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -761,7 +761,7 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SETUPVAR
 
-  uvset(b,c,R(a))
+  uvset(b,c,R[a])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -819,7 +819,7 @@ static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_JMPIF
 
-  if R(a) pc+=b
+  if R[a] pc+=b
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -840,7 +840,7 @@ static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_JMPNOT
 
-  if !R(a) pc+=b
+  if !R[a] pc+=b
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -861,7 +861,7 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_JMPNIL
 
-  if R(a)==nil pc+=b
+  if R[a]==nil pc+=b
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -918,7 +918,7 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_EXCEPT
 
-  R(a) = exc
+  R[a] = exc
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -939,7 +939,7 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_RESCUE
 
-  R(b) = R(a).isa?(R(b))
+  R[b] = R[a].isa?(R[b])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -962,7 +962,7 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_RAISEIF
 
-  raise(R(a)) if R(a)
+  raise(R[a]) if R[a]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1018,7 +1018,7 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SSEND
 
-  R[a] = self.send(Syms[b],R[a+1]..,R[a+n+1]:R[a+n+2]..,&R[a+n+2k+1])
+  R[a] = self.send(Syms[b],R[a+1]..,R[a+n+1]:R[a+n+2]..) (c=n|k<<4)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1029,11 +1029,11 @@ static inline int op_ssend( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BBB();
 
   mrbc_value *self = mrbc_get_self( vm, regs );
-    
+
   mrbc_decref( &regs[a] );
   regs[a] = *self;
   mrbc_incref( &regs[a] );
-    
+
   return send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 0 );
 }
 
@@ -1053,11 +1053,11 @@ static inline int op_ssendb( mrbc_vm *vm, mrbc_value *regs )
   FETCH_BBB();
 
   mrbc_value *self = mrbc_get_self( vm, regs );
-    
+
   mrbc_decref( &regs[a] );
   regs[a] = *self;
   mrbc_incref( &regs[a] );
-    
+
   return send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 1 );
 }
 
@@ -1066,7 +1066,7 @@ static inline int op_ssendb( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SEND
 
-  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c))
+  R[a] = R[a].send(Syms[b],R[a+1]..,R[a+n+1]:R[a+n+2]..) (c=n|k<<4)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1083,7 +1083,7 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SENDB
 
-  R(a) = call(R(a),Syms(b),R(a+1),...,R(a+c),&R(a+c+1))
+  R[a] = R[a].send(Syms[b],R[a+1]..,R[a+n+1]:R[a+n+2]..,&R[a+n+2k+1])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1100,7 +1100,7 @@ static inline int op_sendb( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SUPER
 
-  R(a) = super(R(a+1),... ,R(a+b+1))
+  R[a] = super(R[a+1],... ,R[a+b+1])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1175,7 +1175,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_ARGARY
 
-  R(a) = argument array (16=m5:r1:m5:d1:lv4)
+  R[a] = argument array (16=m5:r1:m5:d1:lv4)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1368,7 +1368,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_RETURN
 
-  return R(a) (normal)
+  return R[a] (normal)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1417,7 +1417,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_RETURN_BLK
 
-  return R(a) (in-block return)
+  return R[a] (in-block return)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1493,7 +1493,7 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_BREAK
 
-  break R(a)
+  break R[a]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1550,7 +1550,7 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_BLKPUSH
 
-  R(a) = block (16=m5:r1:m5:d1:lv4)
+  R[a] = block (16=m5:r1:m5:d1:lv4)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1600,7 +1600,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_ADD
 
-  R(a) = R(a)+R(a+1)
+  R[a] = R[a]+R[a+1]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1644,7 +1644,7 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_ADDI
 
-  R(a) = R(a)+mrb_int(b)
+  R[a] = R[a]+mrb_int(b)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1675,7 +1675,7 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SUB
 
-  R(a) = R(a)-R(a+1)
+  R[a] = R[a]-R[a+1]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1719,7 +1719,7 @@ static inline int op_sub( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SUBI
 
-  R(a) = R(a)-mrb_int(b)
+  R[a] = R[a]-mrb_int(b)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1750,7 +1750,7 @@ static inline int op_subi( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_MUL
 
-  R(a) = R(a)*R(a+1)
+  R[a] = R[a]*R[a+1]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1794,7 +1794,7 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_DIV
 
-  R(a) = R(a)/R(a+1)
+  R[a] = R[a]/R[a+1]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1838,7 +1838,7 @@ static inline int op_div( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_EQ
 
-  R(a) = R(a)==R(a+1)
+  R[a] = R[a]==R[a+1]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1861,7 +1861,7 @@ static inline int op_eq( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LT
 
-  R(a) = R(a)<R(a+1)
+  R[a] = R[a]<R[a+1]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1884,7 +1884,7 @@ static inline int op_lt( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_LE
 
-  R(a) = R(a)<=R(a+1)
+  R[a] = R[a]<=R[a+1]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1907,7 +1907,7 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_GT
 
-  R(a) = R(a)>R(a+1)
+  R[a] = R[a]>R[a+1]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1930,7 +1930,7 @@ static inline int op_gt( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_GE
 
-  R(a) = R(a)>=R(a+1)
+  R[a] = R[a]>=R[a+1]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1953,7 +1953,7 @@ static inline int op_ge( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_ARRAY
 
-  R(a) = ary_new(R(a),R(a+1)..R(a+b))
+  R[a] = ary_new(R[a],R[a+1]..R[a+b])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -1980,7 +1980,7 @@ static inline int op_array( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_ARRAY2
 
-  R(a) = ary_new(R(b),R(b+1)..R(b+c))
+  R[a] = ary_new(R[b],R[b+1]..R[b+c])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2010,7 +2010,7 @@ static inline int op_array2( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_ARYCAT
 
-  ary_cat(R(a),R(a+1))
+  ary_cat(R[a],R[a+1])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2055,7 +2055,7 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_ARYDUP
 
-  R(a) = ary_dup(R(a))
+  R[a] = ary_dup(R[a])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2076,7 +2076,7 @@ static inline int op_arydup( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_AREF
 
-  R(a) = R(b)[c]
+  R[a] = R[b][c]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2112,7 +2112,7 @@ static inline int op_aref( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_ASET
 
-  R(a)[c] = R(b)
+  R[b][c] = R[a]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2131,7 +2131,7 @@ static inline int op_aset( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_APOST
 
-  *R(a),R(a+1)..R(a+c) = R(a)[b..]
+  *R[a],R[a+1]..R[a+c] = R[a][b..]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2174,7 +2174,7 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_INTERN
 
-  R(a) = intern(R(a))
+  R[a] = intern(R[a])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2198,7 +2198,7 @@ static inline int op_intern( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_STRING
 
-  R(a) = str_dup(Lit(b))
+  R[a] = str_dup(Pool[b])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2218,7 +2218,7 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_STRCAT
 
-  str_cat(R(a),R(a+1))
+  str_cat(R[a],R[a+1])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2250,7 +2250,7 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_HASH
 
-  R(a) = hash_new(R(a),R(a+1)..R(a+b*2-1))
+  R[a] = hash_new(R[a],R[a+1]..R[a+b*2-1])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2278,7 +2278,8 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_BLOCK, OP_METHOD
 
-  R(a) = lambda(SEQ[b],L_METHOD)
+  R[a] = lambda(Irep[b],L_BLOCK)
+  R[a] = lambda(Irep[b],L_METHOD)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2301,8 +2302,8 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_RANGE_INC, OP_RANGE_EXC
 
-  R(a) = range_new(R(a),R(a+1),FALSE)
-  R(a) = range_new(R(a),R(a+1),TRUE)
+  R[a] = range_new(R[a],R[a+1],FALSE)
+  R[a] = range_new(R[a],R[a+1],TRUE)
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2324,7 +2325,7 @@ static inline int op_range( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_CLASS
 
-  R(a) = newclass(R(a),Syms(b),R(a+1))
+  R[a] = newclass(R[a],Syms[b],R[a+1])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2351,7 +2352,7 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_EXEC
 
-  R(a) = blockexec(R(a),SEQ[b])
+  R[a] = blockexec(R[a],Irep[b])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2380,7 +2381,7 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_DEF
 
-  R(a).newmethod(Syms(b),R(a+1))
+  R[a].newmethod(Syms[b],R[a+1]); R[a] = Syms[b]
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2432,7 +2433,7 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_ALIAS
 
-  alias_method(target_class,Syms(a),Syms(b))
+  alias_method(target_class,Syms[a],Syms[b])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2478,7 +2479,7 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_SCLASS
 
-  R(a) = R(a).singleton_class
+  R[a] = R[a].singleton_class
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2495,7 +2496,7 @@ static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_TCLASS
 
-  R(a) = target_class
+  R[a] = target_class
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
