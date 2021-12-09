@@ -493,10 +493,12 @@ static void c_object_attr_accessor(struct VM *vm, mrbc_value v[], int argc)
     mrbc_define_method(vm, v[0].cls, name, c_object_getiv);
 
     // make string "....=" and define writer method.
-    char *namebuf = mrbc_alloc(vm, strlen(name)+2);
+    int len = strlen(name);
+    char *namebuf = mrbc_alloc(vm, len+2);
     if( !namebuf ) return;
-    strcpy(namebuf, name);
-    strcat(namebuf, "=");
+    memcpy(namebuf, name, len);
+    namebuf[len] = '=';
+    namebuf[len+1] = 0;
     mrbc_symbol_new(vm, namebuf);
     mrbc_define_method(vm, v[0].cls, namebuf, c_object_setiv);
     mrbc_free(vm, namebuf);
