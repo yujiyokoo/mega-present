@@ -798,6 +798,38 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs )
 
 
 //================================================================
+/*! OP_GETIDX
+
+  R[a] = R[a][R[a+1]]
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_getidx( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+}
+
+
+//================================================================
+/*! OP_SETIDX
+
+  R[a][R[a+1]] = R[a+2]
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_setidx( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_B();
+
+}
+
+
+//================================================================
 /*! OP_JMP
 
   pc+=a
@@ -2783,6 +2815,8 @@ int mrbc_vm_run( struct VM *vm )
       case OP_SETMCNST:   ret = op_dummy_BB  (vm, regs); break;
       case OP_GETUPVAR:   ret = op_getupvar  (vm, regs); break;
       case OP_SETUPVAR:   ret = op_setupvar  (vm, regs); break;
+      case OP_GETIDX:     ret = op_getidx    (vm, regs); break;
+      case OP_SETIDX:     ret = op_setidx    (vm, regs); break;
       case OP_JMP:        ret = op_jmp       (vm, regs); break;
       case OP_JMPIF:      ret = op_jmpif     (vm, regs); break;
       case OP_JMPNOT:     ret = op_jmpnot    (vm, regs); break;
