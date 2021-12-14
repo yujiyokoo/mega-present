@@ -120,9 +120,9 @@ typedef enum {
 /*! Define the object structure having reference counter.
 */
 #if defined(MRBC_DEBUG)
-#define MRBC_OBJECT_HEADER  uint8_t type[2]; uint16_t ref_count;
+#define MRBC_OBJECT_HEADER  uint8_t type[2]; uint16_t ref_count
 #else
-#define MRBC_OBJECT_HEADER  uint16_t ref_count;
+#define MRBC_OBJECT_HEADER  uint16_t ref_count
 #endif
 
 struct RBasic {
