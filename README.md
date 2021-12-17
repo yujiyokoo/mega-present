@@ -37,3 +37,4 @@ mruby/c is released under the Revised BSD License(aka 3-clause license).
 ## Related work
 
 - Device classes for mruby/c (https://github.com/mrubyc/dev)
+- Some sample programs that mainly control sensors. (https://github.com/mrubyc/devkit02/tree/main/samples)
