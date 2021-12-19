@@ -229,7 +229,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len, int 
   irep.nregs = bin_to_uint16(p);	p += 2;
   irep.rlen = bin_to_uint16(p);		p += 2;
   irep.clen = bin_to_uint16(p);		p += 2;
-  irep.ilen = bin_to_uint16(p);		p += 2;
+  irep.ilen = bin_to_uint32(p);		p += 4;
   irep.inst = (uint8_t *)p;
   assert( sizeof(mrbc_irep_catch_handler) == 13 );
 
