@@ -810,6 +810,7 @@ static inline int op_getidx( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_B();
 
+  return send_by_name(vm, mrbc_str_to_symid("[]"), regs, a, 1, 0);
 }
 
 
