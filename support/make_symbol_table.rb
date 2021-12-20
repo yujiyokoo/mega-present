@@ -140,8 +140,11 @@ file.puts
 
 file.puts "#if defined(MRBC_DEFINE_SYMBOL_TABLE)"
 file.puts "static const char *builtin_symbols[] = {"
-all_symbols.each {|s|
-  file.puts %!  "#{s}",!
+all_symbols.each_with_index {|s,i|
+  s1 = %!  "#{s}",!
+  s1 << "\t" * ([3 - s1.size / 8, 1].max)
+  s1 << "// MRBC_SYMID_#{rename_for_symbol(s)} = #{i}"
+  file.puts s1
 }
 file.puts "};"
 file.puts "#endif"

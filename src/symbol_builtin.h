@@ -4,174 +4,174 @@
 
 #if defined(MRBC_DEFINE_SYMBOL_TABLE)
 static const char *builtin_symbols[] = {
-  "!",
-  "!=",
-  "%",
-  "&",
-  "*",
-  "**",
-  "+",
-  "+@",
-  "-",
-  "-@",
-  "/",
-  "<<",
-  "<=>",
-  "===",
-  ">>",
-  "ArgumentError",
-  "Array",
-  "E",
-  "Exception",
-  "FalseClass",
-  "Float",
-  "Hash",
-  "IndexError",
-  "Integer",
-  "MRUBYC_VERSION",
-  "MRUBY_VERSION",
-  "Math",
-  "NameError",
-  "NilClass",
-  "NoMemoryError",
-  "NoMethodError",
-  "Object",
-  "PI",
-  "Proc",
-  "RUBY_ENGINE",
-  "RUBY_VERSION",
-  "Range",
-  "RangeError",
-  "RuntimeError",
-  "StandardError",
-  "String",
-  "Symbol",
-  "TrueClass",
-  "TypeError",
-  "ZeroDivisionError",
-  "[]",
-  "[]=",
-  "^",
-  "abs",
-  "acos",
-  "acosh",
-  "all_symbols",
-  "asin",
-  "asinh",
-  "at",
-  "atan",
-  "atan2",
-  "atanh",
-  "attr_accessor",
-  "attr_reader",
-  "b",
-  "block_given?",
-  "call",
-  "cbrt",
-  "chomp",
-  "chomp!",
-  "chr",
-  "class",
-  "clear",
-  "collect",
-  "collect!",
-  "cos",
-  "cosh",
-  "count",
-  "delete",
-  "delete_at",
-  "delete_if",
-  "dup",
-  "each",
-  "each_byte",
-  "each_char",
-  "each_index",
-  "each_with_index",
-  "empty?",
-  "end_with?",
-  "erf",
-  "erfc",
-  "exclude_end?",
-  "exp",
-  "first",
-  "getbyte",
-  "has_key?",
-  "has_value?",
-  "hypot",
-  "id2name",
-  "include?",
-  "index",
-  "initialize",
-  "inspect",
-  "instance_methods",
-  "instance_variables",
-  "intern",
-  "is_a?",
-  "join",
-  "key",
-  "keys",
-  "kind_of?",
-  "last",
-  "ldexp",
-  "length",
-  "log",
-  "log10",
-  "log2",
-  "loop",
-  "lstrip",
-  "lstrip!",
-  "map",
-  "map!",
-  "max",
-  "memory_statistics",
-  "merge",
-  "merge!",
-  "message",
-  "min",
-  "minmax",
-  "new",
-  "nil?",
-  "object_id",
-  "ord",
-  "p",
-  "pop",
-  "print",
-  "printf",
-  "push",
-  "puts",
-  "raise",
-  "reject",
-  "reject!",
-  "rstrip",
-  "rstrip!",
-  "shift",
-  "sin",
-  "sinh",
-  "size",
-  "slice!",
-  "sort",
-  "sort!",
-  "split",
-  "sprintf",
-  "sqrt",
-  "start_with?",
-  "strip",
-  "strip!",
-  "tan",
-  "tanh",
-  "times",
-  "to_a",
-  "to_f",
-  "to_h",
-  "to_i",
-  "to_s",
-  "to_sym",
-  "tr",
-  "tr!",
-  "unshift",
-  "values",
-  "|",
-  "~",
+  "!",			// MRBC_SYMID_NOT = 0
+  "!=",			// MRBC_SYMID_NOT_EQ = 1
+  "%",			// MRBC_SYMID_MOD = 2
+  "&",			// MRBC_SYMID_AND = 3
+  "*",			// MRBC_SYMID_MUL = 4
+  "**",			// MRBC_SYMID_MUL_MUL = 5
+  "+",			// MRBC_SYMID_PLUS = 6
+  "+@",			// MRBC_SYMID_PLUS_AT = 7
+  "-",			// MRBC_SYMID_MINUS = 8
+  "-@",			// MRBC_SYMID_MINUS_AT = 9
+  "/",			// MRBC_SYMID_DIV = 10
+  "<<",			// MRBC_SYMID_LT_LT = 11
+  "<=>",		// MRBC_SYMID_LT_EQ_GT = 12
+  "===",		// MRBC_SYMID_EQ_EQ_EQ = 13
+  ">>",			// MRBC_SYMID_GT_GT = 14
+  "ArgumentError",	// MRBC_SYMID_ArgumentError = 15
+  "Array",		// MRBC_SYMID_Array = 16
+  "E",			// MRBC_SYMID_E = 17
+  "Exception",		// MRBC_SYMID_Exception = 18
+  "FalseClass",		// MRBC_SYMID_FalseClass = 19
+  "Float",		// MRBC_SYMID_Float = 20
+  "Hash",		// MRBC_SYMID_Hash = 21
+  "IndexError",		// MRBC_SYMID_IndexError = 22
+  "Integer",		// MRBC_SYMID_Integer = 23
+  "MRUBYC_VERSION",	// MRBC_SYMID_MRUBYC_VERSION = 24
+  "MRUBY_VERSION",	// MRBC_SYMID_MRUBY_VERSION = 25
+  "Math",		// MRBC_SYMID_Math = 26
+  "NameError",		// MRBC_SYMID_NameError = 27
+  "NilClass",		// MRBC_SYMID_NilClass = 28
+  "NoMemoryError",	// MRBC_SYMID_NoMemoryError = 29
+  "NoMethodError",	// MRBC_SYMID_NoMethodError = 30
+  "Object",		// MRBC_SYMID_Object = 31
+  "PI",			// MRBC_SYMID_PI = 32
+  "Proc",		// MRBC_SYMID_Proc = 33
+  "RUBY_ENGINE",	// MRBC_SYMID_RUBY_ENGINE = 34
+  "RUBY_VERSION",	// MRBC_SYMID_RUBY_VERSION = 35
+  "Range",		// MRBC_SYMID_Range = 36
+  "RangeError",		// MRBC_SYMID_RangeError = 37
+  "RuntimeError",	// MRBC_SYMID_RuntimeError = 38
+  "StandardError",	// MRBC_SYMID_StandardError = 39
+  "String",		// MRBC_SYMID_String = 40
+  "Symbol",		// MRBC_SYMID_Symbol = 41
+  "TrueClass",		// MRBC_SYMID_TrueClass = 42
+  "TypeError",		// MRBC_SYMID_TypeError = 43
+  "ZeroDivisionError",	// MRBC_SYMID_ZeroDivisionError = 44
+  "[]",			// MRBC_SYMID_BL_BR = 45
+  "[]=",		// MRBC_SYMID_BL_BR_EQ = 46
+  "^",			// MRBC_SYMID_XOR = 47
+  "abs",		// MRBC_SYMID_abs = 48
+  "acos",		// MRBC_SYMID_acos = 49
+  "acosh",		// MRBC_SYMID_acosh = 50
+  "all_symbols",	// MRBC_SYMID_all_symbols = 51
+  "asin",		// MRBC_SYMID_asin = 52
+  "asinh",		// MRBC_SYMID_asinh = 53
+  "at",			// MRBC_SYMID_at = 54
+  "atan",		// MRBC_SYMID_atan = 55
+  "atan2",		// MRBC_SYMID_atan2 = 56
+  "atanh",		// MRBC_SYMID_atanh = 57
+  "attr_accessor",	// MRBC_SYMID_attr_accessor = 58
+  "attr_reader",	// MRBC_SYMID_attr_reader = 59
+  "b",			// MRBC_SYMID_b = 60
+  "block_given?",	// MRBC_SYMID_block_given_Q = 61
+  "call",		// MRBC_SYMID_call = 62
+  "cbrt",		// MRBC_SYMID_cbrt = 63
+  "chomp",		// MRBC_SYMID_chomp = 64
+  "chomp!",		// MRBC_SYMID_chomp_E = 65
+  "chr",		// MRBC_SYMID_chr = 66
+  "class",		// MRBC_SYMID_class = 67
+  "clear",		// MRBC_SYMID_clear = 68
+  "collect",		// MRBC_SYMID_collect = 69
+  "collect!",		// MRBC_SYMID_collect_E = 70
+  "cos",		// MRBC_SYMID_cos = 71
+  "cosh",		// MRBC_SYMID_cosh = 72
+  "count",		// MRBC_SYMID_count = 73
+  "delete",		// MRBC_SYMID_delete = 74
+  "delete_at",		// MRBC_SYMID_delete_at = 75
+  "delete_if",		// MRBC_SYMID_delete_if = 76
+  "dup",		// MRBC_SYMID_dup = 77
+  "each",		// MRBC_SYMID_each = 78
+  "each_byte",		// MRBC_SYMID_each_byte = 79
+  "each_char",		// MRBC_SYMID_each_char = 80
+  "each_index",		// MRBC_SYMID_each_index = 81
+  "each_with_index",	// MRBC_SYMID_each_with_index = 82
+  "empty?",		// MRBC_SYMID_empty_Q = 83
+  "end_with?",		// MRBC_SYMID_end_with_Q = 84
+  "erf",		// MRBC_SYMID_erf = 85
+  "erfc",		// MRBC_SYMID_erfc = 86
+  "exclude_end?",	// MRBC_SYMID_exclude_end_Q = 87
+  "exp",		// MRBC_SYMID_exp = 88
+  "first",		// MRBC_SYMID_first = 89
+  "getbyte",		// MRBC_SYMID_getbyte = 90
+  "has_key?",		// MRBC_SYMID_has_key_Q = 91
+  "has_value?",		// MRBC_SYMID_has_value_Q = 92
+  "hypot",		// MRBC_SYMID_hypot = 93
+  "id2name",		// MRBC_SYMID_id2name = 94
+  "include?",		// MRBC_SYMID_include_Q = 95
+  "index",		// MRBC_SYMID_index = 96
+  "initialize",		// MRBC_SYMID_initialize = 97
+  "inspect",		// MRBC_SYMID_inspect = 98
+  "instance_methods",	// MRBC_SYMID_instance_methods = 99
+  "instance_variables",	// MRBC_SYMID_instance_variables = 100
+  "intern",		// MRBC_SYMID_intern = 101
+  "is_a?",		// MRBC_SYMID_is_a_Q = 102
+  "join",		// MRBC_SYMID_join = 103
+  "key",		// MRBC_SYMID_key = 104
+  "keys",		// MRBC_SYMID_keys = 105
+  "kind_of?",		// MRBC_SYMID_kind_of_Q = 106
+  "last",		// MRBC_SYMID_last = 107
+  "ldexp",		// MRBC_SYMID_ldexp = 108
+  "length",		// MRBC_SYMID_length = 109
+  "log",		// MRBC_SYMID_log = 110
+  "log10",		// MRBC_SYMID_log10 = 111
+  "log2",		// MRBC_SYMID_log2 = 112
+  "loop",		// MRBC_SYMID_loop = 113
+  "lstrip",		// MRBC_SYMID_lstrip = 114
+  "lstrip!",		// MRBC_SYMID_lstrip_E = 115
+  "map",		// MRBC_SYMID_map = 116
+  "map!",		// MRBC_SYMID_map_E = 117
+  "max",		// MRBC_SYMID_max = 118
+  "memory_statistics",	// MRBC_SYMID_memory_statistics = 119
+  "merge",		// MRBC_SYMID_merge = 120
+  "merge!",		// MRBC_SYMID_merge_E = 121
+  "message",		// MRBC_SYMID_message = 122
+  "min",		// MRBC_SYMID_min = 123
+  "minmax",		// MRBC_SYMID_minmax = 124
+  "new",		// MRBC_SYMID_new = 125
+  "nil?",		// MRBC_SYMID_nil_Q = 126
+  "object_id",		// MRBC_SYMID_object_id = 127
+  "ord",		// MRBC_SYMID_ord = 128
+  "p",			// MRBC_SYMID_p = 129
+  "pop",		// MRBC_SYMID_pop = 130
+  "print",		// MRBC_SYMID_print = 131
+  "printf",		// MRBC_SYMID_printf = 132
+  "push",		// MRBC_SYMID_push = 133
+  "puts",		// MRBC_SYMID_puts = 134
+  "raise",		// MRBC_SYMID_raise = 135
+  "reject",		// MRBC_SYMID_reject = 136
+  "reject!",		// MRBC_SYMID_reject_E = 137
+  "rstrip",		// MRBC_SYMID_rstrip = 138
+  "rstrip!",		// MRBC_SYMID_rstrip_E = 139
+  "shift",		// MRBC_SYMID_shift = 140
+  "sin",		// MRBC_SYMID_sin = 141
+  "sinh",		// MRBC_SYMID_sinh = 142
+  "size",		// MRBC_SYMID_size = 143
+  "slice!",		// MRBC_SYMID_slice_E = 144
+  "sort",		// MRBC_SYMID_sort = 145
+  "sort!",		// MRBC_SYMID_sort_E = 146
+  "split",		// MRBC_SYMID_split = 147
+  "sprintf",		// MRBC_SYMID_sprintf = 148
+  "sqrt",		// MRBC_SYMID_sqrt = 149
+  "start_with?",	// MRBC_SYMID_start_with_Q = 150
+  "strip",		// MRBC_SYMID_strip = 151
+  "strip!",		// MRBC_SYMID_strip_E = 152
+  "tan",		// MRBC_SYMID_tan = 153
+  "tanh",		// MRBC_SYMID_tanh = 154
+  "times",		// MRBC_SYMID_times = 155
+  "to_a",		// MRBC_SYMID_to_a = 156
+  "to_f",		// MRBC_SYMID_to_f = 157
+  "to_h",		// MRBC_SYMID_to_h = 158
+  "to_i",		// MRBC_SYMID_to_i = 159
+  "to_s",		// MRBC_SYMID_to_s = 160
+  "to_sym",		// MRBC_SYMID_to_sym = 161
+  "tr",			// MRBC_SYMID_tr = 162
+  "tr!",		// MRBC_SYMID_tr_E = 163
+  "unshift",		// MRBC_SYMID_unshift = 164
+  "values",		// MRBC_SYMID_values = 165
+  "|",			// MRBC_SYMID_OR = 166
+  "~",			// MRBC_SYMID_NEG = 167
 };
 #endif
 
