@@ -2086,6 +2086,34 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs )
 }
 
 
+
+
+
+
+//================================================================
+/*! OP_ARYPUSH
+
+  ary_push(R[a],R[a+1]..R[a+b])
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_arypush( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  for (int i=0; i<b; i++) {
+    mrbc_array_push(&regs[a], &regs[a+i+1]);
+  }
+
+
+  return 0;
+}
+
+
+
+
 //================================================================
 /*! OP_ARYDUP
 
@@ -2856,7 +2884,7 @@ int mrbc_vm_run( struct VM *vm )
       case OP_ARRAY:      ret = op_array     (vm, regs); break;
       case OP_ARRAY2:     ret = op_array2    (vm, regs); break;
       case OP_ARYCAT:     ret = op_arycat    (vm, regs); break;
-      case OP_ARYPUSH:    ret = op_dummy_B   (vm, regs); break;
+      case OP_ARYPUSH:    ret = op_arypush   (vm, regs); break;
       case OP_ARYDUP:     ret = op_arydup    (vm, regs); break;
       case OP_AREF:       ret = op_aref      (vm, regs); break;
       case OP_ASET:       ret = op_aset      (vm, regs); break;
