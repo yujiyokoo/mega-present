@@ -42,7 +42,7 @@ typedef struct IREP {
   uint16_t nregs;		//!< # of register variables
   uint16_t rlen;		//!< # of child IREP blocks
   uint16_t clen;		//!< # of catch handlers
-  uint16_t ilen;		//!< # of bytes in OpCode
+  uint32_t ilen;		//!< # of bytes in OpCode
   uint16_t plen;		//!< # of pools
   uint16_t slen;		//!< # of symbols
   uint16_t ofs_ireps;		//!< offset of data->tbl_ireps. (32bit aligned)
@@ -125,6 +125,9 @@ typedef struct VM {
   char type[2];			// set "VM" for debug
 #endif
   uint8_t vm_id;		//!< vm_id : 1..MAX_VM_COUNT
+  volatile int8_t flag_preemption;
+  int8_t flag_need_memfree;
+  int8_t flag_permanence;
 
   mrbc_irep       *top_irep;	//!< IREP tree top.
   const mrbc_irep *cur_irep;	//!< IREP currently running.
@@ -134,12 +137,7 @@ typedef struct VM {
   mrbc_value    *cur_regs;
   mrbc_callinfo *callinfo_tail;
   mrbc_class    *target_class;
-
-  mrbc_value exception;		//!< Raised exception.
-
-  volatile int8_t flag_preemption;
-  int8_t flag_need_memfree;
-  int8_t flag_permanence;
+  mrbc_value	exception;	//!< Raised exception or nil.
 } mrbc_vm;
 typedef struct VM mrb_vm;
 
