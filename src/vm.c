@@ -1279,8 +1279,33 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   int o  = (a >> 13) & 0x1f;	// # of optional parameters
 #define FLAG_REST_PARAM (a & 0x1000)
 #define FLAG_DICT_PARAM (a & 0x2)
+
+  mrbc_value *argv = &regs[1];
   int argc = vm->callinfo_tail->n_args;
 
+  /* arguments are passed with Array */
+  if( argc == 15 ){
+    assert( regs[1].tt == MRBC_TT_ARRAY );
+    argv = regs[1].array->data;
+    argc = regs[1].array->n_stored;
+  }
+
+  /* relocate arguments */
+  int i;
+  if( &regs[1] != argv ){
+    for( i=0 ; i<argc ; i++ ){
+      mrbc_dec_ref(&regs[i+1]);
+      regs[i+1] = argv[i];
+      mrbc_inc_ref(&regs[i+1]);
+    }
+  }
+  
+  return 0;
+
+  /////// Not yet implemented 
+
+  
+#if 0
   // OP_SENDV or OP_SENDVB
   int flag_sendv_pattern = ( argc == CALL_MAXARGS );
   if( flag_sendv_pattern ) {
@@ -1396,6 +1421,8 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   return 0;
 #undef FLAG_REST_PARAM
 #undef FLAG_DICT_PARAM
+
+#endif
 }
 
 
