@@ -157,53 +157,36 @@ int mrbc_vm_run(struct VM *vm);
 
 
 /***** Inline functions *****************************************************/
-//================================================================
-/*! Get 32bit value from memory.
+/*
+  (note)
+  Conversion functions from binary (byte array) to each data type.
 
-  @param  s	Pointer to memory.
-  @return	32bit unsigned value.
+  Use the MRBC_BIG_ENDIAN, MRBC_LITTLE_ENDIAN and MRBC_REQUIRE_32BIT_ALIGNMENT
+  macros.
+
+  (each cases)
+  Little endian, no alignment.
+   MRBC_LITTLE_ENDIAN && !MRBC_REQUIRE_32BIT_ALIGNMENT
+   (e.g.) ARM Cortex-M4, Intel x86
+
+  Big endian, no alignment.
+   MRBC_BIG_ENDIAN && !MRBC_REQUIRE_32BIT_ALIGNMENT
+   (e.g.) IBM PPC405
+
+  Little endian, 32bit alignment required.
+   MRBC_LITTLE_ENDIAN && MRBC_REQUIRE_32BIT_ALIGNMENT
+   (e.g.) ARM Cortex-M0
+
+  Big endian, 32bit alignment required.
+   MRBC_BIG_ENDIAN) && MRBC_REQUIRE_32BIT_ALIGNMENT
+   (e.g.) OpenRISC
 */
-static inline uint32_t bin_to_uint32( const void *s )
-{
-#if defined(MRBC_LITTLE_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
-  // Little endian, no alignment.
-  //  e.g. ARM Cortex-M4, Intel x86
-  uint32_t x = *((uint32_t *)s);
-  x = (x << 24) | ((x & 0xff00) << 8) | ((x >> 8) & 0xff00) | (x >> 24);
-
-#elif defined(MRBC_BIG_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
-  // Big endian, no alignment.
-  //  e.g. IBM PPC405
-  uint32_t x = *((uint32_t *)s);
-
-#elif defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
-  // 32bit alignment required.
-  // Little endian
-  //  e.g. ARM Cortex-M0
-  // Big endian
-  //  e.g. OpenRISC
-  uint8_t *p = (uint8_t *)s;
-  uint32_t x = *p++;
-  x <<= 8;
-  x |= *p++;
-  x <<= 8;
-  x |= *p++;
-  x <<= 8;
-  x |= *p;
-
-#else
-  #error "Specify MRBC_BIG_ENDIAN or MRBC_LITTLE_ENDIAN"
-#endif
-
-  return x;
-}
-
 
 //================================================================
-/*! Get 16bit value from memory.
+/*! Get 16bit int value from memory.
 
   @param  s	Pointer to memory.
-  @return	16bit unsigned value.
+  @return	16bit unsigned int value.
 */
 static inline uint16_t bin_to_uint16( const void *s )
 {
@@ -222,9 +205,147 @@ static inline uint16_t bin_to_uint16( const void *s )
   uint16_t x = *p++;
   x <<= 8;
   x |= *p;
+
+#else
+  #error "Specify MRBC_BIG_ENDIAN or MRBC_LITTLE_ENDIAN"
 #endif
 
   return x;
+}
+
+
+//================================================================
+/*! Get 32bit int value from memory.
+
+  @param  s	Pointer to memory.
+  @return	32bit unsigned int value.
+*/
+static inline uint32_t bin_to_uint32( const void *s )
+{
+#if defined(MRBC_LITTLE_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Little endian, no alignment.
+  uint32_t x = *((uint32_t *)s);
+  x = (x << 24) | ((x & 0xff00) << 8) | ((x >> 8) & 0xff00) | (x >> 24);
+
+#elif defined(MRBC_BIG_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Big endian, no alignment.
+  uint32_t x = *((uint32_t *)s);
+
+#elif defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // 32bit alignment required.
+  uint8_t *p = (uint8_t *)s;
+  uint32_t x = *p++;
+  x <<= 8;
+  x |= *p++;
+  x <<= 8;
+  x |= *p++;
+  x <<= 8;
+  x |= *p;
+
+#endif
+
+  return x;
+}
+
+
+#if defined(MRBC_INT64)
+//================================================================
+/*! Get 64bit int value from memory.
+
+  @param  s	Pointer to memory.
+  @return	64bit int value.
+*/
+static inline int64_t bin_to_int64( const void *s )
+{
+#if defined(MRBC_LITTLE_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Little endian, no alignment.
+  uint64_t x = *((uint64_t *)s);
+  uint64_t y = (x << 56);
+  y |= ((uint64_t)(uint8_t)(x >>  8)) << 48;
+  y |= ((uint64_t)(uint8_t)(x >> 16)) << 40;
+  y |= ((uint64_t)(uint8_t)(x >> 24)) << 32;
+  y |= ((uint64_t)(uint8_t)(x >> 32)) << 24;
+  y |= ((uint64_t)(uint8_t)(x >> 40)) << 16;
+  y |= ((uint64_t)(uint8_t)(x >> 48)) << 8;
+  y |= (x >> 56);
+  return y;
+
+#elif defined(MRBC_BIG_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Big endian, no alignment.
+  return *((uint64_t *)s);
+
+#elif defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // 32bit alignment required.
+  uint8_t *p = (uint8_t *)s;
+  uint64_t x = *p++;
+  x <<= 8;
+  x |= *p++;
+  x <<= 8;
+  x |= *p++;
+  x <<= 8;
+  x |= *p++;
+  x <<= 8;
+  x |= *p++;
+  x <<= 8;
+  x |= *p++;
+  x <<= 8;
+  x |= *p++;
+  x <<= 8;
+  x |= *p;
+  return x;
+
+#endif
+
+}
+#endif
+
+
+//================================================================
+/*! Get double (64bit) value from memory.
+
+  @param  s	Pointer to memory.
+  @return	double value.
+*/
+static inline double bin_to_double64( const void *s )
+{
+#if defined(MRBC_LITTLE_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Little endian, no alignment.
+  return *((double *)s);
+
+#elif defined(MRBC_BIG_ENDIAN) && !defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Big endian, no alignment.
+  double x;
+  uint8_t *p1 = (uint8_t*)s;
+  uint8_t *p2 = (uint8_t*)&x + 7;
+  int i;
+  for( i = 7; i >= 0; i-- ) {
+    *p1++ = *p2--;
+  }
+  return x;
+
+#elif defined(MRBC_LITTLE_ENDIAN) && defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Little endian, 32bit alignment required.
+  double x;
+  uint8_t *p1 = (uint8_t*)s;
+  uint8_t *p2 = (uint8_t*)&x + 7;
+  int i;
+  for( i = 7; i >= 0; i-- ) {
+    *p1++ = *p2++;
+  }
+  return x;
+
+#elif defined(MRBC_BIG_ENDIAN) && defined(MRBC_REQUIRE_32BIT_ALIGNMENT)
+  // Big endian, 32bit alignment required.
+  double x;
+  uint8_t *p1 = (uint8_t*)s;
+  uint8_t *p2 = (uint8_t*)&x + 7;
+  int i;
+  for( i = 7; i >= 0; i-- ) {
+    *p1++ = *p2--;
+  }
+  return x;
+
+#endif
 }
 
 
