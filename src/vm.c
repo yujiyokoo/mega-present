@@ -1294,9 +1294,9 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
   int i;
   if( &regs[1] != argv ){
     for( i=0 ; i<argc ; i++ ){
-      mrbc_dec_ref(&regs[i+1]);
+      mrbc_decref(&regs[i+1]);
       regs[i+1] = argv[i];
-      mrbc_inc_ref(&regs[i+1]);
+      mrbc_incref(&regs[i+1]);
     }
   }
   
