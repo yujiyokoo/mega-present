@@ -1344,12 +1344,12 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs )
       mrbc_incref(&regs[i+1]);
     }
   }
-  
+
   return 0;
 
-  /////// Not yet implemented 
+  /////// Not yet implemented
 
-  
+
 #if 0
   // OP_SENDV or OP_SENDVB
   int flag_sendv_pattern = ( argc == CALL_MAXARGS );
@@ -2324,10 +2324,33 @@ static inline int op_intern( mrbc_vm *vm, mrbc_value *regs )
 
   assert( regs[a].tt == MRBC_TT_STRING );
 
-  mrbc_value sym_id = mrbc_symbol_new(vm, (const char*)regs[a].string->data);
+  mrbc_value sym_val = mrbc_symbol_new(vm, (const char*)regs[a].string->data);
 
   mrbc_decref( &regs[a] );
-  regs[a] = sym_id;
+  regs[a] = sym_val;
+
+  return 0;
+}
+
+
+//================================================================
+/*! OP_SYMBOL
+
+  R[a] = intern(Pool[b])
+
+  @param  vm    pointer of VM.
+  @param  regs  pointer to regs
+  @retval 0  No error.
+*/
+static inline int op_symbol( mrbc_vm *vm, mrbc_value *regs )
+{
+  FETCH_BB();
+
+  const char *p = (const char *)mrbc_irep_pool_ptr(vm->cur_irep, b);
+  mrbc_sym sym_id = mrbc_str_to_symid( p+3 );	// 3 is TT and length
+
+  mrbc_decref(&regs[a]);
+  regs[a] = mrbc_symbol_value( sym_id );
 
   return 0;
 }
@@ -2417,7 +2440,7 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs )
 //================================================================
 /*! OP_HASHADD
 
-  R(a) = hash_push(R(a),R(a+1)..R(a+b*2))
+  hash_push(R[a],R[a+1]..R[a+b*2])
 
   @param  vm    pointer of VM.
   @param  regs  pointer to regs
@@ -2996,6 +3019,7 @@ int mrbc_vm_run( struct VM *vm )
       case OP_ASET:       ret = op_aset      (vm, regs); break;
       case OP_APOST:      ret = op_apost     (vm, regs); break;
       case OP_INTERN:     ret = op_intern    (vm, regs); break;
+      case OP_SYMBOL:     ret = op_symbol    (vm, regs); break;
       case OP_STRING:     ret = op_string    (vm, regs); break;
       case OP_STRCAT:     ret = op_strcat    (vm, regs); break;
       case OP_HASH:       ret = op_hash      (vm, regs); break;
@@ -3017,6 +3041,9 @@ int mrbc_vm_run( struct VM *vm )
       case OP_TCLASS:     ret = op_tclass    (vm, regs); break;
       case OP_DEBUG:      ret = op_dummy_BBB (vm, regs); break;
       case OP_ERR:        ret = op_dummy_B   (vm, regs); break;
+      case OP_EXT1:       ret = op_dummy_Z   (vm, regs); break;
+      case OP_EXT2:       ret = op_dummy_Z   (vm, regs); break;
+      case OP_EXT3:       ret = op_dummy_Z   (vm, regs); break;
       case OP_STOP:       ret = op_stop      (vm, regs); break;
 
       case OP_ABORT:      ret = op_abort     (vm, regs); break;
