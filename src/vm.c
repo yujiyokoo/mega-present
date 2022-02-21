@@ -2179,15 +2179,18 @@ static inline int op_arypush( mrbc_vm *vm, mrbc_value *regs )
 {
   FETCH_BB();
 
-  for (int i=0; i<b; i++) {
-    mrbc_array_push(&regs[a], &regs[a+i+1]);
-  }
+  int sz1 = mrbc_array_size(&regs[a]);
 
+  int ret = mrbc_array_resize(&regs[a], sz1 + b);
+  if( ret != 0 ) return -1;	// ENOMEM ?
+
+  // data copy.
+  memcpy( regs[a].array->data + sz1, &regs[a+1], sizeof(mrbc_value) * b );
+  memset( &regs[a+1], 0, sizeof(mrbc_value) * b );
+  regs[a].array->n_stored = sz1 + b;
 
   return 0;
 }
-
-
 
 
 //================================================================
