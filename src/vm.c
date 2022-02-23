@@ -342,10 +342,6 @@ static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADI_n (n=-1,0,1..7)
 
   R[a] = mrb_int(n)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error and exit from vm.
 */
 static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -366,10 +362,6 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADI16
 
   R[a] = mrb_int(b)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error and exit from vm.
 */
 static inline int op_loadi16( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -387,10 +379,6 @@ static inline int op_loadi16( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADI32
 
   R[a] = mrb_int((b<<16)+c)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error and exit from vm.
 */
 static inline int op_loadi32( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
