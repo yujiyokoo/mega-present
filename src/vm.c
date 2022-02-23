@@ -2412,6 +2412,24 @@ static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs, int ext )
 }
 
 
+#if !defined(MRBC_SUPPORT_OP_EXT)
+//================================================================
+/*! OP_EXTn
+
+  make 1st operand (a) 16bit
+  make 2nd operand (b) 16bit
+  make 2nd operand (b) 16bit
+*/
+static inline int op_ext( mrbc_vm *vm, mrbc_value *regs, int ext )
+{
+  FETCH_Z(ext);
+  mrbc_print("Not support op_ext. Re-compile with MRBC_SUPPORT_OP_EXT\n");
+
+  return -1;
+}
+#endif
+
+
 //================================================================
 /*! OP_STOP
 
@@ -2737,9 +2755,15 @@ int mrbc_vm_run( struct VM *vm )
     case OP_TCLASS:     ret = op_tclass    (vm, regs, ext); break;
     case OP_DEBUG:      ret = op_dummy_BBB (vm, regs, ext); break;
     case OP_ERR:        ret = op_dummy_B   (vm, regs, ext); break;
+#if defined(MRBC_SUPPORT_OP_EXT)
     case OP_EXT1:       ext = 1; continue;
     case OP_EXT2:       ext = 2; continue;
     case OP_EXT3:       ext = 3; continue;
+#else
+    case OP_EXT1:       // fall through
+    case OP_EXT2:       // fall through
+    case OP_EXT3:       ret = op_ext       (vm, regs, ext); break;
+#endif
     case OP_STOP:       ret = op_stop      (vm, regs, ext); break;
 
     case OP_ABORT:      ret = op_abort     (vm, regs, ext); break;
@@ -2747,7 +2771,9 @@ int mrbc_vm_run( struct VM *vm )
       mrbc_printf("Unknown OP 0x%02x\n", op);          break;
     } // end switch.
 
+#if defined(MRBC_SUPPORT_OP_EXT)
     ext = 0;
+#endif
     if( !vm->flag_preemption ) continue;	// execute next ope code.
     if( !mrbc_israised(vm) ) return ret;	// normal return.
 
