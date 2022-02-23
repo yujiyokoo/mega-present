@@ -265,10 +265,6 @@ static mrbc_value * mrbc_get_self( struct VM *vm, mrbc_value *regs )
 /*! OP_NOP
 
   No operation
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_nop( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -281,10 +277,6 @@ static inline int op_nop( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_MOVE
 
   R[a] = R[b]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_move( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -302,10 +294,6 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADL
 
   R[a] = Pool[b]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -322,10 +310,6 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADI
 
   R[a] = mrb_int(b)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -342,10 +326,6 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADINEG
 
   R[a] = mrb_int(-b)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -427,10 +407,6 @@ static inline int op_loadi32( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADSYM
 
   R[a] = Syms[b]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -447,10 +423,6 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADNIL
 
   R[a] = nil
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -467,10 +439,6 @@ static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADSELF
 
   R[a] = self
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -490,10 +458,6 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADT
 
   R[a] = true
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_loadt( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -510,10 +474,6 @@ static inline int op_loadt( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LOADF
 
   R[a] = false
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_loadf( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -530,10 +490,6 @@ static inline int op_loadf( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_GETGV
 
   R[a] = getglobal(Syms[b])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -556,10 +512,6 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SETGV
 
   setglobal(Syms[b], R[a])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -576,10 +528,6 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_GETIV
 
   R[a] = ivget(Syms[b])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -600,10 +548,6 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SETIV
 
   ivset(Syms[b],R[a])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -623,10 +567,6 @@ static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_GETCONST
 
   R[a] = constget(Syms[b])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -708,10 +648,6 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SETCONST
 
   constset(Syms[b],R[a])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -734,10 +670,6 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_GETMCNST
 
   R[a] = R[a]::Syms[b]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -768,10 +700,6 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_GETUPVAR
 
   R[a] = uvget(b,c)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -807,10 +735,6 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SETUPVAR
 
   uvset(b,c,R[a])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -846,10 +770,6 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_GETIDX
 
   R[a] = R[a][R[a+1]]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_getidx( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -863,10 +783,6 @@ static inline int op_getidx( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SETIDX
 
   R[a][R[a+1]] = R[a+2]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_setidx( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -880,10 +796,6 @@ static inline int op_setidx( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_JMP
 
   pc+=a
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -899,10 +811,6 @@ static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_JMPIF
 
   if R[a] pc+=b
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -920,10 +828,6 @@ static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_JMPNOT
 
   if !R[a] pc+=b
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -941,10 +845,6 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_JMPNIL
 
   if R[a]==nil pc+=b
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -962,10 +862,6 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_JMPUW
 
   unwind_and_jump_to(a)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -998,10 +894,6 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_EXCEPT
 
   R[a] = exc
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_except( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1019,10 +911,6 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_RESCUE
 
   R[b] = R[a].isa?(R[b])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1042,10 +930,6 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_RAISEIF
 
   raise(R[a]) if R[a]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1098,10 +982,6 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SSEND
 
   R[a] = self.send(Syms[b],R[a+1]..,R[a+n+1]:R[a+n+2]..) (c=n|k<<4)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_ssend( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1122,10 +1002,6 @@ static inline int op_ssend( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SSENDB
 
   R[a] = self.send(Syms[b],R[a+1]..,R[a+n+1]:R[a+n+2]..,&R[a+n+2k+1])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_ssendb( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1146,10 +1022,6 @@ static inline int op_ssendb( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SEND
 
   R[a] = R[a].send(Syms[b],R[a+1]..,R[a+n+1]:R[a+n+2]..) (c=n|k<<4)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_send( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1163,10 +1035,6 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SENDB
 
   R[a] = R[a].send(Syms[b],R[a+1]..,R[a+n+1]:R[a+n+2]..,&R[a+n+2k+1])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_sendb( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1180,10 +1048,6 @@ static inline int op_sendb( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SUPER
 
   R[a] = super(R[a+1],... ,R[a+b+1])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_super( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1255,10 +1119,6 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_ARGARY
 
   R[a] = argument array (16=m5:r1:m5:d1:lv4)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_argary( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1304,10 +1164,6 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs, int ext )
   arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1)
 
   flags: 0mmm_mmoo_ooor_mmmm_mkkk_kkdb
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_enter( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1475,10 +1331,6 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_RETURN
 
   return R[a] (normal)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_return( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1528,10 +1380,6 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_RETURN_BLK
 
   return R[a] (in-block return)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1604,10 +1452,6 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_BREAK
 
   break R[a]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_break( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1661,10 +1505,6 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_BLKPUSH
 
   R[a] = block (16=m5:r1:m5:d1:lv4)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1711,10 +1551,6 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_ADD
 
   R[a] = R[a]+R[a+1]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_add( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1755,10 +1591,6 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_ADDI
 
   R[a] = R[a]+mrb_int(b)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_addi( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1786,10 +1618,6 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SUB
 
   R[a] = R[a]-R[a+1]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_sub( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1830,10 +1658,6 @@ static inline int op_sub( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SUBI
 
   R[a] = R[a]-mrb_int(b)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_subi( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1861,10 +1685,6 @@ static inline int op_subi( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_MUL
 
   R[a] = R[a]*R[a+1]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_mul( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1905,10 +1725,6 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_DIV
 
   R[a] = R[a]/R[a+1]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_div( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1949,10 +1765,6 @@ static inline int op_div( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_EQ
 
   R[a] = R[a]==R[a+1]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_eq( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1972,10 +1784,6 @@ static inline int op_eq( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LT
 
   R[a] = R[a]<R[a+1]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_lt( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -1995,10 +1803,6 @@ static inline int op_lt( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_LE
 
   R[a] = R[a]<=R[a+1]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_le( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2018,10 +1822,6 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_GT
 
   R[a] = R[a]>R[a+1]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_gt( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2041,10 +1841,6 @@ static inline int op_gt( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_GE
 
   R[a] = R[a]>=R[a+1]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_ge( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2064,10 +1860,6 @@ static inline int op_ge( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_ARRAY
 
   R[a] = ary_new(R[a],R[a+1]..R[a+b])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_array( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2091,10 +1883,6 @@ static inline int op_array( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_ARRAY2
 
   R[a] = ary_new(R[b],R[b+1]..R[b+c])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_array2( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2121,10 +1909,6 @@ static inline int op_array2( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_ARYCAT
 
   ary_cat(R[a],R[a+1])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2162,18 +1946,10 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs, int ext )
 }
 
 
-
-
-
-
 //================================================================
 /*! OP_ARYPUSH
 
   ary_push(R[a],R[a+1]..R[a+b])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_arypush( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2197,10 +1973,6 @@ static inline int op_arypush( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_ARYDUP
 
   R[a] = ary_dup(R[a])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_arydup( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2218,10 +1990,6 @@ static inline int op_arydup( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_AREF
 
   R[a] = R[b][c]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_aref( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2254,10 +2022,6 @@ static inline int op_aref( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_ASET
 
   R[b][c] = R[a]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_aset( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2273,10 +2037,6 @@ static inline int op_aset( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_APOST
 
   *R[a],R[a+1]..R[a+c] = R[a][b..]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_apost( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2316,10 +2076,6 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_INTERN
 
   R[a] = intern(R[a])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_intern( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2340,10 +2096,6 @@ static inline int op_intern( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SYMBOL
 
   R[a] = intern(Pool[b])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_symbol( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2363,10 +2115,6 @@ static inline int op_symbol( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_STRING
 
   R[a] = str_dup(Pool[b])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_string( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2383,10 +2131,6 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_STRCAT
 
   str_cat(R[a],R[a+1])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2415,10 +2159,6 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_HASH
 
   R[a] = hash_new(R[a],R[a+1]..R[a+b*2-1])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_hash( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2444,10 +2184,6 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_HASHADD
 
   hash_push(R[a],R[a+1]..R[a+b*2])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_hashadd( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2474,10 +2210,6 @@ static inline int op_hashadd( mrbc_vm *vm, mrbc_value *regs, int ext )
 
   R[a] = lambda(Irep[b],L_BLOCK)
   R[a] = lambda(Irep[b],L_METHOD)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_method( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2498,10 +2230,6 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs, int ext )
 
   R[a] = range_new(R[a],R[a+1],FALSE)
   R[a] = range_new(R[a],R[a+1],TRUE)
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_range( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2520,10 +2248,6 @@ static inline int op_range( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_CLASS
 
   R[a] = newclass(R[a],Syms[b],R[a+1])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_class( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2547,10 +2271,6 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_EXEC
 
   R[a] = blockexec(R[a],Irep[b])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_exec( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2576,10 +2296,6 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_DEF
 
   R[a].newmethod(Syms[b],R[a+1]); R[a] = Syms[b]
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_def( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2628,10 +2344,6 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_ALIAS
 
   alias_method(target_class,Syms[a],Syms[b])
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_alias( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2674,10 +2386,6 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_SCLASS
 
   R[a] = R[a].singleton_class
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2691,10 +2399,6 @@ static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_TCLASS
 
   R[a] = target_class
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval 0  No error.
 */
 static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2712,10 +2416,6 @@ static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_STOP
 
   stop VM
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval -1  No error and exit from vm.
 */
 static inline int op_stop( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
@@ -2731,10 +2431,6 @@ static inline int op_stop( mrbc_vm *vm, mrbc_value *regs, int ext )
 /*! OP_ABORT
 
   stop VM
-
-  @param  vm    pointer of VM.
-  @param  regs  pointer to regs
-  @retval -1  No error and exit from vm.
 */
 static inline int op_abort( mrbc_vm *vm, mrbc_value *regs, int ext )
 {
