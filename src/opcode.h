@@ -24,7 +24,7 @@ extern "C" {
 
 #define FETCH_Z(e) (void)0
 
-#if defined(MRBC_SUPPORT_EXT)
+#if defined(MRBC_SUPPORT_OP_EXT)
 #define FETCH_B(e) \
   unsigned int a; \
   a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
@@ -88,7 +88,7 @@ extern "C" {
   c = *vm->inst++; c = c << 8 | *vm->inst++; \
   (void)a, (void)b, (void)c
 
-#endif // defined(MRBC_SUPPORT_EXT)
+#endif // defined(MRBC_SUPPORT_OP_EXT)
 
 #define FETCH_S(e) \
   unsigned int a; \
