@@ -22,48 +22,82 @@ extern "C" {
 #endif
 
 
-#define FETCH_Z()
-#define FETCH_B()		\
-  uint32_t a = vm->inst[0];	\
-  vm->inst += 1;		\
+#define FETCH_Z(e) (void)0
+
+#if defined(MRBC_SUPPORT_OP_EXT)
+#define FETCH_B(e) \
+  unsigned int a; \
+  a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
   (void)a
 
-#define FETCH_BB()		\
-  uint32_t a = vm->inst[0];	\
-  uint16_t b = vm->inst[1];	\
-  vm->inst += 2;		\
+#define FETCH_BB(e) \
+  unsigned int a, b; \
+  a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
+  b = *vm->inst++; if( e & 2 ) b = b << 8 | *vm->inst++; \
   (void)a, (void)b
 
-#define FETCH_BBB()		\
-  uint32_t a = vm->inst[0];	\
-  uint16_t b = vm->inst[1];	\
-  uint16_t c = vm->inst[2];	\
-  vm->inst += 3;		\
+#define FETCH_BBB(e) \
+  unsigned int a, b, c; \
+  a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
+  b = *vm->inst++; if( e & 2 ) b = b << 8 | *vm->inst++; \
+  c = *vm->inst++; \
   (void)a, (void)b, (void)c
 
-#define FETCH_BS()						\
-  uint32_t a = vm->inst[0];					\
-  uint16_t b = (uint16_t)vm->inst[1] << 8 | vm->inst[2];	\
-  vm->inst += 3;						\
+#define FETCH_BS(e) \
+  unsigned int a, b; \
+  a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
+  b = *vm->inst++; b = b << 8 | *vm->inst++; \
   (void)a, (void)b
 
-#define FETCH_BSS()						\
-  uint32_t a = vm->inst[0];					\
-  uint16_t b = (uint16_t)vm->inst[1] << 8 | vm->inst[2];	\
-  uint16_t c = (uint16_t)vm->inst[3] << 8 | vm->inst[4];	\
-  vm->inst += 5;						\
+#define FETCH_BSS(e) \
+  unsigned int a, b, c; \
+  a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
+  b = *vm->inst++; b = b << 8 | *vm->inst++; \
+  c = *vm->inst++; c = c << 8 | *vm->inst++; \
   (void)a, (void)b, (void)c
 
-#define FETCH_S()						\
-  uint32_t a = (uint32_t)vm->inst[0] << 8 | vm->inst[1];	\
-  vm->inst += 2;						\
+#else
+#define FETCH_B(e) \
+  unsigned int a; \
+  a = *vm->inst++; \
   (void)a
 
-#define FETCH_W()						\
-  uint32_t a = vm->inst[0];					\
-  a = (a << 8) | vm->inst[1];					\
-  a = (a << 8) | vm->inst[2];					\
-  vm->inst += 3;						\
+#define FETCH_BB(e) \
+  unsigned int a, b; \
+  a = *vm->inst++; \
+  b = *vm->inst++; \
+  (void)a, (void)b
+
+#define FETCH_BBB(e) \
+  unsigned int a, b, c; \
+  a = *vm->inst++; \
+  b = *vm->inst++; \
+  c = *vm->inst++; \
+  (void)a, (void)b, (void)c
+
+#define FETCH_BS(e) \
+  unsigned int a, b; \
+  a = *vm->inst++; \
+  b = *vm->inst++; b = b << 8 | *vm->inst++; \
+  (void)a, (void)b
+
+#define FETCH_BSS(e) \
+  unsigned int a, b, c; \
+  a = *vm->inst++; \
+  b = *vm->inst++; b = b << 8 | *vm->inst++; \
+  c = *vm->inst++; c = c << 8 | *vm->inst++; \
+  (void)a, (void)b, (void)c
+
+#endif // defined(MRBC_SUPPORT_OP_EXT)
+
+#define FETCH_S(e) \
+  unsigned int a; \
+  a = *vm->inst++; a = a << 8 | *vm->inst++; \
+  (void)a
+
+#define FETCH_W(e) \
+  uint32_t a; \
+  a = *vm->inst++; a = a << 8 | *vm->inst++; a = a << 8 | *vm->inst++; \
   (void)a
 
 
@@ -71,14 +105,15 @@ extern "C" {
 /*!@brief
   Operation codes.
 
-  operand types:
-   Z:   no operand
-   B:   8bit     (a)
-   BB:  8+8bit   (a,b)
-   BBB: 8+8+8bit (a,b,c)
-   BS:  8+16bit  (a,b)
-   S:   16bit    (a)
-   W:   24bit    (a)
+ operand types:
+   Z: no operand
+   B: 8bit	   (a)
+   BB: 8+8bit	   (a,b)
+   BBB: 8+8+8bit   (a,b,c)
+   BS: 8+16bit	   (a,b)
+   BSS: 8+16+16bit (a,b,c)
+   S: 16bit	   (a)
+   W: 24bit	   (a)
 */
 enum OPCODE {
 /*-----------------------------------------------------------------------
