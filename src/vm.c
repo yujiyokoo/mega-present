@@ -81,19 +81,19 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
   // thus, reorder arguments to mruby2 series compatible.
   int narg = c & 0x0f;
   int karg = c >> 4;
-  mrbc_value *creg = regs + a;
+  mrbc_value *recv = regs + a;
 
   // If it's packed in an array, expand it.
   if( narg == 15 ) {
-    mrbc_value argv = creg[1];
+    mrbc_value argv = recv[1];
     narg = mrbc_array_size(&argv);
     int i;
     for( i = 0; i < narg; i++ ) {
       mrbc_incref( &argv.array->data[i] );
     }
 
-    memmove( creg + narg + 1, creg + 2, sizeof(mrbc_value) * (karg * 2 + 1) );
-    memcpy( creg + 1, argv.array->data, sizeof(mrbc_value) * narg );
+    memmove( recv + narg + 1, recv + 2, sizeof(mrbc_value) * (karg * 2 + 1) );
+    memcpy( recv + 1, argv.array->data, sizeof(mrbc_value) * narg );
 
     mrbc_decref(&argv);
   }
@@ -103,7 +103,7 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
     mrbc_value h = mrbc_hash_new( vm, karg );
     if( !h.hash ) return 0;	// ENOMEM
 
-    mrbc_value *r1 = creg + narg + 1;
+    mrbc_value *r1 = recv + narg + 1;
     memcpy( h.hash->data, r1, sizeof(mrbc_value) * karg * 2 );
     h.hash->n_stored = karg * 2;
 
@@ -115,10 +115,10 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
   }
 
   if( !is_sendb ) {
-    mrbc_set_nil( creg + narg + 1 );
+    mrbc_set_nil( recv + narg + 1 );
   }
 
-  mrbc_class *cls = find_class_by_object(creg);
+  mrbc_class *cls = find_class_by_object(recv);
   mrbc_method method;
   if( mrbc_find_method( &method, cls, sym_id ) == 0 ) {
     mrbc_printf("Undefined local variable or method '%s' for %s\n",
@@ -128,12 +128,12 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
 
   if( method.c_func ) {
     // call C method.
-    method.func(vm, creg, narg);
+    method.func(vm, recv, narg);
     if( method.func == c_proc_call ) return 0;
 
     int i;
     for( i = 1; i <= narg+1; i++ ) {
-      mrbc_decref_empty( creg + i );
+      mrbc_decref_empty( recv + i );
     }
 
   } else {
@@ -143,7 +143,7 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
 
     vm->cur_irep = method.irep;
     vm->inst = method.irep->inst;
-    vm->cur_regs = creg;
+    vm->cur_regs = recv;
   }
 
   return 0;
