@@ -16,15 +16,15 @@ struct RClass *mrbc_init_class_symbol(struct VM *vm)
     MRBC_SYMID_to_sym,
   };
   static const mrbc_func_t method_functions[] = {
-    c_all_symbols,
+    c_symbol_all_symbols,
 #if MRBC_USE_STRING
-    c_to_s,
+    c_symbol_to_s,
 #endif
 #if MRBC_USE_STRING
-    c_inspect,
+    c_symbol_inspect,
 #endif
 #if MRBC_USE_STRING
-    c_to_s,
+    c_symbol_to_s,
 #endif
     c_ineffect,
   };
