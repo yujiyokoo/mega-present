@@ -36,8 +36,10 @@
 #include <stdio.h>	// TODO
 #include "regdump.c"
 
+#define CALL_MAXARGS 15		// 15 is CALL_MAXARGS in mruby
 
 static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
+
 
 
 
@@ -70,7 +72,7 @@ static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a
   mrbc_value *recv = regs + a;
 
   // If it's packed in an array, expand it.
-  if( narg == 15 ) {
+  if( narg == CALL_MAXARGS ) {
     mrbc_value argv = recv[1];
     narg = mrbc_array_size(&argv);
     int i;
@@ -1077,7 +1079,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs EXT )
   mrbc_decref( &regs[a] );
   regs[a] = *recv;
 
-  if( b == 127 ) {	// 127 is CALL_MAXARGS in mruby
+  if( b == CALL_MAXARGS ) {
     // expand array
     assert( regs[a+1].tt == MRBC_TT_ARRAY );
 
