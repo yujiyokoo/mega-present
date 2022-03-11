@@ -188,7 +188,7 @@ static void c_object_block_given(struct VM *vm, mrbc_value v[], int argc)
     regs = callinfo->cur_regs + callinfo->reg_offset;
   }
 
-  SET_BOOL_RETURN( mrbc_type(regs[callinfo->n_args]) == MRBC_TT_PROC );
+  SET_BOOL_RETURN( mrbc_type(regs[callinfo->n_args+1]) == MRBC_TT_PROC );
   return;
 
  RETURN_FALSE:

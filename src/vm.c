@@ -34,25 +34,11 @@
 
 
 #include <stdio.h>	// TODO
-
+#include "regdump.c"
 
 
 static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
-static void REGDUMP( const mrbc_vm *vm, const mrbc_value *regs, int n, int argc )
-{
-  int i;
-  int j = regs - vm->regs;
-
-  mrbc_print("===== REGDUMP ==================\n");
-  for( i = 0; i < n; i++ ) {
-    if( i == argc )
-      mrbc_printf("> REGS[%d:%d] : ", j+i, i );
-    else
-      mrbc_printf("  REGS[%d:%d] : ", j+i, i );
-    mrbc_p( regs+i );
-  }
-}
 
 
 //================================================================
@@ -982,7 +968,6 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs EXT )
       return 0;
     }
 
-    mrbc_incref( &regs[a] );
     vm->exception = regs[a];
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     return 0;
@@ -991,7 +976,6 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs EXT )
   if( regs[a].tt == MRBC_TT_RETBLK ) {
     const mrbc_irep_catch_handler *handler =
       catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
-    mrbc_incref( &regs[a] );
     vm->exception = regs[a];
     if( handler ) {
       vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
@@ -1229,21 +1213,25 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
   mrbc_value proc = regs[argc + 1];
   regs[argc + 1].tt = MRBC_TT_EMPTY;
 
-  // support yield [...] pattern
-  int flag_yield_pattern = ( regs[0].tt == MRBC_TT_PROC &&
-			     regs[1].tt == MRBC_TT_ARRAY && argc != m1 );
-  if( flag_yield_pattern ) {
+  // support yield [...] pattern, to expand array.
+  if( regs[0].tt == MRBC_TT_PROC &&
+      regs[1].tt == MRBC_TT_ARRAY &&
+      argc == 1 && m1 > 1 ) {
     mrbc_value argary = regs[1];
     regs[1].tt = MRBC_TT_EMPTY;
 
+    argc = mrbc_array_size(&argary);
+    if( argc < m1 ) argc = m1;
+
     int i;
-    for( i = 0; i < m1; i++ ) {
-      if( mrbc_array_size(&argary) <= i ) break;
-      regs[i+1] = argary.array->data[i];
-      mrbc_incref( &regs[i+1] );
+    for( i = 0; i < argc; i++ ) {
+      if( mrbc_array_size(&argary) > i ) {
+	regs[i+1] = argary.array->data[i];
+      } else {
+	mrbc_set_nil( &regs[i+1] );
+      }
     }
-    //    mrbc_array_delete( &argary );
-    argc = i;
+    mrbc_array_delete_handle( &argary );
   }
 
   // dictionary parameter if exists.
@@ -1275,26 +1263,17 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 
   // reorder arguments.
   int i;
-  if( argc < m1 ) {
-    for( i = argc+1; i <= m1; i++ ) {
-      regs[i].tt = MRBC_TT_NIL;
-    }
-  } else {
-    i = m1 + 1;
+  for( i = argc; i < m1; ) {
+    mrbc_set_nil( &regs[++i] );
   }
-  i += o;
+  i = m1 + o;
   if( FLAG_REST_PARAM ) {
-    regs[i++] = rest;
+    regs[++i] = rest;
   }
   if( FLAG_DICT_PARAM ) {
-    regs[i++] = dict;
+    regs[++i] = dict;
   }
-
-  // find the proc position.
-  if( proc.tt == MRBC_TT_PROC ) {
-    if( argc >= i ) i = argc + 1;
-    regs[i] = proc;
-  }
+  regs[i+1] = proc;
   vm->callinfo_tail->n_args = i;
 
   // prepare for get default arguments.
@@ -2646,6 +2625,7 @@ int mrbc_vm_run( struct VM *vm )
 
   while( 1 ) {
     mrbc_value *regs = vm->cur_regs;
+    REGDUMP( vm, regs, 10, 0 );
     uint8_t op = *vm->inst++;		// Dispatch
 
     switch( op ) {
