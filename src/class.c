@@ -282,7 +282,7 @@ void mrbc_proc_clear_vm_id(mrbc_value *v)
   @param  cls	class
   @return	result
 */
-int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls )
+int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrbc_class *cls )
 {
   const mrbc_class *c = find_class_by_object( obj );
   while( c != NULL ) {

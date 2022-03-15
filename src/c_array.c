@@ -578,7 +578,7 @@ static void c_array_new(struct VM *vm, mrbc_value v[], int argc)
 */
 static void c_array_add(struct VM *vm, mrbc_value v[], int argc)
 {
-  if( mrb_type(v[1]) != MRBC_TT_ARRAY ) {
+  if( mrbc_type(v[1]) != MRBC_TT_ARRAY ) {
     mrbc_print("TypeError\n");	// raise?
     return;
   }
@@ -820,7 +820,7 @@ static void c_array_include(struct VM *vm, mrbc_value v[], int argc)
 {
   c_array_index(vm, v, argc);
 
-  SET_BOOL_RETURN( mrb_type(v[0]) == MRBC_TT_INTEGER );
+  SET_BOOL_RETURN( mrbc_type(v[0]) == MRBC_TT_INTEGER );
 }
 
 
