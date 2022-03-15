@@ -298,7 +298,8 @@ mrbc_value mrbc_irep_pool_value(struct VM *vm, int n)
   case IREP_TT_STR:
   case IREP_TT_SSTR: {
     int len = bin_to_uint16(p);
-    return mrbc_string_new( vm, p+2, len );
+    obj = mrbc_string_new( vm, p+2, len );
+    break;
   }
 #endif
 
@@ -317,6 +318,10 @@ mrbc_value mrbc_irep_pool_value(struct VM *vm, int n)
     mrbc_set_integer(&obj, obj.i = bin_to_int64(p));
     break;
 #endif
+
+  default:
+    mrbc_raise(vm, MRBC_CLASS(Exception), "Not support such type (IREP_TT)");
+    mrbc_set_nil(&obj);
   }
 
   return obj;

@@ -33,9 +33,11 @@
 #include "c_hash.h"
 
 
+#define CALL_MAXARGS 15		// 15 is CALL_MAXARGS in mruby
+
 static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
-#define CALL_MAXARGS 255
+
 
 
 //================================================================
@@ -60,52 +62,74 @@ static void not_supported(void)
 */
 static int send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a, int c, int is_sendb )
 {
-  mrbc_value *recv = &regs[a];
+  // Does not support to keyword arguments.
+  // thus, reorder arguments to mruby2 series compatible.
+  int narg = c & 0x0f;
+  int karg = c >> 4;
+  mrbc_value *recv = regs + a;
 
-  // if SENDV or SENDVB, params are in one Array
-  int flag_array_arg = ( c == CALL_MAXARGS );
-  if( flag_array_arg ) c = 1;
+  // If it's packed in an array, expand it.
+  if( narg == CALL_MAXARGS ) {
+    mrbc_value argv = recv[1];
+    narg = mrbc_array_size(&argv);
+    int i;
+    for( i = 0; i < narg; i++ ) {
+      mrbc_incref( &argv.array->data[i] );
+    }
 
-  // if not OP_SENDB, blcok does not exist
-  int bidx = a + c + 1;
+    memmove( recv + narg + 1, recv + 2, sizeof(mrbc_value) * (karg * 2 + 1) );
+    memcpy( recv + 1, argv.array->data, sizeof(mrbc_value) * narg );
+
+    mrbc_decref(&argv);
+  }
+
+  // Convert keyword argument to hash.
+  if( karg ) {
+    mrbc_value h = mrbc_hash_new( vm, karg );
+    if( !h.hash ) return 0;	// ENOMEM
+
+    mrbc_value *r1 = recv + narg + 1;
+    memcpy( h.hash->data, r1, sizeof(mrbc_value) * karg * 2 );
+    h.hash->n_stored = karg * 2;
+
+    mrbc_value block = r1[karg * 2];
+    memset( r1 + 2, 0, sizeof(mrbc_value) * (karg * 2 - 1) );
+    *r1++ = h;
+    *r1 = block;
+    narg++;
+  }
+
   if( !is_sendb ) {
-    mrbc_decref( &regs[bidx] );
-    regs[bidx].tt = MRBC_TT_NIL;
+    mrbc_set_nil( recv + narg + 1 );
   }
 
   mrbc_class *cls = find_class_by_object(recv);
   mrbc_method method;
-
   if( mrbc_find_method( &method, cls, sym_id ) == 0 ) {
     mrbc_printf("Undefined local variable or method '%s' for %s\n",
 		symid_to_str(sym_id), symid_to_str( cls->sym_id ));
     return 1;
   }
 
-  // call C method.
   if( method.c_func ) {
-    method.func(vm, regs + a, c);
+    // call C method.
+    method.func(vm, recv, narg);
     if( method.func == c_proc_call ) return 0;
 
-    int release_reg = a+1;
-    while( release_reg <= bidx ) {
-      mrbc_decref_empty(&regs[release_reg]);
-      release_reg++;
+    int i;
+    for( i = 1; i <= narg+1; i++ ) {
+      mrbc_decref_empty( recv + i );
     }
-    return 0;
+
+  } else {
+    // call Ruby method.
+    mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, sym_id, a, narg);
+    callinfo->own_class = method.cls;
+
+    vm->cur_irep = method.irep;
+    vm->inst = method.irep->inst;
+    vm->cur_regs = recv;
   }
-
-  // call Ruby method.
-  if( flag_array_arg ) c = CALL_MAXARGS;
-  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, sym_id, a, c);
-  callinfo->own_class = method.cls;
-
-  // target irep
-  vm->cur_irep = method.irep;
-  vm->inst = method.irep->inst;
-
-  // new regs
-  vm->cur_regs += a;
 
   return 0;
 }
@@ -698,14 +722,15 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_BBB(ext);
 
-  assert( regs[0].tt == MRBC_TT_PROC );
+  assert( mrbc_type(regs[0]) == MRBC_TT_PROC );
   mrbc_callinfo *callinfo = regs[0].proc->callinfo;
 
   int i;
   for( i = 0; i < c; i++ ) {
     assert( callinfo );
     mrbc_value *regs0 = callinfo->cur_regs + callinfo->reg_offset;
-    assert( regs0->tt == MRBC_TT_PROC );
+
+    if( mrbc_type(*regs0) != MRBC_TT_PROC ) break;	// What to do?
     callinfo = regs0->proc->callinfo;
   }
 
@@ -943,7 +968,6 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs EXT )
       return 0;
     }
 
-    mrbc_incref( &regs[a] );
     vm->exception = regs[a];
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     return 0;
@@ -952,7 +976,6 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs EXT )
   if( regs[a].tt == MRBC_TT_RETBLK ) {
     const mrbc_irep_catch_handler *handler =
       catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
-    mrbc_incref( &regs[a] );
     vm->exception = regs[a];
     if( handler ) {
       vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
@@ -1054,7 +1077,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs EXT )
   mrbc_decref( &regs[a] );
   regs[a] = *recv;
 
-  if( b == 127 ) {	// 127 is CALL_MAXARGS in mruby
+  if( b == CALL_MAXARGS ) {
     // expand array
     assert( regs[a+1].tt == MRBC_TT_ARRAY );
 
@@ -1112,6 +1135,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs EXT )
 /*! OP_ARGARY
 
   R[a] = argument array (16=m5:r1:m5:d1:lv4)
+                         mmmm_mrmm_mmmd_llll
 */
 static inline int op_argary( mrbc_vm *vm, mrbc_value *regs EXT )
 {
@@ -1160,6 +1184,9 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 {
+#define FLAG_REST_PARAM (a & 0x1000)
+#define FLAG_DICT_PARAM (a & 0x2)
+
   FETCH_W(ext);
 
   // Check the number of registers to use.
@@ -1171,47 +1198,14 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 
   int m1 = (a >> 18) & 0x1f;	// # of required parameters 1
   int o  = (a >> 13) & 0x1f;	// # of optional parameters
-#define FLAG_REST_PARAM (a & 0x1000)
-#define FLAG_DICT_PARAM (a & 0x2)
-
-  mrbc_value *argv = &regs[1];
   int argc = vm->callinfo_tail->n_args;
-
-  /* arguments are passed with Array */
-  if( argc == 15 ){
-    assert( regs[1].tt == MRBC_TT_ARRAY );
-    argv = regs[1].array->data;
-    argc = regs[1].array->n_stored;
-  }
-
-  /* relocate arguments */
-  int i;
-  if( &regs[1] != argv ){
-    for( i=0 ; i<argc ; i++ ){
-      mrbc_decref(&regs[i+1]);
-      regs[i+1] = argv[i];
-      mrbc_incref(&regs[i+1]);
-    }
-  }
-
-  return 0;
-
-  /////// Not yet implemented
-
-
-#if 0
-  // OP_SENDV or OP_SENDVB
-  int flag_sendv_pattern = ( argc == CALL_MAXARGS );
-  if( flag_sendv_pattern ) {
-    argc = 1;
-  }
 
   if( a & 0xffc ) {	// check m2 and k parameter.
     mrbc_printf("ArgumentError: not support m2 or keyword argument.\n");
     return 1;		// raise?
   }
 
-  if( !flag_sendv_pattern && argc < m1 && regs[0].tt != MRBC_TT_PROC ) {
+  if( argc < m1 && regs[0].tt != MRBC_TT_PROC ) {
     mrbc_printf("ArgumentError: wrong number of arguments.\n");
     return 1;		// raise?
   }
@@ -1220,28 +1214,25 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
   mrbc_value proc = regs[argc + 1];
   regs[argc + 1].tt = MRBC_TT_EMPTY;
 
-  // support yield [...] pattern
-  // support op_sendv pattern
-  int flag_yield_pattern = ( regs[0].tt == MRBC_TT_PROC &&
-			     regs[1].tt == MRBC_TT_ARRAY && argc != m1 );
-  if( flag_yield_pattern || flag_sendv_pattern ) {
+  // support yield [...] pattern, to expand array.
+  if( regs[0].tt == MRBC_TT_PROC &&
+      regs[1].tt == MRBC_TT_ARRAY &&
+      argc == 1 && m1 > 1 ) {
     mrbc_value argary = regs[1];
     regs[1].tt = MRBC_TT_EMPTY;
 
+    argc = mrbc_array_size(&argary);
+    if( argc < m1 ) argc = m1;
+
     int i;
-    int copy_size;
-    if( flag_sendv_pattern ) {
-      copy_size = mrbc_array_size(&argary);
-    } else {
-      copy_size = m1;
+    for( i = 0; i < argc; i++ ) {
+      if( mrbc_array_size(&argary) > i ) {
+	regs[i+1] = argary.array->data[i];
+      } else {
+	mrbc_set_nil( &regs[i+1] );
+      }
     }
-    for( i = 0; i < copy_size; i++ ) {
-      if( mrbc_array_size(&argary) <= i ) break;
-      regs[i+1] = argary.array->data[i];
-      mrbc_incref( &regs[i+1] );
-    }
-    //    mrbc_array_delete( &argary );
-    argc = i;
+    mrbc_array_delete_handle( &argary );
   }
 
   // dictionary parameter if exists.
@@ -1273,30 +1264,17 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 
   // reorder arguments.
   int i;
-  if( argc < m1 ) {
-    for( i = argc+1; i <= m1; i++ ) {
-      regs[i].tt = MRBC_TT_NIL;
-    }
-  } else {
-    i = m1 + 1;
+  for( i = argc; i < m1; ) {
+    mrbc_set_nil( &regs[++i] );
   }
-  i += o;
+  i = m1 + o;
   if( FLAG_REST_PARAM ) {
-    regs[i++] = rest;
+    regs[++i] = rest;
   }
   if( FLAG_DICT_PARAM ) {
-    regs[i++] = dict;
+    regs[++i] = dict;
   }
-
-  // proc の位置を求める
-  if( proc.tt == MRBC_TT_PROC ) {
-    if( flag_sendv_pattern ) {
-      // Nothing
-    } else {
-      if( argc >= i ) i = argc + 1;
-    }
-    regs[i] = proc;
-  }
+  regs[i+1] = proc;
   vm->callinfo_tail->n_args = i;
 
   // prepare for get default arguments.
@@ -1315,8 +1293,6 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
   return 0;
 #undef FLAG_REST_PARAM
 #undef FLAG_DICT_PARAM
-
-#endif
 }
 
 
