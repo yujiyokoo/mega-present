@@ -33,9 +33,6 @@
 #include "c_hash.h"
 
 
-#include <stdio.h>	// TODO
-#include "regdump.c"
-
 #define CALL_MAXARGS 15		// 15 is CALL_MAXARGS in mruby
 
 static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
@@ -725,14 +722,15 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_BBB(ext);
 
-  assert( regs[0].tt == MRBC_TT_PROC );
+  assert( mrbc_type(regs[0]) == MRBC_TT_PROC );
   mrbc_callinfo *callinfo = regs[0].proc->callinfo;
 
   int i;
   for( i = 0; i < c; i++ ) {
     assert( callinfo );
     mrbc_value *regs0 = callinfo->cur_regs + callinfo->reg_offset;
-    assert( regs0->tt == MRBC_TT_PROC );
+
+    if( mrbc_type(*regs0) != MRBC_TT_PROC ) break;	// What to do?
     callinfo = regs0->proc->callinfo;
   }
 
@@ -1137,6 +1135,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs EXT )
 /*! OP_ARGARY
 
   R[a] = argument array (16=m5:r1:m5:d1:lv4)
+                         mmmm_mrmm_mmmd_llll
 */
 static inline int op_argary( mrbc_vm *vm, mrbc_value *regs EXT )
 {
@@ -2627,7 +2626,6 @@ int mrbc_vm_run( struct VM *vm )
 
   while( 1 ) {
     mrbc_value *regs = vm->cur_regs;
-    REGDUMP( vm, regs, 10, 0 );
     uint8_t op = *vm->inst++;		// Dispatch
 
     switch( op ) {

@@ -3,8 +3,8 @@
   Global configration of mruby/c VM's
 
   <pre>
-  Copyright (C) 2015-2019 Kyushu Institute of Technology.
-  Copyright (C) 2015-2019 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -96,7 +96,7 @@
 #endif
 
 // #define MRBC_NO_TIMER
-
 // #define MRBC_INT64
+// #define MRBC_SUPPORT_OP_EXT
 
 #endif
