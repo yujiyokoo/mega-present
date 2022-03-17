@@ -3,8 +3,8 @@
   mruby bytecode executor.
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -59,7 +59,7 @@ typedef struct IREP mrb_irep;
 
 // mrbc_irep manipulate macro.
 //! get a symbol id table pointer.
-#define mrbc_irep_tbl_syms(irep)  ((mrbc_sym *)(irep)->data)
+#define mrbc_irep_tbl_syms(irep)	((mrbc_sym *)(irep)->data)
 
 //! get a n'th symbol id in irep
 #define mrbc_irep_symbol_id(irep, n)	mrbc_irep_tbl_syms(irep)[(n)]
@@ -82,7 +82,8 @@ typedef struct IREP mrb_irep;
   ( (mrbc_irep **) ((irep)->data + (irep)->ofs_ireps * 4) )
 
 //! get a n'th child irep
-#define mrbc_irep_child_irep(irep, n)	( mrbc_irep_tbl_ireps(irep)[(n)] )
+#define mrbc_irep_child_irep(irep, n) \
+  ( mrbc_irep_tbl_ireps(irep)[(n)] )
 
 
 

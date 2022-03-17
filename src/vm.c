@@ -717,6 +717,9 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs EXT )
 /*! OP_GETUPVAR
 
   R[a] = uvget(b,c)
+
+  b: target offset of regs.
+  c: nested block level.
 */
 static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs EXT )
 {
@@ -728,10 +731,10 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs EXT )
   int i;
   for( i = 0; i < c; i++ ) {
     assert( callinfo );
-    mrbc_value *regs0 = callinfo->cur_regs + callinfo->reg_offset;
+    mrbc_value *reg0 = callinfo->cur_regs + callinfo->reg_offset;
 
-    if( mrbc_type(*regs0) != MRBC_TT_PROC ) break;	// What to do?
-    callinfo = regs0->proc->callinfo;
+    if( mrbc_type(*reg0) != MRBC_TT_PROC ) break;	// What to do?
+    callinfo = reg0->proc->callinfo;
   }
 
   mrbc_value *p_val;
@@ -764,9 +767,9 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs EXT )
   int i;
   for( i = 0; i < c; i++ ) {
     assert( callinfo );
-    mrbc_value *regs0 = callinfo->cur_regs + callinfo->reg_offset;
-    assert( regs0->tt == MRBC_TT_PROC );
-    callinfo = regs0->proc->callinfo;
+    mrbc_value *reg0 = callinfo->cur_regs + callinfo->reg_offset;
+    assert( reg0->tt == MRBC_TT_PROC );
+    callinfo = reg0->proc->callinfo;
   }
 
   mrbc_value *p_val;
@@ -1077,7 +1080,13 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs EXT )
   mrbc_decref( &regs[a] );
   regs[a] = *recv;
 
-  if( b == CALL_MAXARGS ) {
+  if( (b & 0x0f) == CALL_MAXARGS ) {
+    /* (note)
+       on mrbc ver 3.1
+         b = 15  in initialize method.
+	 b = 255 in other method.
+    */
+
     // expand array
     assert( regs[a+1].tt == MRBC_TT_ARRAY );
 
@@ -1135,7 +1144,8 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs EXT )
 /*! OP_ARGARY
 
   R[a] = argument array (16=m5:r1:m5:d1:lv4)
-                         mmmm_mrmm_mmmd_llll
+
+  flags: mmmm_mrmm_mmmd_llll
 */
 static inline int op_argary( mrbc_vm *vm, mrbc_value *regs EXT )
 {
@@ -1143,6 +1153,7 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs EXT )
 
   int m1 = (b >> 11) & 0x3f;
   int d  = (b >>  4) & 0x01;
+  int lv = b & 0x0f;
 
   if( b & 0x400 ) {	// check REST parameter.
     // TODO: want to support.
@@ -1154,22 +1165,43 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs EXT )
     return 1;		// raise?
   }
 
+  mrbc_value *reg0 = regs;
+
+  // rewind proc nest
+  if( lv ) {
+    assert( mrbc_type(*reg0) == MRBC_TT_PROC );
+    mrbc_callinfo *callinfo = reg0->proc->callinfo;
+    assert( callinfo );
+
+    int i;
+    for( i = 1; i < lv; i ++ ) {
+      reg0 = callinfo->cur_regs + callinfo->reg_offset;
+      assert( mrbc_type(*reg0) == MRBC_TT_PROC );
+      callinfo = reg0->proc->callinfo;
+      assert( callinfo );
+    }
+
+    reg0 = callinfo->cur_regs + callinfo->reg_offset;
+  }
+
+  // create arguent array.
   int array_size = m1 + d;
   mrbc_value val = mrbc_array_new( vm, array_size );
   if( !val.array ) return 1;	// ENOMEM raise?
 
   int i;
   for( i = 0; i < array_size; i++ ) {
-    mrbc_array_push( &val, &regs[i+1] );
-    mrbc_incref( &regs[i+1] );
+    mrbc_array_push( &val, &reg0[i+1] );
+    mrbc_incref( &reg0[i+1] );
   }
 
   mrbc_decref(&regs[a]);
   regs[a] = val;
 
-  mrbc_incref(&regs[m1+1]);
-  mrbc_decref(&regs[a+1]);
-  regs[a+1] = regs[m1+1];
+  // copy a block object
+  mrbc_decref( &regs[a+1] );
+  regs[a+1] = regs[m1+d+1];
+  mrbc_incref( &regs[a+1] );
 
   return 0;
 }
