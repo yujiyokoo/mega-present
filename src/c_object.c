@@ -650,37 +650,21 @@ static void c_object_printf(struct VM *vm, mrbc_value v[], int argc)
 static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 {
   char buf[32];
-  const char *s = buf;
+  const char *s;
 
   switch( mrbc_type(v[0]) ) {
   case MRBC_TT_CLASS:
     s = symid_to_str( v->cls->sym_id );
     break;
 
-  case MRBC_TT_OBJECT:{
-    // (NOTE) address part assumes 32bit. but enough for this.
-    mrbc_printf_t pf;
-
-    mrbc_printf_init( &pf, buf, sizeof(buf), "#<%s:%08x>" );
-    while( mrbc_printf_main( &pf ) > 0 ) {
-      switch(pf.fmt.type) {
-      case 's':
-	mrbc_printf_str( &pf, symid_to_str(v->instance->cls->sym_id), ' ' );
-	break;
-      case 'x':
-#if defined(UINTPTR_MAX)
-	mrbc_printf_int( &pf, (uint32_t)(uintptr_t)v->instance, 16 );
-#else
-	mrbc_printf_int( &pf, (uint32_t)v->instance, 16 );
-#endif
-	break;
-      }
-    }
-    mrbc_printf_end( &pf );
-  } break;
-
   default:
-    s = "";
+    mrbc_snprintf(buf, sizeof(buf), "#<%s:%08x>",
+		  symid_to_str(find_class_by_object(v)->sym_id), (uint32_t)
+#if defined(UINTPTR_MAX)
+		  (uintptr_t)
+#endif
+		  v->instance );
+    s = buf;
     break;
   }
 
@@ -776,31 +760,6 @@ void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 }
 
 
-#if MRBC_USE_STRING
-//================================================================
-/*! (method) to_s
-*/
-static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
-{
-  // (NOTE) address part assumes 32bit. but enough for this.
-  char buf[32];
-  mrbc_printf_t pf;
-
-  mrbc_printf_init( &pf, buf, sizeof(buf), "#<Proc:%08x>" );
-  while( mrbc_printf_main( &pf ) > 0 ) {
-#if defined(UINTPTR_MAX)
-    mrbc_printf_int( &pf, (uint32_t)(uintptr_t)v->proc, 16 );
-#else
-    mrbc_printf_int( &pf, (uint32_t)v->proc, 16 );
-#endif
-  }
-  mrbc_printf_end( &pf );
-
-  SET_RETURN( mrbc_string_new_cstr( vm, buf ) );
-}
-#endif // MRBC_USE_STRING
-
-
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Proc")
@@ -808,11 +767,6 @@ static void c_proc_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   METHOD( "new",	c_proc_new )
   METHOD( "call",	c_proc_call )
-
-#if MRBC_USE_STRING
-  METHOD( "inspect",	c_proc_to_s )
-  METHOD( "to_s",	c_proc_to_s )
-#endif
 */
 #include "method_table_proc.h"
 

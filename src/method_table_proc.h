@@ -2,23 +2,11 @@
 #include "symbol_builtin.h"
 static const mrbc_sym method_symbols_Proc[] = {
   MRBC_SYM(call),
-#if MRBC_USE_STRING
-  MRBC_SYM(inspect),
-#endif
   MRBC_SYM(new),
-#if MRBC_USE_STRING
-  MRBC_SYM(to_s),
-#endif
 };
 static const mrbc_func_t method_functions_Proc[] = {
   c_proc_call,
-#if MRBC_USE_STRING
-  c_proc_to_s,
-#endif
   c_proc_new,
-#if MRBC_USE_STRING
-  c_proc_to_s,
-#endif
 };
 
 struct RBuiltinClass mrbc_class_Proc = {

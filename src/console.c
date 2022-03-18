@@ -3,8 +3,8 @@
   console output module. (not yet input)
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -101,8 +101,92 @@ void mrbc_nprint(const char *str, int size)
 }
 
 
+//----------------------------------------------------------------
+/* sub function for mrbc_snprintf, mrbc_printf
+*/
+static int mrbc_printf_sub_output_arg( mrbc_printf_t *pf, va_list ap )
+{
+  int ret;
+
+  switch(pf->fmt.type) {
+  case 'c':
+    ret = mrbc_printf_char( pf, va_arg(ap, int) );
+    break;
+
+  case 's':
+    ret = mrbc_printf_str( pf, va_arg(ap, char *), ' ');
+    break;
+
+  case 'd':
+  case 'i':
+  case 'u':
+    ret = mrbc_printf_int( pf, va_arg(ap, int), 10);
+    break;
+
+  case 'D':	// for mrbc_int (see mrbc_print_sub)
+    ret = mrbc_printf_int( pf, va_arg(ap, mrbc_int), 10);
+    break;
+
+  case 'b':
+  case 'B':
+    ret = mrbc_printf_bit( pf, va_arg(ap, unsigned int), 1);
+    break;
+
+  case 'x':
+  case 'X':
+    ret = mrbc_printf_bit( pf, va_arg(ap, unsigned int), 4);
+    break;
+
+#if MRBC_USE_FLOAT
+  case 'f':
+  case 'e':
+  case 'E':
+  case 'g':
+  case 'G':
+    ret = mrbc_printf_float( pf, va_arg(ap, double) );
+    break;
+#endif
+  case 'p':
+    ret = mrbc_printf_pointer( pf, va_arg(ap, void *) );
+    break;
+
+  default:
+    ret = 0;
+    break;
+  }
+
+  return ret;
+}
+
+
 //================================================================
-/*! output formatted string
+/*! formatted output conversion, output to fixed buffer.
+
+  @param  buf		output buffer.
+  @param  bufsiz	buffer size.
+  @param  fstr		format string.
+*/
+void mrbc_snprintf( char *buf, int bufsiz, const char *fstr, ...)
+{
+  va_list ap;
+  va_start(ap, fstr);
+
+  mrbc_printf_t pf;
+  mrbc_printf_init( &pf, buf, bufsiz, fstr );
+
+  while( 1 ) {
+    if( mrbc_printf_main( &pf ) <= 0 ) break;
+				// normal end (==0) or buffer full (<0).
+    if( mrbc_printf_sub_output_arg( &pf, ap ) != 0 ) break;
+  }
+
+  mrbc_printf_end( &pf );
+  va_end(ap);
+}
+
+
+//================================================================
+/*! formatted output conversion, output to console.
 
   @param  fstr		format string.
 */
@@ -115,70 +199,22 @@ void mrbc_printf(const char *fstr, ...)
   char buf[MRBC_PRINTF_MAX_WIDTH];
   mrbc_printf_init( &pf, buf, sizeof(buf), fstr );
 
-  int ret;
   while( 1 ) {
-    ret = mrbc_printf_main( &pf );
+    int ret = mrbc_printf_main( &pf );
     if( mrbc_printf_len( &pf ) ) {
       mrbc_nprint( buf, mrbc_printf_len( &pf ) );
       mrbc_printf_clear( &pf );
     }
     if( ret == 0 ) break;
     if( ret < 0 ) continue;
-    if( ret > 0 ) {
-      switch(pf.fmt.type) {
-      case 'c':
-	ret = mrbc_printf_char( &pf, va_arg(ap, int) );
-	break;
 
-      case 's':
-	ret = mrbc_printf_str( &pf, va_arg(ap, char *), ' ');
-	break;
-
-      case 'd':
-      case 'i':
-      case 'u':
-	ret = mrbc_printf_int( &pf, va_arg(ap, int), 10);
-	break;
-
-      case 'D':	// for mrbc_int (see mrbc_print_sub)
-	ret = mrbc_printf_int( &pf, va_arg(ap, mrbc_int), 10);
-	break;
-
-      case 'b':
-      case 'B':
-	ret = mrbc_printf_bit( &pf, va_arg(ap, unsigned int), 1);
-	break;
-
-      case 'x':
-      case 'X':
-	ret = mrbc_printf_bit( &pf, va_arg(ap, unsigned int), 4);
-	break;
-
-#if MRBC_USE_FLOAT
-      case 'f':
-      case 'e':
-      case 'E':
-      case 'g':
-      case 'G':
-	ret = mrbc_printf_float( &pf, va_arg(ap, double) );
-	break;
-#endif
-      case 'p':
-	ret = mrbc_printf_pointer( &pf, va_arg(ap, void *) );
-	break;
-
-      default:
-	break;
-      }
-
-      mrbc_nprint( buf, mrbc_printf_len( &pf ) );
-      mrbc_printf_clear( &pf );
-    }
+    mrbc_printf_sub_output_arg( &pf, ap );
+    mrbc_nprint( buf, mrbc_printf_len( &pf ) );
+    mrbc_printf_clear( &pf );
   }
 
   va_end(ap);
 }
-
 
 
 //================================================================
@@ -239,7 +275,6 @@ int mrbc_printf_main( mrbc_printf_t *pf )
 
   return 1;
 }
-
 
 
 //================================================================
@@ -655,6 +690,7 @@ int mrbc_print_sub(const mrbc_value *v)
 
   case MRBC_TT_PROC:
     mrbc_printf( "#<Proc:%08x>", v->proc );
+    //mrbc_printf( "#<Proc:%08x, callinfo=%p>", v->proc, v->proc->callinfo );
     break;
 
   case MRBC_TT_ARRAY:{
