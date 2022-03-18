@@ -297,7 +297,7 @@ static mrbc_value * mrbc_get_self( struct VM *vm, mrbc_value *regs )
 */
 static inline int op_nop( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_Z(ext);
+  FETCH_Z();
   return 0;
 }
 
@@ -309,7 +309,7 @@ static inline int op_nop( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_move( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_incref(&regs[b]);
   mrbc_decref(&regs[a]);
@@ -326,7 +326,7 @@ static inline int op_move( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_decref(&regs[a]);
   regs[a] = mrbc_irep_pool_value(vm, b);
@@ -342,7 +342,7 @@ static inline int op_loadl( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_decref(&regs[a]);
   mrbc_set_integer(&regs[a], b);
@@ -358,7 +358,7 @@ static inline int op_loadi( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_decref(&regs[a]);
   mrbc_set_integer(&regs[a], -b);
@@ -374,7 +374,7 @@ static inline int op_loadineg( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   // get n
   int opcode = vm->inst[-2];
@@ -394,7 +394,7 @@ static inline int op_loadi_n( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadi16( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BS(ext);
+  FETCH_BS();
 
   mrbc_decref(&regs[a]);
   int16_t signed_b = (int16_t)b;
@@ -411,7 +411,7 @@ static inline int op_loadi16( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadi32( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BSS(ext);
+  FETCH_BSS();
 
   mrbc_decref(&regs[a]);
   mrbc_set_integer(&regs[a], (((int32_t)b<<16)+c));
@@ -427,7 +427,7 @@ static inline int op_loadi32( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_decref(&regs[a]);
   mrbc_set_symbol(&regs[a], mrbc_irep_symbol_id(vm->cur_irep, b));
@@ -443,7 +443,7 @@ static inline int op_loadsym( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   mrbc_decref(&regs[a]);
   mrbc_set_nil(&regs[a]);
@@ -459,7 +459,7 @@ static inline int op_loadnil( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   mrbc_value *self = mrbc_get_self( vm, regs );
 
@@ -478,7 +478,7 @@ static inline int op_loadself( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadt( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   mrbc_decref(&regs[a]);
   mrbc_set_true(&regs[a]);
@@ -494,7 +494,7 @@ static inline int op_loadt( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_loadf( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   mrbc_decref(&regs[a]);
   mrbc_set_false(&regs[a]);
@@ -510,7 +510,7 @@ static inline int op_loadf( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_decref(&regs[a]);
   mrbc_value *v = mrbc_get_global( mrbc_irep_symbol_id(vm->cur_irep, b) );
@@ -532,7 +532,7 @@ static inline int op_getgv( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_incref(&regs[a]);
   mrbc_set_global( mrbc_irep_symbol_id(vm->cur_irep, b), &regs[a] );
@@ -548,7 +548,7 @@ static inline int op_setgv( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   const char *sym_name = mrbc_irep_symbol_cstr(vm->cur_irep, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
@@ -568,7 +568,7 @@ static inline int op_getiv( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   const char *sym_name = mrbc_irep_symbol_cstr(vm->cur_irep, b);
   mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
@@ -587,7 +587,7 @@ static inline int op_setiv( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_sym sym_id = mrbc_irep_symbol_id(vm->cur_irep, b);
   mrbc_class *cls = NULL;
@@ -668,7 +668,7 @@ static inline int op_getconst( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_sym sym_id = mrbc_irep_symbol_id(vm->cur_irep, b);
 
@@ -690,7 +690,7 @@ static inline int op_setconst( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_sym sym_id = mrbc_irep_symbol_id(vm->cur_irep, b);
   mrbc_class *cls = regs[a].cls;
@@ -723,7 +723,7 @@ static inline int op_getmcnst( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   assert( mrbc_type(regs[0]) == MRBC_TT_PROC );
   mrbc_callinfo *callinfo = regs[0].proc->callinfo;
@@ -759,7 +759,7 @@ static inline int op_getupvar( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   assert( regs[0].tt == MRBC_TT_PROC );
   mrbc_callinfo *callinfo = regs[0].proc->callinfo;
@@ -794,7 +794,7 @@ static inline int op_setupvar( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_getidx( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   return send_by_name(vm, MRBC_SYMID_BL_BR, regs, a, 1, 0);
 }
@@ -807,7 +807,7 @@ static inline int op_getidx( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_setidx( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   return send_by_name(vm, MRBC_SYMID_BL_BR_EQ, regs, a, 2, 0);
 }
@@ -820,7 +820,7 @@ static inline int op_setidx( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_S(ext);
+  FETCH_S();
 
   vm->inst += (int16_t)a;
 
@@ -835,7 +835,7 @@ static inline int op_jmp( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BS(ext);
+  FETCH_BS();
 
   if( regs[a].tt > MRBC_TT_FALSE ) {
     vm->inst += (int16_t)b;
@@ -852,7 +852,7 @@ static inline int op_jmpif( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BS(ext);
+  FETCH_BS();
 
   if( regs[a].tt <= MRBC_TT_FALSE ) {
     vm->inst += (int16_t)b;
@@ -869,7 +869,7 @@ static inline int op_jmpnot( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BS(ext);
+  FETCH_BS();
 
   if( regs[a].tt == MRBC_TT_NIL ) {
     vm->inst += (int16_t)b;
@@ -886,7 +886,7 @@ static inline int op_jmpnil( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_S(ext);
+  FETCH_S();
 
   // check catch handler (ensure)
   const mrbc_irep_catch_handler *handler = catch_handler_find(vm, 0, MRBC_CATCH_FILTER_ENSURE);
@@ -918,7 +918,7 @@ static inline int op_jmpuw( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_except( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   mrbc_decref( &regs[a] );
   regs[a] = vm->exception;
@@ -935,7 +935,7 @@ static inline int op_except( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   assert( regs[a].tt == MRBC_TT_EXCEPTION );
   assert( regs[b].tt == MRBC_TT_CLASS );
@@ -954,7 +954,7 @@ static inline int op_rescue( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   if( regs[a].tt == MRBC_TT_JMPUW ) {
     const mrbc_irep_catch_handler *handler =
@@ -1004,7 +1004,7 @@ static inline int op_raiseif( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_ssend( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   mrbc_value *self = mrbc_get_self( vm, regs );
 
@@ -1024,7 +1024,7 @@ static inline int op_ssend( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_ssendb( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   mrbc_value *self = mrbc_get_self( vm, regs );
 
@@ -1044,7 +1044,7 @@ static inline int op_ssendb( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_send( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   return send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 0 );
 }
@@ -1057,7 +1057,7 @@ static inline int op_send( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_sendb( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   return send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 1 );
 }
@@ -1070,7 +1070,7 @@ static inline int op_sendb( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_super( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   // set self to new regs[0]
   mrbc_value *recv = mrbc_get_self(vm, regs);
@@ -1149,7 +1149,7 @@ static inline int op_super( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_argary( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BS(ext);
+  FETCH_BS();
 
   int m1 = (b >> 11) & 0x3f;
   int d  = (b >>  4) & 0x01;
@@ -1219,7 +1219,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 #define FLAG_REST_PARAM (a & 0x1000)
 #define FLAG_DICT_PARAM (a & 0x2)
 
-  FETCH_W(ext);
+  FETCH_W();
 
   // Check the number of registers to use.
   int reg_use_max = regs - vm->regs + vm->cur_irep->nregs;
@@ -1335,7 +1335,7 @@ static inline int op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_return( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   // check return from ensure.
   if( vm->exception.tt == MRBC_TT_RETBLK ) {
@@ -1384,7 +1384,7 @@ static inline int op_return( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   // check return from ensure.
   if( vm->exception.tt == MRBC_TT_RETBLK ) {
@@ -1456,7 +1456,7 @@ static inline int op_return_blk( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_break( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   assert( regs[0].tt == MRBC_TT_PROC );
 
@@ -1509,7 +1509,7 @@ static inline int op_break( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BS(ext);
+  FETCH_BS();
 
   int m1 = (b >> 11) & 0x3f;
   int r  = (b >> 10) & 0x01;
@@ -1555,7 +1555,7 @@ static inline int op_blkpush( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_add( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   if( regs[a].tt == MRBC_TT_INTEGER ) {
     if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Integer, Integer
@@ -1595,7 +1595,7 @@ static inline int op_add( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_addi( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   if( regs[a].tt == MRBC_TT_INTEGER ) {
     regs[a].i += b;
@@ -1622,7 +1622,7 @@ static inline int op_addi( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_sub( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   if( regs[a].tt == MRBC_TT_INTEGER ) {
     if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Integer, Integer
@@ -1662,7 +1662,7 @@ static inline int op_sub( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_subi( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   if( regs[a].tt == MRBC_TT_INTEGER ) {
     regs[a].i -= b;
@@ -1689,7 +1689,7 @@ static inline int op_subi( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_mul( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   if( regs[a].tt == MRBC_TT_INTEGER ) {
     if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Integer, Integer
@@ -1729,7 +1729,7 @@ static inline int op_mul( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_div( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   if( regs[a].tt == MRBC_TT_INTEGER ) {
     if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Integer, Integer
@@ -1769,7 +1769,7 @@ static inline int op_div( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_eq( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   // TODO: case OBJECT == OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
@@ -1788,7 +1788,7 @@ static inline int op_eq( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_lt( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   // TODO: case OBJECT < OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
@@ -1807,7 +1807,7 @@ static inline int op_lt( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_le( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   // TODO: case OBJECT <= OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
@@ -1826,7 +1826,7 @@ static inline int op_le( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_gt( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   // TODO: case OBJECT > OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
@@ -1845,7 +1845,7 @@ static inline int op_gt( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_ge( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   // TODO: case OBJECT >= OBJECT is not supported.
   int result = mrbc_compare(&regs[a], &regs[a+1]);
@@ -1864,7 +1864,7 @@ static inline int op_ge( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_array( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_value value = mrbc_array_new(vm, b);
   if( value.array == NULL ) return -1;  // ENOMEM
@@ -1887,7 +1887,7 @@ static inline int op_array( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_array2( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   mrbc_value value = mrbc_array_new(vm, c);
   if( value.array == NULL ) return -1;  // ENOMEM
@@ -1913,7 +1913,7 @@ static inline int op_array2( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   if( regs[a].tt == MRBC_TT_NIL ) {
     // arycat(nil, [...]) #=> [...]
@@ -1954,7 +1954,7 @@ static inline int op_arycat( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_arypush( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   int sz1 = mrbc_array_size(&regs[a]);
 
@@ -1977,7 +1977,7 @@ static inline int op_arypush( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_arydup( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   mrbc_value ret = mrbc_array_dup( vm, &regs[a] );
   mrbc_decref(&regs[a]);
@@ -1994,7 +1994,7 @@ static inline int op_arydup( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_aref( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   mrbc_value *src = &regs[b];
   mrbc_value *dst = &regs[a];
@@ -2026,7 +2026,7 @@ static inline int op_aref( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_aset( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   mrbc_array_set(&regs[a], c, &regs[b]);
 
@@ -2041,7 +2041,7 @@ static inline int op_aset( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_apost( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   mrbc_value src = regs[a];
   if( src.tt != MRBC_TT_ARRAY ) {
@@ -2080,7 +2080,7 @@ static inline int op_apost( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_intern( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   assert( regs[a].tt == MRBC_TT_STRING );
 
@@ -2100,7 +2100,7 @@ static inline int op_intern( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_symbol( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   const char *p = (const char *)mrbc_irep_pool_ptr(vm->cur_irep, b);
   mrbc_sym sym_id = mrbc_str_to_symid( p+3 );	// 3 is TT and length
@@ -2119,7 +2119,7 @@ static inline int op_symbol( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_string( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_decref(&regs[a]);
   regs[a] = mrbc_irep_pool_value(vm, b);
@@ -2135,7 +2135,7 @@ static inline int op_string( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
 #if MRBC_USE_STRING
   // call "to_s"
@@ -2163,7 +2163,7 @@ static inline int op_strcat( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_hash( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_value value = mrbc_hash_new(vm, b);
   if( value.hash == NULL ) return -1;   // ENOMEM
@@ -2188,7 +2188,7 @@ static inline int op_hash( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_hashadd( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   int sz1 = mrbc_array_size(&regs[a]);
   int sz2 = b * 2;
@@ -2214,7 +2214,7 @@ static inline int op_hashadd( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_method( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm->cur_irep, b));
   if( !val.proc ) return -1;	// ENOMEM
@@ -2234,7 +2234,7 @@ static inline int op_method( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_range( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   mrbc_value value = mrbc_range_new(vm, &regs[a], &regs[a+1],
 				    (vm->inst[-2] == OP_RANGE_EXC));
@@ -2252,7 +2252,7 @@ static inline int op_range( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_class( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   const char *class_name = mrbc_irep_symbol_cstr(vm->cur_irep, b);
   mrbc_class *super = (regs[a+1].tt == MRBC_TT_CLASS) ? regs[a+1].cls : 0;
@@ -2275,7 +2275,7 @@ static inline int op_class( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_exec( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
   assert( regs[a].tt == MRBC_TT_CLASS );
 
   // prepare callinfo
@@ -2300,7 +2300,7 @@ static inline int op_exec( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_def( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   assert( regs[a].tt == MRBC_TT_CLASS );
   assert( regs[a+1].tt == MRBC_TT_PROC );
@@ -2348,7 +2348,7 @@ static inline int op_def( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_alias( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_sym sym_id_new = mrbc_irep_symbol_id(vm->cur_irep, a);
   mrbc_sym sym_id_org = mrbc_irep_symbol_id(vm->cur_irep, b);
@@ -2391,7 +2391,7 @@ static inline int op_alias( mrbc_vm *vm, mrbc_value *regs EXT )
 static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   // currently, not supported
-  FETCH_B(ext);
+  FETCH_B();
   return 0;
 }
 
@@ -2403,7 +2403,7 @@ static inline int op_sclass( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_B(ext);
+  FETCH_B();
 
   mrbc_decref(&regs[a]);
   regs[a].tt = MRBC_TT_CLASS;
@@ -2423,7 +2423,7 @@ static inline int op_tclass( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_ext( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_Z(ext);
+  FETCH_Z();
   mrbc_print("Not support op_ext. Re-compile with MRBC_SUPPORT_OP_EXT\n");
 
   return -1;
@@ -2438,7 +2438,7 @@ static inline int op_ext( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_stop( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_Z(ext);
+  FETCH_Z();
 
   vm->flag_preemption = 1;
 
@@ -2453,7 +2453,7 @@ static inline int op_stop( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline int op_abort( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-  FETCH_Z(ext);
+  FETCH_Z();
 
   vm->flag_preemption = 1;
 
@@ -2467,7 +2467,7 @@ static inline int op_abort( mrbc_vm *vm, mrbc_value *regs EXT )
 static inline int op_dummy_Z( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   uint8_t op = *(vm->inst - 1);
-  FETCH_Z(ext);
+  FETCH_Z();
 
   mrbc_printf("# Skip OP 0x%02x\n", op);
   return 0;
@@ -2480,7 +2480,7 @@ static inline int op_dummy_Z( mrbc_vm *vm, mrbc_value *regs EXT )
 static inline int op_dummy_B( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   uint8_t op = *(vm->inst - 1);
-  FETCH_B(ext);
+  FETCH_B();
 
   mrbc_printf("# Skip OP 0x%02x\n", op);
   return 0;
@@ -2493,7 +2493,7 @@ static inline int op_dummy_B( mrbc_vm *vm, mrbc_value *regs EXT )
 static inline int op_dummy_BB( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   uint8_t op = *(vm->inst - 1);
-  FETCH_BB(ext);
+  FETCH_BB();
 
   mrbc_printf("# Skip OP 0x%02x\n", op);
   return 0;
@@ -2506,7 +2506,7 @@ static inline int op_dummy_BB( mrbc_vm *vm, mrbc_value *regs EXT )
 static inline int op_dummy_BBB( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   uint8_t op = *(vm->inst - 1);
-  FETCH_BBB(ext);
+  FETCH_BBB();
 
   mrbc_printf("# Skip OP 0x%02x\n", op);
   return 0;

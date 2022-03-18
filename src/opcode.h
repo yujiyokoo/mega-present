@@ -3,8 +3,8 @@
   Define operation codes and associated macros.
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -22,66 +22,66 @@ extern "C" {
 #endif
 
 
-#define FETCH_Z(e) (void)0
+#define FETCH_Z() (void)0
 
 #if defined(MRBC_SUPPORT_OP_EXT)
-#define FETCH_B(e) \
+#define FETCH_B() \
   unsigned int a; \
-  a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
+  a = *vm->inst++; if( ext & 1 ) a = a << 8 | *vm->inst++; \
   (void)a
 
-#define FETCH_BB(e) \
+#define FETCH_BB() \
   unsigned int a, b; \
-  a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
-  b = *vm->inst++; if( e & 2 ) b = b << 8 | *vm->inst++; \
+  a = *vm->inst++; if( ext & 1 ) a = a << 8 | *vm->inst++; \
+  b = *vm->inst++; if( ext & 2 ) b = b << 8 | *vm->inst++; \
   (void)a, (void)b
 
-#define FETCH_BBB(e) \
+#define FETCH_BBB() \
   unsigned int a, b, c; \
-  a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
-  b = *vm->inst++; if( e & 2 ) b = b << 8 | *vm->inst++; \
+  a = *vm->inst++; if( ext & 1 ) a = a << 8 | *vm->inst++; \
+  b = *vm->inst++; if( ext & 2 ) b = b << 8 | *vm->inst++; \
   c = *vm->inst++; \
   (void)a, (void)b, (void)c
 
-#define FETCH_BS(e) \
+#define FETCH_BS() \
   unsigned int a, b; \
-  a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
+  a = *vm->inst++; if( ext & 1 ) a = a << 8 | *vm->inst++; \
   b = *vm->inst++; b = b << 8 | *vm->inst++; \
   (void)a, (void)b
 
-#define FETCH_BSS(e) \
+#define FETCH_BSS() \
   unsigned int a, b, c; \
-  a = *vm->inst++; if( e & 1 ) a = a << 8 | *vm->inst++; \
+  a = *vm->inst++; if( ext & 1 ) a = a << 8 | *vm->inst++; \
   b = *vm->inst++; b = b << 8 | *vm->inst++; \
   c = *vm->inst++; c = c << 8 | *vm->inst++; \
   (void)a, (void)b, (void)c
 
 #else
-#define FETCH_B(e) \
+#define FETCH_B() \
   unsigned int a; \
   a = *vm->inst++; \
   (void)a
 
-#define FETCH_BB(e) \
+#define FETCH_BB() \
   unsigned int a, b; \
   a = *vm->inst++; \
   b = *vm->inst++; \
   (void)a, (void)b
 
-#define FETCH_BBB(e) \
+#define FETCH_BBB() \
   unsigned int a, b, c; \
   a = *vm->inst++; \
   b = *vm->inst++; \
   c = *vm->inst++; \
   (void)a, (void)b, (void)c
 
-#define FETCH_BS(e) \
+#define FETCH_BS() \
   unsigned int a, b; \
   a = *vm->inst++; \
   b = *vm->inst++; b = b << 8 | *vm->inst++; \
   (void)a, (void)b
 
-#define FETCH_BSS(e) \
+#define FETCH_BSS() \
   unsigned int a, b, c; \
   a = *vm->inst++; \
   b = *vm->inst++; b = b << 8 | *vm->inst++; \
@@ -90,12 +90,12 @@ extern "C" {
 
 #endif // defined(MRBC_SUPPORT_OP_EXT)
 
-#define FETCH_S(e) \
+#define FETCH_S() \
   unsigned int a; \
   a = *vm->inst++; a = a << 8 | *vm->inst++; \
   (void)a
 
-#define FETCH_W(e) \
+#define FETCH_W() \
   uint32_t a; \
   a = *vm->inst++; a = a << 8 | *vm->inst++; a = a << 8 | *vm->inst++; \
   (void)a
