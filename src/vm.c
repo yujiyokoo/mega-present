@@ -39,7 +39,6 @@ static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
 
 
-
 //================================================================
 /*! display "not supported" message
 */
@@ -1195,12 +1194,12 @@ static inline int op_argary( mrbc_vm *vm, mrbc_value *regs EXT )
     mrbc_incref( &reg0[i+1] );
   }
 
-  mrbc_decref(&regs[a]);
+  mrbc_decref( &regs[a] );
   regs[a] = val;
 
   // copy a block object
   mrbc_decref( &regs[a+1] );
-  regs[a+1] = regs[m1+d+1];
+  regs[a+1] = reg0[array_size+1];
   mrbc_incref( &regs[a+1] );
 
   return 0;
