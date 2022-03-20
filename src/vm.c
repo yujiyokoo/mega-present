@@ -185,6 +185,7 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_o
   callinfo->inst = vm->inst;
   callinfo->cur_regs = vm->cur_regs;
   callinfo->target_class = vm->target_class;
+
   callinfo->own_class = 0;
   callinfo->method_id = method_id;
   callinfo->reg_offset = reg_offset;
@@ -202,13 +203,13 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_o
 */
 void mrbc_pop_callinfo( struct VM *vm )
 {
-
   assert( vm->callinfo_tail );
 
   // clear used register.
-  int i;
-  for( i = 1; i < vm->cur_irep->nregs; i++ ) {
-    mrbc_decref_empty( vm->cur_regs + i );
+  mrbc_value *reg1 = vm->cur_regs + 1;
+  mrbc_value *reg2 = vm->cur_regs + vm->cur_irep->nregs;
+  while( reg1 != reg2 ) {
+    mrbc_decref_empty( reg1++ );
   }
 
   // copy callinfo to vm

@@ -109,6 +109,7 @@ typedef struct CALLINFO {
   const uint8_t *inst;		//!< copy from mrbc_vm.
   mrbc_value *cur_regs;		//!< copy from mrbc_vm.
   mrbc_class *target_class;	//!< copy from mrbc_vm.
+
   mrbc_class *own_class;	//!< class that owns method.
   mrbc_sym method_id;		//!< called method ID.
   uint8_t reg_offset;		//!< register offset after call.
@@ -133,12 +134,12 @@ typedef struct VM {
   mrbc_irep       *top_irep;	//!< IREP tree top.
   const mrbc_irep *cur_irep;	//!< IREP currently running.
   const uint8_t   *inst;	//!< instruction pointer
+  mrbc_value	  *cur_regs;	//!< Current register pointer.
+  mrbc_class      *target_class;  //!< Target class
+  mrbc_callinfo	  *callinfo_tail; //!< Last point of CALLINFO link.
 
-  mrbc_value    regs[MAX_REGS_SIZE];
-  mrbc_value    *cur_regs;
-  mrbc_callinfo *callinfo_tail;
-  mrbc_class    *target_class;
-  mrbc_value	exception;	//!< Raised exception or nil.
+  mrbc_value	  exception;	//!< Raised exception or nil.
+  mrbc_value      regs[MAX_REGS_SIZE];
 } mrbc_vm;
 typedef struct VM mrb_vm;
 
