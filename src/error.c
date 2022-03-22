@@ -48,31 +48,28 @@ mrbc_value mrbc_exception_new(struct VM *vm, struct RClass *exc_cls, const void 
 {
   // allocate memory.
   mrbc_exception *ex = mrbc_alloc( vm, sizeof(mrbc_exception) );
-  if( !ex ) goto ERROR_RETURN;	// ENOMEM
+  if( !ex ) {		// ENOMEM
+    return mrbc_nil_value();
+  }
 
   MRBC_INIT_OBJECT_HEADER( ex, "EX" );
   ex->cls = exc_cls;
+  if( !message ) goto NO_MESSAGE;
 
-  if( message ) {
-    ex->message = mrbc_alloc( vm, len+1 );
-    if( !ex->message ) {
-      mrbc_free( vm, ex );
-      goto ERROR_RETURN;	// ENOMEM
-    }
+  ex->message = mrbc_alloc( vm, len+1 );
+  if( !ex->message ) goto NO_MESSAGE;
 
-    // copy source string.
-    memcpy( ex->message, message, len );
-    ex->message[len] = '\0';
-    ex->message_size = len;
-  } else {
-    ex->message = 0;
-    ex->message_size = 0;
-  }
-
+  // copy source string.
+  memcpy( ex->message, message, len );
+  ex->message[len] = '\0';
+  ex->message_size = len;
   return (mrbc_value){.tt = MRBC_TT_EXCEPTION, .exception = ex};
 
- ERROR_RETURN:
-  return mrbc_nil_value();
+
+ NO_MESSAGE:
+    ex->message = 0;
+    ex->message_size = 0;
+    return (mrbc_value){.tt = MRBC_TT_EXCEPTION, .exception = ex};
 }
 
 
