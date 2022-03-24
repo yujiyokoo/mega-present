@@ -128,8 +128,9 @@ typedef struct VM {
 #endif
   uint8_t vm_id;		//!< vm_id : 1..MAX_VM_COUNT
   volatile int8_t flag_preemption;
-  int8_t flag_need_memfree;
-  int8_t flag_permanence;
+  int flag_need_memfree : 1;
+  int flag_stop : 1;
+  int flag_permanence : 1;
 
   mrbc_irep       *top_irep;	//!< IREP tree top.
   const mrbc_irep *cur_irep;	//!< IREP currently running.

@@ -539,14 +539,14 @@ int mrbc_run(void)
       tcb->vm.flag_preemption = 1;
       res = mrbc_vm_run(&tcb->vm);
       tcb->timeslice--;
-      if( res < 0 ) break;
+      if( res != 0 ) break;
       if( tcb->state != TASKSTATE_RUNNING ) break;
     }
     mrbc_tick();
 #endif /* ifndef MRBC_NO_TIMER */
 
     // タスク終了？
-    if( res < 0 ) {
+    if( res != 0 ) {
       hal_disable_irq();
       q_delete_task(tcb);
       tcb->state = TASKSTATE_DORMANT;

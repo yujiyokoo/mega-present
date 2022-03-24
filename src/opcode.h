@@ -226,7 +226,7 @@ enum OPCODE {
   OP_EXT3       = 0x68, //!< Z    make 1st and 2nd operands 16bit
   OP_STOP       = 0x69, //!< Z    stop VM
 
-  OP_ABORT      = 0x6c, // only for mruby/c, TODO: remove
+  OP_ABORT      = 0x6a, // only for mruby/c, TODO: remove
 };
 
 
