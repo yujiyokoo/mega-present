@@ -139,23 +139,17 @@ static void send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int 
 //================================================================
 /*! Find exception catch handler
 */
-static const mrbc_irep_catch_handler *find_catch_handler_all( const struct VM *vm, const mrbc_callinfo *callinfo )
+static const mrbc_irep_catch_handler *find_catch_handler_all( const struct VM *vm )
 {
-  const mrbc_irep *irep;
-  uint32_t inst;
-
-  if( callinfo ) {
-    irep = callinfo->cur_irep;
-    inst = callinfo->inst - irep->inst;
-  } else {
-    irep = vm->cur_irep;
-    inst = vm->inst - irep->inst;
-  }
+  const mrbc_irep *irep = vm->cur_irep;
+  int cnt = irep->clen;
+  if( cnt == 0 ) return NULL;
 
   const mrbc_irep_catch_handler *catch_table =
     (const mrbc_irep_catch_handler *)(irep->inst + irep->ilen);
-  int cnt;
-  for( cnt = irep->clen - 1; cnt >= 0 ; cnt-- ) {
+  uint32_t inst = vm->inst - irep->inst;
+
+  for( cnt--; cnt >= 0 ; cnt-- ) {
     const mrbc_irep_catch_handler *handler = catch_table + cnt;
     if( (bin_to_uint32(handler->begin) < inst) &&
 	(inst <= bin_to_uint32(handler->end)) ) {
@@ -2700,24 +2694,14 @@ int mrbc_vm_run( struct VM *vm )
     if( !vm->flag_preemption ) continue;	// execute next ope code.
     if( !mrbc_israised(vm) ) return vm->flag_stop; // normal return.
 
+
     // Handle exception
     vm->flag_preemption = 0;
-    const mrbc_irep_catch_handler *handler = find_catch_handler_all(vm, 0);
-
-    if( !handler ) {
-      // trace back to caller
-      const mrbc_callinfo *callinfo = vm->callinfo_tail;
-
-      while( callinfo ) {
-	handler = find_catch_handler_all(0, callinfo);
-	if( handler ) break;
-	callinfo = callinfo->prev;
-      }
-      if( !callinfo ) return 2;			// return due to exception.
-
-      while( vm->callinfo_tail != callinfo ) {
-	mrbc_pop_callinfo( vm );
-      }
+    const mrbc_irep_catch_handler *handler;
+    while(1) {
+      handler = find_catch_handler_all(vm);
+      if( handler ) break;
+      if( !vm->callinfo_tail ) return 2;	// return due to exception.
       mrbc_pop_callinfo( vm );
     }
 
