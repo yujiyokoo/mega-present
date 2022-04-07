@@ -347,6 +347,7 @@ mrbc_vm *mrbc_vm_open( struct VM *vm_arg )
 #endif
   if( vm_arg == NULL ) vm->flag_need_memfree = 1;
   vm->vm_id = vm_id;
+  vm->regs_size = MAX_REGS_SIZE;
 
   return vm;
 }
@@ -384,7 +385,7 @@ void mrbc_vm_begin( struct VM *vm )
   vm->regs[0] = mrbc_instance_new(vm, mrbc_class_object, 0);
   if( vm->regs[0].instance == NULL ) return;	// ENOMEM
   int i;
-  for( i = 1; i < MAX_REGS_SIZE; i++ ) {
+  for( i = 1; i < vm->regs_size; i++ ) {
     vm->regs[i] = mrbc_nil_value();
   }
 
@@ -415,7 +416,7 @@ void mrbc_vm_end( struct VM *vm )
 
   int n_used = 0;
   int i;
-  for( i = 0; i < MAX_REGS_SIZE; i++ ) {
+  for( i = 0; i < vm->regs_size; i++ ) {
     //mrbc_printf("vm->regs[%d].tt = %d\n", i, mrbc_type(vm->regs[i]));
     if( mrbc_type(vm->regs[i]) != MRBC_TT_NIL ) n_used = i;
     mrbc_decref_empty(&vm->regs[i]);
@@ -1309,7 +1310,7 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 
   // Check the number of registers to use.
   int reg_use_max = regs - vm->regs + vm->cur_irep->nregs;
-  if( reg_use_max >= MAX_REGS_SIZE ) {
+  if( reg_use_max >= vm->regs_size ) {
     mrbc_raise(vm, MRBC_CLASS(Exception), "MAX_REGS_SIZE overflow.");
     return;	// raise?
   }
