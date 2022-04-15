@@ -69,7 +69,7 @@ void mrbc_printf(const char *fstr, ...);
 int mrbc_printf_main(mrbc_printf_t *pf);
 int mrbc_printf_char(mrbc_printf_t *pf, int ch);
 int mrbc_printf_bstr(mrbc_printf_t *pf, const char *str, int len, int pad);
-int mrbc_printf_int(mrbc_printf_t *pf, mrbc_int value, int base);
+int mrbc_printf_int(mrbc_printf_t *pf, mrbc_int value, unsigned int base);
 int mrbc_printf_bit(mrbc_printf_t *pf, mrbc_int value, int bit);
 int mrbc_printf_float(mrbc_printf_t *pf, double value);
 int mrbc_printf_pointer(mrbc_printf_t *pf, void *ptr);

@@ -37,10 +37,13 @@ struct IREP;
 // mrbc types
 #if defined(MRBC_INT16)
 typedef int16_t mrbc_int;
+typedef uint16_t mrbc_uint;
 #elif defined(MRBC_INT64)
 typedef int64_t mrbc_int;
+typedef uint64_t mrbc_uint;
 #else
 typedef int32_t mrbc_int;
+typedef uint32_t mrbc_uint;
 #endif
 typedef mrbc_int mrb_int;
 

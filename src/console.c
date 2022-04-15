@@ -371,10 +371,10 @@ int mrbc_printf_bstr( mrbc_printf_t *pf, const char *str, int len, int pad )
   @retval -1	buffer full.
   @note		not terminate ('\0') buffer tail.
 */
-int mrbc_printf_int( mrbc_printf_t *pf, mrbc_int value, int base )
+int mrbc_printf_int( mrbc_printf_t *pf, mrbc_int value, unsigned int base )
 {
   int sign = 0;
-  mrbc_int v = value;
+  mrbc_uint v = value;
   char *pf_p_ini_val = pf->p;
 
   if( value < 0 ) {
@@ -396,7 +396,7 @@ int mrbc_printf_int( mrbc_printf_t *pf, mrbc_int value, int base )
   char *p = buf + sizeof(buf);
 
   do {
-    int ch = v % base;
+    unsigned int ch = v % base;
     *--p = ch + ((ch < 10)? '0' : 'a' - 10);
     v /= base;
   } while( v != 0 );
@@ -684,13 +684,13 @@ int mrbc_print_sub(const mrbc_value *v)
     break;
 
   case MRBC_TT_OBJECT:
-    mrbc_printf( "#<%s:%08x>",
+    mrbc_printf("#<%s:%08x>",
 	symid_to_str( find_class_by_object(v)->sym_id ), v->instance );
     break;
 
   case MRBC_TT_PROC:
-    mrbc_printf( "#<Proc:%08x>", v->proc );
-    //mrbc_printf( "#<Proc:%08x, callinfo=%p>", v->proc, v->proc->callinfo );
+    mrbc_printf("#<Proc:%08x>", v->proc );
+    //mrbc_printf("#<Proc:%08x, callinfo=%p>", v->proc, v->proc->callinfo );
     break;
 
   case MRBC_TT_ARRAY:{
@@ -734,11 +734,11 @@ int mrbc_print_sub(const mrbc_value *v)
   } break;
 
   case MRBC_TT_HANDLE:
-    mrbc_printf( "#<Handle:%08x>", v->handle );
+    mrbc_printf("#<Handle:%08x>", v->handle );
     break;
 
   case MRBC_TT_EXCEPTION:
-    mrbc_printf( "#<%s: %s>", symid_to_str(v->exception->cls->sym_id),
+    mrbc_printf("#<%s: %s>", symid_to_str(v->exception->cls->sym_id),
 		 v->exception->message ?
 		   (const char *)v->exception->message :
 		   symid_to_str(v->exception->cls->sym_id) );
@@ -777,7 +777,7 @@ int mrbc_puts_sub(const mrbc_value *v)
 
 
 //================================================================
-/*! p - print mrbc_value (BETA)
+/*! p - print mrbc_value
 
   @param  v	pointer to target value.
 */

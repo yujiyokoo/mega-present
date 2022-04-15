@@ -227,8 +227,7 @@ static void c_object_p(struct VM *vm, mrbc_value v[], int argc)
 {
   int i;
   for( i = 1; i <= argc; i++ ) {
-    mrbc_p_sub( &v[i] );
-    mrbc_putchar('\n');
+    mrbc_p( &v[i] );
   }
 
   if (argc == 0) {
