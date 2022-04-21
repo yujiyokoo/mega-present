@@ -282,14 +282,14 @@ void mrbc_pop_callinfo( struct VM *vm )
   assert( vm->callinfo_tail );
 
   // clear used register.
-  mrbc_value *reg1 = vm->cur_regs + 1;
+  mrbc_callinfo *callinfo = vm->callinfo_tail;
+  mrbc_value *reg1 = vm->cur_regs + callinfo->cur_irep->nregs - callinfo->reg_offset;
   mrbc_value *reg2 = vm->cur_regs + vm->cur_irep->nregs;
-  while( reg1 != reg2 ) {
+  while( reg1 < reg2 ) {
     mrbc_decref_empty( reg1++ );
   }
 
   // copy callinfo to vm
-  mrbc_callinfo *callinfo = vm->callinfo_tail;
   vm->cur_irep = callinfo->cur_irep;
   vm->inst = callinfo->inst;
   vm->cur_regs = callinfo->cur_regs;
