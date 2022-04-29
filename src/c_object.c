@@ -375,7 +375,7 @@ static void c_object_instance_methods(struct VM *vm, mrbc_value v[], int argc)
   mrbc_method *method = cls->method_link;
   while( method ) {
     mrbc_printf("%s:%s", (flag_first ? "" : ", "),
-		symid_to_str(method->sym_id) );
+		mrbc_symid_to_str(method->sym_id) );
     flag_first = 0;
     method = method->next;
   }
@@ -401,7 +401,7 @@ static void c_object_instance_variables(struct VM *vm, mrbc_value v[], int argc)
   int i;
   for( i = 0; i < kvh->n_stored; i++ ) {
     mrbc_printf("%s:@%s", (i == 0 ? "" : ", "),
-		symid_to_str( kvh->data[i].sym_id ));
+		mrbc_symid_to_str( kvh->data[i].sym_id ));
   }
 
   mrbc_printf("]\n");
@@ -468,7 +468,7 @@ static void c_object_setiv(struct VM *vm, mrbc_value v[], int argc)
 
   memcpy( namebuf, name, len-1 );
   namebuf[len-1] = '\0';	// delete '='
-  mrbc_sym sym_id = str_to_symid(namebuf);
+  mrbc_sym sym_id = mrbc_str_to_symid(namebuf);
 
   mrbc_instance_setiv(&v[0], sym_id, &v[1]);
   mrbc_raw_free(namebuf);
@@ -666,16 +666,16 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 
   switch( mrbc_type(v[0]) ) {
   case MRBC_TT_CLASS:
-    s = symid_to_str( v->cls->sym_id );
+    s = mrbc_symid_to_str( v->cls->sym_id );
     break;
 
   default:
     mrbc_snprintf(buf, sizeof(buf), "#<%s:%08x>",
-		  symid_to_str(find_class_by_object(v)->sym_id), (uint32_t)
+	mrbc_symid_to_str(find_class_by_object(v)->sym_id), (uint32_t)
 #if defined(UINTPTR_MAX)
-		  (uintptr_t)
+	(uintptr_t)
 #endif
-		  v->instance );
+	v->instance );
     s = buf;
     break;
   }

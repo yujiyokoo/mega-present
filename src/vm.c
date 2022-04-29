@@ -111,7 +111,7 @@ static void send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int 
   mrbc_method method;
   if( mrbc_find_method( &method, cls, sym_id ) == 0 ) {
     mrbc_printf("Undefined local variable or method '%s' for %s\n",
-		symid_to_str(sym_id), symid_to_str( cls->sym_id ));
+		mrbc_symid_to_str(sym_id), mrbc_symid_to_str( cls->sym_id ));
     return;
   }
 
@@ -402,10 +402,10 @@ void mrbc_vm_end( struct VM *vm )
 {
   if( mrbc_israised(vm) ) {
     mrbc_printf("Exception : %s (%s)\n",
-		symid_to_str(vm->exception.exception->cls->sym_id),
+		mrbc_symid_to_str(vm->exception.exception->cls->sym_id),
 		vm->exception.exception->message ?
 		  (const char *)vm->exception.exception->message :
-		  symid_to_str(vm->exception.exception->cls->sym_id) );
+		  mrbc_symid_to_str(vm->exception.exception->cls->sym_id) );
     mrbc_decref(&vm->exception);
   }
   assert( vm->ret_blk == 0 );
@@ -668,7 +668,7 @@ static inline void op_getiv( mrbc_vm *vm, mrbc_value *regs EXT )
   FETCH_BB();
 
   const char *sym_name = mrbc_irep_symbol_cstr(vm->cur_irep, b);
-  mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
+  mrbc_sym sym_id = mrbc_str_to_symid(sym_name+1);   // skip '@'
   mrbc_value *self = mrbc_get_self( vm, regs );
 
   mrbc_decref(&regs[a]);
@@ -686,7 +686,7 @@ static inline void op_setiv( mrbc_vm *vm, mrbc_value *regs EXT )
   FETCH_BB();
 
   const char *sym_name = mrbc_irep_symbol_cstr(vm->cur_irep, b);
-  mrbc_sym sym_id = str_to_symid(sym_name+1);   // skip '@'
+  mrbc_sym sym_id = mrbc_str_to_symid(sym_name+1);   // skip '@'
   mrbc_value *self = mrbc_get_self( vm, regs );
 
   mrbc_instance_setiv(self, sym_id, &regs[a]);
@@ -761,7 +761,7 @@ static inline void op_getconst( mrbc_vm *vm, mrbc_value *regs EXT )
 #undef _GET_CLASS_CONST
 
   if( v == NULL ) {		// raise?
-    mrbc_printf("NameError: uninitialized constant %s\n", symid_to_str(sym_id));
+    mrbc_printf("NameError: uninitialized constant %s\n", mrbc_symid_to_str(sym_id));
     return;
   }
 
@@ -809,7 +809,7 @@ static inline void op_getmcnst( mrbc_vm *vm, mrbc_value *regs EXT )
     cls = cls->super;
     if( !cls ) {	// raise?
       mrbc_printf("NameError: uninitialized constant %s::%s\n",
-		  symid_to_str( regs[a].cls->sym_id ), symid_to_str( sym_id ));
+	mrbc_symid_to_str( regs[a].cls->sym_id ), mrbc_symid_to_str( sym_id ));
       return;
     }
   }
@@ -1313,7 +1313,7 @@ static inline void op_super( mrbc_vm *vm, mrbc_value *regs EXT )
   assert( cls );
   if( mrbc_find_method( &method, cls, callinfo->method_id ) == 0 ) {
     mrbc_printf("Undefined method '%s' for %s\n",
-		symid_to_str(callinfo->method_id), symid_to_str(cls->sym_id));
+	mrbc_symid_to_str(callinfo->method_id), mrbc_symid_to_str(cls->sym_id));
     return;	// raise?
   }
 
@@ -2478,7 +2478,7 @@ static inline void op_alias( mrbc_vm *vm, mrbc_value *regs EXT )
 
   if( mrbc_find_method( method, cls, sym_id_org ) == 0 ) {
     mrbc_printf("NameError: undefined method '%s'\n",
-		symid_to_str(sym_id_org));
+		mrbc_symid_to_str(sym_id_org));
     mrbc_raw_free( method );
     return;
   }

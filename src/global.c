@@ -3,8 +3,8 @@
   Constant and global variables.
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -198,7 +198,7 @@ void mrbc_global_debug_dump(void)
   while( mrbc_kv_i_has_next( &ite ) ) {
     mrbc_kv *kv = mrbc_kv_i_next( &ite );
 
-    mrbc_printf(" %04x:%s = ", kv->sym_id, symid_to_str(kv->sym_id));
+    mrbc_printf(" %04x:%s = ", kv->sym_id, mrbc_symid_to_str(kv->sym_id));
     mrbc_p_sub( &kv->value );
     if( mrbc_type(kv->value) < MRBC_TT_INC_DEC_THRESHOLD ) {
       mrbc_printf(" .tt=%d\n", mrbc_type(kv->value));

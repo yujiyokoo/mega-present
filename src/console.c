@@ -680,12 +680,12 @@ int mrbc_print_sub(const mrbc_value *v)
     break;
 
   case MRBC_TT_CLASS:
-    mrbc_print(symid_to_str(v->cls->sym_id));
+    mrbc_print(mrbc_symid_to_str(v->cls->sym_id));
     break;
 
   case MRBC_TT_OBJECT:
     mrbc_printf("#<%s:%08x>",
-	symid_to_str( find_class_by_object(v)->sym_id ), v->instance );
+	mrbc_symid_to_str( find_class_by_object(v)->sym_id ), v->instance );
     break;
 
   case MRBC_TT_PROC:
@@ -738,10 +738,10 @@ int mrbc_print_sub(const mrbc_value *v)
     break;
 
   case MRBC_TT_EXCEPTION:
-    mrbc_printf("#<%s: %s>", symid_to_str(v->exception->cls->sym_id),
+    mrbc_printf("#<%s: %s>", mrbc_symid_to_str(v->exception->cls->sym_id),
 		 v->exception->message ?
 		   (const char *)v->exception->message :
-		   symid_to_str(v->exception->cls->sym_id) );
+		   mrbc_symid_to_str(v->exception->cls->sym_id) );
     break;
 
   default:

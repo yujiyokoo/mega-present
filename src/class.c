@@ -3,8 +3,8 @@
   Class related functions.
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -77,7 +77,7 @@ mrbc_class * const mrbc_class_tbl[MRBC_TT_MAXVAL+1] = {
 */
 mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super)
 {
-  mrbc_sym sym_id = str_to_symid(name);
+  mrbc_sym sym_id = mrbc_str_to_symid(name);
 
   // already defined?
   mrbc_value *val = mrbc_get_const(sym_id);
@@ -130,7 +130,7 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 
   method->type = 'm';
   method->c_func = 1;
-  method->sym_id = str_to_symid( name );
+  method->sym_id = mrbc_str_to_symid( name );
   method->func = cfunc;
   method->next = cls->method_link;
   cls->method_link = method;
@@ -354,7 +354,7 @@ mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym
 */
 mrbc_class * mrbc_get_class_by_name( const char *name )
 {
-  mrbc_sym sym_id = str_to_symid(name);
+  mrbc_sym sym_id = mrbc_str_to_symid(name);
   mrbc_value *obj = mrbc_get_const(sym_id);
 
   if( obj == NULL ) return NULL;
@@ -388,7 +388,7 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
   mrbc_method method;
 
   if( mrbc_find_method( &method, find_class_by_object(recv),
-			str_to_symid(method_name) ) == 0 ) {
+			mrbc_str_to_symid(method_name) ) == 0 ) {
     mrbc_printf("No method. vtype=%d method='%s'\n", mrbc_type(*recv), method_name );
     goto ERROR;
   }

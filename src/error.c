@@ -3,12 +3,10 @@
   exception classes
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
-
-  Fetch mruby VM bytecodes, decode and execute.
 
   </pre>
 */
@@ -165,7 +163,7 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
   if( v[0].exception->message ) {
     value = mrbc_string_new( vm, v[0].exception->message, v[0].exception->message_size );
   } else {
-    value = mrbc_string_new_cstr(vm, symid_to_str(v->exception->cls->sym_id));
+    value = mrbc_string_new_cstr(vm, mrbc_symid_to_str(v->exception->cls->sym_id));
   }
 
   mrbc_decref( &v[0] );
