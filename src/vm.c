@@ -103,6 +103,7 @@ static void send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int 
   }
 
   if( !is_sendb ) {
+    mrbc_decref( recv + narg + 1 );
     mrbc_set_nil( recv + narg + 1 );
   }
 
@@ -374,6 +375,13 @@ void mrbc_vm_begin( struct VM *vm )
 {
   vm->cur_irep = vm->top_irep;
   vm->inst = vm->cur_irep->inst;
+  vm->cur_regs = vm->regs;
+  vm->target_class = mrbc_class_object;
+  vm->callinfo_tail = NULL;
+  vm->ret_blk = NULL;
+  vm->exception = mrbc_nil_value();
+  vm->flag_preemption = 0;
+  vm->flag_stop = 0;
 
   // set self to reg[0], others nil
   vm->regs[0] = mrbc_instance_new(vm, mrbc_class_object, 0);
@@ -382,13 +390,6 @@ void mrbc_vm_begin( struct VM *vm )
   for( i = 1; i < vm->regs_size; i++ ) {
     vm->regs[i] = mrbc_nil_value();
   }
-
-  vm->cur_regs = vm->regs;
-  vm->callinfo_tail = NULL;
-  vm->target_class = mrbc_class_object;
-  vm->exception = mrbc_nil_value();
-  vm->flag_preemption = 0;
-  vm->flag_stop = 0;
 }
 
 
@@ -400,13 +401,14 @@ void mrbc_vm_begin( struct VM *vm )
 void mrbc_vm_end( struct VM *vm )
 {
   if( mrbc_israised(vm) ) {
-    mrbc_printf( "Exception : %s (%s)\n",
-		 symid_to_str(vm->exception.exception->cls->sym_id),
-		 vm->exception.exception->message ?
-		   (const char *)vm->exception.exception->message :
-		   symid_to_str(vm->exception.exception->cls->sym_id) );
+    mrbc_printf("Exception : %s (%s)\n",
+		symid_to_str(vm->exception.exception->cls->sym_id),
+		vm->exception.exception->message ?
+		  (const char *)vm->exception.exception->message :
+		  symid_to_str(vm->exception.exception->cls->sym_id) );
     mrbc_decref(&vm->exception);
   }
+  assert( vm->ret_blk == 0 );
 
   int n_used = 0;
   int i;
@@ -981,25 +983,28 @@ static inline void op_jmpuw( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_S();
 
+  const uint8_t *jump_inst = vm->inst + (int16_t)a;
+
   // check catch handler (ensure)
   const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
-  if( !handler ) goto JUMP_TO_A_REG;
+  if( !handler ) {
+    vm->inst = jump_inst;
+    return;
+  }
 
   // check whether the jump point is inside or outside the catch handler.
-  uint32_t jump_point = vm->inst - vm->cur_irep->inst + (int16_t)a;
+  uint32_t jump_point = jump_inst - vm->cur_irep->inst;
   if( (bin_to_uint32(handler->begin) < jump_point) &&
-      (jump_point <= bin_to_uint32(handler->end)) ) goto JUMP_TO_A_REG;
+      (jump_point <= bin_to_uint32(handler->end)) ) {
+    vm->inst = jump_inst;
+    return;
+  }
 
   // jump point is outside, thus jump to ensure.
   assert( vm->exception.tt == MRBC_TT_NIL );
   vm->exception.tt = MRBC_TT_JMPUW;
-  vm->exception.jmpuw = vm->inst + (int16_t)a;
+  vm->exception.handle = (void*)jump_inst;
   vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
-  return;
-
-
- JUMP_TO_A_REG:
-  vm->inst += (int16_t)a;
 }
 
 
@@ -1044,41 +1049,147 @@ static inline void op_raiseif( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
 
-  if( regs[a].tt == MRBC_TT_JMPUW ) {
-    const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
-    if( !handler ) {
-      vm->inst = regs[a].jmpuw;
-      return;
-    }
+  // save the parameter.
+  mrbc_value ra = regs[a];
+  regs[a].tt = MRBC_TT_EMPTY;
 
-    uint32_t jump_point = regs[a].jmpuw - vm->cur_irep->inst;
-    if( (bin_to_uint32(handler->begin) < jump_point) &&
-	(jump_point <= bin_to_uint32(handler->end)) ) {
-      vm->inst = regs[a].jmpuw;
-      return;
-    }
+  switch( mrbc_type(ra) ) {
+  case MRBC_TT_RETURN:		goto CASE_OP_RETURN;
+  case MRBC_TT_RETURN_BLK:	goto CASE_OP_RETURN_BLK;
+  case MRBC_TT_BREAK:		goto CASE_OP_BREAK;
+  case MRBC_TT_JMPUW:		goto CASE_OP_JMPUW;
+  case MRBC_TT_EXCEPTION:	goto CASE_OP_EXCEPTION;
+  default: break;
+  }
 
-    vm->exception = regs[a];
+  assert( mrbc_type(ra) == MRBC_TT_NIL );
+  assert( mrbc_type(vm->exception) == MRBC_TT_NIL );
+  return;
+
+
+CASE_OP_RETURN:
+{
+  // find ensure that still needs to be executed.
+  const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
+  if( handler ) {
+    vm->exception = ra;
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     return;
   }
 
-  if( regs[a].tt == MRBC_TT_RETBLK ) {
+  // set the return value and return to caller.
+  mrbc_decref(&regs[0]);
+  regs[0] = regs[ vm->cur_irep->nregs ];
+  regs[ vm->cur_irep->nregs ].tt = MRBC_TT_EMPTY;
+
+  mrbc_pop_callinfo(vm);
+  return;
+}
+
+
+CASE_OP_RETURN_BLK:
+{
+  assert( vm->ret_blk );
+
+  // return to the proc generated level.
+  while( 1 ) {
+    // find ensure that still needs to be executed.
     const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
-    vm->exception = regs[a];
     if( handler ) {
+      vm->exception = ra;
       vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
-    } else {
-      vm->inst = regs[a].jmpuw;
+      return;
     }
+
+    // Is it the origin (generator) of proc?
+    if( vm->callinfo_tail == vm->ret_blk->callinfo_self ) break;
+
+    mrbc_pop_callinfo(vm);
+  }
+
+  // top level return ?
+  if( vm->callinfo_tail == NULL ) {
+    mrbc_decref(&(mrbc_value){.tt = MRBC_TT_PROC, .proc = vm->ret_blk});
+    vm->ret_blk = 0;
+
+    vm->flag_preemption = 1;
+    vm->flag_stop = 1;
     return;
   }
 
-  assert( mrbc_type(regs[a]) == MRBC_TT_EXCEPTION ||
-	  mrbc_type(regs[a]) == MRBC_TT_NIL );
-  mrbc_incref( &regs[a] );
-  vm->exception = regs[a];
-  if( mrbc_israised(vm) ) vm->flag_preemption = 2;
+  // set the return value and return to caller.
+  mrbc_value *reg0 = vm->callinfo_tail->cur_regs + vm->callinfo_tail->reg_offset;
+  mrbc_decref(reg0);
+  *reg0 = vm->ret_blk->ret_val;
+
+  mrbc_decref(&(mrbc_value){.tt = MRBC_TT_PROC, .proc = vm->ret_blk});
+  vm->ret_blk = 0;
+
+  mrbc_pop_callinfo(vm);
+  return;
+}
+
+
+CASE_OP_BREAK: {
+  assert( vm->ret_blk );
+
+  // return to the proc generated level.
+  int reg_offset = 0;
+  while( vm->callinfo_tail != vm->ret_blk->callinfo_self ) {
+    // find ensure that still needs to be executed.
+    const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
+    if( handler ) {
+      vm->exception = ra;
+      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+      return;
+    }
+
+    reg_offset = vm->callinfo_tail->reg_offset;
+    mrbc_pop_callinfo(vm);
+  }
+
+  // set the return value.
+  mrbc_value *reg0 = vm->cur_regs + reg_offset;
+  mrbc_decref(reg0);
+  *reg0 = vm->ret_blk->ret_val;
+
+  mrbc_decref(&(mrbc_value){.tt = MRBC_TT_PROC, .proc = vm->ret_blk});
+  vm->ret_blk = 0;
+  return;
+}
+
+
+CASE_OP_JMPUW:
+{
+  // find ensure that still needs to be executed.
+  const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
+  if( !handler ) {
+    vm->inst = ra.handle;
+    return;
+  }
+
+  // check whether the jump point is inside or outside the catch handler.
+  uint32_t jump_point = (uint8_t *)ra.handle - vm->cur_irep->inst;
+  if( (bin_to_uint32(handler->begin) < jump_point) &&
+      (jump_point <= bin_to_uint32(handler->end)) ) {
+    vm->inst = ra.handle;
+    return;
+  }
+
+  // jump point is outside, thus jump to ensure.
+  assert( vm->exception.tt == MRBC_TT_NIL );
+  vm->exception = ra;
+  vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+  return;
+}
+
+
+CASE_OP_EXCEPTION:
+{
+  vm->exception = ra;
+  vm->flag_preemption = 2;
+  return;
+}
 }
 
 
@@ -1207,7 +1318,7 @@ static inline void op_super( mrbc_vm *vm, mrbc_value *regs EXT )
   }
 
   if( method.c_func ) {
-    mrbc_printf("Not support.\n");	// TODO
+    mrbc_printf("Not supported!\n");	// TODO
     return;	// raise?
   }
 
@@ -1409,33 +1520,24 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 
 
 //================================================================
-/*! OP_RETURN
-
-  return R[a] (normal)
+/*! op_return, op_return_blk subroutine.
 */
-static inline void op_return( mrbc_vm *vm, mrbc_value *regs EXT )
+static inline void op_return__sub( mrbc_vm *vm, mrbc_value *regs, int a )
 {
-  FETCH_B();
-
-  // check return from ensure.
-  if( vm->exception.tt == MRBC_TT_RETBLK ) {
-    vm->exception.tt = MRBC_TT_NIL;
-    goto RETURN;
-  }
-
-  // if in catch handler, jump to ensure.
-  // and then return back via OP_RAISEIF.
+  // If have a ensure, jump to it.
   const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
   if( handler ) {
     assert( vm->exception.tt == MRBC_TT_NIL );
-    vm->exception.tt = MRBC_TT_RETBLK;
-    vm->exception.jmpuw = vm->inst - 2;	// 2 is size of OP_RETURN
+
+    // Save the return value in the last+1 register.
+    regs[ vm->cur_irep->nregs ] = regs[a];
+    regs[a].tt = MRBC_TT_EMPTY;
+
+    vm->exception.tt = MRBC_TT_RETURN;
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
     return;
   }
 
-
- RETURN:
   // return without anything if top level.
   if( vm->callinfo_tail == NULL ) {
     if( vm->flag_permanence ) mrbc_incref(&regs[a]);
@@ -1444,12 +1546,24 @@ static inline void op_return( mrbc_vm *vm, mrbc_value *regs EXT )
     return;
   }
 
-  // set return value
+  // set the return value
   mrbc_decref(&regs[0]);
   regs[0] = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
   mrbc_pop_callinfo(vm);
+}
+
+
+//================================================================
+/*! OP_RETURN
+
+  return R[a] (normal)
+*/
+static inline void op_return( mrbc_vm *vm, mrbc_value *regs EXT )
+{
+  FETCH_B();
+  op_return__sub( vm, regs, a );
 }
 
 
@@ -1462,60 +1576,51 @@ static inline void op_return_blk( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
 
-  // check return from ensure.
-  if( vm->exception.tt == MRBC_TT_RETBLK ) {
-    vm->exception.tt = MRBC_TT_NIL;
-    goto RETURN_TO_OUT_OF_BLOCK;
-  }
-
-  // if in catch handler, jump to ensure.
-  // and then return back via OP_RAISEIF.
-  const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
-  if( handler ) {
-    assert( vm->exception.tt == MRBC_TT_NIL );
-    vm->exception.tt = MRBC_TT_RETBLK;
-    vm->exception.jmpuw = vm->inst - 2;	// 2 is size of OP_RETURN_BRK
-    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+  if( mrbc_type(regs[0]) != MRBC_TT_PROC ) {
+    op_return__sub( vm, regs, a );
     return;
   }
 
 
- RETURN_TO_OUT_OF_BLOCK:;
-  // save return value.
-  mrbc_value ret_val = regs[a];
+  assert( regs[0].tt == MRBC_TT_PROC );
+
+  // Save the return value in the proc object.
+  mrbc_incref( &regs[0] );
+  vm->ret_blk = regs[0].proc;
+  vm->ret_blk->ret_val = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
-  mrbc_value *ret_ptr;
 
-  if( regs[0].tt == MRBC_TT_PROC ) {
-    mrbc_callinfo *callinfo = vm->callinfo_tail;
-    mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo_self;
+  // return to the proc generated level.
+  while( 1 ) {
+    // If have a ensure, jump to it.
+    const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
+    if( handler ) {
+      assert( vm->exception.tt == MRBC_TT_NIL );
+      vm->exception.tt = MRBC_TT_RETURN_BLK;
+      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+      return;
+    }
 
-    // trace back to caller
-    do {
-      mrbc_pop_callinfo(vm);
-      callinfo = vm->callinfo_tail;
-    } while( callinfo != caller_callinfo );
+    // Is it the origin (generator) of proc?
+    if( vm->callinfo_tail == vm->ret_blk->callinfo_self ) break;
 
-    if( callinfo == NULL ) goto RETURN_TO_TOP_LEVEL;
-    ret_ptr = callinfo->cur_regs + callinfo->reg_offset;
-
-  } else {
-    if( vm->callinfo_tail == NULL ) goto RETURN_TO_TOP_LEVEL;
-    ret_ptr = &regs[0];
+    mrbc_pop_callinfo(vm);
   }
 
-  // set return value
-  mrbc_decref( ret_ptr );
-  *ret_ptr = ret_val;
+  // top level return ?
+  if( vm->callinfo_tail == NULL ) {
+    vm->flag_preemption = 1;
+    vm->flag_stop = 1;
+  } else {
+    // set the return value.
+    mrbc_decref(&vm->cur_regs[0]);
+    vm->cur_regs[0] = vm->ret_blk->ret_val;
 
-  mrbc_pop_callinfo(vm);
-  return;
+    mrbc_pop_callinfo(vm);
+  }
 
-
- RETURN_TO_TOP_LEVEL:
-  if( vm->flag_permanence ) mrbc_incref(&regs[a]);
-  vm->flag_preemption = 1;
-  vm->flag_stop = 1;
+  mrbc_decref(&(mrbc_value){.tt = MRBC_TT_PROC, .proc = vm->ret_blk});
+  vm->ret_blk = 0;
 }
 
 
@@ -1530,43 +1635,38 @@ static inline void op_break( mrbc_vm *vm, mrbc_value *regs EXT )
 
   assert( regs[0].tt == MRBC_TT_PROC );
 
-  // check return from ensure.
-  if( vm->exception.tt == MRBC_TT_RETBLK ) {
-    vm->exception.tt = MRBC_TT_NIL;
-    goto RETURN_TO_OUT_OF_BLOCK;
-  }
-
-  // if in catch handler, jump to ensure.
-  // and then return back via OP_RAISEIF.
-  const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
-  if( handler ) {
-    assert( vm->exception.tt == MRBC_TT_NIL );
-    vm->exception.tt = MRBC_TT_RETBLK;
-    vm->exception.jmpuw = vm->inst - 2;	// 2 is size of OP_BREAK
-    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
-    return;
-  }
-
-
- RETURN_TO_OUT_OF_BLOCK:;
-  // save return value.
-  mrbc_value ret_val = regs[a];
+  // Save the return value in the proc object.
+  mrbc_incref( &regs[0] );
+  vm->ret_blk = regs[0].proc;
+  vm->ret_blk->ret_val = regs[a];
   regs[a].tt = MRBC_TT_EMPTY;
 
-  // trace back to caller
-  mrbc_callinfo *callinfo = vm->callinfo_tail;
-  mrbc_callinfo *caller_callinfo = regs[0].proc->callinfo;
-  mrbc_value *ret_ptr;
+  // return to the proc generated level.
+  int reg_offset = 0;
+  while( 1 ) {
+    // If have a ensure, jump to it.
+    const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
+    if( handler ) {
+      assert( vm->exception.tt == MRBC_TT_NIL );
+      vm->exception.tt = MRBC_TT_BREAK;
+      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+      return;
+    }
 
-  do {
-    ret_ptr = callinfo->cur_regs + callinfo->reg_offset;
+    // Is it the origin (generator) of proc?
+    if( vm->callinfo_tail == vm->ret_blk->callinfo_self ) break;
+
+    reg_offset = vm->callinfo_tail->reg_offset;
     mrbc_pop_callinfo(vm);
-    callinfo = vm->callinfo_tail;
-  } while( callinfo != caller_callinfo );
+  }
 
-  // set return value
-  mrbc_decref( ret_ptr );
-  *ret_ptr = ret_val;
+  // set the return value.
+  mrbc_value *reg0 = vm->cur_regs + reg_offset;
+  mrbc_decref(reg0);
+  *reg0 = vm->ret_blk->ret_val;
+
+  mrbc_decref(&(mrbc_value){.tt = MRBC_TT_PROC, .proc = vm->ret_blk});
+  vm->ret_blk = 0;
 }
 
 
@@ -2232,10 +2332,11 @@ static inline void op_method( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_BB();
 
+  mrbc_decref(&regs[a]);
+
   mrbc_value val = mrbc_proc_new(vm, mrbc_irep_child_irep(vm->cur_irep, b));
   if( !val.proc ) return;	// ENOMEM
 
-  mrbc_decref(&regs[a]);
   regs[a] = val;
 }
 

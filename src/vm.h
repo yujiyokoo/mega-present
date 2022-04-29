@@ -92,7 +92,7 @@ typedef struct IREP mrb_irep;
   IREP Catch Handler
 */
 typedef struct IREP_CATCH_HANDLER {
-  uint8_t type;		//!< enum mrb_catch_type, 1 byte
+  uint8_t type;		//!< enum mrb_catch_type, 1 byte. 0=rescue, 1=ensure
   uint8_t begin[4];	//!< The starting address to match the hander. Includes this.
   uint8_t end[4];	//!< The endpoint address that matches the hander. Not Includes this.
   uint8_t target[4];	//!< The address to jump to if a match is made.
@@ -136,10 +136,11 @@ typedef struct VM {
 
   mrbc_irep       *top_irep;		//!< IREP tree top.
   const mrbc_irep *cur_irep;		//!< IREP currently running.
-  const uint8_t   *inst;		//!< instruction pointer.
-  mrbc_value	  *cur_regs;		//!< Current register pointer.
+  const uint8_t   *inst;		//!< Instruction pointer.
+  mrbc_value	  *cur_regs;		//!< Current register top.
   mrbc_class      *target_class;	//!< Target class.
   mrbc_callinfo	  *callinfo_tail;	//!< Last point of CALLINFO link.
+  mrbc_proc	  *ret_blk;		//!< Return block.
 
   mrbc_value	  exception;		//!< Raised exception or nil.
   mrbc_value      regs[MAX_REGS_SIZE];

@@ -65,9 +65,11 @@ typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 */
 typedef enum {
   /* internal use */
-  MRBC_TT_JMPUW      = -3,  // use in OP_JMPUW
-  MRBC_TT_RETBLK     = -2,  // use in OP_RETURN, OP_RETURN_BLK, OP_BREAK
-  MRBC_TT_HANDLE     = -1,
+  MRBC_TT_JMPUW		= -5,  // use in OP_JMPUW...
+  MRBC_TT_BREAK		= -4,
+  MRBC_TT_RETURN_BLK	= -3,
+  MRBC_TT_RETURN	= -2,
+  MRBC_TT_HANDLE	= -1,
 
   /* primitive */
   MRBC_TT_EMPTY	  = 0,
@@ -153,7 +155,6 @@ struct RObject {
     struct RHash *hash;		// MRBC_TT_HASH
     struct RException *exception; // MRBC_TT_EXCEPTION
     void *handle;		// internal use only.
-    const uint8_t *jmpuw;       // jump point from break
   };
 };
 typedef struct RObject mrb_object;	// not recommended.
