@@ -138,31 +138,6 @@ static void send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int 
 
 
 //================================================================
-/*! Find exception catch handler
-*/
-static const mrbc_irep_catch_handler *find_catch_handler_all( const struct VM *vm )
-{
-  const mrbc_irep *irep = vm->cur_irep;
-  int cnt = irep->clen;
-  if( cnt == 0 ) return NULL;
-
-  const mrbc_irep_catch_handler *catch_table =
-    (const mrbc_irep_catch_handler *)(irep->inst + irep->ilen);
-  uint32_t inst = vm->inst - irep->inst;
-
-  for( cnt--; cnt >= 0 ; cnt-- ) {
-    const mrbc_irep_catch_handler *handler = catch_table + cnt;
-    if( (bin_to_uint32(handler->begin) < inst) &&
-	(inst <= bin_to_uint32(handler->end)) ) {
-      return handler;
-    }
-  }
-
-  return NULL;
-}
-
-
-//================================================================
 /*! Find ensure catch handler
 */
 static const mrbc_irep_catch_handler *find_catch_handler_ensure( const struct VM *vm )
@@ -1525,17 +1500,20 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 static inline void op_return__sub( mrbc_vm *vm, mrbc_value *regs, int a )
 {
   // If have a ensure, jump to it.
-  const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
-  if( handler ) {
-    assert( vm->exception.tt == MRBC_TT_NIL );
 
-    // Save the return value in the last+1 register.
-    regs[ vm->cur_irep->nregs ] = regs[a];
-    regs[a].tt = MRBC_TT_EMPTY;
+  if( vm->cur_irep->clen ) {
+    const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
+    if( handler ) {
+      assert( vm->exception.tt == MRBC_TT_NIL );
 
-    vm->exception.tt = MRBC_TT_RETURN;
-    vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
-    return;
+      // Save the return value in the last+1 register.
+      regs[ vm->cur_irep->nregs ] = regs[a];
+      regs[a].tt = MRBC_TT_EMPTY;
+
+      vm->exception.tt = MRBC_TT_RETURN;
+      vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
+      return;
+    }
   }
 
   // return without anything if top level.
@@ -2799,13 +2777,25 @@ int mrbc_vm_run( struct VM *vm )
     // Handle exception
     vm->flag_preemption = 0;
     const mrbc_irep_catch_handler *handler;
-    while(1) {
-      handler = find_catch_handler_all(vm);
-      if( handler ) break;
+
+    while( 1 ) {
+      const mrbc_irep *irep = vm->cur_irep;
+      const mrbc_irep_catch_handler *catch_table =
+	(const mrbc_irep_catch_handler *)(irep->inst + irep->ilen);
+      uint32_t inst = vm->inst - irep->inst;
+      int cnt = irep->clen;
+
+      for( cnt--; cnt >= 0 ; cnt-- ) {
+	handler = catch_table + cnt;
+	if( (bin_to_uint32(handler->begin) < inst) &&
+	    (inst <= bin_to_uint32(handler->end)) ) goto JUMP_TO_HANDLER;
+      }
+
       if( !vm->callinfo_tail ) return 2;	// return due to exception.
       mrbc_pop_callinfo( vm );
     }
 
+  JUMP_TO_HANDLER:
     // jump to handler (rescue or ensure).
     vm->inst = vm->cur_irep->inst + bin_to_uint32(handler->target);
   }
