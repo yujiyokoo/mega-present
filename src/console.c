@@ -104,37 +104,37 @@ void mrbc_nprint(const char *str, int size)
 //----------------------------------------------------------------
 /* sub function for mrbc_snprintf, mrbc_printf
 */
-static int mrbc_printf_sub_output_arg( mrbc_printf_t *pf, va_list ap )
+static int mrbc_printf_sub_output_arg( mrbc_printf_t *pf, va_list *ap )
 {
   int ret;
 
   switch(pf->fmt.type) {
   case 'c':
-    ret = mrbc_printf_char( pf, va_arg(ap, int) );
+    ret = mrbc_printf_char( pf, va_arg(*ap, int) );
     break;
 
   case 's':
-    ret = mrbc_printf_str( pf, va_arg(ap, char *), ' ');
+    ret = mrbc_printf_str( pf, va_arg(*ap, char *), ' ');
     break;
 
   case 'd':
   case 'i':
   case 'u':
-    ret = mrbc_printf_int( pf, va_arg(ap, int), 10);
+    ret = mrbc_printf_int( pf, va_arg(*ap, int), 10);
     break;
 
   case 'D':	// for mrbc_int (see mrbc_print_sub)
-    ret = mrbc_printf_int( pf, va_arg(ap, mrbc_int), 10);
+    ret = mrbc_printf_int( pf, va_arg(*ap, mrbc_int), 10);
     break;
 
   case 'b':
   case 'B':
-    ret = mrbc_printf_bit( pf, va_arg(ap, unsigned int), 1);
+    ret = mrbc_printf_bit( pf, va_arg(*ap, unsigned int), 1);
     break;
 
   case 'x':
   case 'X':
-    ret = mrbc_printf_bit( pf, va_arg(ap, unsigned int), 4);
+    ret = mrbc_printf_bit( pf, va_arg(*ap, unsigned int), 4);
     break;
 
 #if MRBC_USE_FLOAT
@@ -143,11 +143,11 @@ static int mrbc_printf_sub_output_arg( mrbc_printf_t *pf, va_list ap )
   case 'E':
   case 'g':
   case 'G':
-    ret = mrbc_printf_float( pf, va_arg(ap, double) );
+    ret = mrbc_printf_float( pf, va_arg(*ap, double) );
     break;
 #endif
   case 'p':
-    ret = mrbc_printf_pointer( pf, va_arg(ap, void *) );
+    ret = mrbc_printf_pointer( pf, va_arg(*ap, void *) );
     break;
 
   default:
@@ -177,7 +177,7 @@ void mrbc_snprintf( char *buf, int bufsiz, const char *fstr, ...)
   while( 1 ) {
     if( mrbc_printf_main( &pf ) <= 0 ) break;
 				// normal end (==0) or buffer full (<0).
-    if( mrbc_printf_sub_output_arg( &pf, ap ) != 0 ) break;
+    if( mrbc_printf_sub_output_arg( &pf, &ap ) != 0 ) break;
   }
 
   mrbc_printf_end( &pf );
@@ -208,7 +208,7 @@ void mrbc_printf(const char *fstr, ...)
     if( ret == 0 ) break;
     if( ret < 0 ) continue;
 
-    mrbc_printf_sub_output_arg( &pf, ap );
+    mrbc_printf_sub_output_arg( &pf, &ap );
     mrbc_nprint( buf, mrbc_printf_len( &pf ) );
     mrbc_printf_clear( &pf );
   }
