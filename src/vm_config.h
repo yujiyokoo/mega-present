@@ -30,11 +30,6 @@
 #define MAX_SYMBOLS_COUNT 255
 #endif
 
-// maximum number of exception depth
-#if !defined(MAX_EXCEPTION_COUNT)
-#define MAX_EXCEPTION_COUNT 16
-#endif
-
 
 // memory management
 //  MRBC_ALLOC_16BIT or MRBC_ALLOC_24BIT
@@ -85,10 +80,11 @@
 # define MRBC_LITTLE_ENDIAN
 #endif
 
-/* 32it alignment
-   If 32-bit alignment is required, enable the following line.
- */
+/* Word alignment
+   If 32bit and/or 64bit alignment is required, enable the following line.
+*/
 // #define MRBC_REQUIRE_32BIT_ALIGNMENT
+// #define MRBC_REQUIRE_64BIT_ALIGNMENT
 
 // Debug code.
 #if !defined(NDEBUG)
