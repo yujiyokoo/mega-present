@@ -41,56 +41,27 @@
 //================================================================
 /*! (method) new
  */
-static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
+void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 {
-  mrbc_value new_obj = mrbc_instance_new(vm, v->cls, 0);
-  if( new_obj.instance == NULL ) return;	// ENOMEM
-
-  mrbc_method method;
-  if( mrbc_find_method( &method, v->cls, MRBC_SYM(initialize) ) == 0 ) {
-    goto DONE;
-  }
-
-  mrbc_irep *irep = mrbc_alloc( vm, sizeof(mrbc_irep) + sizeof(mrbc_sym) );
-  if( !irep ) goto DONE;		// ENOMEM
-
-  memset( irep, 0, sizeof(mrbc_irep) );
-
-  uint8_t code[] = {
-    OP_SEND, 0, 0, argc,
-    OP_ABORT,
-  };
-  irep->ilen = sizeof(code);
-  irep->inst = code;
-  *((mrbc_sym *)irep->data) = MRBC_SYM(initialize);
   mrbc_class *cls = v->cls;
+  mrbc_value new_obj = mrbc_instance_new(vm, cls, 0);
+  if( new_obj.instance == NULL ) return;	// ENOMEM
 
   mrbc_decref(&v[0]);
   v[0] = new_obj;
-  mrbc_incref(&new_obj);
 
-  const mrbc_irep *org_cur_irep = vm->cur_irep;
-  mrbc_value* org_regs = vm->cur_regs;
-  const uint8_t *org_inst = vm->inst;
+  mrbc_method method;
+  if( mrbc_find_method( &method, cls, MRBC_SYM(initialize) ) == NULL ) return;
 
-  vm->cur_irep = irep;
+  // call initializer
+  mrbc_decref(&v[argc+1]);
+  mrbc_set_nil(&v[argc+1]);
+  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, MRBC_SYM(initialize), (v - vm->cur_regs), argc);
+  callinfo->own_class = method.cls;
+
+  vm->cur_irep = method.irep;
+  vm->inst = method.irep->inst;
   vm->cur_regs = v;
-  vm->inst = irep->inst;
-
-  while( mrbc_vm_run(vm) == 0 )
-    ;
-
-  vm->flag_preemption = 0;
-  vm->cur_irep = org_cur_irep;
-  vm->inst = org_inst;
-  vm->cur_regs = org_regs;
-
-  new_obj.instance->cls = cls;
-  mrbc_free( vm, irep );
-
-DONE:
-  SET_RETURN( new_obj );
-  return;
 }
 
 

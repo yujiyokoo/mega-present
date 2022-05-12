@@ -119,6 +119,7 @@ static void send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int 
     // call C method.
     method.func(vm, recv, narg);
     if( method.func == c_proc_call ) return;
+    if( method.func == c_object_new ) return;
 
     int i;
     for( i = 1; i <= narg+1; i++ ) {
@@ -1500,7 +1501,6 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 static inline void op_return__sub( mrbc_vm *vm, mrbc_value *regs, int a )
 {
   // If have a ensure, jump to it.
-
   if( vm->cur_irep->clen ) {
     const mrbc_irep_catch_handler *handler = find_catch_handler_ensure(vm);
     if( handler ) {
@@ -1525,9 +1525,11 @@ static inline void op_return__sub( mrbc_vm *vm, mrbc_value *regs, int a )
   }
 
   // set the return value
-  mrbc_decref(&regs[0]);
-  regs[0] = regs[a];
-  regs[a].tt = MRBC_TT_EMPTY;
+  if( vm->callinfo_tail->method_id != MRBC_SYM(initialize) ) {
+    mrbc_decref(&regs[0]);
+    regs[0] = regs[a];
+    regs[a].tt = MRBC_TT_EMPTY;
+  }
 
   mrbc_pop_callinfo(vm);
 }
@@ -2381,7 +2383,7 @@ static inline void op_exec( mrbc_vm *vm, mrbc_value *regs EXT )
   assert( regs[a].tt == MRBC_TT_CLASS );
 
   // prepare callinfo
-  mrbc_push_callinfo(vm, 0, 0, 0);
+  mrbc_push_callinfo(vm, 0, a, 0);
 
   // target irep
   vm->cur_irep = mrbc_irep_child_irep(vm->cur_irep, b);

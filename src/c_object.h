@@ -28,6 +28,7 @@
 extern "C" {
 #endif
 
+void c_object_new(struct VM *vm, mrbc_value v[], int argc);
 void c_proc_call(struct VM *vm, mrbc_value v[], int argc);
 
 /***** Inline functions *****************************************************/
