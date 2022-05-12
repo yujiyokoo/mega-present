@@ -21,6 +21,8 @@ require_relative "common_sub"
 
 OUTPUT_FILENAME = "symbol_builtin.h"
 APPEND_SYMBOL = [
+  "",   # To make zero an error (reserved) value.
+
   "+", "-", "*", "/", "initialize", "message", "collect", "map",
   "collect!", "map!", "delete_if", "each", "each_index",
   "each_with_index", "reject!", "reject", "sort!", "sort", "times",
