@@ -2015,7 +2015,7 @@ static inline void op_array2( mrbc_vm *vm, mrbc_value *regs EXT )
   if( value.array == NULL ) return;  // ENOMEM
 
   int i;
-  for( i=0 ; i<c ; i++ ) {
+  for( i = 0; i < c; i++ ) {
     mrbc_incref( &regs[b+i] );
     value.array->data[i] = regs[b+i];
   }
@@ -2115,7 +2115,7 @@ static inline void op_aref( mrbc_vm *vm, mrbc_value *regs EXT )
 
   mrbc_decref( dst );
 
-  if( src->tt == MRBC_TT_ARRAY ) {
+  if( mrbc_type(*src) == MRBC_TT_ARRAY ) {
     // src is Array
     *dst = mrbc_array_get(src, c);
     mrbc_incref(dst);
@@ -2125,7 +2125,7 @@ static inline void op_aref( mrbc_vm *vm, mrbc_value *regs EXT )
       mrbc_incref(src);
       *dst = *src;
     } else {
-      dst->tt = MRBC_TT_NIL;
+      mrbc_set_nil( dst );
     }
   }
 }
@@ -2140,6 +2140,9 @@ static inline void op_aset( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_BBB();
 
+  assert( mrbc_type(regs[b]) == MRBC_TT_ARRAY );
+
+  mrbc_incref( &regs[b] );
   mrbc_array_set(&regs[a], c, &regs[b]);
 }
 
@@ -2154,7 +2157,7 @@ static inline void op_apost( mrbc_vm *vm, mrbc_value *regs EXT )
   FETCH_BBB();
 
   mrbc_value src = regs[a];
-  if( src.tt != MRBC_TT_ARRAY ) {
+  if( mrbc_type(src) != MRBC_TT_ARRAY ) {
     src = mrbc_array_new(vm, 1);
     src.array->data[0] = regs[a];
     src.array->n_stored = 1;
@@ -2162,10 +2165,10 @@ static inline void op_apost( mrbc_vm *vm, mrbc_value *regs EXT )
 
   int pre  = b;
   int post = c;
-  int len = src.array->n_stored;
+  int len = mrbc_array_size(&src);
 
   if( len > pre + post ) {
-    int ary_size = len-pre-post;
+    int ary_size = len - pre - post;
     regs[a] = mrbc_array_new(vm, ary_size);
     // copy elements
     int i;
@@ -2174,10 +2177,14 @@ static inline void op_apost( mrbc_vm *vm, mrbc_value *regs EXT )
       mrbc_incref( &regs[a].array->data[i] );
     }
     regs[a].array->n_stored = ary_size;
+
   } else {
+    assert(!"Not support this case in op_apost.");
     // empty
     regs[a] = mrbc_array_new(vm, 0);
   }
+
+  mrbc_decref(&src);
 }
 
 
