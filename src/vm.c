@@ -1524,13 +1524,19 @@ static inline void op_return__sub( mrbc_vm *vm, mrbc_value *regs, int a )
     return;
   }
 
-  // set the return value
-  if( vm->callinfo_tail->method_id != MRBC_SYM(initialize) ) {
-    mrbc_decref(&regs[0]);
-    regs[0] = regs[a];
-    regs[a].tt = MRBC_TT_EMPTY;
-  }
 
+  // in initializer?
+  if( vm->callinfo_tail->method_id != MRBC_SYM(initialize) ) goto SET_RETURN;
+  if(!vm->callinfo_tail->prev ) goto RETURN;
+  if( vm->callinfo_tail->prev->method_id != MRBC_SYM(initialize) ) goto RETURN;
+
+  // set the return value
+ SET_RETURN:
+  mrbc_decref(&regs[0]);
+  regs[0] = regs[a];
+  regs[a].tt = MRBC_TT_EMPTY;
+
+ RETURN:
   mrbc_pop_callinfo(vm);
 }
 
