@@ -2546,20 +2546,6 @@ static inline void op_stop( mrbc_vm *vm, mrbc_value *regs EXT )
 
 
 //================================================================
-/*! OP_ABORT
-
-  stop VM
-*/
-static inline void op_abort( mrbc_vm *vm, mrbc_value *regs EXT )
-{
-  FETCH_Z();
-
-  vm->flag_preemption = 1;
-  vm->flag_stop = 1;
-}
-
-
-//================================================================
 /* Unsupported opecodes
 */
 static inline void op_unsupported( mrbc_vm *vm )
@@ -2769,9 +2755,6 @@ int mrbc_vm_run( struct VM *vm )
     case OP_EXT3:       op_ext       (vm, regs EXT); break;
 #endif
     case OP_STOP:       op_stop      (vm, regs EXT); break;
-
-    case OP_ABORT:      op_abort     (vm, regs EXT); break;
-
     default:		op_unsupported(vm);          break;
     } // end switch.
 
