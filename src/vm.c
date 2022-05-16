@@ -171,7 +171,7 @@ static const mrbc_irep_catch_handler *find_catch_handler_ensure( const struct VM
 static mrbc_value * mrbc_get_self( struct VM *vm, mrbc_value *regs )
 {
   mrbc_value *self = &regs[0];
-  if( self->tt == MRBC_TT_PROC ) {
+  if( mrbc_type(*self) == MRBC_TT_PROC ) {
     mrbc_callinfo *callinfo = regs[0].proc->callinfo_self;
     if( callinfo ) {
       self = callinfo->cur_regs + callinfo->reg_offset;
@@ -564,11 +564,9 @@ static inline void op_loadself( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
 
-  mrbc_value *self = mrbc_get_self( vm, regs );
-
-  mrbc_incref(self);
   mrbc_decref(&regs[a]);
-  regs[a] = *self;
+  regs[a] = *mrbc_get_self( vm, regs );
+  mrbc_incref( &regs[a] );
 }
 
 
@@ -1380,8 +1378,11 @@ static inline void op_argary( mrbc_vm *vm, mrbc_value *regs EXT )
 */
 static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 {
-#define FLAG_REST_PARAM (a & 0x1000)
-#define FLAG_DICT_PARAM (a & 0x2)
+#define FLAG_REST	0x1000
+#define FLAG_M2		0x0f80
+#define FLAG_KW		0x007c
+#define FLAG_DICT	0x0002
+#define FLAG_BLOCK	0x0001
 
   FETCH_W();
 
@@ -1389,30 +1390,30 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
   int reg_use_max = regs - vm->regs + vm->cur_irep->nregs;
   if( reg_use_max >= vm->regs_size ) {
     mrbc_raise(vm, MRBC_CLASS(Exception), "MAX_REGS_SIZE overflow.");
-    return;	// raise?
+    return;
   }
 
   int m1 = (a >> 18) & 0x1f;	// # of required parameters 1
   int o  = (a >> 13) & 0x1f;	// # of optional parameters
   int argc = vm->callinfo_tail->n_args;
 
-  if( a & 0xffc ) {	// check m2 and k parameter.
+  if( a & (FLAG_M2|FLAG_KW) ) {	// check m2 and k parameter.
     mrbc_printf("ArgumentError: not support m2 or keyword argument.\n");
     return;		// raise?
   }
 
-  if( argc < m1 && regs[0].tt != MRBC_TT_PROC ) {
+  if( argc < m1 && mrbc_type(regs[0]) != MRBC_TT_PROC ) {
     mrbc_printf("ArgumentError: wrong number of arguments.\n");
     return;		// raise?
   }
 
   // save proc (or nil) object.
-  mrbc_value proc = regs[argc + 1];
-  regs[argc + 1].tt = MRBC_TT_EMPTY;
+  mrbc_value proc = regs[argc+1];
+  regs[argc+1].tt = MRBC_TT_EMPTY;
 
   // support yield [...] pattern, to expand array.
-  if( regs[0].tt == MRBC_TT_PROC &&
-      regs[1].tt == MRBC_TT_ARRAY &&
+  if( mrbc_type(regs[0]) == MRBC_TT_PROC &&
+      mrbc_type(regs[1]) == MRBC_TT_ARRAY &&
       argc == 1 && m1 > 1 ) {
     mrbc_value argary = regs[1];
     regs[1].tt = MRBC_TT_EMPTY;
@@ -1431,63 +1432,78 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
     mrbc_array_delete_handle( &argary );
   }
 
-  // dictionary parameter if exists.
-  mrbc_value dict;
-  if( FLAG_DICT_PARAM ) {
-    if( (argc - m1) > 0 && regs[argc].tt == MRBC_TT_HASH ) {
-      dict = regs[argc];
-      regs[argc--].tt = MRBC_TT_EMPTY;
-    } else {
-      dict = mrbc_hash_new( vm, 0 );
+  // dictionary or rest parameter exists.
+  if( a & (FLAG_DICT|FLAG_REST) ) {
+    mrbc_value dict;
+    if( a & FLAG_DICT ) {
+      if( (argc - m1) > 0 && mrbc_type(regs[argc]) == MRBC_TT_HASH ) {
+	dict = regs[argc];
+	regs[argc--].tt = MRBC_TT_EMPTY;
+      } else {
+	dict = mrbc_hash_new( vm, 0 );
+      }
     }
-  }
 
-  // rest parameter if exists.
-  mrbc_value rest;
-  if( FLAG_REST_PARAM ) {
-    int rest_size = argc - m1 - o;
-    if( rest_size < 0 ) rest_size = 0;
-    rest = mrbc_array_new(vm, rest_size);
-    if( !rest.array ) return;	// ENOMEM raise?
+    mrbc_value rest;
+    if( a & FLAG_REST ) {
+      int rest_size = argc - m1 - o;
+      if( rest_size < 0 ) rest_size = 0;
+      rest = mrbc_array_new(vm, rest_size);
+      if( !rest.array ) return;	// ENOMEM raise?
 
-    int rest_reg = m1 + o + 1;
+      int rest_reg = m1 + o + 1;
+      int i;
+      for( i = 0; i < rest_size; i++ ) {
+	mrbc_array_push( &rest, &regs[rest_reg] );
+	regs[rest_reg++].tt = MRBC_TT_EMPTY;
+      }
+    }
+
+    // reorder arguments.
     int i;
-    for( i = 0; i < rest_size; i++ ) {
-      mrbc_array_push( &rest, &regs[rest_reg] );
-      regs[rest_reg++].tt = MRBC_TT_EMPTY;
+    for( i = argc; i < m1; ) {
+      mrbc_set_nil( &regs[++i] );
     }
-  }
+    i = m1 + o;
+    if( a & FLAG_REST ) {
+      regs[++i] = rest;
+    }
+    if( a & FLAG_DICT ) {
+      regs[++i] = dict;
+    }
+    regs[i+1] = proc;
+    vm->callinfo_tail->n_args = i;
 
-  // reorder arguments.
-  int i;
-  for( i = argc; i < m1; ) {
-    mrbc_set_nil( &regs[++i] );
+  } else {
+    // reorder arguments.
+    int i;
+    for( i = argc; i < m1; ) {
+      mrbc_set_nil( &regs[++i] );
+    }
+    i = m1 + o;
+    regs[i+1] = proc;
+    vm->callinfo_tail->n_args = i;
   }
-  i = m1 + o;
-  if( FLAG_REST_PARAM ) {
-    regs[++i] = rest;
-  }
-  if( FLAG_DICT_PARAM ) {
-    regs[++i] = dict;
-  }
-  regs[i+1] = proc;
-  vm->callinfo_tail->n_args = i;
 
   // prepare for get default arguments.
   int jmp_ofs = argc - m1;
   if( jmp_ofs > 0 ) {
     if( jmp_ofs > o ) {
-      if( !FLAG_REST_PARAM && regs[0].tt != MRBC_TT_PROC ) {
+      jmp_ofs = o;
+
+      if( !(a & FLAG_REST) && mrbc_type(regs[0]) != MRBC_TT_PROC ) {
 	mrbc_printf("ArgumentError: wrong number of arguments.\n");
 	return;		// raise?
       }
-      jmp_ofs = o;
     }
     vm->inst += jmp_ofs * 3;	// 3 = bytecode size of OP_JMP
   }
 
-#undef FLAG_REST_PARAM
-#undef FLAG_DICT_PARAM
+#undef FLAG_REST
+#undef FLAG_M2
+#undef FLAG_KW
+#undef FLAG_DICT
+#undef FLAG_BLOCK
 }
 
 
