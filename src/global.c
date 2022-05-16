@@ -186,7 +186,7 @@ void mrbc_global_debug_dump(void)
       mrbc_printf(" %04x:%s = ", kv->sym_id, s );
     }
     mrbc_p_sub( &kv->value );
-    if( mrbc_type(kv->value) < MRBC_TT_INC_DEC_THRESHOLD ) {
+    if( mrbc_type(kv->value) <= MRBC_TT_INC_DEC_THRESHOLD ) {
       mrbc_printf(" .tt=%d\n", mrbc_type(kv->value));
     } else {
       mrbc_printf(" .tt=%d refcnt=%d\n", mrbc_type(kv->value), kv->value.obj->ref_count);
@@ -200,7 +200,7 @@ void mrbc_global_debug_dump(void)
 
     mrbc_printf(" %04x:%s = ", kv->sym_id, mrbc_symid_to_str(kv->sym_id));
     mrbc_p_sub( &kv->value );
-    if( mrbc_type(kv->value) < MRBC_TT_INC_DEC_THRESHOLD ) {
+    if( mrbc_type(kv->value) <= MRBC_TT_INC_DEC_THRESHOLD ) {
       mrbc_printf(" .tt=%d\n", mrbc_type(kv->value));
     } else {
       mrbc_printf(" .tt=%d refcnt=%d\n", mrbc_type(kv->value), kv->value.obj->ref_count);

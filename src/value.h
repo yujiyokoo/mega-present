@@ -81,10 +81,10 @@ typedef enum {
   MRBC_TT_FIXNUM  = 4,
   MRBC_TT_FLOAT	  = 5,
   MRBC_TT_SYMBOL  = 6,
-  MRBC_TT_CLASS	  = 7,
+  MRBC_TT_CLASS	  = 7,	// (note) inc/dec ref threshold.
 
   /* non-primitive */
-  MRBC_TT_OBJECT    = 8,	// (note) inc/dec ref threshold.
+  MRBC_TT_OBJECT    = 8,
   MRBC_TT_PROC	    = 9,
   MRBC_TT_ARRAY	    = 10,
   MRBC_TT_STRING    = 11,
@@ -92,7 +92,7 @@ typedef enum {
   MRBC_TT_HASH	    = 13,
   MRBC_TT_EXCEPTION = 14,
 } mrbc_vtype;
-#define	MRBC_TT_INC_DEC_THRESHOLD MRBC_TT_OBJECT
+#define	MRBC_TT_INC_DEC_THRESHOLD MRBC_TT_CLASS
 #define	MRBC_TT_MAXVAL MRBC_TT_EXCEPTION
 
 
@@ -281,7 +281,7 @@ mrbc_int mrbc_atoi(const char *s, int base);
 */
 static inline void mrbc_incref(mrbc_value *v)
 {
-  if( v->tt < MRBC_TT_INC_DEC_THRESHOLD ) return;
+  if( v->tt <= MRBC_TT_INC_DEC_THRESHOLD ) return;
 
   assert( v->obj->ref_count != 0 );
   assert( v->obj->ref_count != 0xff );	// check max value.
@@ -296,14 +296,14 @@ static inline void mrbc_incref(mrbc_value *v)
 */
 static inline void mrbc_decref(mrbc_value *v)
 {
-  if( v->tt < MRBC_TT_INC_DEC_THRESHOLD ) return;
+  if( v->tt <= MRBC_TT_INC_DEC_THRESHOLD ) return;
 
   assert( v->obj->ref_count != 0 );
   assert( v->obj->ref_count != 0xffff );	// check broken data.
 
   if( --v->obj->ref_count != 0 ) return;
 
-  (*mrbc_delfunc[ v->tt - MRBC_TT_INC_DEC_THRESHOLD ])(v);
+  (*mrbc_delfunc[v->tt])(v);
 }
 
 

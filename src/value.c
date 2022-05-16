@@ -42,6 +42,7 @@
   @see mrbc_vtype in value.h
 */
 void (* const mrbc_delfunc[])(mrbc_value *) = {
+  0, 0, 0, 0, 0, 0, 0, 0,
   mrbc_instance_delete,		// MRBC_TT_OBJECT    = 8,
   mrbc_proc_delete,		// MRBC_TT_PROC	     = 9,
   mrbc_array_delete,		// MRBC_TT_ARRAY     = 10,
