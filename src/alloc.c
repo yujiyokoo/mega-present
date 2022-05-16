@@ -271,7 +271,7 @@ static inline int nlz8(uint8_t x)
   @param  alloc_size	alloc size
   @retval unsigned int	index of free_blocks
 */
-static unsigned int calc_index(MRBC_ALLOC_MEMSIZE_T alloc_size)
+static inline unsigned int calc_index(MRBC_ALLOC_MEMSIZE_T alloc_size)
 {
   // check overflow
   if( (alloc_size >> (MRBC_ALLOC_FLI_BIT_WIDTH
