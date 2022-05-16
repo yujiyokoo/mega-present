@@ -41,7 +41,7 @@
 //================================================================
 /*! (method) new
  */
-void c_object_new(struct VM *vm, mrbc_value v[], int argc)
+static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
 {
   mrbc_class *cls = v->cls;
   mrbc_value new_obj = mrbc_instance_new(vm, cls, 0);
@@ -721,7 +721,7 @@ static void c_proc_new(struct VM *vm, mrbc_value v[], int argc)
 //================================================================
 /*! (method) call
 */
-void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
+static void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 {
   assert( mrbc_type(v[0]) == MRBC_TT_PROC );
 

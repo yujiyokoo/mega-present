@@ -57,18 +57,17 @@ static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
   @param  vm		pointer to VM.
   @param  sym_id	method name symbol id
-  @param  regs		pointer to regs
   @param  a		operand a
-  @param  c		operand c
-  @param  is_sendb	Is called from OP_SENDB?
+  @param  c		bit: 0-3=narg, 4-7=karg, 8=have block param flag.
   @retval 0  No error.
 */
-static void send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int a, int c, int is_sendb )
+static void send_by_name( struct VM *vm, mrbc_sym sym_id, int a, int c )
 {
   // Does not support to keyword arguments.
   // thus, reorder arguments to mruby2 series compatible.
   int narg = c & 0x0f;
-  int karg = c >> 4;
+  int karg = (c >> 4) & 0x0f;
+  mrbc_value *regs = vm->cur_regs;
   mrbc_value *recv = regs + a;
 
   // If it's packed in an array, expand it.
@@ -102,7 +101,8 @@ static void send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int 
     narg++;
   }
 
-  if( !is_sendb ) {
+  // is not have block
+  if( (c >> 8) == 0 ) {
     mrbc_decref( recv + narg + 1 );
     mrbc_set_nil( recv + narg + 1 );
   }
@@ -118,8 +118,8 @@ static void send_by_name( struct VM *vm, mrbc_sym sym_id, mrbc_value *regs, int 
   if( method.c_func ) {
     // call C method.
     method.func(vm, recv, narg);
-    if( method.func == c_proc_call ) return;
-    if( method.func == c_object_new ) return;
+    if( sym_id == MRBC_SYM(call) ) return;
+    if( sym_id == MRBC_SYM(new) ) return;
 
     int i;
     for( i = 1; i <= narg+1; i++ ) {
@@ -875,7 +875,7 @@ static inline void op_getidx( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
 
-  send_by_name(vm, MRBC_SYMID_BL_BR, regs, a, 1, 0);
+  send_by_name( vm, MRBC_SYMID_BL_BR, a, 1 );
 }
 
 
@@ -888,7 +888,7 @@ static inline void op_setidx( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
 
-  send_by_name(vm, MRBC_SYMID_BL_BR_EQ, regs, a, 2, 0);
+  send_by_name( vm, MRBC_SYMID_BL_BR_EQ, a, 2 );
 }
 
 
@@ -1178,13 +1178,11 @@ static inline void op_ssend( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_BBB();
 
-  mrbc_value *self = mrbc_get_self( vm, regs );
-
   mrbc_decref( &regs[a] );
-  regs[a] = *self;
+  regs[a] = *mrbc_get_self( vm, regs );
   mrbc_incref( &regs[a] );
 
-  send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 0 );
+  send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), a, c );
 }
 
 
@@ -1198,13 +1196,11 @@ static inline void op_ssendb( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_BBB();
 
-  mrbc_value *self = mrbc_get_self( vm, regs );
-
   mrbc_decref( &regs[a] );
-  regs[a] = *self;
+  regs[a] = *mrbc_get_self( vm, regs );
   mrbc_incref( &regs[a] );
 
-  send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 1 );
+  send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), a, c | 0x100 );
 }
 
 
@@ -1218,7 +1214,7 @@ static inline void op_send( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_BBB();
 
-  send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 0 );
+  send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), a, c );
 }
 
 
@@ -1231,7 +1227,7 @@ static inline void op_sendb( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_BBB();
 
-  send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), regs, a, c, 1 );
+  send_by_name( vm, mrbc_irep_symbol_id(vm->cur_irep, b), a, c | 0x100 );
 }
 
 
@@ -1524,7 +1520,6 @@ static inline void op_return__sub( mrbc_vm *vm, mrbc_value *regs, int a )
     return;
   }
 
-
   // in initializer?
   if( vm->callinfo_tail->method_id != MRBC_SYM(initialize) ) goto SET_RETURN;
   if(!vm->callinfo_tail->prev ) goto RETURN;
@@ -1549,6 +1544,7 @@ static inline void op_return__sub( mrbc_vm *vm, mrbc_value *regs, int a )
 static inline void op_return( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
+
   op_return__sub( vm, regs, a );
 }
 
@@ -1566,9 +1562,6 @@ static inline void op_return_blk( mrbc_vm *vm, mrbc_value *regs EXT )
     op_return__sub( vm, regs, a );
     return;
   }
-
-
-  assert( regs[0].tt == MRBC_TT_PROC );
 
   // Save the return value in the proc object.
   mrbc_incref( &regs[0] );
@@ -1734,7 +1727,7 @@ static inline void op_add( mrbc_vm *vm, mrbc_value *regs EXT )
   }
 
   // other case
-  send_by_name(vm, MRBC_SYM(PLUS), regs, a, 1, 0);
+  send_by_name( vm, MRBC_SYM(PLUS), a, 1 );
 }
 
 
@@ -1797,7 +1790,7 @@ static inline void op_sub( mrbc_vm *vm, mrbc_value *regs EXT )
   }
 
   // other case
-  send_by_name(vm, MRBC_SYM(MINUS), regs, a, 1, 0);
+  send_by_name( vm, MRBC_SYM(MINUS), a, 1 );
 }
 
 
@@ -1860,7 +1853,7 @@ static inline void op_mul( mrbc_vm *vm, mrbc_value *regs EXT )
   }
 
   // other case
-  send_by_name(vm, MRBC_SYM(MUL), regs, a, 1, 0);
+  send_by_name( vm, MRBC_SYM(MUL), a, 1 );
 }
 
 
@@ -1898,7 +1891,7 @@ static inline void op_div( mrbc_vm *vm, mrbc_value *regs EXT )
   }
 
   // other case
-  send_by_name(vm, MRBC_SYM(DIV), regs, a, 1, 0);
+  send_by_name( vm, MRBC_SYM(DIV), a, 1 );
 }
 
 
