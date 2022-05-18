@@ -1,6 +1,6 @@
 /*! @file
   @brief
-  mrubyc memory management.
+  mruby/c memory management.
 
   <pre>
   Copyright (C) 2015-2022 Kyushu Institute of Technology.

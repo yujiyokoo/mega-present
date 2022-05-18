@@ -30,7 +30,6 @@
 #include "c_array.h"
 #include "c_hash.h"
 #include "console.h"
-#include "opcode.h"
 #include "error.h"
 
 /***** Functions ************************************************************/

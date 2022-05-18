@@ -3,8 +3,8 @@
   Class related functions.
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -16,8 +16,10 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
-/***** Local headers ********************************************************/
 #include "vm_config.h"
+#include <stdint.h>
+
+/***** Local headers ********************************************************/
 #include "value.h"
 #include "keyvalue.h"
 #include "error.h"
@@ -170,7 +172,7 @@ static inline mrbc_class *find_class_by_object(const mrbc_value *obj)
   assert( mrbc_type(*obj) >= 0 );
   assert( mrbc_type(*obj) <= MRBC_TT_MAXVAL );
 
-  mrbc_class *cls = mrbc_class_tbl[ obj->tt ];
+  mrbc_class *cls = mrbc_class_tbl[ mrbc_type(*obj) ];
   if( !cls ) {
     switch( mrbc_type(*obj) ) {
     case MRBC_TT_CLASS:		cls = obj->cls;			break;

@@ -3,8 +3,8 @@
   mruby/c Hash class
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -14,6 +14,11 @@
 #ifndef MRBC_SRC_C_HASH_H_
 #define MRBC_SRC_C_HASH_H_
 
+/***** Feature test switches ************************************************/
+/***** System headers *******************************************************/
+#include <stdint.h>
+
+/***** Local headers ********************************************************/
 #include "value.h"
 #include "c_array.h"
 
@@ -21,6 +26,9 @@
 extern "C" {
 #endif
 
+/***** Constat values *******************************************************/
+/***** Macros ***************************************************************/
+/***** Typedefs *************************************************************/
 //================================================================
 /*!@brief
   Define Hash handle.
@@ -50,6 +58,8 @@ typedef struct RHashIterator {
 } mrbc_hash_iterator;
 
 
+/***** Global variables *****************************************************/
+/***** Function prototypes **************************************************/
 mrbc_value mrbc_hash_new(struct VM *vm, int size);
 void mrbc_hash_delete(mrbc_value *hash);
 mrbc_value *mrbc_hash_search(const mrbc_value *hash, const mrbc_value *key);
@@ -61,7 +71,7 @@ int mrbc_hash_compare(const mrbc_value *v1, const mrbc_value *v2);
 mrbc_value mrbc_hash_dup(struct VM *vm, mrbc_value *src);
 
 
-
+/***** Inline functions *****************************************************/
 //================================================================
 /*! get size
 */

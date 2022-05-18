@@ -3,8 +3,8 @@
   exception
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -17,9 +17,10 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+#include <stdint.h>
+
 /***** Local headers ********************************************************/
 #include "value.h"
-#include "c_string.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,9 +38,9 @@ extern "C" {
 typedef struct RException {
   MRBC_OBJECT_HEADER;
 
-  struct RClass *cls;			//!< exception class.
-  MRBC_STRING_SIZE_T message_size;	//!< message length.
-  uint8_t *message;			//!< pointer to allocated buffer.
+  struct RClass *cls;		//!< exception class.
+  uint16_t message_size;	//!< message length.
+  uint8_t *message;		//!< pointer to allocated buffer.
 
 } mrbc_exception;
 

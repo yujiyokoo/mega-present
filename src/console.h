@@ -15,9 +15,8 @@
 #define MRBC_SRC_CONSOLE_H_
 
 /***** Feature test switches ************************************************/
-#include "vm_config.h"
-
 /***** System headers *******************************************************/
+#include "vm_config.h"
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>

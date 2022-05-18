@@ -1,6 +1,6 @@
 /*! @file
   @brief
-  mrubyc memory management.
+  mruby/c memory management.
 
   <pre>
   Copyright (C) 2015-2022 Kyushu Institute of Technology.
@@ -51,10 +51,8 @@
 #include <assert.h>
 
 /***** Local headers ********************************************************/
-#include "vm.h"
 #include "alloc.h"
 #include "hal_selector.h"
-#include "console.h"
 
 /***** Constant values ******************************************************/
 /*
@@ -826,6 +824,7 @@ void mrbc_alloc_statistics( struct MRBC_ALLOC_STATISTICS *ret )
 
 
 #if defined(MRBC_DEBUG)
+#include "console.h"
 //================================================================
 /*! print memory block for debug.
 

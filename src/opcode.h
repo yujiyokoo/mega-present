@@ -228,30 +228,6 @@ enum OPCODE {
 };
 
 
-//================================================================
-/*!@brief
-  OP_RETURN parameter
-
-*/
-#define OP_R_NORMAL 0
-#define OP_R_BREAK  1
-#define OP_R_RETURN 2
-
-
-#if defined(MRBC_LITTLE_ENDIAN)
-#define MKOPCODE(op) (((uint32_t)(op) & 0x7f)<<24)
-#define MKARG_A(x)   (((uint32_t)(x) & 0xff)<<1 | ((uint32_t)(x) & 0x01)>>8)
-#define MKARG_B(x)   (((uint32_t)(x) & 0x1fc)<<6 | ((uint32_t)(x) & 0x03)<<22)
-#define MKARG_C(x)   (((uint32_t)(x) & 0x7e)<<15 | ((uint32_t)(x) & 0x01)<<31)
-
-#elif defined(MRBC_BIG_ENDIAN)
-#define MKOPCODE(op) ((uint32_t)(op) & 0x7f)
-#define MKARG_A(x)   ((uint32_t)(x) << 23)
-#define MKARG_B(x)   ((uint32_t)(x) << 14)
-#define MKARG_C(x)   ((uint32_t)(x) << 7)
-#endif
-
-
 #ifdef __cplusplus
 }
 #endif
