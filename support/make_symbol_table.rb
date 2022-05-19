@@ -2,8 +2,8 @@
 #
 # create built-in symbol table in ROM
 #
-#  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-#  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+#  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+#  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 #
 #  This file is distributed under BSD 3-Clause License.
 #
@@ -23,23 +23,12 @@ OUTPUT_FILENAME = "symbol_builtin.h"
 APPEND_SYMBOL = [
   "",   # To make zero an error (reserved) value.
 
-  "+", "-", "*", "/", "initialize", "message", "collect", "map",
+  "+", "-", "*", "/", "initialize", "collect", "map",
   "collect!", "map!", "delete_if", "each", "each_index",
   "each_with_index", "reject!", "reject", "sort!", "sort", "times",
   "loop", "each_byte", "each_char",
   "PI", "E",
   "RUBY_VERSION", "MRUBY_VERSION", "MRUBYC_VERSION", "RUBY_ENGINE",
-  "Exception",
-  "NoMemoryError",
-  "StandardError",
-  "ArgumentError",
-  "IndexError",
-  "NameError",
-  "NoMethodError",
-  "RangeError",
-  "RuntimeError",
-  "TypeError",
-  "ZeroDivisionError",
 ]
 
 
