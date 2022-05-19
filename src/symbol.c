@@ -24,10 +24,8 @@
 #include "symbol.h"
 #undef MRBC_DEFINE_SYMBOL_TABLE
 #include "value.h"
-#include "vm.h"
 #include "alloc.h"
 #include "class.h"
-#include "c_object.h"
 #include "c_string.h"
 #include "c_array.h"
 #include "console.h"

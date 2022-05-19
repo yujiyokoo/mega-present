@@ -134,8 +134,8 @@ def parse_source_string( src )
 
     flag_arg_ok = true
     case key.upcase
-    when "FILE"
-      ret[:file] = strip_double_quot(args[0])
+    when "FILE", "APPEND"
+      ret[key.downcase.to_sym] = strip_double_quot(args[0])
 
     when "CLASS"
       cls = { class: strip_double_quot(args[0]) }

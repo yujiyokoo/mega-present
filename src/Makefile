@@ -1,8 +1,8 @@
 #
 # mruby/c  src/Makefile
 #
-# Copyright (C) 2015-2021 Kyushu Institute of Technology.
-# Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+# Copyright (C) 2015-2022 Kyushu Institute of Technology.
+# Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 #
 #  This file is distributed under BSD 3-Clause License.
 #
@@ -42,11 +42,10 @@ MAKE_SYMBOL_TABLE ?= ../support/make_symbol_table.rb
 MAKE_METHOD_TABLE ?= ../support/make_method_table.rb
 
 AUTOGEN_SYMBOL_TABLE = symbol_builtin.h
-AUTOGEN_METHOD_TABLE = method_table_array.h method_table_false.h \
-  method_table_integer.h method_table_float.h method_table_hash.h \
-  method_table_math.h method_table_nil.h method_table_object.h \
-  method_table_proc.h method_table_range.h method_table_string.h \
-  method_table_symbol.h method_table_true.h method_table_exception.h
+AUTOGEN_METHOD_TABLE = method_table_array.h method_table_exception.h \
+	method_table_float.h method_table_hash.h method_table_integer.h \
+	method_table_math.h method_table_object.h method_table_range.h \
+	method_table_string.h method_table_symbol.h
 
 #
 # un-comment bellow, if you need add and/or delete method in builtin class.
@@ -58,8 +57,6 @@ $(AUTOGEN_SYMBOL_TABLE): $(AUTOGEN_METHOD_TABLE)
 
 method_table_array.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_array.c
-method_table_false.h:	$(AUTOGEN_METHOD_SRCS)
-	$(MAKE_METHOD_TABLE) c_object.c
 method_table_integer.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_numeric.c
 method_table_float.h:	$(AUTOGEN_METHOD_SRCS)
@@ -68,11 +65,7 @@ method_table_hash.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_hash.c
 method_table_math.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_math.c
-method_table_nil.h:	$(AUTOGEN_METHOD_SRCS)
-	$(MAKE_METHOD_TABLE) c_object.c
 method_table_object.h:	$(AUTOGEN_METHOD_SRCS)
-	$(MAKE_METHOD_TABLE) c_object.c
-method_table_proc.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_object.c
 method_table_range.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_range.c
@@ -80,8 +73,6 @@ method_table_string.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_string.c
 method_table_symbol.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) symbol.c
-method_table_true.h:	$(AUTOGEN_METHOD_SRCS)
-	$(MAKE_METHOD_TABLE) c_object.c
 method_table_exception.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) error.c
 
@@ -105,8 +96,7 @@ c_numeric.o: c_numeric.c vm_config.h value.h class.h keyvalue.h error.h \
   symbol_builtin.h method_table_float.h
 c_object.o: c_object.c vm_config.h alloc.h value.h vm.h class.h \
   keyvalue.h error.h symbol.h symbol_builtin.h c_string.h c_array.h \
-  c_hash.h console.h method_table_object.h method_table_proc.h \
-  method_table_nil.h method_table_true.h method_table_false.h
+  c_hash.h console.h method_table_object.h
 c_range.o: c_range.c vm_config.h value.h alloc.h class.h keyvalue.h \
   error.h c_range.h c_string.h console.h method_table_range.h \
   symbol_builtin.h
@@ -114,8 +104,8 @@ c_string.o: c_string.c vm_config.h value.h vm.h class.h keyvalue.h \
   error.h alloc.h symbol.h symbol_builtin.h c_array.h c_string.h \
   console.h method_table_string.h
 class.o: class.c vm_config.h alloc.h value.h vm.h class.h keyvalue.h \
-  error.h symbol.h symbol_builtin.h global.h console.h load.h c_object.h \
-  c_string.h c_array.h c_hash.h
+  error.h symbol.h symbol_builtin.h global.h console.h load.h c_string.h \
+  c_array.h c_hash.h
 console.o: console.c vm_config.h hal_selector.h $(HAL_DIR)/hal.h value.h \
   class.h keyvalue.h error.h console.h symbol.h symbol_builtin.h \
   c_string.h c_array.h alloc.h c_hash.h c_range.h
@@ -127,15 +117,14 @@ keyvalue.o: keyvalue.c vm_config.h value.h alloc.h keyvalue.h
 load.o: load.c vm_config.h vm.h value.h class.h keyvalue.h error.h load.h \
   alloc.h symbol.h symbol_builtin.h c_string.h
 mrblib.o: mrblib.c
-regdump.o: regdump.c
 rrt0.o: rrt0.c vm_config.h alloc.h load.h value.h class.h keyvalue.h \
-  error.h global.h symbol.h symbol_builtin.h c_object.h vm.h console.h \
-  rrt0.h hal_selector.h $(HAL_DIR)/hal.h
-symbol.o: symbol.c vm_config.h symbol.h value.h symbol_builtin.h vm.h \
-  class.h keyvalue.h error.h alloc.h c_object.h c_string.h c_array.h \
-  console.h method_table_symbol.h
+  error.h global.h symbol.h symbol_builtin.h vm.h console.h rrt0.h \
+  hal_selector.h $(HAL_DIR)/hal.h
+symbol.o: symbol.c vm_config.h symbol.h value.h symbol_builtin.h alloc.h \
+  class.h keyvalue.h error.h c_string.h c_array.h console.h \
+  method_table_symbol.h
 value.o: value.c vm_config.h value.h symbol.h symbol_builtin.h class.h \
   keyvalue.h error.h c_string.h c_range.h c_array.h alloc.h c_hash.h
-vm.o: vm.c vm_config.h vm.h value.h class.h keyvalue.h error.h alloc.h \
-  load.h global.h opcode.h symbol.h symbol_builtin.h console.h \
-  c_object.h c_string.h c_range.h c_array.h c_hash.h
+vm.o: vm.c vm_config.h alloc.h value.h symbol.h symbol_builtin.h class.h \
+  keyvalue.h error.h c_string.h c_range.h c_array.h c_hash.h global.h \
+  load.h console.h opcode.h vm.h

@@ -25,7 +25,6 @@
 #include "class.h"
 #include "global.h"
 #include "symbol.h"
-#include "c_object.h"
 #include "vm.h"
 #include "console.h"
 #include "rrt0.h"
