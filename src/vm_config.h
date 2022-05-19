@@ -84,7 +84,7 @@
    If 32bit and/or 64bit alignment is required, enable the following line.
 */
 // #define MRBC_REQUIRE_32BIT_ALIGNMENT
-// #define MRBC_REQUIRE_64BIT_ALIGNMENT
+#define MRBC_REQUIRE_64BIT_ALIGNMENT
 
 // Debug code.
 #if !defined(NDEBUG)
