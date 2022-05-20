@@ -55,19 +55,19 @@ AUTOGEN_METHOD_TABLE = _autogen_class_array.h _autogen_class_exception.h \
 $(AUTOGEN_SYMBOL_TABLE): $(AUTOGEN_METHOD_TABLE)
 	$(MAKE_SYMBOL_TABLE) -a -o $(AUTOGEN_SYMBOL_TABLE)
 
-_autogen_class_array.h:	$(AUTOGEN_METHOD_SRCS)
+_autogen_class_array.h:		$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_array.c
 _autogen_class_integer.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_numeric.c
-_autogen_class_float.h:	$(AUTOGEN_METHOD_SRCS)
+_autogen_class_float.h:		$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_numeric.c
-_autogen_class_hash.h:	$(AUTOGEN_METHOD_SRCS)
+_autogen_class_hash.h:		$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_hash.c
-_autogen_class_math.h:	$(AUTOGEN_METHOD_SRCS)
+_autogen_class_math.h:		$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_math.c
 _autogen_class_object.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_object.c
-_autogen_class_range.h:	$(AUTOGEN_METHOD_SRCS)
+_autogen_class_range.h:		$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_range.c
 _autogen_class_string.h:	$(AUTOGEN_METHOD_SRCS)
 	$(MAKE_METHOD_TABLE) c_string.c
