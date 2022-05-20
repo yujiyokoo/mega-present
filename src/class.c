@@ -28,7 +28,6 @@
 #include "global.h"
 #include "console.h"
 #include "load.h"
-#include "c_object.h"
 #include "c_string.h"
 #include "c_array.h"
 #include "c_hash.h"

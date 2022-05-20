@@ -18,7 +18,7 @@
 /***** System headers *******************************************************/
 /***** Local headers ********************************************************/
 #include "value.h"
-#include "symbol_builtin.h"
+#include "_autogen_builtin_symbol.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -3,8 +3,8 @@
   mruby/c Range class
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -12,11 +12,12 @@
 */
 
 #include "vm_config.h"
-#include "value.h"
+
 #include "alloc.h"
+#include "value.h"
 #include "class.h"
-#include "c_range.h"
 #include "c_string.h"
+#include "c_range.h"
 #include "console.h"
 
 
@@ -183,7 +184,7 @@ static void c_range_inspect(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Range")
-  FILE("method_table_range.h")
+  FILE("_autogen_class_range.h")
 
   METHOD("===",		c_range_equal3 )
   METHOD("first",	c_range_first )
@@ -194,4 +195,4 @@ static void c_range_inspect(struct VM *vm, mrbc_value v[], int argc)
   METHOD("to_s",	c_range_inspect )
 #endif
 */
-#include "method_table_range.h"
+#include "_autogen_class_range.h"

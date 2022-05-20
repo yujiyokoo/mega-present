@@ -19,11 +19,11 @@
 /***** Local headers ********************************************************/
 #include "alloc.h"
 #include "value.h"
-#include "class.h"
 #include "symbol.h"
-#include "vm.h"
-#include "c_string.h"
 #include "error.h"
+#include "class.h"
+#include "c_string.h"
+#include "vm.h"
 
 
 /***** Constat values *******************************************************/
@@ -187,80 +187,40 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
 */
 
 /* MRBC_AUTOGEN_METHOD_TABLE
-  CLASS("Exception")
-  FILE("method_table_exception.h")
+  FILE("_autogen_class_exception.h")
 
+  CLASS("Exception")
   METHOD("new", c_exception_new )
   METHOD("message", c_exception_message )
-*/
-#include "method_table_exception.h"
 
-/* MRBC_AUTOGEN_METHOD_TABLE
   CLASS("NoMemoryError")
   SUPER("Exception")
-  FILE("method_table_nomemoryerror.h")
-*/
-#include "method_table_nomemoryerror.h"
 
-/* MRBC_AUTOGEN_METHOD_TABLE
   CLASS("StandardError")
   SUPER("Exception")
-  FILE("method_table_standarderror.h")
-*/
-#include "method_table_standarderror.h"
 
-/* MRBC_AUTOGEN_METHOD_TABLE
   CLASS("ArgumentError")
   SUPER("StandardError")
-  FILE("method_table_argumenterror.h")
-*/
-#include "method_table_argumenterror.h"
 
-/* MRBC_AUTOGEN_METHOD_TABLE
   CLASS("IndexError")
   SUPER("StandardError")
-  FILE("method_table_indexerror.h")
-*/
-#include "method_table_indexerror.h"
 
-/* MRBC_AUTOGEN_METHOD_TABLE
   CLASS("NameError")
   SUPER("StandardError")
-  FILE("method_table_nameerror.h")
-*/
-#include "method_table_nameerror.h"
 
-/* MRBC_AUTOGEN_METHOD_TABLE
   CLASS("NoMethodError")
   SUPER("NameError")
-  FILE("method_table_nomethoderror.h")
-*/
-#include "method_table_nomethoderror.h"
 
-/* MRBC_AUTOGEN_METHOD_TABLE
   CLASS("RangeError")
   SUPER("StandardError")
-  FILE("method_table_rangeerror.h")
-*/
-#include "method_table_rangeerror.h"
 
-/* MRBC_AUTOGEN_METHOD_TABLE
   CLASS("RuntimeError")
   SUPER("StandardError")
-  FILE("method_table_runtimeerror.h")
-*/
-#include "method_table_runtimeerror.h"
 
-/* MRBC_AUTOGEN_METHOD_TABLE
   CLASS("TypeError")
   SUPER("StandardError")
-  FILE("method_table_typeerror.h")
-*/
-#include "method_table_typeerror.h"
 
-/* MRBC_AUTOGEN_METHOD_TABLE
   CLASS("ZeroDivisionError")
   SUPER("StandardError")
-  FILE("method_table_zerodivisionerror.h")
 */
-#include "method_table_zerodivisionerror.h"
+#include "_autogen_class_exception.h"

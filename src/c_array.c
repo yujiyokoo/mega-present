@@ -15,12 +15,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include "value.h"
-#include "vm.h"
 #include "alloc.h"
+#include "value.h"
 #include "class.h"
-#include "c_array.h"
 #include "c_string.h"
+#include "c_array.h"
 #include "console.h"
 
 /*
@@ -1083,7 +1082,7 @@ static void c_array_join(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Array")
-  FILE("method_table_array.h")
+  FILE("_autogen_class_array.h")
 
   METHOD( "new",	c_array_new )
   METHOD( "+",		c_array_add )
@@ -1115,4 +1114,4 @@ static void c_array_join(struct VM *vm, mrbc_value v[], int argc)
   METHOD( "join",	c_array_join )
 #endif
 */
-#include "method_table_array.h"
+#include "_autogen_class_array.h"

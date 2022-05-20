@@ -15,13 +15,12 @@
 #include <string.h>
 #include <assert.h>
 
-#include "value.h"
-#include "vm.h"
 #include "alloc.h"
+#include "value.h"
 #include "class.h"
+#include "c_string.h"
 #include "c_array.h"
 #include "c_hash.h"
-#include "c_string.h"
 
 /*
   function summary
@@ -542,7 +541,7 @@ static void c_hash_inspect(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Hash")
-  FILE("method_table_hash.h")
+  FILE("_autogen_class_hash.h")
 
   METHOD( "new",	c_hash_new )
   METHOD( "[]",		c_hash_get )
@@ -567,4 +566,4 @@ static void c_hash_inspect(struct VM *vm, mrbc_value v[], int argc)
   METHOD( "to_s",	c_hash_inspect )
 #endif
 */
-#include "method_table_hash.h"
+#include "_autogen_class_hash.h"

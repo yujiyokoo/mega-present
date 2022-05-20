@@ -19,22 +19,22 @@
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
-#include "vm.h"
-#include "alloc.h"
-#include "load.h"
-#include "global.h"
-#include "opcode.h"
-#include "class.h"
-#include "symbol.h"
-#include "console.h"
-#include "error.h"
 
 /***** Local headers ********************************************************/
-#include "c_object.h"
+#include "alloc.h"
+#include "value.h"
+#include "symbol.h"
+#include "class.h"
+#include "error.h"
 #include "c_string.h"
 #include "c_range.h"
 #include "c_array.h"
 #include "c_hash.h"
+#include "global.h"
+#include "load.h"
+#include "console.h"
+#include "opcode.h"
+#include "vm.h"
 
 
 /***** Constat values *******************************************************/

@@ -3,8 +3,8 @@
   mruby/c String class
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -17,13 +17,13 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "value.h"
-#include "vm.h"
 #include "alloc.h"
-#include "class.h"
+#include "value.h"
 #include "symbol.h"
-#include "c_array.h"
+#include "class.h"
 #include "c_string.h"
+#include "c_array.h"
+#include "vm.h"
 #include "console.h"
 
 
@@ -1222,7 +1222,7 @@ static void c_string_include(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("String")
-  FILE("method_table_string.h")
+  FILE("_autogen_class_string.h")
 
   METHOD( "new",	c_string_new )
   METHOD( "+",		c_string_add )
@@ -1264,7 +1264,7 @@ static void c_string_include(struct VM *vm, mrbc_value v[], int argc)
   METHOD( "to_f",	c_string_to_f )
 #endif
 */
-#include "method_table_string.h"
+#include "_autogen_class_string.h"
 
 
 #endif // MRBC_USE_STRING

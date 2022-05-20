@@ -21,9 +21,8 @@
 
 #include "value.h"
 #include "class.h"
-#include "console.h"
-#include "c_numeric.h"
 #include "c_string.h"
+#include "console.h"
 
 
 //================================================================
@@ -233,7 +232,7 @@ static void c_integer_to_s(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Integer")
-  FILE("method_table_integer.h")
+  FILE("_autogen_class_integer.h")
 
   METHOD( "[]",		c_integer_bitref )
   METHOD( "+@",		c_integer_positive )
@@ -257,7 +256,7 @@ static void c_integer_to_s(struct VM *vm, mrbc_value v[], int argc)
   METHOD( "to_s",	c_integer_to_s )
 #endif
 */
-#include "method_table_integer.h"
+#include "_autogen_class_integer.h"
 
 
 
@@ -340,7 +339,7 @@ static void c_float_to_s(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Float")
-  FILE("method_table_float.h")
+  FILE("_autogen_class_float.h")
 
   METHOD( "+@",		c_float_positive )
   METHOD( "-@",		c_float_negative )
@@ -355,6 +354,6 @@ static void c_float_to_s(struct VM *vm, mrbc_value v[], int argc)
   METHOD( "to_s",	c_float_to_s )
 #endif
 */
-#include "method_table_float.h"
+#include "_autogen_class_float.h"
 
 #endif  // MRBC_USE_FLOAT
