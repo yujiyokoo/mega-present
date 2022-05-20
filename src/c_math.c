@@ -3,8 +3,8 @@
   mruby/c Math class
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -15,7 +15,9 @@
 #include <math.h>
 
 #include "value.h"
+#include "symbol.h"
 #include "class.h"
+#include "global.h"
 
 
 #if MRBC_USE_FLOAT && MRBC_USE_MATH
@@ -25,8 +27,8 @@
 */
 static double to_double( const mrbc_value *v )
 {
-  switch( v->tt ) {
-  case MRBC_TT_FIXNUM:	return (double)v->i;
+  switch( mrbc_type(*v) ) {
+  case MRBC_TT_INTEGER:	return (double)v->i;
   case MRBC_TT_FLOAT:	return (double)v->d;
   default:		return 0;	// TypeError. raise?
   }
@@ -152,8 +154,8 @@ static void c_math_hypot(struct VM *vm, mrbc_value v[], int argc)
 static void c_math_ldexp(struct VM *vm, mrbc_value v[], int argc)
 {
   int exp;
-  switch( v[2].tt ) {
-  case MRBC_TT_FIXNUM:	exp = v[2].i;		break;
+  switch( mrbc_type(v[2]) ) {
+  case MRBC_TT_INTEGER:	exp = v[2].i;		break;
   case MRBC_TT_FLOAT:	exp = (int)v[2].d;	break;
   default:		exp = 0;	// TypeError. raise?
   }
@@ -225,12 +227,22 @@ static void c_math_tanh(struct VM *vm, mrbc_value v[], int argc)
   v[0] = mrbc_float_value(vm, tanh( to_double(&v[1]) ));
 }
 
+//================================================================
+/*! initialize
+*/
+void mrbc_init_class_math(void)
+{
+  static mrbc_value e = mrbc_float_value(0, M_E);
+  mrbc_set_class_const( MRBC_CLASS(Math), MRBC_SYM(E), &e );
+
+  static mrbc_value pi = mrbc_float_value(0, M_PI);
+  mrbc_set_class_const( MRBC_CLASS(Math), MRBC_SYM(PI), &pi );
+}
 
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Math")
-  FILE("method_table_math.h")
-  FUNC("mrbc_init_class_math")
+  FILE("_autogen_class_math.h")
 
   METHOD( "acos",	c_math_acos )
   METHOD( "acosh",	c_math_acosh )
@@ -256,6 +268,6 @@ static void c_math_tanh(struct VM *vm, mrbc_value v[], int argc)
   METHOD( "tan",	c_math_tan )
   METHOD( "tanh",	c_math_tanh )
 */
-#include "method_table_math.h"
+#include "_autogen_class_math.h"
 
 #endif  // MRBC_USE_FLOAT && MRBC_USE_MATH

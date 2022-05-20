@@ -2,6 +2,19 @@
 
 class ArrayTest < MrubycTestCase
 
+  description "sort Integer"
+  def sort_integer_case
+    assert_equal [1, 2, 5], [2, 5, 1].sort
+    assert_equal [31, 2000], [2000, 31].sort
+  end
+
+  description "sort Symbol"
+  def sort_symbol_case
+    assert_equal [:a, :b], [:b, :a].sort
+    assert_equal [:ab, :abc, :b], [:ab, :b, :abc].sort
+    assert_equal [:"2000", :"31"], [:"31", :"2000"].sort
+  end
+
   description "operator +"
   def operator_case
     assert_equal [1,2,3,4], [1,2] + [3,4]
@@ -69,7 +82,7 @@ class ArrayTest < MrubycTestCase
 
     assert_equal 44, a[6,50] = 44
     assert_equal [99,88,66,77,nil,nil,44], a
-    a[2,1] = 77  
+    a[2,1] = 77
     assert_equal [99,88,77,77,nil,nil,44], a
     a[3,0] = 66
     assert_equal [99,88,77,66,77,nil,nil,44], a

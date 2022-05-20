@@ -12,7 +12,6 @@
   </pre>
 */
 
-
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
 #include "vm_config.h"
@@ -23,6 +22,7 @@
 #include "value.h"
 #include "symbol.h"
 #include "class.h"
+#include "error.h"
 #include "c_string.h"
 #include "c_range.h"
 #include "c_array.h"
@@ -38,19 +38,22 @@
 //================================================================
 /*! function table for object delete.
 
-  (note) need same order as mrb_vtype.
+  @note must be same order as mrbc_vtype.
+  @see mrbc_vtype in value.h
 */
 void (* const mrbc_delfunc[])(mrbc_value *) = {
-  mrbc_instance_delete,
-  mrbc_proc_delete,
-  mrbc_array_delete,
+  0, 0, 0, 0, 0, 0, 0, 0,
+  mrbc_instance_delete,		// MRBC_TT_OBJECT    = 8,
+  mrbc_proc_delete,		// MRBC_TT_PROC	     = 9,
+  mrbc_array_delete,		// MRBC_TT_ARRAY     = 10,
 #if MRBC_USE_STRING
-  mrbc_string_delete,
+  mrbc_string_delete,		// MRBC_TT_STRING    = 11,
 #else
   NULL,
 #endif
-  mrbc_range_delete,
-  mrbc_hash_delete,
+  mrbc_range_delete,		// MRBC_TT_RANGE     = 12,
+  mrbc_hash_delete,		// MRBC_TT_HASH	     = 13,
+  mrbc_exception_delete,	// MRBC_TT_EXCEPTION = 14,
 };
 
 
@@ -77,12 +80,12 @@ int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
   if( mrbc_type(*v1) != mrbc_type(*v2) ) {
 #if MRBC_USE_FLOAT
     // but Numeric?
-    if( mrbc_type(*v1) == MRBC_TT_FIXNUM && mrbc_type(*v2) == MRBC_TT_FLOAT ) {
+    if( mrbc_type(*v1) == MRBC_TT_INTEGER && mrbc_type(*v2) == MRBC_TT_FLOAT ) {
       d1 = v1->i;
       d2 = v2->d;
       goto CMP_FLOAT;
     }
-    if( mrbc_type(*v1) == MRBC_TT_FLOAT && mrbc_type(*v2) == MRBC_TT_FIXNUM ) {
+    if( mrbc_type(*v1) == MRBC_TT_FLOAT && mrbc_type(*v2) == MRBC_TT_INTEGER ) {
       d1 = v1->d;
       d2 = v2->i;
       goto CMP_FLOAT;
@@ -104,8 +107,8 @@ int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
   case MRBC_TT_TRUE:
     return 0;
 
-  case MRBC_TT_FIXNUM:
-    return mrbc_fixnum(*v1) - mrbc_fixnum(*v2);
+  case MRBC_TT_INTEGER:
+    return mrbc_integer(*v1) - mrbc_integer(*v2);
 
   case MRBC_TT_SYMBOL: {
     const char *str1 = mrbc_symid_to_str(mrbc_symbol(*v1));
@@ -153,6 +156,7 @@ int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
 }
 
 
+#if defined(MRBC_ALLOC_VMID)
 //================================================================
 /*! clear vm id
 
@@ -161,6 +165,8 @@ int mrbc_compare(const mrbc_value *v1, const mrbc_value *v2)
 void mrbc_clear_vm_id(mrbc_value *v)
 {
   switch( mrbc_type(*v) ) {
+  case MRBC_TT_OBJECT:	mrbc_instance_clear_vm_id(v);	break;
+  case MRBC_TT_PROC:	mrbc_proc_clear_vm_id(v);	break;
   case MRBC_TT_ARRAY:	mrbc_array_clear_vm_id(v);	break;
 #if MRBC_USE_STRING
   case MRBC_TT_STRING:	mrbc_string_clear_vm_id(v);	break;
@@ -173,6 +179,7 @@ void mrbc_clear_vm_id(mrbc_value *v)
     break;
   }
 }
+#endif
 
 
 //================================================================

@@ -4,8 +4,8 @@
         for RP2040
 
   <pre>
-  Copyright (C) 2016-2018 Kyushu Institute of Technology.
-  Copyright (C) 2016-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2016-2021 Kyushu Institute of Technology.
+  Copyright (C) 2016-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -13,6 +13,8 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+#include <string.h>
+
 /***** Local headers ********************************************************/
 #include "hal.h"
 
@@ -46,7 +48,7 @@ bool alarm_irq(struct repeating_timer *t) {
 void hal_init(void){
   add_repeating_timer_ms(1, alarm_irq, NULL, &timer);
   clocks_hw->sleep_en0 = 0;
-  clocks_hw->sleep_en1 = CLOCKS_SLEEP_EN1_CLK_SYS_TIMER_BITS 
+  clocks_hw->sleep_en1 = CLOCKS_SLEEP_EN1_CLK_SYS_TIMER_BITS
                         | CLOCKS_SLEEP_EN1_CLK_SYS_USBCTRL_BITS
                         | CLOCKS_SLEEP_EN1_CLK_USB_USBCTRL_BITS
                         | CLOCKS_SLEEP_EN1_CLK_SYS_UART0_BITS
@@ -66,7 +68,7 @@ void hal_init(void){
     uart_init(uart0,115200);
     gpio_set_function(0,GPIO_FUNC_UART);
     gpio_set_function(1,GPIO_FUNC_UART);
-  
+
   2. Comment out the putchar for hal_write.
   3. Uncomment uart_putc_raw for hal_write.
 */
@@ -94,3 +96,19 @@ int hal_flush(int fd) {
 }
 
 #endif /* ifndef MRBC_NO_TIMER */
+
+
+//================================================================
+/*!@brief
+  abort program
+
+  @param s	additional message.
+*/
+void hal_abort(const char *s)
+{
+  if( s ) {
+    hal_write(1, s, strlen(s));
+  }
+
+  abort();
+}

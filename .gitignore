@@ -4,6 +4,10 @@ sample_include
 sample_concurrent
 sample_myclass
 sample_no_scheduler
+mrbc
+
+# hal
+#src/hal
 
 # Object files
 *.o
@@ -14,9 +18,7 @@ sample_no_scheduler
 
 # backup file
 *~
-
-# sample_ruby
-sample_ruby/**/*.txt
+*.bak*
 
 # Mac
 .DS_Store

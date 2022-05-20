@@ -4,8 +4,8 @@
         for RP2040
 
   <pre>
-  Copyright (C) 2016-2018 Kyushu Institute of Technology.
-  Copyright (C) 2016-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2016-2021 Kyushu Institute of Technology.
+  Copyright (C) 2016-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -13,10 +13,6 @@
 
 #ifndef MRBC_SRC_HAL_H_
 #define MRBC_SRC_HAL_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
@@ -61,8 +57,13 @@ void hal_init(void);
 /***** Typedefs *************************************************************/
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int hal_write(int fd, const void *buf, int nbytes);
 int hal_flush(int fd);
+void hal_abort(const char *s);
 void alarm_init();
 
 

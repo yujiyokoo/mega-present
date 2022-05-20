@@ -1,3 +1,4 @@
+# coding: utf-8
 
 class StringTest < MrubycTestCase
 
@@ -446,8 +447,8 @@ class StringTest < MrubycTestCase
   def to_something_case
     assert_equal 10.0, "10".to_f
     assert_equal 1000.0, "10e2".to_f
-    assert_equal 0.01, "1e-2".to_f
-    assert_equal 0.1, ".1".to_f
+    assert_equal 0.25, "25e-2".to_f
+    assert_equal 0.25, ".25".to_f
 
     # not support this case.
     #assert_equal 0.0, "nan".to_f

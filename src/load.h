@@ -3,8 +3,8 @@
   mruby bytecode loader.
 
   <pre>
-  Copyright (C) 2015 Kyushu Institute of Technology.
-  Copyright (C) 2015 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -14,15 +14,26 @@
 #ifndef MRBC_SRC_LOAD_H_
 #define MRBC_SRC_LOAD_H_
 
+/***** Feature test switches ************************************************/
+/***** System headers *******************************************************/
 #include <stdint.h>
+
+/***** Local headers ********************************************************/
+#include "value.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+/***** Constat values *******************************************************/
+/***** Macros ***************************************************************/
+/***** Typedefs *************************************************************/
+/***** Global variables *****************************************************/
+/***** Function prototypes **************************************************/
+int mrbc_load_mrb(struct VM *vm, const uint8_t *bin);
+void mrbc_irep_free(struct IREP *irep);
+mrbc_value mrbc_irep_pool_value(struct VM *vm, int n);
 
-struct VM;
-int mrbc_load_mrb(struct VM *vm, const uint8_t *ptr);
-
+/***** Inline functions *****************************************************/
 
 #ifdef __cplusplus
 }

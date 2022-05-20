@@ -3,11 +3,10 @@
   Class related functions.
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
-
 
   </pre>
 */
@@ -28,6 +27,10 @@
 #include "keyvalue.h"
 #include "global.h"
 #include "console.h"
+#include "load.h"
+#include "c_string.h"
+#include "c_array.h"
+#include "c_hash.h"
 
 
 /***** Constant values ******************************************************/
@@ -36,17 +39,28 @@
 /***** Function prototypes **************************************************/
 /***** Local variables ******************************************************/
 /***** Global variables *****************************************************/
-// Builtin class table.
-mrbc_class *mrbc_class_tbl[MRBC_TT_MAXVAL+1];
-mrbc_class *mrbc_class_object;
-mrbc_class *mrbc_class_math;
-mrbc_class *mrbc_class_exception;
-mrbc_class *mrbc_class_standarderror;
-mrbc_class *mrbc_class_runtimeerror;
-mrbc_class *mrbc_class_zerodivisionerror;
-mrbc_class *mrbc_class_argumenterror;
-mrbc_class *mrbc_class_indexerror;
-mrbc_class *mrbc_class_typeerror;
+/*! Builtin class table.
+
+  @note must be same order as mrbc_vtype.
+  @see mrbc_vtype in value.h
+*/
+mrbc_class * const mrbc_class_tbl[MRBC_TT_MAXVAL+1] = {
+  0,				// MRBC_TT_EMPTY     = 0,
+  MRBC_CLASS(NilClass),		// MRBC_TT_NIL	     = 1,
+  MRBC_CLASS(FalseClass),	// MRBC_TT_FALSE     = 2,
+  MRBC_CLASS(TrueClass),	// MRBC_TT_TRUE	     = 3,
+  MRBC_CLASS(Integer),		// MRBC_TT_INTEGER   = 4,
+  MRBC_CLASS(Float),		// MRBC_TT_FLOAT     = 5,
+  MRBC_CLASS(Symbol),		// MRBC_TT_SYMBOL    = 6,
+  0,				// MRBC_TT_CLASS     = 7,
+  0,				// MRBC_TT_OBJECT    = 8,
+  MRBC_CLASS(Proc),		// MRBC_TT_PROC	     = 9,
+  MRBC_CLASS(Array),		// MRBC_TT_ARRAY     = 10,
+  MRBC_CLASS(String),		// MRBC_TT_STRING    = 11,
+  MRBC_CLASS(Range),		// MRBC_TT_RANGE     = 12,
+  MRBC_CLASS(Hash),		// MRBC_TT_HASH	     = 13,
+  0,				// MRBC_TT_EXCEPTION = 14,
+};
 
 
 /***** Signal catching functions ********************************************/
@@ -62,70 +76,39 @@ mrbc_class *mrbc_class_typeerror;
 */
 mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super)
 {
-  mrbc_sym sym_id = str_to_symid(name);
-  mrbc_object *obj = mrbc_get_const( sym_id );
+  mrbc_sym sym_id = mrbc_str_to_symid(name);
 
-  // create a new class?
-  if( obj == NULL ) {
-    mrbc_class *cls = mrbc_raw_alloc_no_free( sizeof(mrbc_class) );
-    if( !cls ) return cls;	// ENOMEM
-
-    cls->sym_id = sym_id;
-    cls->num_builtin_method = 0;
-#ifdef MRBC_DEBUG
-    cls->names = name;	// for debug; delete soon.
-#endif
-    cls->super = (super == NULL) ? mrbc_class_object : super;
-    cls->method_link = 0;
-
-    // For nested class
-    //   so, not in TOPLEVEL, register to class constant 
-    if( vm && vm->callinfo_tail != NULL ){
-    	assert(vm->target_class);
-    	mrbc_set_class_const(vm->target_class, sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = cls});
-    	return cls;
-    }
-
-    // register to global constant.
-    mrbc_set_const( sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = cls} );
-    return cls;
+  // already defined?
+  mrbc_value *val = mrbc_get_const(sym_id);
+  if( val ) {
+    assert( mrbc_type(*val) == MRBC_TT_CLASS );
+    return val->cls;
   }
 
-  // already
-  assert( obj->tt == MRBC_TT_CLASS );
-  return obj->cls;
-}
-
-
-//================================================================
-/*! define built-in class
-
-  @param  name		class name.
-  @param  super		super class.
-  @param  method_symbols
-  @param  method_functions
-  @param  num_builtin_method
-  @return		pointer to defined class.
-*/
-mrbc_class * mrbc_define_builtin_class(const char *name, mrbc_class *super, const mrbc_sym *method_symbols, const mrbc_func_t *method_functions, int num_builtin_method)
-{
-  mrbc_sym sym_id = str_to_symid(name);
-  struct RBuiltinClass *cls = mrbc_raw_alloc_no_free( sizeof(struct RBuiltinClass));
-  if( !cls ) return 0;	// ENOMEM
+  // create a new class.
+  mrbc_class *cls = mrbc_raw_alloc_no_free( sizeof(mrbc_class) );
+  if( !cls ) return cls;	// ENOMEM
 
   cls->sym_id = sym_id;
-  cls->num_builtin_method = num_builtin_method;
+  cls->num_builtin_method = 0;
 #ifdef MRBC_DEBUG
   cls->names = name;	// for debug; delete soon.
 #endif
-  cls->super = super;
+  cls->super = super ? super : mrbc_class_object;
   cls->method_link = 0;
-  cls->method_symbols = method_symbols;
-  cls->method_functions = method_functions;
 
-  // register to global constant.
-  mrbc_set_const( sym_id, &(mrb_value){.tt = MRBC_TT_CLASS, .cls = (mrbc_class *)cls} );
-  return (mrbc_class *)cls;
+  if( vm && mrbc_type(vm->cur_regs[0]) == MRBC_TT_CLASS ) {
+    // For nested class
+    //   so, not in TOPLEVEL, register to class constant
+    assert(vm->target_class);
+    mrbc_set_class_const(vm->target_class, sym_id,
+			 &(mrbc_value){.tt = MRBC_TT_CLASS, .cls = cls});
+  } else {
+    // register to global constant.
+    mrbc_set_const( sym_id, &(mrbc_value){.tt = MRBC_TT_CLASS, .cls = cls} );
+  }
+
+  return cls;
 }
 
 
@@ -144,9 +127,9 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
   mrbc_method *method = mrbc_raw_alloc_no_free( sizeof(mrbc_method) );
   if( !method ) return; // ENOMEM
 
-  method->type = 'M';
+  method->type = 'm';
   method->c_func = 1;
-  method->sym_id = str_to_symid( name );
+  method->sym_id = mrbc_str_to_symid( name );
   method->func = cfunc;
   method->next = cls->method_link;
   cls->method_link = method;
@@ -164,7 +147,7 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
 mrbc_value mrbc_instance_new(struct VM *vm, mrbc_class *cls, int size)
 {
   mrbc_value v = {.tt = MRBC_TT_OBJECT};
-  v.instance = (mrbc_instance *)mrbc_alloc(vm, sizeof(mrbc_instance) + size);
+  v.instance = mrbc_alloc(vm, sizeof(mrbc_instance) + size);
   if( v.instance == NULL ) return v;	// ENOMEM
 
   if( mrbc_kv_init_handle(vm, &v.instance->ivar, 0) != 0 ) {
@@ -199,7 +182,7 @@ void mrbc_instance_delete(mrbc_value *v)
   @param  sym_id	key symbol ID.
   @param  v		pointer to value.
 */
-void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v)
+void mrbc_instance_setiv(mrbc_value *obj, mrbc_sym sym_id, mrbc_value *v)
 {
   mrbc_incref(v);
   mrbc_kv_set( &obj->instance->ivar, sym_id, v );
@@ -213,7 +196,7 @@ void mrbc_instance_setiv(mrbc_object *obj, mrbc_sym sym_id, mrbc_value *v)
   @param  sym_id	key symbol ID.
   @return		value.
 */
-mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
+mrbc_value mrbc_instance_getiv(mrbc_value *obj, mrbc_sym sym_id)
 {
   mrbc_value *v = mrbc_kv_get( &obj->instance->ivar, sym_id );
   if( !v ) return mrbc_nil_value();
@@ -221,6 +204,20 @@ mrbc_value mrbc_instance_getiv(mrbc_object *obj, mrbc_sym sym_id)
   mrbc_incref(v);
   return *v;
 }
+
+
+#if defined(MRBC_ALLOC_VMID)
+//================================================================
+/*! clear vm_id
+
+  @param  v		pointer to target.
+*/
+void mrbc_instance_clear_vm_id(mrbc_value *v)
+{
+  mrbc_set_vm_id( v->instance, 0 );
+  mrbc_kv_clear_vm_id( &v->instance->ivar );
+}
+#endif
 
 
 //================================================================
@@ -234,14 +231,14 @@ mrbc_value mrbc_proc_new(struct VM *vm, void *irep)
 {
   mrbc_value val = {.tt = MRBC_TT_PROC};
 
-  val.proc = (mrbc_proc *)mrbc_alloc(vm, sizeof(mrbc_proc));
+  val.proc = mrbc_alloc(vm, sizeof(mrbc_proc));
   if( !val.proc ) return val;	// ENOMEM
 
   MRBC_INIT_OBJECT_HEADER( val.proc, "PR" );
   val.proc->callinfo = vm->callinfo_tail;
 
-  if(vm->current_regs[0].tt == MRBC_TT_PROC) {
-    val.proc->callinfo_self = vm->current_regs[0].proc->callinfo_self;
+  if( mrbc_type(vm->cur_regs[0]) == MRBC_TT_PROC ) {
+    val.proc->callinfo_self = vm->cur_regs[0].proc->callinfo_self;
   } else {
     val.proc->callinfo_self = vm->callinfo_tail;
   }
@@ -263,6 +260,20 @@ void mrbc_proc_delete(mrbc_value *val)
 }
 
 
+#if defined(MRBC_ALLOC_VMID)
+//================================================================
+/*! clear vm_id
+
+  @param  v		pointer to target.
+*/
+void mrbc_proc_clear_vm_id(mrbc_value *v)
+{
+  mrbc_set_vm_id( v->proc, 0 );
+}
+#endif
+
+
+
 //================================================================
 /*! Check the class is the class of object.
 
@@ -270,7 +281,7 @@ void mrbc_proc_delete(mrbc_value *val)
   @param  cls	class
   @return	result
 */
-int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls )
+int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrbc_class *cls )
 {
   const mrbc_class *c = find_class_by_object( obj );
   while( c != NULL ) {
@@ -285,7 +296,7 @@ int mrbc_obj_is_kind_of( const mrbc_value *obj, const mrb_class *cls )
 //================================================================
 /*! find method
 
-  @param  method	pointer to mrbc_method to return values.
+  @param  r_method	pointer to mrbc_method to return values.
   @param  cls		search class.
   @param  sym_id	symbol id.
   @return		pointer to method or NULL.
@@ -318,7 +329,7 @@ mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym
 
     if( c->method_symbols[right] == sym_id ) {
       *r_method = (mrbc_method){
-	.type = 'M',
+	.type = 'm',
 	.c_func = 2,
 	.sym_id = sym_id,
 	.func = c->method_functions[right],
@@ -342,11 +353,11 @@ mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym
 */
 mrbc_class * mrbc_get_class_by_name( const char *name )
 {
-  mrbc_sym sym_id = str_to_symid(name);
-  mrbc_object *obj = mrbc_get_const( sym_id );
+  mrbc_sym sym_id = mrbc_str_to_symid(name);
+  mrbc_value *obj = mrbc_get_const(sym_id);
 
   if( obj == NULL ) return NULL;
-  return (obj->tt == MRBC_TT_CLASS) ? obj->cls : NULL;
+  return (mrbc_type(*obj) == MRBC_TT_CLASS) ? obj->cls : NULL;
 }
 
 
@@ -357,15 +368,15 @@ mrbc_class * mrbc_get_class_by_name( const char *name )
   @param  v		see bellow example.
   @param  reg_ofs	see bellow example.
   @param  recv		pointer to receiver.
-  @param  method	method name.
+  @param  method_name	method name.
   @param  argc		num of params.
 
   @example
-  // (Fixnum).to_s(16)
-  static void c_fixnum_to_s(struct VM *vm, mrbc_value v[], int argc)
+  // (Integer).to_s(16)
+  static void c_integer_to_s(struct VM *vm, mrbc_value v[], int argc)
   {
     mrbc_value *recv = &v[1];
-    mrbc_value arg1 = mrbc_fixnum_value(16);
+    mrbc_value arg1 = mrbc_integer_value(16);
     mrbc_value ret = mrbc_send( vm, v, argc, recv, "to_s", 1, &arg1 );
     SET_RETURN(ret);
   }
@@ -376,12 +387,12 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
   mrbc_method method;
 
   if( mrbc_find_method( &method, find_class_by_object(recv),
-			str_to_symid(method_name) ) == 0 ) {
-    console_printf("No method. vtype=%d method='%s'\n", recv->tt, method_name );
+			mrbc_str_to_symid(method_name) ) == 0 ) {
+    mrbc_printf("No method. vtype=%d method='%s'\n", mrbc_type(*recv), method_name );
     goto ERROR;
   }
   if( !method.c_func ) {
-    console_printf("Method %s needs to be C function.\n", method_name );
+    mrbc_printf("Method %s needs to be C function.\n", method_name );
     goto ERROR;
   }
 
@@ -423,4 +434,118 @@ mrbc_value mrbc_send( struct VM *vm, mrbc_value *v, int reg_ofs,
 void c_ineffect(struct VM *vm, mrbc_value v[], int argc)
 {
   // nothing to do.
+}
+
+
+//================================================================
+/*! Run mrblib, which is mruby bytecode
+*/
+static void mrbc_run_mrblib(const uint8_t bytecode[])
+{
+  // instead of mrbc_vm_open()
+  mrbc_vm *vm = mrbc_alloc( 0, sizeof(mrbc_vm) );
+  if( !vm ) return;	// ENOMEM
+  memset(vm, 0, sizeof(mrbc_vm));
+
+  mrbc_load_mrb(vm, bytecode);
+  mrbc_vm_begin(vm);
+  mrbc_vm_run(vm);
+  mrbc_vm_end(vm);
+
+  // instead of mrbc_vm_close()
+  mrbc_raw_free( vm->top_irep );	// free only top-level mrbc_irep.
+					// (no need to free child ireps.)
+  mrbc_raw_free( vm );
+}
+
+
+//================================================================
+/*! initialize all classes.
+ */
+void mrbc_init_class(void)
+{
+  extern const uint8_t mrblib_bytecode[];
+  void mrbc_init_class_math(void);
+  mrbc_value cls = {.tt = MRBC_TT_CLASS};
+
+  cls.cls = MRBC_CLASS(Object);
+  mrbc_set_const( MRBC_SYM(Object), &cls );
+
+  cls.cls = MRBC_CLASS(NilClass);
+  mrbc_set_const( MRBC_SYM(NilClass), &cls );
+
+  cls.cls = MRBC_CLASS(FalseClass);
+  mrbc_set_const( MRBC_SYM(FalseClass), &cls );
+
+  cls.cls = MRBC_CLASS(TrueClass);
+  mrbc_set_const( MRBC_SYM(TrueClass), &cls );
+
+  cls.cls = MRBC_CLASS(Integer);
+  mrbc_set_const( MRBC_SYM(Integer), &cls );
+
+#if MRBC_USE_FLOAT
+  cls.cls = MRBC_CLASS(Float);
+  mrbc_set_const( MRBC_SYM(Float), &cls );
+#endif
+
+  cls.cls = MRBC_CLASS(Symbol);
+  mrbc_set_const( MRBC_SYM(Symbol), &cls );
+
+  cls.cls = MRBC_CLASS(Proc);
+  mrbc_set_const( MRBC_SYM(Proc), &cls );
+
+  cls.cls = MRBC_CLASS(Array);
+  mrbc_set_const( MRBC_SYM(Array), &cls );
+
+#if MRBC_USE_STRING
+  cls.cls = MRBC_CLASS(String);
+  mrbc_set_const( MRBC_SYM(String), &cls );
+#endif
+
+  cls.cls = MRBC_CLASS(Range);
+  mrbc_set_const( MRBC_SYM(Range), &cls );
+
+  cls.cls = MRBC_CLASS(Hash);
+  mrbc_set_const( MRBC_SYM(Hash), &cls );
+
+#if MRBC_USE_MATH
+  cls.cls = MRBC_CLASS(Math);
+  mrbc_set_const( MRBC_SYM(Math), &cls );
+  mrbc_init_class_math();
+#endif
+
+  cls.cls = MRBC_CLASS(Exception);
+  mrbc_set_const( MRBC_SYM(Exception), &cls );
+
+  cls.cls = MRBC_CLASS(NoMemoryError);
+  mrbc_set_const( MRBC_SYM(NoMemoryError), &cls );
+
+  cls.cls = MRBC_CLASS(StandardError);
+  mrbc_set_const( MRBC_SYM(StandardError), &cls );
+
+  cls.cls = MRBC_CLASS(ArgumentError);
+  mrbc_set_const( MRBC_SYM(ArgumentError), &cls );
+
+  cls.cls = MRBC_CLASS(IndexError);
+  mrbc_set_const( MRBC_SYM(IndexError), &cls );
+
+  cls.cls = MRBC_CLASS(NameError);
+  mrbc_set_const( MRBC_SYM(NameError), &cls );
+
+  cls.cls = MRBC_CLASS(NoMethodError);
+  mrbc_set_const( MRBC_SYM(NoMethodError), &cls );
+
+  cls.cls = MRBC_CLASS(RangeError);
+  mrbc_set_const( MRBC_SYM(RangeError), &cls );
+
+  cls.cls = MRBC_CLASS(RuntimeError);
+  mrbc_set_const( MRBC_SYM(RuntimeError), &cls );
+
+  cls.cls = MRBC_CLASS(TypeError);
+  mrbc_set_const( MRBC_SYM(TypeError), &cls );
+
+  cls.cls = MRBC_CLASS(ZeroDivisionError);
+  mrbc_set_const( MRBC_SYM(ZeroDivisionError), &cls );
+
+  mrbc_run_mrblib(mrblib_bytecode);
 }
