@@ -8,6 +8,6 @@
 #
 
 RUBY_VERSION = "1.9"
-MRUBY_VERSION = "3.1.0-rc"
+MRUBY_VERSION = "3.1.0"
 MRUBYC_VERSION = "3.1"
 RUBY_ENGINE = "mruby/c"
