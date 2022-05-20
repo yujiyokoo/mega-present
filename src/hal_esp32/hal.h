@@ -14,10 +14,6 @@
 #ifndef MRBC_SRC_HAL_H_
 #define MRBC_SRC_HAL_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
 #include <unistd.h>
@@ -52,9 +48,13 @@ extern "C" {
 /***** Typedefs *************************************************************/
 /***** Global variables *****************************************************/
 /***** Function prototypes **************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void mrbc_tick(void);
 
-#ifndef MRBC_NO_TIMER
+#if !defined(MRBC_NO_TIMER)
 void hal_init(void);
 void hal_enable_irq(void);
 void hal_disable_irq(void);
@@ -70,6 +70,8 @@ void hal_disable_irq(void);
                              mrbc_tick())
 
 #endif
+
+void hal_abort(const char *s);
 
 
 /***** Inline functions *****************************************************/

@@ -14,6 +14,7 @@
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
 #include <stdio.h>
+#include <string.h>
 #include "esp_types.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -109,3 +110,19 @@ void hal_disable_irq(void)
 
 
 #endif /* ifndef MRBC_NO_TIMER */
+
+
+//================================================================
+/*!@brief
+  abort program
+
+  @param s	additional message.
+*/
+void hal_abort(const char *s)
+{
+  if( s ) {
+    write(1, s, strlen(s));
+  }
+
+  abort();
+}

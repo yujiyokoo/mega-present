@@ -3,8 +3,8 @@
   Realtime multitask monitor for mruby/c
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
   </pre>
@@ -25,7 +25,6 @@
 #include "class.h"
 #include "global.h"
 #include "symbol.h"
-#include "c_object.h"
 #include "vm.h"
 #include "console.h"
 #include "rrt0.h"
@@ -162,14 +161,14 @@ static void c_sleep(mrbc_vm *vm, mrbc_value v[], int argc)
     return;
   }
 
-  switch( v[1].tt ) {
-  case MRBC_TT_FIXNUM:
-    mrbc_sleep_ms(tcb, GET_INT_ARG(1) * 1000);
+  switch( mrbc_type(v[1]) ) {
+  case MRBC_TT_INTEGER:
+    mrbc_sleep_ms(tcb, mrbc_integer(v[1]) * 1000);
     break;
 
 #if MRBC_USE_FLOAT
   case MRBC_TT_FLOAT:
-    mrbc_sleep_ms(tcb, (mrbc_int)(GET_FLOAT_ARG(1) * 1000));
+    mrbc_sleep_ms(tcb, (mrbc_int)(mrbc_float(v[1]) * 1000));
     break;
 #endif
 
@@ -187,7 +186,7 @@ static void c_sleep_ms(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   mrbc_tcb *tcb = VM2TCB(vm);
 
-  mrbc_sleep_ms(tcb, GET_INT_ARG(1));
+  mrbc_sleep_ms(tcb, mrbc_integer(v[1]));
 }
 
 
@@ -211,7 +210,7 @@ static void c_change_priority(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   mrbc_tcb *tcb = VM2TCB(vm);
 
-  mrbc_change_priority(tcb, GET_INT_ARG(1));
+  mrbc_change_priority(tcb, mrbc_integer(v[1]));
 }
 
 
@@ -227,7 +226,7 @@ static void c_suspend_task(mrbc_vm *vm, mrbc_value v[], int argc)
     return;
   }
 
-  if( v[1].tt != MRBC_TT_HANDLE ) return;	// error.
+  if( mrbc_type(v[1]) != MRBC_TT_HANDLE ) return;	// error.
   mrbc_suspend_task( (mrbc_tcb *)(v[1].handle) );
 }
 
@@ -238,7 +237,7 @@ static void c_suspend_task(mrbc_vm *vm, mrbc_value v[], int argc)
 */
 static void c_resume_task(mrbc_vm *vm, mrbc_value v[], int argc)
 {
-  if( v[1].tt != MRBC_TT_HANDLE ) return;	// error.
+  if( mrbc_type(v[1]) != MRBC_TT_HANDLE ) return;	// error.
   mrbc_resume_task( (mrbc_tcb *)(v[1].handle) );
 }
 
@@ -451,7 +450,7 @@ mrbc_tcb* mrbc_create_task(const uint8_t *vm_code, mrbc_tcb *tcb)
 {
   // allocate Task Control Block
   if( tcb == NULL ) {
-    tcb = (mrbc_tcb*)mrbc_raw_alloc( sizeof(mrbc_tcb) );
+    tcb = mrbc_raw_alloc( sizeof(mrbc_tcb) );
     if( tcb == NULL ) return NULL;	// ENOMEM
 
     mrbc_init_tcb( tcb );
@@ -461,12 +460,12 @@ mrbc_tcb* mrbc_create_task(const uint8_t *vm_code, mrbc_tcb *tcb)
 
   // assign VM ID
   if( mrbc_vm_open( &tcb->vm ) == NULL ) {
-    console_printf("Error: Can't assign VM-ID.\n");
+    mrbc_printf("Error: Can't assign VM-ID.\n");
     return NULL;
   }
 
   if( mrbc_load_mrb(&tcb->vm, vm_code) != 0 ) {
-    console_printf("Error: Illegal bytecode.\n");
+    mrbc_printf("Error: Illegal bytecode.\n");
     mrbc_vm_close( &tcb->vm );
     return NULL;
   }
@@ -539,20 +538,20 @@ int mrbc_run(void)
       tcb->vm.flag_preemption = 1;
       res = mrbc_vm_run(&tcb->vm);
       tcb->timeslice--;
-      if( res < 0 ) break;
+      if( res != 0 ) break;
       if( tcb->state != TASKSTATE_RUNNING ) break;
     }
     mrbc_tick();
 #endif /* ifndef MRBC_NO_TIMER */
 
     // タスク終了？
-    if( res < 0 ) {
+    if( res != 0 ) {
       hal_disable_irq();
       q_delete_task(tcb);
       tcb->state = TASKSTATE_DORMANT;
       q_insert_task(tcb);
       hal_enable_irq();
-      mrbc_vm_end(&tcb->vm);
+      if (tcb->vm.flag_permanence == 0) mrbc_vm_end(&tcb->vm);
 
 #if MRBC_SCHEDULER_EXIT
       if( q_ready_ == NULL && q_waiting_ == NULL &&
@@ -667,7 +666,7 @@ void mrbc_resume_task(mrbc_tcb *tcb)
 mrbc_mutex * mrbc_mutex_init( mrbc_mutex *mutex )
 {
   if( mutex == NULL ) {
-    mutex = (mrbc_mutex*)mrbc_raw_alloc( sizeof(mrbc_mutex) );
+    mutex = mrbc_raw_alloc( sizeof(mrbc_mutex) );
     if( mutex == NULL ) return NULL;	// ENOMEM
   }
 
@@ -809,50 +808,58 @@ void pq(mrbc_tcb *p_tcb)
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf("%08x  ", (uint32_t)p);
+#if defined(UINTPTR_MAX)
+    mrbc_printf("%08x  ", (uint32_t)(uintptr_t)p);
+#else
+    mrbc_printf("%08x  ", (uint32_t)p);
+#endif
     p = p->next;
   }
-  console_printf("\n");
+  mrbc_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" nx:%04x  ", (uint16_t)p->next);
+#if defined(UINTPTR_MAX)
+    mrbc_printf(" nx:%04x  ", (uint16_t)(uintptr_t)p->next);
+#else
+    mrbc_printf(" nx:%04x  ", (uint16_t)p->next);
+#endif
     p = p->next;
   }
-  console_printf("\n");
+  mrbc_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" pri:%3d  ", p->priority_preemption);
+    mrbc_printf(" pri:%3d  ", p->priority_preemption);
     p = p->next;
   }
-  console_printf("\n");
+  mrbc_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" st:%c%c%c%c  ",
+    mrbc_printf(" st:%c%c%c%c  ",
                    (p->state & TASKSTATE_SUSPENDED)?'S':'-',
                    (p->state & TASKSTATE_WAITING)?("sm"[p->reason]):'-',
                    (p->state &(TASKSTATE_RUNNING & ~TASKSTATE_READY))?'R':'-',
                    (p->state & TASKSTATE_READY)?'r':'-' );
     p = p->next;
   }
-  console_printf("\n");
+  mrbc_printf("\n");
 
   p = p_tcb;
   while( p != NULL ) {
-    console_printf(" tmsl:%2d ", p->timeslice);
+    mrbc_printf(" tmsl:%2d ", p->timeslice);
     p = p->next;
   }
-  console_printf("\n");
+  mrbc_printf("\n");
 }
 
 
 void pqall(void)
 {
-//  console_printf("<<<<< DORMANT >>>>>\n");	pq(q_dormant_);
-  console_printf("<<<<< READY >>>>>\n");	pq(q_ready_);
-  console_printf("<<<<< WAITING >>>>>\n");	pq(q_waiting_);
-  console_printf("<<<<< SUSPENDED >>>>>\n");	pq(q_suspended_);
+//  mrbc_printf("<<<<< DORMANT >>>>>\n");	pq(q_dormant_);
+  mrbc_printf("<<<<< READY >>>>>\n");	pq(q_ready_);
+  mrbc_printf("<<<<< WAITING >>>>>\n");	pq(q_waiting_);
+  mrbc_printf("<<<<< SUSPENDED >>>>>\n");	pq(q_suspended_);
 }
 #endif

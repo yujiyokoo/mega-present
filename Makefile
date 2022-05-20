@@ -7,8 +7,10 @@
 #  This file is distributed under BSD 3-Clause License.
 #
 
-# tag or branch name of mruby/mruby
-MRUBY_TAG = `grep MRUBY_VERSION mrblib/global.rb | sed 's/MRUBY_VERSION *= *"\(.\+\)"/\1/'`
+# MRUBY_TAG corresponds to tag or branch of mruby/mruby
+MRUBY_TAG = $(shell grep MRUBY_VERSION mrblib/global.rb | sed 's/MRUBY_VERSION *= *"\(.*\)"/\1/')
+USER_ID = $(shell id -u)
+
 
 all: mrubyc_lib mrubyc_bin
 
@@ -43,15 +45,31 @@ package: clean
 	rm -Rf pkg ;\
 	echo Done.
 
-.PHONY: test setup_test
-test:
-	docker run --mount type=bind,src=${PWD}/,dst=/root/mrubyc \
-	  -e CFLAGS="-DMRBC_USE_MATH=1 -DMAX_SYMBOLS_COUNT=500 $(CFLAGS)" \
-	  mrubyc/mrubyc-test bundle exec mrubyc-test \
-	  --every=100 \
-	  --mrbc-path=/root/mruby/build/host/bin/mrbc \
-	  $(file)
+.PHONY: test setup_test check_tag debug_test
+
+test: check_tag
+	docker run --mount type=bind,src=${PWD}/,dst=/work/mrubyc \
+	  -e CFLAGS="-DMRBC_USE_HAL_POSIX=1 -DMRBC_USE_MATH=1 -DMAX_SYMBOLS_COUNT=500 $(CFLAGS)" \
+	  -e MRBC="/work/mruby/build/host/bin/mrbc" \
+	  mrubyc-dev /bin/sh -c "cd mrblib; make distclean all && cd -; \
+	  bundle exec mrubyc-test --every=10 \
+	  --mrbc-path=/work/mruby/build/host/bin/mrbc \
+	  $(file)"
+
+check_tag:
+	$(eval CURRENT_MRUBY_TAG = $(shell docker run mrubyc-dev \
+	  /bin/sh -c 'cd /work/mruby && git status | ruby -e"puts STDIN.first.split(\" \")[-1]"'))
+	@echo MRUBY_TAG=$(MRUBY_TAG)
+	@echo CURRENT_MRUBY_TAG=$(CURRENT_MRUBY_TAG)
+	if test "$(CURRENT_MRUBY_TAG)" = "$(MRUBY_TAG)"; \
+	then \
+	  echo 'Skip setup_test'; \
+	else \
+	  make setup_test; \
+	fi
 
 setup_test:
-	@echo MRUBY_TAG=$(MRUBY_TAG)
-	docker build -t mrubyc/mrubyc-test --build-arg MRUBY_TAG=$(MRUBY_TAG) .
+	docker build -t mrubyc-dev --build-arg MRUBY_TAG=$(MRUBY_TAG) --build-arg USER_ID=$(USER_ID) .
+
+debug_test:
+	gdb $(OPTION) --directory $(shell pwd)/src --args test/tmp/test

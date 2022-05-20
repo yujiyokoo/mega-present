@@ -3,8 +3,8 @@
   mruby/c Hash class
 
   <pre>
-  Copyright (C) 2015-2020 Kyushu Institute of Technology.
-  Copyright (C) 2015-2020 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2021 Kyushu Institute of Technology.
+  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -15,13 +15,12 @@
 #include <string.h>
 #include <assert.h>
 
-#include "value.h"
-#include "vm.h"
 #include "alloc.h"
+#include "value.h"
 #include "class.h"
+#include "c_string.h"
 #include "c_array.h"
 #include "c_hash.h"
-#include "c_string.h"
 
 /*
   function summary
@@ -296,8 +295,8 @@ static void c_hash_set(struct VM *vm, mrbc_value v[], int argc)
     return;	// raise ArgumentError.
   }
 
-  mrbc_value *v1 = &GET_ARG(1);
-  mrbc_value *v2 = &GET_ARG(2);
+  mrbc_value *v1 = &v[1];
+  mrbc_value *v2 = &v[2];
   mrbc_hash_set(v, v1, v2);
   v1->tt = MRBC_TT_EMPTY;
   v2->tt = MRBC_TT_EMPTY;
@@ -542,8 +541,7 @@ static void c_hash_inspect(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Hash")
-  FILE("method_table_hash.h")
-  FUNC("mrbc_init_class_hash")
+  FILE("_autogen_class_hash.h")
 
   METHOD( "new",	c_hash_new )
   METHOD( "[]",		c_hash_get )
@@ -568,4 +566,4 @@ static void c_hash_inspect(struct VM *vm, mrbc_value v[], int argc)
   METHOD( "to_s",	c_hash_inspect )
 #endif
 */
-#include "method_table_hash.h"
+#include "_autogen_class_hash.h"
