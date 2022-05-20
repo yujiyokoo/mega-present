@@ -3,8 +3,8 @@
   mruby/c Symbol class
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -21,10 +21,10 @@
 
 /***** Local headers ********************************************************/
 #define MRBC_DEFINE_SYMBOL_TABLE
-#include "symbol.h"
+#include "_autogen_builtin_symbol.h"
 #undef MRBC_DEFINE_SYMBOL_TABLE
-#include "value.h"
 #include "alloc.h"
+#include "value.h"
 #include "class.h"
 #include "c_string.h"
 #include "c_array.h"
@@ -348,7 +348,7 @@ static void c_symbol_to_s(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Symbol")
-  FILE("method_table_symbol.h")
+  FILE("_autogen_class_symbol.h")
 
   METHOD( "all_symbols", c_symbol_all_symbols )
 #if MRBC_USE_STRING
@@ -358,7 +358,7 @@ static void c_symbol_to_s(struct VM *vm, mrbc_value v[], int argc)
 #endif
   METHOD( "to_sym", c_ineffect )
 */
-#include "method_table_symbol.h"
+#include "_autogen_class_symbol.h"
 
 
 

@@ -23,14 +23,14 @@
 /***** Local headers ********************************************************/
 #include "alloc.h"
 #include "value.h"
-#include "vm.h"
-#include "class.h"
 #include "symbol.h"
+#include "error.h"
+#include "class.h"
 #include "c_string.h"
 #include "c_array.h"
 #include "c_hash.h"
+#include "vm.h"
 #include "console.h"
-#include "error.h"
 
 /***** Functions ************************************************************/
 
@@ -658,7 +658,7 @@ static void c_object_to_s(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Object")
-  FILE("method_table_object.h")
+  FILE("_autogen_class_object.h")
   SUPER(0)
 
   METHOD( "new",	c_object_new )
@@ -744,7 +744,7 @@ static void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Proc")
-  APPEND("method_table_object.h")
+  APPEND("_autogen_class_object.h")
 
   METHOD( "new",	c_proc_new )
   METHOD( "call",	c_proc_call )
@@ -816,7 +816,7 @@ static void c_nil_to_s(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("NilClass")
-  APPEND("method_table_object.h")
+  APPEND("_autogen_class_object.h")
 
   METHOD( "to_i",	c_nil_to_i )
   METHOD( "to_a",	c_nil_to_a )
@@ -852,7 +852,7 @@ static void c_true_to_s(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("TrueClass")
-  APPEND("method_table_object.h")
+  APPEND("_autogen_class_object.h")
 
 #if MRBC_USE_STRING
   METHOD( "inspect",	c_true_to_s )
@@ -880,11 +880,11 @@ static void c_false_to_s(struct VM *vm, mrbc_value v[], int argc)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("FalseClass")
-  APPEND("method_table_object.h")
+  APPEND("_autogen_class_object.h")
 
 #if MRBC_USE_STRING
   METHOD( "inspect",	c_false_to_s )
   METHOD( "to_s",	c_false_to_s )
 #endif
 */
-#include "method_table_object.h"
+#include "_autogen_class_object.h"

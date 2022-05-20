@@ -19,11 +19,11 @@
 /***** Local headers ********************************************************/
 #include "alloc.h"
 #include "value.h"
-#include "class.h"
 #include "symbol.h"
-#include "vm.h"
-#include "c_string.h"
 #include "error.h"
+#include "class.h"
+#include "c_string.h"
+#include "vm.h"
 
 
 /***** Constat values *******************************************************/
@@ -187,7 +187,7 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
 */
 
 /* MRBC_AUTOGEN_METHOD_TABLE
-  FILE("method_table_exception.h")
+  FILE("_autogen_class_exception.h")
 
   CLASS("Exception")
   METHOD("new", c_exception_new )
@@ -223,4 +223,4 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
   CLASS("ZeroDivisionError")
   SUPER("StandardError")
 */
-#include "method_table_exception.h"
+#include "_autogen_class_exception.h"

@@ -15,9 +15,9 @@
 #include <math.h>
 
 #include "value.h"
+#include "symbol.h"
 #include "class.h"
 #include "global.h"
-#include "symbol.h"
 
 
 #if MRBC_USE_FLOAT && MRBC_USE_MATH
@@ -242,7 +242,7 @@ void mrbc_init_class_math(void)
 /* MRBC_AUTOGEN_METHOD_TABLE
 
   CLASS("Math")
-  FILE("method_table_math.h")
+  FILE("_autogen_class_math.h")
 
   METHOD( "acos",	c_math_acos )
   METHOD( "acosh",	c_math_acosh )
@@ -268,6 +268,6 @@ void mrbc_init_class_math(void)
   METHOD( "tan",	c_math_tan )
   METHOD( "tanh",	c_math_tanh )
 */
-#include "method_table_math.h"
+#include "_autogen_class_math.h"
 
 #endif  // MRBC_USE_FLOAT && MRBC_USE_MATH
