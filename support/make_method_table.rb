@@ -92,7 +92,7 @@ def write_file( param )
     file.puts "};"
   }
 
-  file.close  if param[:file]
+  file.close  if file != $stdout
 end
 
 

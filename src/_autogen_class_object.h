@@ -131,70 +131,6 @@ struct RBuiltinClass mrbc_class_Proc = {
 };
 
 
-/*===== FalseClass class =====*/
-static const mrbc_sym method_symbols_FalseClass[] = {
-#if MRBC_USE_STRING
-  MRBC_SYM(inspect),
-#endif
-#if MRBC_USE_STRING
-  MRBC_SYM(to_s),
-#endif
-};
-
-static const mrbc_func_t method_functions_FalseClass[] = {
-#if MRBC_USE_STRING
-  c_false_to_s,
-#endif
-#if MRBC_USE_STRING
-  c_false_to_s,
-#endif
-};
-
-struct RBuiltinClass mrbc_class_FalseClass = {
-  .sym_id = MRBC_SYM(FalseClass),
-  .num_builtin_method = sizeof(method_symbols_FalseClass) / sizeof(mrbc_sym),
-#if defined(MRBC_DEBUG)
-  .names = "FalseClass",
-#endif
-  .super = MRBC_CLASS(Object),
-  .method_link = 0,
-  .method_symbols = method_symbols_FalseClass,
-  .method_functions = method_functions_FalseClass,
-};
-
-
-/*===== TrueClass class =====*/
-static const mrbc_sym method_symbols_TrueClass[] = {
-#if MRBC_USE_STRING
-  MRBC_SYM(inspect),
-#endif
-#if MRBC_USE_STRING
-  MRBC_SYM(to_s),
-#endif
-};
-
-static const mrbc_func_t method_functions_TrueClass[] = {
-#if MRBC_USE_STRING
-  c_true_to_s,
-#endif
-#if MRBC_USE_STRING
-  c_true_to_s,
-#endif
-};
-
-struct RBuiltinClass mrbc_class_TrueClass = {
-  .sym_id = MRBC_SYM(TrueClass),
-  .num_builtin_method = sizeof(method_symbols_TrueClass) / sizeof(mrbc_sym),
-#if defined(MRBC_DEBUG)
-  .names = "TrueClass",
-#endif
-  .super = MRBC_CLASS(Object),
-  .method_link = 0,
-  .method_symbols = method_symbols_TrueClass,
-  .method_functions = method_functions_TrueClass,
-};
-
-
 /*===== NilClass class =====*/
 static const mrbc_sym method_symbols_NilClass[] = {
 #if MRBC_USE_STRING
@@ -236,4 +172,68 @@ struct RBuiltinClass mrbc_class_NilClass = {
   .method_link = 0,
   .method_symbols = method_symbols_NilClass,
   .method_functions = method_functions_NilClass,
+};
+
+
+/*===== TrueClass class =====*/
+static const mrbc_sym method_symbols_TrueClass[] = {
+#if MRBC_USE_STRING
+  MRBC_SYM(inspect),
+#endif
+#if MRBC_USE_STRING
+  MRBC_SYM(to_s),
+#endif
+};
+
+static const mrbc_func_t method_functions_TrueClass[] = {
+#if MRBC_USE_STRING
+  c_true_to_s,
+#endif
+#if MRBC_USE_STRING
+  c_true_to_s,
+#endif
+};
+
+struct RBuiltinClass mrbc_class_TrueClass = {
+  .sym_id = MRBC_SYM(TrueClass),
+  .num_builtin_method = sizeof(method_symbols_TrueClass) / sizeof(mrbc_sym),
+#if defined(MRBC_DEBUG)
+  .names = "TrueClass",
+#endif
+  .super = MRBC_CLASS(Object),
+  .method_link = 0,
+  .method_symbols = method_symbols_TrueClass,
+  .method_functions = method_functions_TrueClass,
+};
+
+
+/*===== FalseClass class =====*/
+static const mrbc_sym method_symbols_FalseClass[] = {
+#if MRBC_USE_STRING
+  MRBC_SYM(inspect),
+#endif
+#if MRBC_USE_STRING
+  MRBC_SYM(to_s),
+#endif
+};
+
+static const mrbc_func_t method_functions_FalseClass[] = {
+#if MRBC_USE_STRING
+  c_false_to_s,
+#endif
+#if MRBC_USE_STRING
+  c_false_to_s,
+#endif
+};
+
+struct RBuiltinClass mrbc_class_FalseClass = {
+  .sym_id = MRBC_SYM(FalseClass),
+  .num_builtin_method = sizeof(method_symbols_FalseClass) / sizeof(mrbc_sym),
+#if defined(MRBC_DEBUG)
+  .names = "FalseClass",
+#endif
+  .super = MRBC_CLASS(Object),
+  .method_link = 0,
+  .method_symbols = method_symbols_FalseClass,
+  .method_functions = method_functions_FalseClass,
 };
