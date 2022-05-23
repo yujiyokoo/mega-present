@@ -60,7 +60,7 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   callinfo->own_class = method.cls;
 
   vm->cur_irep = method.irep;
-  vm->inst = method.irep->inst;
+  vm->inst = vm->cur_irep->inst;
   vm->cur_regs = v;
 }
 
@@ -737,7 +737,6 @@ static void c_proc_call(struct VM *vm, mrbc_value v[], int argc)
   // target irep
   vm->cur_irep = v[0].proc->irep;
   vm->inst = vm->cur_irep->inst;
-
   vm->cur_regs = v;
 }
 

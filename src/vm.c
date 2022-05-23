@@ -132,7 +132,7 @@ static void send_by_name( struct VM *vm, mrbc_sym sym_id, int a, int c )
     callinfo->own_class = method.cls;
 
     vm->cur_irep = method.irep;
-    vm->inst = method.irep->inst;
+    vm->inst = vm->cur_irep->inst;
     vm->cur_regs = recv;
   }
 }
@@ -1297,11 +1297,8 @@ static inline void op_super( mrbc_vm *vm, mrbc_value *regs EXT )
   callinfo->own_class = method.cls;
   callinfo->is_called_super = 1;
 
-  // target irep
   vm->cur_irep = method.irep;
-  vm->inst = method.irep->inst;
-
-  // new regs
+  vm->inst = vm->cur_irep->inst;
   vm->cur_regs += a;
 }
 
@@ -2413,9 +2410,8 @@ static inline void op_exec( mrbc_vm *vm, mrbc_value *regs EXT )
   // target irep
   vm->cur_irep = mrbc_irep_child_irep(vm->cur_irep, b);
   vm->inst = vm->cur_irep->inst;
-
-  // new regs and class
   vm->cur_regs += a;
+
   vm->target_class = regs[a].cls;
 }
 
