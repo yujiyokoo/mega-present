@@ -52,10 +52,11 @@ static void c_object_new(struct VM *vm, mrbc_value v[], int argc)
   mrbc_method method;
   if( mrbc_find_method( &method, cls, MRBC_SYM(initialize) ) == NULL ) return;
 
-  // call initializer
+  // call the initialize method.
   mrbc_decref(&v[argc+1]);
   mrbc_set_nil(&v[argc+1]);
-  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, MRBC_SYM(initialize), (v - vm->cur_regs), argc);
+  mrbc_callinfo *callinfo = mrbc_push_callinfo(vm, MRBC_SYM(initialize),
+					       (v - vm->cur_regs), argc);
   callinfo->own_class = method.cls;
 
   vm->cur_irep = method.irep;

@@ -243,6 +243,7 @@ mrbc_callinfo * mrbc_push_callinfo( struct VM *vm, mrbc_sym method_id, int reg_o
   callinfo->method_id = method_id;
   callinfo->reg_offset = reg_offset;
   callinfo->n_args = n_args;
+  callinfo->is_called_super = 0;
 
   callinfo->prev = vm->callinfo_tail;
   vm->callinfo_tail = callinfo;
@@ -1294,6 +1295,7 @@ static inline void op_super( mrbc_vm *vm, mrbc_value *regs EXT )
 
   callinfo = mrbc_push_callinfo(vm, callinfo->method_id, a, b);
   callinfo->own_class = method.cls;
+  callinfo->is_called_super = 1;
 
   // target irep
   vm->cur_irep = method.irep;
@@ -1536,10 +1538,11 @@ static inline void op_return__sub( mrbc_vm *vm, mrbc_value *regs, int a )
     return;
   }
 
-  // in initializer?
+  // not in initialize method, set return value.
   if( vm->callinfo_tail->method_id != MRBC_SYM(initialize) ) goto SET_RETURN;
-  if(!vm->callinfo_tail->prev ) goto RETURN;
-  if( vm->callinfo_tail->prev->method_id != MRBC_SYM(initialize) ) goto RETURN;
+
+  // not called by op_super, ignore return value.
+  if( !vm->callinfo_tail->is_called_super ) goto RETURN;
 
   // set the return value
  SET_RETURN:
