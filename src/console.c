@@ -201,25 +201,44 @@ void mrbc_printf(const char *fstr, ...)
 */
 void mrbc_sprintf(char *buf, int bufsiz, const char *fstr, ...)
 {
-  va_list ap, ap_bak;
+  va_list ap;
   va_start(ap, fstr);
+
+  mrbc_vsprintf( buf, bufsiz, fstr, ap );
+
+  va_end(ap);
+}
+
+
+//================================================================
+/*! formatted output conversion with va_list, output to heap buffer.
+
+  @param  buf		output buffer. must be allocated by mrbc_alloc.
+  @param  bufsiz	buffer size.
+  @param  fstr		format string.
+  @param  ap		variable argument pointer.
+*/
+void mrbc_vsprintf(char *buf, int bufsiz, const char *fstr, va_list ap)
+{
+  va_list ap1, ap_bak;
+  va_copy( ap1, ap );
 
   mrbc_printf_t pf;
   mrbc_printf_init( &pf, buf, bufsiz, fstr );
 
   while( 1 ) {
-    va_copy(ap_bak, ap);
+    va_copy(ap_bak, ap1);
     mrbc_printf_t pf_bak = pf;
 
     int ret = mrbc_printf_main( &pf );
     if( ret == 0 ) break;	// normal break loop.
     if( ret < 0 ) goto INCREASE_BUFFER;
 
-    ret = mrbc_printf_sub_output_arg( &pf, &ap );
+    ret = mrbc_printf_sub_output_arg( &pf, &ap1 );
     if( ret >= 0 ) goto NEXT_LOOP;
 
-    va_end(ap);
-    va_copy(ap, ap_bak);
+    va_end(ap1);
+    va_copy(ap1, ap_bak);
     pf = pf_bak;
 
   INCREASE_BUFFER:
@@ -233,7 +252,7 @@ void mrbc_sprintf(char *buf, int bufsiz, const char *fstr, ...)
   }
 
   mrbc_printf_end( &pf );
-  va_end(ap);
+  va_end(ap1);
   va_end(ap_bak);
 }
 
