@@ -47,9 +47,10 @@ typedef struct RException {
 
 /***** Global variables *****************************************************/
 mrbc_value mrbc_exception_new(struct VM *vm, struct RClass *exc_cls, const void *message, int len);
+mrbc_value mrbc_exception_new_alloc(struct VM *vm, struct RClass *exc_cls, const void *message, int len);
 void mrbc_exception_delete(mrbc_value *value);
-void mrbc_exception_set_message(struct VM *vm, mrbc_value *value, const void *message, int len);
 void mrbc_raise(struct VM *vm, struct RClass *exc_cls, const char *msg);
+void mrbc_raisef(struct VM *vm, struct RClass *exc_cls, const char *fstr, ...);
 
 
 /***** Function prototypes **************************************************/

@@ -256,8 +256,10 @@ static void c_object_puts(struct VM *vm, mrbc_value v[], int argc)
 
   case 1. raise
   case 2. raise "message"
-  case 3. raise Exception
-  case 4. raise Exception, "message"
+  case 3. raise ExceptionClass
+  case 4. raise ExceptionObject
+  case 5. raise ExceptionClass, "message"
+  case 6. raise ExceptionObject, "message"
 */
 static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 {
@@ -265,55 +267,43 @@ static void c_object_raise(struct VM *vm, mrbc_value v[], int argc)
 
   // case 1. raise (no argument)
   if( argc == 0 ) {
-    vm->exception = mrbc_exception_new( vm,
-					MRBC_CLASS(RuntimeError),
-					"",
-					0 );
+    vm->exception = mrbc_exception_new( vm, MRBC_CLASS(RuntimeError), "", 0 );
   } else
 
   // case 2. raise "message"
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_STRING ) {
-    vm->exception = mrbc_exception_new( vm,
-					MRBC_CLASS(RuntimeError),
-					mrbc_string_cstr(&v[1]),
-					mrbc_string_size(&v[1]) );
+    vm->exception = mrbc_exception_new( vm, MRBC_CLASS(RuntimeError),
+			mrbc_string_cstr(&v[1]), mrbc_string_size(&v[1]) );
   } else
 
-  // case 3-1. raise ExceptionClass
-  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_CLASS ) {
-    vm->exception = mrbc_exception_new( vm,
-					v[1].cls,
-					NULL,
-					0 );
+  // case 3. raise ExceptionClass
+  if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_CLASS &&
+      mrbc_obj_is_kind_of( &v[1], MRBC_CLASS(Exception))) {
+    vm->exception = mrbc_exception_new( vm, v[1].cls, 0, 0 );
   } else
 
-  // case 3-2. raise ExceptionObject
+  // case 4. raise ExceptionObject
   if( argc == 1 && mrbc_type(v[1]) == MRBC_TT_EXCEPTION ) {
     mrbc_incref( &v[1] );
     vm->exception = v[1];
   } else
 
-  // case 4-1. raise Exception, "param"
+  // case 5. raise ExceptionClass, "param"
   if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_CLASS
                 && mrbc_type(v[2]) == MRBC_TT_STRING ) {
-    vm->exception = mrbc_exception_new( vm,
-					v[1].cls,
-					mrbc_string_cstr(&v[2]),
-					mrbc_string_size(&v[2]) );
+    vm->exception = mrbc_exception_new( vm, v[1].cls,
+			mrbc_string_cstr(&v[2]), mrbc_string_size(&v[2]) );
   } else
 
-  // case 4-2. raise ExceptionObject, "param"
+  // case 6. raise ExceptionObject, "param"
   if( argc == 2 && mrbc_type(v[1]) == MRBC_TT_EXCEPTION
                 && mrbc_type(v[2]) == MRBC_TT_STRING ) {
-    mrbc_incref( &v[1] );
-    vm->exception = v[1];
-    mrbc_exception_set_message( vm, &vm->exception,
-				mrbc_string_cstr(&v[2]),
-				mrbc_string_size(&v[2]) );
+    vm->exception = mrbc_exception_new( vm, v[1].exception->cls,
+			mrbc_string_cstr(&v[2]), mrbc_string_size(&v[2]) );
   } else {
 
     // fail.
-    vm->exception = mrbc_exception_new( vm, MRBC_CLASS(ArgumentError), NULL, 0 );
+    vm->exception = mrbc_exception_new( vm, MRBC_CLASS(ArgumentError), 0, 0 );
   }
 
   vm->flag_preemption = 2;
