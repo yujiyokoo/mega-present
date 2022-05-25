@@ -25,6 +25,7 @@
 
 /***** Local headers ********************************************************/
 #include "hal_selector.h"
+#include "alloc.h"
 #include "value.h"
 #include "class.h"
 #include "console.h"
@@ -156,6 +157,52 @@ static int mrbc_printf_sub_output_arg( mrbc_printf_t *pf, va_list *ap )
   }
 
   return ret;
+}
+
+
+//================================================================
+/*! formatted output conversion, output to heap buffer.
+
+  @param  buf		output buffer. must be allocated by mrbc_alloc.
+  @param  bufsiz	buffer size.
+  @param  fstr		format string.
+*/
+void mrbc_sprintf( char *buf, int bufsiz, const char *fstr, ...)
+{
+  va_list ap, ap_bak;
+  va_start(ap, fstr);
+
+  mrbc_printf_t pf;
+  mrbc_printf_init( &pf, buf, bufsiz, fstr );
+
+  while( 1 ) {
+    va_copy(ap_bak, ap);
+    mrbc_printf_t pf_bak = pf;
+
+    int ret = mrbc_printf_main( &pf );
+    if( ret == 0 ) break;	// normal break loop.
+    if( ret < 0 ) goto INCREASE_BUFFER;
+
+    ret = mrbc_printf_sub_output_arg( &pf, &ap );
+    if( ret >= 0 ) goto NEXT_LOOP;
+
+    va_end(ap);
+    va_copy(ap, ap_bak);
+    pf = pf_bak;
+
+  INCREASE_BUFFER:
+    bufsiz += 64;
+    buf = mrbc_raw_realloc( pf.buf, bufsiz );
+    if( !buf ) break;
+    mrbc_printf_replace_buffer( &pf, buf, bufsiz );
+
+  NEXT_LOOP:
+    va_end(ap_bak);
+  }
+
+  mrbc_printf_end( &pf );
+  va_end(ap);
+  va_end(ap_bak);
 }
 
 
