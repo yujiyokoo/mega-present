@@ -214,6 +214,7 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
 
     Exception
       NoMemoryError
+      NotImplementedError
       StandardError
         ArgumentError
         IndexError
@@ -233,6 +234,9 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
   METHOD("message", c_exception_message )
 
   CLASS("NoMemoryError")
+  SUPER("Exception")
+
+  CLASS("NotImplementedError")
   SUPER("Exception")
 
   CLASS("StandardError")

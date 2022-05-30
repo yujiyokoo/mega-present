@@ -126,6 +126,7 @@ extern struct RBuiltinClass mrbc_class_Hash;
 extern struct RBuiltinClass mrbc_class_Math;
 extern struct RBuiltinClass mrbc_class_Exception;
 extern struct RClass mrbc_class_NoMemoryError;
+extern struct RClass mrbc_class_NotImplementedError;
 extern struct RClass mrbc_class_StandardError;
 extern struct RClass mrbc_class_ArgumentError;
 extern struct RClass mrbc_class_IndexError;
