@@ -1291,7 +1291,7 @@ static inline void op_super( mrbc_vm *vm, mrbc_value *regs EXT )
   }
 
   if( method.c_func ) {	// TODO?
-    mrbc_raise( vm, MRBC_CLASS(Exception), "Not supported!" );
+    mrbc_raise( vm, MRBC_CLASS(NotImplementedError), "Not supported!" );
     return;
   }
 
@@ -1322,7 +1322,7 @@ static inline void op_argary( mrbc_vm *vm, mrbc_value *regs EXT )
 
   if( b & 0x400 ) {	// check REST parameter.
     // TODO: want to support.
-    mrbc_raise( vm, MRBC_CLASS(Exception), "Not support rest parameter by super.");
+    mrbc_raise( vm, MRBC_CLASS(NotImplementedError), "Not support rest parameter by super.");
     return;
   }
   if( b & 0x3e0 ) {	// check m2 parameter.
@@ -1399,7 +1399,7 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
   int argc = vm->callinfo_tail->n_args;
 
   if( a & (FLAG_M2|FLAG_KW) ) {	// check m2 and k parameter.
-    mrbc_raise( vm, MRBC_CLASS(ArgumentError), "not support m2 or keyword argument.");
+    mrbc_raise( vm, MRBC_CLASS(NotImplementedError), "not support m2 or keyword argument.");
     return;
   }
 

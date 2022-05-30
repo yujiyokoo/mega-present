@@ -35,6 +35,17 @@ struct RClass mrbc_class_NoMemoryError = {
   .method_link = 0,
 };
 
+/*===== NotImplementedError class =====*/
+struct RClass mrbc_class_NotImplementedError = {
+  .sym_id = MRBC_SYM(NotImplementedError),
+  .num_builtin_method = 0,
+#if defined(MRBC_DEBUG)
+  .names = "NotImplementedError",
+#endif
+  .super = MRBC_CLASS(Exception),
+  .method_link = 0,
+};
+
 /*===== StandardError class =====*/
 struct RClass mrbc_class_StandardError = {
   .sym_id = MRBC_SYM(StandardError),
