@@ -40,9 +40,6 @@ extern "C" {
 typedef struct RClass {
   mrbc_sym sym_id;		//!< class name's symbol ID
   int16_t num_builtin_method;	//!< num of built-in method.
-#ifdef MRBC_DEBUG
-  const char *names;		// for debug. delete soon.
-#endif
   struct RClass *super;		//!< pointer to super class.
   struct RMethod *method_link;	//!< pointer to method link.
 } mrbc_class;
@@ -51,9 +48,6 @@ typedef struct RClass mrb_class;
 struct RBuiltinClass {
   mrbc_sym sym_id;		//!< class name's symbol ID
   int16_t num_builtin_method;	//!< num of built-in method.
-#ifdef MRBC_DEBUG
-  const char *names;		// for debug. delete soon.
-#endif
   struct RClass *super;		//!< pointer to super class.
   struct RMethod *method_link;	//!< pointer to method link.
 

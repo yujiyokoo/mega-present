@@ -72,9 +72,6 @@ def write_file( param )
     file.puts "  .sym_id = MRBC_SYM(#{cls[:class]}),"
     n = cls[:methods] ? "sizeof(method_symbols_#{cls[:class]}) / sizeof(mrbc_sym)" : 0
     file.puts "  .num_builtin_method = #{n},"
-    file.puts "#if defined(MRBC_DEBUG)"
-    file.puts "  .names = \"#{cls[:class]}\","
-    file.puts "#endif"
     sp = case cls[:super]
          when nil
            "MRBC_CLASS(Object)"

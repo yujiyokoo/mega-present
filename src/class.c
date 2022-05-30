@@ -91,9 +91,6 @@ mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *supe
 
   cls->sym_id = sym_id;
   cls->num_builtin_method = 0;
-#ifdef MRBC_DEBUG
-  cls->names = name;	// for debug; delete soon.
-#endif
   cls->super = super ? super : mrbc_class_object;
   cls->method_link = 0;
 
