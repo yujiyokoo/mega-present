@@ -110,7 +110,8 @@ static void send_by_name( struct VM *vm, mrbc_sym sym_id, int a, int c )
   mrbc_class *cls = find_class_by_object(recv);
   mrbc_method method;
   if( mrbc_find_method( &method, cls, sym_id ) == 0 ) {
-    mrbc_printf("Undefined local variable or method '%s' for %s\n",
+    mrbc_raisef(vm, MRBC_CLASS(NoMethodError),
+		"undefined local variable or method '%s' for %s",
 		mrbc_symid_to_str(sym_id), mrbc_symid_to_str( cls->sym_id ));
     return;
   }
@@ -1770,7 +1771,7 @@ static inline void op_addi( mrbc_vm *vm, mrbc_value *regs EXT )
   }
 #endif
 
-  mrbc_printf("Not supported!\n");
+  mrbc_raise(vm, MRBC_CLASS(TypeError), "no implicit conversion of Integer");
 }
 
 
@@ -1833,7 +1834,7 @@ static inline void op_subi( mrbc_vm *vm, mrbc_value *regs EXT )
   }
 #endif
 
-  mrbc_printf("Not supported!\n");
+  mrbc_raise(vm, MRBC_CLASS(TypeError), "no implicit conversion of Integer");
 }
 
 
@@ -2275,7 +2276,7 @@ static inline void op_strcat( mrbc_vm *vm, mrbc_value *regs EXT )
   mrbc_decref_empty( &regs[a+1] );
 
 #else
-  mrbc_printf("Not supported!\n");
+  mrbc_raise(vm, MRBC_CLASS(Exception), "Not support String.");
 #endif
 }
 
@@ -2480,7 +2481,7 @@ static inline void op_alias( mrbc_vm *vm, mrbc_value *regs EXT )
   if( !method ) return;	// ENOMEM
 
   if( mrbc_find_method( method, cls, sym_id_org ) == 0 ) {
-    mrbc_printf("NameError: undefined method '%s'\n",
+    mrbc_raisef(vm, MRBC_CLASS(NameError), "undefined method '%s'",
 		mrbc_symid_to_str(sym_id_org));
     mrbc_raw_free( method );
     return;
