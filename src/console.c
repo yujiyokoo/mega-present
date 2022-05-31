@@ -170,23 +170,7 @@ void mrbc_printf(const char *fstr, ...)
   va_list ap;
   va_start(ap, fstr);
 
-  mrbc_printf_t pf;
-  char buf[MRBC_PRINTF_MAX_WIDTH];
-  mrbc_printf_init( &pf, buf, sizeof(buf), fstr );
-
-  while( 1 ) {
-    int ret = mrbc_printf_main( &pf );
-    if( mrbc_printf_len( &pf ) ) {
-      mrbc_nprint( buf, mrbc_printf_len( &pf ) );
-      mrbc_printf_clear( &pf );
-    }
-    if( ret == 0 ) break;
-    if( ret < 0 ) continue;
-
-    mrbc_printf_sub_output_arg( &pf, &ap );
-    mrbc_nprint( buf, mrbc_printf_len( &pf ) );
-    mrbc_printf_clear( &pf );
-  }
+  mrbc_vprintf( fstr, ap );
 
   va_end(ap);
 }
@@ -207,6 +191,65 @@ void mrbc_sprintf(char *buf, int bufsiz, const char *fstr, ...)
   mrbc_vsprintf( buf, bufsiz, fstr, ap );
 
   va_end(ap);
+}
+
+
+//================================================================
+/*! formatted output conversion, output to fixed buffer.
+
+  @param  buf		output buffer.
+  @param  bufsiz	buffer size.
+  @param  fstr		format string.
+*/
+void mrbc_snprintf(char *buf, int bufsiz, const char *fstr, ...)
+{
+  va_list ap;
+  va_start(ap, fstr);
+
+  mrbc_printf_t pf;
+  mrbc_printf_init( &pf, buf, bufsiz, fstr );
+
+  while( 1 ) {
+    if( mrbc_printf_main( &pf ) <= 0 ) break;
+				// normal end (==0) or buffer full (<0).
+    if( mrbc_printf_sub_output_arg( &pf, &ap ) != 0 ) break;
+  }
+
+  mrbc_printf_end( &pf );
+  va_end(ap);
+}
+
+
+//================================================================
+/*! formatted output conversion with va_list, output to console.
+
+  @param  fstr		format string.
+  @param  ap		variable argument pointer.
+*/
+void mrbc_vprintf(const char *fstr, va_list ap)
+{
+  va_list ap1;
+  va_copy( ap1, ap );
+
+  mrbc_printf_t pf;
+  char buf[MRBC_PRINTF_MAX_WIDTH];
+  mrbc_printf_init( &pf, buf, sizeof(buf), fstr );
+
+  while( 1 ) {
+    int ret = mrbc_printf_main( &pf );
+    if( mrbc_printf_len( &pf ) ) {
+      mrbc_nprint( buf, mrbc_printf_len( &pf ) );
+      mrbc_printf_clear( &pf );
+    }
+    if( ret == 0 ) break;
+    if( ret < 0 ) continue;
+
+    mrbc_printf_sub_output_arg( &pf, &ap1 );
+    mrbc_nprint( buf, mrbc_printf_len( &pf ) );
+    mrbc_printf_clear( &pf );
+  }
+
+  va_end(ap1);
 }
 
 
@@ -254,32 +297,6 @@ void mrbc_vsprintf(char *buf, int bufsiz, const char *fstr, va_list ap)
   mrbc_printf_end( &pf );
   va_end(ap1);
   va_end(ap_bak);
-}
-
-
-//================================================================
-/*! formatted output conversion, output to fixed buffer.
-
-  @param  buf		output buffer.
-  @param  bufsiz	buffer size.
-  @param  fstr		format string.
-*/
-void mrbc_snprintf(char *buf, int bufsiz, const char *fstr, ...)
-{
-  va_list ap;
-  va_start(ap, fstr);
-
-  mrbc_printf_t pf;
-  mrbc_printf_init( &pf, buf, bufsiz, fstr );
-
-  while( 1 ) {
-    if( mrbc_printf_main( &pf ) <= 0 ) break;
-				// normal end (==0) or buffer full (<0).
-    if( mrbc_printf_sub_output_arg( &pf, &ap ) != 0 ) break;
-  }
-
-  mrbc_printf_end( &pf );
-  va_end(ap);
 }
 
 
