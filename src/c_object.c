@@ -431,7 +431,7 @@ static void c_object_setiv(struct VM *vm, mrbc_value v[], int argc)
   mrbc_sym sym_id = mrbc_str_to_symid(namebuf);
 
   mrbc_instance_setiv(&v[0], sym_id, &v[1]);
-  mrbc_raw_free(namebuf);
+  mrbc_free(vm, namebuf);
 }
 
 

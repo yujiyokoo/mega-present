@@ -21,16 +21,17 @@
 /***** Local headers ********************************************************/
 #include "alloc.h"
 #include "value.h"
-#include "vm.h"
-#include "class.h"
 #include "symbol.h"
+#include "error.h"
 #include "keyvalue.h"
-#include "global.h"
-#include "console.h"
-#include "load.h"
+#include "class.h"
 #include "c_string.h"
 #include "c_array.h"
 #include "c_hash.h"
+#include "global.h"
+#include "vm.h"
+#include "load.h"
+#include "console.h"
 
 
 /***** Constant values ******************************************************/
@@ -77,6 +78,10 @@ mrbc_class * const mrbc_class_tbl[MRBC_TT_MAXVAL+1] = {
 mrbc_class * mrbc_define_class(struct VM *vm, const char *name, mrbc_class *super)
 {
   mrbc_sym sym_id = mrbc_str_to_symid(name);
+  if( sym_id < 0 ) {
+    mrbc_raise(vm, MRBC_CLASS(Exception), "Overflow MAX_SYMBOLS_COUNT");
+    return 0;
+  }
 
   // already defined?
   mrbc_value *val = mrbc_get_const(sym_id);
@@ -127,6 +132,9 @@ void mrbc_define_method(struct VM *vm, mrbc_class *cls, const char *name, mrbc_f
   method->type = 'm';
   method->c_func = 1;
   method->sym_id = mrbc_str_to_symid( name );
+  if( method->sym_id < 0 ) {
+    mrbc_raise(vm, MRBC_CLASS(Exception), "Overflow MAX_SYMBOLS_COUNT");
+  }
   method->func = cfunc;
   method->next = cls->method_link;
   cls->method_link = method;
@@ -350,11 +358,14 @@ mrbc_method * mrbc_find_method( mrbc_method *r_method, mrbc_class *cls, mrbc_sym
 */
 mrbc_class * mrbc_get_class_by_name( const char *name )
 {
-  mrbc_sym sym_id = mrbc_str_to_symid(name);
-  mrbc_value *obj = mrbc_get_const(sym_id);
+  mrbc_sym sym_id = mrbc_search_symid(name);
+  if( sym_id < 0 ) return NULL;
 
+  mrbc_value *obj = mrbc_get_const(sym_id);
   if( obj == NULL ) return NULL;
-  return (mrbc_type(*obj) == MRBC_TT_CLASS) ? obj->cls : NULL;
+  if( mrbc_type(*obj) != MRBC_TT_CLASS ) return NULL;
+
+  return obj->cls;
 }
 
 

@@ -166,11 +166,7 @@ static int search_index( uint16_t hash, const char *str )
 */
 static int add_index( uint16_t hash, const char *str )
 {
-  // check overflow.
-  if( sym_index_pos >= MAX_SYMBOLS_COUNT ) {
-    mrbc_printf("Overflow MAX_SYMBOLS_COUNT for '%s'\n", str );	// raise?
-    return -1;
-  }
+  if( sym_index_pos >= MAX_SYMBOLS_COUNT ) return -1;	// check overflow.
 
   int idx = sym_index_pos++;
 
@@ -220,7 +216,7 @@ void mrbc_cleanup_symbol(void)
 /*! Convert string to symbol value.
 
   @param  str		Target string.
-  @return mrbc_sym	Symbol value.
+  @return mrbc_sym	Symbol value. -1 if error.
 */
 mrbc_sym mrbc_str_to_symid(const char *str)
 {
@@ -295,7 +291,13 @@ mrbc_value mrbc_symbol_new(struct VM *vm, const char *str)
 
   memcpy(buf, str, size);
   sym_id = add_index( calc_hash(buf), buf );
-  if( sym_id >= 0 ) sym_id += OFFSET_BUILTIN_SYMBOL;
+  if( sym_id < 0 ) {
+    mrbc_raisef(vm, MRBC_CLASS(Exception),
+		"Overflow MAX_SYMBOLS_COUNT for '%s'", str );
+    return mrbc_nil_value();
+  }
+
+  sym_id += OFFSET_BUILTIN_SYMBOL;
 
  DONE:
   return mrbc_symbol_value( sym_id );

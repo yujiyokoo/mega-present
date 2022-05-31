@@ -644,6 +644,10 @@ static inline void op_getiv( mrbc_vm *vm, mrbc_value *regs EXT )
 
   const char *sym_name = mrbc_irep_symbol_cstr(vm->cur_irep, b);
   mrbc_sym sym_id = mrbc_str_to_symid(sym_name+1);   // skip '@'
+  if( sym_id < 0 ) {
+    mrbc_raise(vm, MRBC_CLASS(Exception), "Overflow MAX_SYMBOLS_COUNT");
+    return;
+  }
   mrbc_value *self = mrbc_get_self( vm, regs );
 
   mrbc_decref(&regs[a]);
@@ -662,6 +666,10 @@ static inline void op_setiv( mrbc_vm *vm, mrbc_value *regs EXT )
 
   const char *sym_name = mrbc_irep_symbol_cstr(vm->cur_irep, b);
   mrbc_sym sym_id = mrbc_str_to_symid(sym_name+1);   // skip '@'
+  if( sym_id < 0 ) {
+    mrbc_raise(vm, MRBC_CLASS(Exception), "Overflow MAX_SYMBOLS_COUNT");
+    return;
+  }
   mrbc_value *self = mrbc_get_self( vm, regs );
 
   mrbc_instance_setiv(self, sym_id, &regs[a]);
@@ -2235,6 +2243,10 @@ static inline void op_symbol( mrbc_vm *vm, mrbc_value *regs EXT )
 
   const char *p = (const char *)mrbc_irep_pool_ptr(vm->cur_irep, b);
   mrbc_sym sym_id = mrbc_str_to_symid( p+3 );	// 3 is TT and length
+  if( sym_id < 0 ) {
+    mrbc_raise(vm, MRBC_CLASS(Exception), "Overflow MAX_SYMBOLS_COUNT");
+    return;
+  }
 
   mrbc_decref(&regs[a]);
   regs[a] = mrbc_symbol_value( sym_id );
