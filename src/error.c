@@ -140,9 +140,14 @@ void mrbc_exception_delete(mrbc_value *value)
 */
 void mrbc_raise( struct VM *vm, struct RClass *exc_cls, const char *msg )
 {
-  vm->exception = mrbc_exception_new( vm,
+  if( vm ) {
+    vm->exception = mrbc_exception_new( vm,
 			exc_cls ? exc_cls : MRBC_CLASS(RuntimeError), msg, 0 );
-  vm->flag_preemption = 2;
+    vm->flag_preemption = 2;
+
+  } else {
+    mrbc_printf("Exception : %s (%s)\n", msg ? msg : mrbc_symid_to_str(exc_cls->sym_id), mrbc_symid_to_str(exc_cls->sym_id));
+  }
 }
 
 
@@ -158,16 +163,22 @@ void mrbc_raisef( struct VM *vm, struct RClass *exc_cls, const char *fstr, ... )
   va_list ap;
   va_start( ap, fstr );
 
-  char *buf = mrbc_alloc( vm, 32 );
-  if( !buf ) return;	// ENOMEM
+  if( vm ) {
+    char *buf = mrbc_alloc( vm, 32 );
+    if( !buf ) return;	// ENOMEM
 
-  mrbc_vsprintf( buf, 32, fstr, ap );
-  va_end( ap );
+    mrbc_vsprintf( buf, 32, fstr, ap );
 
-  vm->exception = mrbc_exception_new_alloc( vm,
+    vm->exception = mrbc_exception_new_alloc( vm,
 			exc_cls ? exc_cls : MRBC_CLASS(RuntimeError),
 			buf, strlen(buf) );
-  vm->flag_preemption = 2;
+    vm->flag_preemption = 2;
+  } else {
+
+    mrbc_vprintf( fstr, ap );
+  }
+
+  va_end( ap );
 }
 
 
