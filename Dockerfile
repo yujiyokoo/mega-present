@@ -1,4 +1,4 @@
-from ruby:3.0.0-slim
+from ruby:3.0.4-slim
 
 RUN apt update && apt -y upgrade
 RUN apt install -y \
@@ -14,7 +14,7 @@ RUN apt install -y \
 RUN gem update --system
 
 ARG USER_ID
-RUN useradd -m -u $USER_ID mrubyc
+RUN if [ $USER_ID -eq 0 ]; then export USER_ID=1000; fi && useradd -m -u $USER_ID mrubyc
 RUN mkdir /work && chown mrubyc /work
 
 USER mrubyc
