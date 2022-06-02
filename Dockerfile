@@ -9,7 +9,7 @@ RUN apt install -y \
   make \
   qemu \
   qemu-kvm \
-  qemu-system-arm
+  qemu-user-static
 
 RUN gem update --system
 

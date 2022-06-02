@@ -47,11 +47,20 @@ package: clean
 
 .PHONY: test setup_test check_tag debug_test
 
-test: check_tag
+test: test_arm test_host
+
+test_arm:
+	make run_test CC=arm-linux-gnueabi-gcc QEMU=qemu-arm-static
+
+test_host:
+	make run_test CC=gcc
+
+run_test: check_tag
 	docker run --mount type=bind,src=${PWD}/,dst=/work/mrubyc \
 	  -e CFLAGS="-DMRBC_USE_HAL_POSIX=1 -DMRBC_USE_MATH=1 -DMAX_SYMBOLS_COUNT=500 $(CFLAGS)" \
 	  -e MRBC="/work/mruby/build/host/bin/mrbc" \
 	  mrubyc-dev /bin/sh -c "cd mrblib; make distclean all && cd -; \
+	  CC=$(CC) QEMU=$(QEMU) \
 	  bundle exec mrubyc-test --every=10 \
 	  --mrbc-path=/work/mruby/build/host/bin/mrbc \
 	  $(file)"
