@@ -16,7 +16,7 @@ uint8_t * load_mrb_file(const char *filename)
   FILE *fp = fopen(filename, "rb");
 
   if( fp == NULL ) {
-    fprintf(stderr, "File not found\n");
+    fprintf(stderr, "File not found (%s)\n", filename);
     return NULL;
   }
 
@@ -38,32 +38,6 @@ uint8_t * load_mrb_file(const char *filename)
 }
 
 
-void mrubyc(uint8_t *mrbbuf)
-{
-  hal_init();
-  mrbc_init_alloc(memory_pool, MEMORY_SIZE);
-  mrbc_init_global();
-  mrbc_init_class();
-
-
-  mrbc_vm *vm = mrbc_vm_open(NULL);
-  if( vm == NULL ) {
-    fprintf(stderr, "Error: Can't assign VM-ID.\n");
-    return;
-  }
-
-  if( mrbc_load_mrb(vm, mrbbuf) != 0 ) {
-    fprintf(stderr, "Error: Illegal bytecode.\n");
-    mrbc_vm_close( vm );
-    return;
-  }
-  mrbc_vm_begin( vm );
-  mrbc_vm_run( vm );
-  mrbc_vm_end( vm );
-  mrbc_vm_close( vm );
-}
-
-
 int main(int argc, char *argv[])
 {
   if( argc != 2 ) {
@@ -74,8 +48,32 @@ int main(int argc, char *argv[])
   uint8_t *mrbbuf = load_mrb_file( argv[1] );
   if( mrbbuf == 0 ) return 1;
 
-  mrubyc( mrbbuf );
-  free( mrbbuf );
+  /*
+    start mruby/c with LOW LEVEL functions.
+  */
+  hal_init();
+  mrbc_init_alloc(memory_pool, MEMORY_SIZE);
+  mrbc_init_global();
+  mrbc_init_class();
 
-  return 0;
+  mrbc_vm *vm = mrbc_vm_open(NULL);
+  if( vm == NULL ) {
+    fprintf(stderr, "Error: Can't assign VM.\n");
+    return 1;
+  }
+
+  if( mrbc_load_mrb(vm, mrbbuf) != 0 ) {
+    mrbc_print_exception(&vm->exception);
+    return 1;
+  }
+
+  mrbc_vm_begin( vm );
+  int ret = mrbc_vm_run( vm );
+  mrbc_vm_end( vm );
+  mrbc_vm_close( vm );
+
+  /*
+    Done
+  */
+  return ret == 1 ? 0 : ret;
 }

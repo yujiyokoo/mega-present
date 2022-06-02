@@ -16,7 +16,7 @@ uint8_t * load_mrb_file(const char *filename)
   FILE *fp = fopen(filename, "rb");
 
   if( fp == NULL ) {
-    fprintf(stderr, "File not found\n");
+    fprintf(stderr, "File not found (%s)\n", filename);
     return NULL;
   }
 
@@ -38,16 +38,6 @@ uint8_t * load_mrb_file(const char *filename)
 }
 
 
-void mrubyc(uint8_t *mrbbuf)
-{
-  mrbc_init(memory_pool, MEMORY_SIZE);
-
-  mrbc_create_task(mrbbuf, NULL);
-
-  mrbc_run();
-}
-
-
 int main(int argc, char *argv[])
 {
   if( argc != 2 ) {
@@ -58,8 +48,15 @@ int main(int argc, char *argv[])
   uint8_t *mrbbuf = load_mrb_file( argv[1] );
   if( mrbbuf == 0 ) return 1;
 
-  mrubyc( mrbbuf );
-  free( mrbbuf );
+  /*
+    start mruby/c with rrt0 scheduler.
+  */
+  mrbc_init(memory_pool, MEMORY_SIZE);
+  if( !mrbc_create_task(mrbbuf, NULL) ) return 1;
+  int ret = mrbc_run();
 
-  return 0;
+  /*
+    Done
+  */
+  return ret == 1 ? 0 : ret;
 }
