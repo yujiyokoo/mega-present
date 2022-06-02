@@ -151,6 +151,7 @@ mrbc_method *mrbc_find_method(mrbc_method *r_method, mrbc_class *cls, mrbc_sym s
 mrbc_class *mrbc_get_class_by_name(const char *name);
 mrbc_value mrbc_send(struct VM *vm, mrbc_value *v, int reg_ofs, mrbc_value *recv, const char *method_name, int argc, ...);
 void c_ineffect(struct VM *vm, mrbc_value v[], int argc);
+int mrbc_run_mrblib(const void *bytecode);
 void mrbc_init_class(void);
 
 

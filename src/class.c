@@ -447,23 +447,31 @@ void c_ineffect(struct VM *vm, mrbc_value v[], int argc)
 
 //================================================================
 /*! Run mrblib, which is mruby bytecode
+
+  @param  bytecode	bytecode (.mrb file)
+  @return		dummy yet.
 */
-static void mrbc_run_mrblib(const uint8_t bytecode[])
+int mrbc_run_mrblib(const void *bytecode)
 {
   // instead of mrbc_vm_open()
   mrbc_vm *vm = mrbc_alloc( 0, sizeof(mrbc_vm) );
-  if( !vm ) return;	// ENOMEM
+  if( !vm ) return -1;	// ENOMEM
   memset(vm, 0, sizeof(mrbc_vm));
 
-  mrbc_load_mrb(vm, bytecode);
+  if( mrbc_load_mrb(vm, bytecode) ) {
+    mrbc_print_exception(&vm->exception);
+    return 2;
+  }
   mrbc_vm_begin(vm);
-  mrbc_vm_run(vm);
+  int ret = mrbc_vm_run(vm);
   mrbc_vm_end(vm);
 
   // instead of mrbc_vm_close()
   mrbc_raw_free( vm->top_irep );	// free only top-level mrbc_irep.
 					// (no need to free child ireps.)
   mrbc_raw_free( vm );
+
+  return ret;
 }
 
 
