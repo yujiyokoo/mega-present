@@ -21,18 +21,21 @@
 
 /***** Local headers ********************************************************/
 #include "vm.h"
-#include "load.h"
-#include "value.h"
 #include "alloc.h"
+#include "value.h"
 #include "symbol.h"
+#include "error.h"
 #include "c_string.h"
+#include "load.h"
 
 
 /***** Constat values *******************************************************/
 // for mrb file structure.
-static const char IDENT[8] = "RITE0300";
+static const char RITE[4] = "RITE";
+static const char RITE_VERSION[4] = "0300";
 static const int SIZE_RITE_BINARY_HEADER = 20;
 static const int SIZE_RITE_SECTION_HEADER = 12;
+static const int SIZE_RITE_CATCH_HANDLER = 13;
 static const char IREP[4] = "IREP";
 static const char END[4] = "END\0";
 
@@ -65,7 +68,7 @@ enum irep_pool_type {
   <pre>
   Structure
    "RITE"     identifier
-   "01"       major version
+   "03"       major version
    "00"       minor version
    0000_0000  total size
    "MATZ"     compiler name
@@ -74,7 +77,16 @@ enum irep_pool_type {
 */
 static int load_header(struct VM *vm, const uint8_t *bin)
 {
-  if( memcmp(bin, IDENT, sizeof(IDENT)) != 0 ) return -1;
+  if( memcmp(bin, RITE, sizeof(RITE)) != 0 ) {
+    mrbc_raise( vm, MRBC_CLASS(Exception), "Illegal bytecode.");
+    return -1;
+  }
+  bin += sizeof(RITE);
+
+  if( memcmp(bin, RITE_VERSION, sizeof(RITE_VERSION)) != 0 ) {
+    mrbc_raise( vm, MRBC_CLASS(Exception), "Bytecode version mismatch.");
+    return -1;
+  }
 
   /* Ignore others. */
 
@@ -98,15 +110,23 @@ static int load_header(struct VM *vm, const uint8_t *bin)
    0000		n of register
    0000		n of child irep
    0000		n of catch handler
-   0000		n of byte code  (ISEQ BLOCK)
+   0000_0000	n of byte code  (ISEQ BLOCK)
    ...		byte codes
 
-   0000		n of pool	(POOL BLOCK)
+   (CATCH HANDLER 13bytes)
+   00		type
+   0000_0000	begin
+   0000_0000	end
+   0000_0000	target
+
+   (POOL BLOCK)
+   0000		n of pool
    (loop n of pool)
      00		type
      ...	pool data
 
-   0000		n of symbol	(SYMS BLOCK)
+   (SYMS BLOCK)
+   0000		n of symbol
    (loop n of symbol)
      0000	length
      ...	symbol data
@@ -128,11 +148,10 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len, int 
   irep.rlen = bin_to_uint16(p);		p += 2;
   irep.clen = bin_to_uint16(p);		p += 2;
   irep.ilen = bin_to_uint32(p);		p += 4;
-  irep.inst = (uint8_t *)p;
-  assert( sizeof(mrbc_irep_catch_handler) == 13 );
+  irep.inst = p;
 
   // POOL block
-  p += irep.ilen + sizeof(mrbc_irep_catch_handler) * irep.clen;
+  p += irep.ilen + SIZE_RITE_CATCH_HANDLER * irep.clen;
   irep.pool = p;
   irep.plen = bin_to_uint16(p);		p += 2;
 
@@ -144,9 +163,12 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len, int 
     case IREP_TT_SSTR:	siz = bin_to_uint16(p) + 3;	break;
     case IREP_TT_INT32:	siz = 4;	break;
     case IREP_TT_INT64:
+#if !defined(MRBC_INT64)
+      mrbc_raise(vm, MRBC_CLASS(NotImplementedError), "Unsuported int64 (set MRBC_INT64 in vm_config)");
+#endif
     case IREP_TT_FLOAT:	siz = 8;	break;
     default:
-      assert(!"Loader unknown TT found.");
+      mrbc_raise(vm, MRBC_CLASS(Exception), "Loader unknown TT found.");
       return NULL;
     }
     p += siz;
@@ -166,15 +188,22 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len, int 
   } else {
     p_irep = mrbc_raw_alloc( siz );
   }
-  if( !p_irep ) return NULL;
-
+  if( !p_irep ) {	// ENOMEM
+    mrbc_raise(vm, MRBC_CLASS(NoMemoryError),0);
+    return NULL;
+  }
   *p_irep = irep;
 
   // make a sym_id table.
   mrbc_sym *tbl_syms = mrbc_irep_tbl_syms(p_irep);
   for( i = 0; i < irep.slen; i++ ) {
-    int siz = bin_to_uint16(p); p += 2;
-    *tbl_syms++ = mrbc_str_to_symid( (char*)p );
+    int siz = bin_to_uint16(p);	p += 2;
+    mrbc_sym sym = mrbc_str_to_symid( (const char *)p );
+    if( sym < 0 ) {
+      mrbc_raise(vm, MRBC_CLASS(Exception), "Overflow MAX_SYMBOLS_COUNT");
+      return NULL;
+    }
+    *tbl_syms++ = sym;
     p += (siz+1);
   }
 
@@ -233,19 +262,20 @@ static mrbc_irep *load_irep(struct VM *vm, const uint8_t *bin, int *len)
 //================================================================
 /*! Load the VM bytecode.
 
-  @param  vm    Pointer to VM.
-  @param  bin	Pointer to bytecode.
-  @return int	zero if no error.
+  @param  vm		Pointer to VM.
+  @param  bytecode	Pointer to bytecode.
+  @return int		zero if no error.
 */
-int mrbc_load_mrb(struct VM *vm, const uint8_t *bin)
+int mrbc_load_mrb(struct VM *vm, const void *bytecode)
 {
+  const uint8_t *bin = bytecode;
+
+  vm->exception = mrbc_nil_value();
   if( load_header(vm, bin) != 0 ) return -1;
 
   bin += SIZE_RITE_BINARY_HEADER;
 
   while( 1 ) {
-    uint32_t section_size = bin_to_uint32(bin+4);
-
     if( memcmp(bin, IREP, sizeof(IREP)) == 0 ) {
       vm->top_irep = load_irep(vm, bin + SIZE_RITE_SECTION_HEADER, 0);
       if( vm->top_irep == NULL ) return -1;
@@ -253,11 +283,12 @@ int mrbc_load_mrb(struct VM *vm, const uint8_t *bin)
     } else if( memcmp(bin, END, sizeof(END)) == 0 ) {
       break;
     }
+    // ignore other section.
 
-    bin += section_size;
+    bin += bin_to_uint32(bin+4);	// add section size, to next section.
   }
 
-  return 0;
+  return mrbc_israised(vm);
 }
 
 
@@ -320,7 +351,7 @@ mrbc_value mrbc_irep_pool_value(struct VM *vm, int n)
 #endif
 
   default:
-    mrbc_raise(vm, MRBC_CLASS(Exception), "Not support such type (IREP_TT)");
+    mrbc_raisef(vm, MRBC_CLASS(Exception), "Not support such type (IREP_TT=%d)", tt);
     mrbc_set_nil(&obj);
   }
 

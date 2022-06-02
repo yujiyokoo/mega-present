@@ -173,12 +173,31 @@ void mrbc_raisef( struct VM *vm, struct RClass *exc_cls, const char *fstr, ... )
 			exc_cls ? exc_cls : MRBC_CLASS(RuntimeError),
 			buf, strlen(buf) );
     vm->flag_preemption = 2;
-  } else {
 
+  } else {
+    mrbc_print("Exception : ");
     mrbc_vprintf( fstr, ap );
+    mrbc_printf(" (%s)\n", exc_cls ? mrbc_symid_to_str(exc_cls->sym_id) : "RuntimeError");
   }
 
   va_end( ap );
+}
+
+
+//================================================================
+/*! display exception
+
+  @param  v	pointer to Exception object.
+*/
+void mrbc_print_exception( const mrbc_value *v )
+{
+  if( mrbc_type(*v) != MRBC_TT_EXCEPTION ) return;
+
+  const mrbc_exception *exc = v->exception;
+  const char *clsname = mrbc_symid_to_str(exc->cls->sym_id);
+
+  mrbc_printf("Exception : %s (%s)\n",
+	      exc->message ? (const char *)exc->message : clsname, clsname );
 }
 
 

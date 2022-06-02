@@ -379,10 +379,7 @@ void mrbc_vm_begin( struct VM *vm )
 void mrbc_vm_end( struct VM *vm )
 {
   if( mrbc_israised(vm) ) {
-    mrbc_printf("Exception : %s (%s)\n", vm->exception.exception->message ?
-		(const char *)vm->exception.exception->message :
-		mrbc_symid_to_str(vm->exception.exception->cls->sym_id),
-		mrbc_symid_to_str(vm->exception.exception->cls->sym_id));
+    mrbc_print_exception( &vm->exception );
     mrbc_decref(&vm->exception);
   }
   assert( vm->ret_blk == 0 );
