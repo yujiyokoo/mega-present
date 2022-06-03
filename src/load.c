@@ -3,8 +3,8 @@
   mruby bytecode loader.
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
@@ -260,7 +260,7 @@ static mrbc_irep *load_irep(struct VM *vm, const uint8_t *bin, int *len)
 /***** Global functions *****************************************************/
 
 //================================================================
-/*! Load the VM bytecode.
+/*! Load the VM bytecode. (full .mrb file)
 
   @param  vm		Pointer to VM.
   @param  bytecode	Pointer to bytecode.
@@ -277,8 +277,7 @@ int mrbc_load_mrb(struct VM *vm, const void *bytecode)
 
   while( 1 ) {
     if( memcmp(bin, IREP, sizeof(IREP)) == 0 ) {
-      vm->top_irep = load_irep(vm, bin + SIZE_RITE_SECTION_HEADER, 0);
-      if( vm->top_irep == NULL ) return -1;
+      if( mrbc_load_irep( vm, bin ) != 0 ) break;
 
     } else if( memcmp(bin, END, sizeof(END)) == 0 ) {
       break;
@@ -290,6 +289,25 @@ int mrbc_load_mrb(struct VM *vm, const void *bytecode)
 
   return mrbc_israised(vm);
 }
+
+
+//================================================================
+/*! Load the IREP section.
+
+  @param  vm		Pointer to VM.
+  @param  bytecode	Pointer to IREP section.
+  @return int		zero if no error.
+*/
+int mrbc_load_irep(struct VM *vm, const void *bytecode)
+{
+  const uint8_t *bin = bytecode;
+
+  vm->top_irep = load_irep( vm, bin + SIZE_RITE_SECTION_HEADER, 0 );
+  if( vm->top_irep == NULL ) return -1;
+
+  return mrbc_israised(vm);
+}
+
 
 
 //================================================================
