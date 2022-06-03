@@ -16,6 +16,9 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+#ifndef _XTAL_FREQ
+#define _XTAL_FREQ 10000000
+#endif
 #ifndef FCY
 #define FCY (_XTAL_FREQ/2)
 #endif
@@ -23,8 +26,6 @@
 #include <libpic30.h>
 
 /***** Local headers ********************************************************/
-#include "../mcc_generated_files/clock.h"
-
 /***** Constant values ******************************************************/
 /***** Macros ***************************************************************/
 #if !defined(MRBC_TICK_UNIT)
