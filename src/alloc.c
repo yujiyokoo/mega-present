@@ -412,6 +412,12 @@ void mrbc_init_alloc(void *ptr, unsigned int size)
 {
   assert( MRBC_MIN_MEMORY_BLOCK_SIZE >= sizeof(FREE_BLOCK) );
   assert( MRBC_MIN_MEMORY_BLOCK_SIZE >= (1 << MRBC_ALLOC_IGNORE_LSBS) );
+  /*
+    If you get this assertion, you can change minimum memory block size
+    parameter to `MRBC_MIN_MEMORY_BLOCK_SIZE (1 << MRBC_ALLOC_IGNORE_LSBS)`
+    and #define MRBC_ALLOC_16BIT.
+  */
+
   assert( (sizeof(MEMORY_POOL) & 0x03) == 0 );
   assert( size != 0 );
   assert( size <= (MRBC_ALLOC_MEMSIZE_T)(~0) );
