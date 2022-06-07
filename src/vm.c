@@ -1430,6 +1430,7 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
 
     int i;
     for( i = 0; i < argc; i++ ) {
+      mrbc_decref( &regs[i+1] );
       if( mrbc_array_size(&argary) > i ) {
 	regs[i+1] = argary.array->data[i];
       } else {
@@ -1469,15 +1470,19 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
     // reorder arguments.
     int i;
     for( i = argc; i < m1; ) {
-      mrbc_set_nil( &regs[++i] );
+      mrbc_decref( &regs[++i] );
+      mrbc_set_nil( &regs[i] );
     }
     i = m1 + o;
     if( a & FLAG_REST ) {
-      regs[++i] = rest;
+      mrbc_decref(&regs[++i]);
+      regs[i] = rest;
     }
     if( a & FLAG_DICT ) {
-      regs[++i] = dict;
+      mrbc_decref(&regs[++i]);
+      regs[i] = dict;
     }
+    mrbc_decref(&regs[i+1]);
     regs[i+1] = proc;
     vm->callinfo_tail->n_args = i;
 
@@ -1485,9 +1490,11 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
     // reorder arguments.
     int i;
     for( i = argc; i < m1; ) {
-      mrbc_set_nil( &regs[++i] );
+      mrbc_decref( &regs[++i] );
+      mrbc_set_nil( &regs[i] );
     }
     i = m1 + o;
+    mrbc_decref(&regs[i+1]);
     regs[i+1] = proc;
     vm->callinfo_tail->n_args = i;
   }
