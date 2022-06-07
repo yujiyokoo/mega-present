@@ -160,21 +160,22 @@ void mrbc_raise( struct VM *vm, struct RClass *exc_cls, const char *msg )
 */
 void mrbc_raisef( struct VM *vm, struct RClass *exc_cls, const char *fstr, ... )
 {
+  static const int MESSAGE_INI_LEN = 32;
   va_list ap;
   va_start( ap, fstr );
 
-  if( vm ) {
-    char *buf = mrbc_alloc( vm, 32 );
-    if( !buf ) return;	// ENOMEM
+  char *buf = 0;
+  if( vm ) buf = mrbc_alloc( vm, MESSAGE_INI_LEN );
 
-    mrbc_vsprintf( buf, 32, fstr, ap );
-
+  if( buf ) {
+    mrbc_vasprintf( &buf, MESSAGE_INI_LEN, fstr, ap );
     vm->exception = mrbc_exception_new_alloc( vm,
 			exc_cls ? exc_cls : MRBC_CLASS(RuntimeError),
 			buf, strlen(buf) );
     vm->flag_preemption = 2;
 
   } else {
+    // VM == NULL or ENOMEM
     mrbc_print("Exception : ");
     mrbc_vprintf( fstr, ap );
     mrbc_printf(" (%s)\n", exc_cls ? mrbc_symid_to_str(exc_cls->sym_id) : "RuntimeError");
