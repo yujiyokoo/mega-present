@@ -379,8 +379,12 @@ void mrbc_vm_begin( struct VM *vm )
 void mrbc_vm_end( struct VM *vm )
 {
   if( mrbc_israised(vm) ) {
+#if defined(MRBC_ABORT_BY_EXCEPTION)
+    MRBC_ABORT_BY_EXCEPTION(vm);
+#else
     mrbc_print_exception( &vm->exception );
     mrbc_decref(&vm->exception);
+#endif
   }
   assert( vm->ret_blk == 0 );
 

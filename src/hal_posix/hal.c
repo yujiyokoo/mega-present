@@ -116,8 +116,6 @@ void hal_abort( const char *s )
 {
   if( s ) {
     hal_write(1, s, strlen(s));
-    abort();
-  } else {
-    exit( 0 );
   }
+  exit( 1 );
 }

@@ -523,10 +523,11 @@ void * mrbc_raw_alloc(unsigned int size)
   }
 
   // else out of memory
-  static const char msg[] = "Fatal error: Out of memory.\n";
-  hal_write(1, msg, sizeof(msg)-1);
 #if defined(MRBC_OUT_OF_MEMORY)
   MRBC_OUT_OF_MEMORY();
+#else
+  static const char msg[] = "Fatal error: Out of memory.\n";
+  hal_write(1, msg, sizeof(msg)-1);
 #endif
   return NULL;  // ENOMEM
 
