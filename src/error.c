@@ -56,34 +56,37 @@ mrbc_value mrbc_exception_new(struct VM *vm, struct RClass *exc_cls, const void 
   MRBC_INIT_OBJECT_HEADER( ex, "EX" );
   ex->cls = exc_cls;
 
+  // in case of no message.
   if( !message ) {
     ex->message = 0;
     ex->message_size = 0;
     goto RETURN;
   }
 
+  // in case of message is ""
   if( *(const char *)message == 0 ) {
-    ex->message = (uint8_t *)"";
+    ex->message = (const uint8_t *)"";
     ex->message_size = 0;
     goto RETURN;
   }
 
+  // in case of message in ROM.
   if( len == 0 ) {
-    ex->message = (uint8_t *)message;
+    ex->message = message;
     ex->message_size = 0;
     goto RETURN;
   }
 
   // else, copy the message.
-  ex->message = mrbc_alloc( vm, len+1 );
-  if( !ex->message ) {
+  uint8_t *buf = mrbc_alloc( vm, len+1 );
+  if( buf ) {
+    memcpy( buf, message, len );
+    buf[len] = 0;
+    ex->message_size = len;
+  } else {
     ex->message_size = 0;
-    goto RETURN;
   }
-
-  memcpy( ex->message, message, len );
-  ex->message[len] = '\0';
-  ex->message_size = len;
+  ex->message = buf;
 
  RETURN:
   return (mrbc_value){.tt = MRBC_TT_EXCEPTION, .exception = ex};
@@ -109,7 +112,7 @@ mrbc_value mrbc_exception_new_alloc(struct VM *vm, struct RClass *exc_cls, const
 
   MRBC_INIT_OBJECT_HEADER( ex, "EX" );
   ex->cls = exc_cls;
-  ex->message = (uint8_t *)message;
+  ex->message = message;
   ex->message_size = len;
 
   return (mrbc_value){.tt = MRBC_TT_EXCEPTION, .exception = ex};
@@ -124,7 +127,7 @@ mrbc_value mrbc_exception_new_alloc(struct VM *vm, struct RClass *exc_cls, const
 void mrbc_exception_delete(mrbc_value *value)
 {
   if( value->exception->message_size ) {
-    mrbc_raw_free( value->exception->message );
+    mrbc_raw_free( (void *)value->exception->message );
   }
   mrbc_raw_free( value->exception );
 }
@@ -141,12 +144,11 @@ void mrbc_exception_delete(mrbc_value *value)
 void mrbc_raise( struct VM *vm, struct RClass *exc_cls, const char *msg )
 {
   if( vm ) {
-    vm->exception = mrbc_exception_new( vm,
-			exc_cls ? exc_cls : MRBC_CLASS(RuntimeError), msg, 0 );
+    vm->exception = mrbc_exception_new( vm, exc_cls ? exc_cls : MRBC_CLASS(RuntimeError), msg, 0 );
     vm->flag_preemption = 2;
 
   } else {
-    mrbc_printf("Exception : %s (%s)\n", msg ? msg : mrbc_symid_to_str(exc_cls->sym_id), mrbc_symid_to_str(exc_cls->sym_id));
+    mrbc_printf("Exception: %s (%s)\n", msg ? msg : mrbc_symid_to_str(exc_cls->sym_id), mrbc_symid_to_str(exc_cls->sym_id));
   }
 }
 
@@ -176,7 +178,7 @@ void mrbc_raisef( struct VM *vm, struct RClass *exc_cls, const char *fstr, ... )
 
   } else {
     // VM == NULL or ENOMEM
-    mrbc_print("Exception : ");
+    mrbc_print("Exception: ");
     mrbc_vprintf( fstr, ap );
     mrbc_printf(" (%s)\n", exc_cls ? mrbc_symid_to_str(exc_cls->sym_id) : "RuntimeError");
   }
@@ -197,7 +199,7 @@ void mrbc_print_exception( const mrbc_value *v )
   const mrbc_exception *exc = v->exception;
   const char *clsname = mrbc_symid_to_str(exc->cls->sym_id);
 
-  mrbc_printf("Exception : %s (%s)\n",
+  mrbc_printf("Exception: %s (%s)\n",
 	      exc->message ? (const char *)exc->message : clsname, clsname );
 }
 

@@ -1,13 +1,12 @@
 /*! @file
   @brief
-  exception
+  exception classes
 
   <pre>
   Copyright (C) 2015-2022 Kyushu Institute of Technology.
   Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
-
 
   </pre>
 */
@@ -40,7 +39,7 @@ typedef struct RException {
 
   struct RClass *cls;		//!< exception class.
   uint16_t message_size;	//!< message length.
-  uint8_t *message;		//!< pointer to allocated buffer.
+  const uint8_t *message;	//!< to heap or ROM.
 
 } mrbc_exception;
 
