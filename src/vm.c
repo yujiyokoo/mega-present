@@ -478,7 +478,7 @@ static inline void op_loadineg( mrbc_vm *vm, mrbc_value *regs EXT )
   FETCH_BB();
 
   mrbc_decref(&regs[a]);
-  mrbc_set_integer(&regs[a], -b);
+  mrbc_set_integer(&regs[a], -(mrbc_int)b);
 }
 
 
@@ -1280,6 +1280,7 @@ static inline void op_super( mrbc_vm *vm, mrbc_value *regs EXT )
     }
     mrbc_array_delete_handle(&argary);
 
+    mrbc_decref( &regs[j] );
     regs[j] = proc;
     b = argc;
   }
@@ -2412,6 +2413,7 @@ static inline void op_class( mrbc_vm *vm, mrbc_value *regs EXT )
 
   // (note)
   //  regs[a] was set to NIL by compiler. So, no need to release regs[a].
+  assert( mrbc_type(regs[a]) == MRBC_TT_NIL );
   regs[a].tt = MRBC_TT_CLASS;
   regs[a].cls = cls;
 }
