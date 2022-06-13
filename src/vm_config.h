@@ -22,7 +22,7 @@
 
 // maximum size of registers
 #if !defined(MAX_REGS_SIZE)
-#define MAX_REGS_SIZE 100
+#define MAX_REGS_SIZE 110
 #endif
 
 // maximum number of symbols
