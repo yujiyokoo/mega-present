@@ -1904,7 +1904,11 @@ static inline void op_div( mrbc_vm *vm, mrbc_value *regs EXT )
 
   if( regs[a].tt == MRBC_TT_INTEGER ) {
     if( regs[a+1].tt == MRBC_TT_INTEGER ) {     // in case of Integer, Integer
-      regs[a].i /= regs[a+1].i;
+      if( regs[a+1].i == 0 ) {
+	mrbc_raise(vm, MRBC_CLASS(ZeroDivisionError), 0 );
+      } else {
+	regs[a].i /= regs[a+1].i;
+      }
       return;
     }
 #if MRBC_USE_FLOAT
