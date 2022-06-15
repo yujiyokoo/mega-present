@@ -11,7 +11,13 @@
   </pre>
 */
 
+/***** Feature test switches ************************************************/
+/***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
+//@endcond
+
+/***** Local headers ********************************************************/
 #include "value.h"
 #include "global.h"
 #include "keyvalue.h"
@@ -19,10 +25,18 @@
 #include "symbol.h"
 #include "console.h"
 
-
+/***** Constat values *******************************************************/
+/***** Macros ***************************************************************/
+/***** Typedefs *************************************************************/
+/***** Function prototypes **************************************************/
+/***** Local variables ******************************************************/
 static mrbc_kv_handle handle_const;	//!< for global(Object) constants.
 static mrbc_kv_handle handle_global;	//!< for global variables.
 
+/***** Global variables *****************************************************/
+/***** Signal catching functions ********************************************/
+/***** Local functions ******************************************************/
+/***** Global functions *****************************************************/
 
 //================================================================
 /*! initialize const and global table with default value.

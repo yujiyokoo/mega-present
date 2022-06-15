@@ -13,9 +13,11 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <string.h>
 #include <stdarg.h>
+//@endcond
 
 
 /***** Local headers ********************************************************/

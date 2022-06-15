@@ -13,11 +13,13 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "vm.h"
@@ -174,7 +176,7 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len, int 
     p += siz;
   }
 
-  // # of symbols, offset of tbl_ireps.
+  // num of symbols, offset of tbl_ireps.
   irep.slen = bin_to_uint16(p);		p += 2;
   int siz = sizeof(mrbc_sym) * irep.slen + sizeof(uint16_t) * irep.plen;
   siz += (-siz & 0x03);	// padding. 32bit align.

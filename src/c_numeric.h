@@ -15,7 +15,6 @@
 #ifndef MRBC_SRC_C_NUMERIC_H_
 #define MRBC_SRC_C_NUMERIC_H_
 
-#include "vm.h"
 
 #ifdef __cplusplus
 extern "C" {

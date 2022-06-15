@@ -12,9 +12,9 @@
 */
 
 /***** Feature test switches ************************************************/
-#include "vm_config.h"
-
 /***** System headers *******************************************************/
+//@cond
+#include "vm_config.h"
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
@@ -22,6 +22,7 @@
 #if MRBC_USE_FLOAT
 #include <stdio.h>
 #endif
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "hal_selector.h"

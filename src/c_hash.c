@@ -3,18 +3,23 @@
   mruby/c Hash class
 
   <pre>
-  Copyright (C) 2015-2021 Kyushu Institute of Technology.
-  Copyright (C) 2015-2021 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
   </pre>
 */
 
+/***** Feature test switches ************************************************/
+/***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <string.h>
 #include <assert.h>
+//@endcond
 
+/***** Local headers ********************************************************/
 #include "alloc.h"
 #include "value.h"
 #include "class.h"
@@ -22,6 +27,16 @@
 #include "c_array.h"
 #include "c_hash.h"
 
+
+/***** Constat values *******************************************************/
+/***** Macros ***************************************************************/
+/***** Typedefs *************************************************************/
+/***** Function prototypes **************************************************/
+/***** Local variables ******************************************************/
+/***** Global variables *****************************************************/
+/***** Signal catching functions ********************************************/
+/***** Local functions ******************************************************/
+/***** Global functions *****************************************************/
 /*
   function summary
 
@@ -41,7 +56,6 @@
     mrbc_hash_remove	*K	T	Data does not remain in the container
     mrbc_hash_i_next		*T	Data remains in the container
 */
-
 
 
 //================================================================

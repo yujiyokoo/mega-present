@@ -16,21 +16,24 @@
 #ifndef MRBC_SRC_ALLOC_H_
 #define MRBC_SRC_ALLOC_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #if defined(MRBC_ALLOC_LIBC)
 #include <stdlib.h>
 #endif
+//@endcond
 
 /***** Local headers ********************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 /***** Constant values ******************************************************/
 /***** Macros ***************************************************************/
 /***** Typedefs *************************************************************/
-/*! return structure for mrbc_alloc_statistics function.
+/*!@brief
+  Return value structure for mrbc_alloc_statistics function.
 */
 struct MRBC_ALLOC_STATISTICS {
   unsigned int total;		//!< returns total memory.

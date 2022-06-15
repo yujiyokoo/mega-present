@@ -16,7 +16,9 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include <stdint.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "value.h"
@@ -32,7 +34,9 @@ extern "C" {
 /***** Typedefs *************************************************************/
 //================================================================
 /*!@brief
-  Define Exception handle.
+  Exception object.
+
+  @extends RBasic
 */
 typedef struct RException {
   MRBC_OBJECT_HEADER;

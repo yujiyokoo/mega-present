@@ -16,7 +16,9 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include <stdint.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "value.h"
@@ -31,7 +33,9 @@ extern "C" {
 
 //================================================================
 /*!@brief
-  Define Range object (same the handles of other objects)
+  Range object
+
+  @extends RBasic
 */
 typedef struct RRange {
   MRBC_OBJECT_HEADER;

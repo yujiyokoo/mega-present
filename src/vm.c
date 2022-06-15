@@ -15,10 +15,12 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "alloc.h"
@@ -1405,8 +1407,8 @@ static inline void op_enter( mrbc_vm *vm, mrbc_value *regs EXT )
     return;
   }
 
-  int m1 = (a >> 18) & 0x1f;	// # of required parameters 1
-  int o  = (a >> 13) & 0x1f;	// # of optional parameters
+  int m1 = (a >> 18) & 0x1f;	// num of required parameters 1
+  int o  = (a >> 13) & 0x1f;	// num of optional parameters
   int argc = vm->callinfo_tail->n_args;
 
   if( a & (FLAG_M2|FLAG_KW) ) {	// check m2 and k parameter.

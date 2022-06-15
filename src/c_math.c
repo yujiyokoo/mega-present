@@ -13,8 +13,10 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <math.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "value.h"

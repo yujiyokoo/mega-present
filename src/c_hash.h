@@ -16,7 +16,9 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include <stdint.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "value.h"
@@ -31,7 +33,9 @@ extern "C" {
 /***** Typedefs *************************************************************/
 //================================================================
 /*!@brief
-  Define Hash handle.
+  Hash object.
+
+  @extends RBasic
 */
 typedef struct RHash {
   // (NOTE)
@@ -39,7 +43,7 @@ typedef struct RHash {
   MRBC_OBJECT_HEADER;
 
   uint16_t data_size;	//!< data buffer size.
-  uint16_t n_stored;	//!< # of stored.
+  uint16_t n_stored;	//!< num of stored.
   mrbc_value *data;	//!< pointer to allocated memory.
 
   // TODO: and other member for search.

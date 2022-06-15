@@ -3,22 +3,28 @@
   mruby/c Key(Symbol) - Value store.
 
   <pre>
-  Copyright (C) 2015-2018 Kyushu Institute of Technology.
-  Copyright (C) 2015-2018 Shimane IT Open-Innovation Center.
+  Copyright (C) 2015-2022 Kyushu Institute of Technology.
+  Copyright (C) 2015-2022 Shimane IT Open-Innovation Center.
 
   This file is distributed under BSD 3-Clause License.
 
   </pre>
 */
 
+/***** Feature test switches ************************************************/
+/***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <stdlib.h>
 #include <string.h>
+//@endcond
 
+/***** Local headers ********************************************************/
 #include "value.h"
 #include "alloc.h"
 #include "keyvalue.h"
 
+/***** Constat values *******************************************************/
 #if !defined(MRBC_KV_SIZE_INIT)
 #define MRBC_KV_SIZE_INIT 2
 #endif
@@ -26,7 +32,13 @@
 #define MRBC_KV_SIZE_INCREMENT 5
 #endif
 
-
+/***** Macros ***************************************************************/
+/***** Typedefs *************************************************************/
+/***** Function prototypes **************************************************/
+/***** Local variables ******************************************************/
+/***** Global variables *****************************************************/
+/***** Signal catching functions ********************************************/
+/***** Local functions ******************************************************/
 //================================================================
 /*! binary search
 
@@ -52,6 +64,8 @@ static int binary_search(mrbc_kv_handle *kvh, mrbc_sym sym_id)
   return left;
 }
 
+
+/***** Global functions *****************************************************/
 
 //================================================================
 /*! constructor
@@ -251,7 +265,7 @@ mrbc_value * mrbc_kv_get(mrbc_kv_handle *kvh, mrbc_sym sym_id)
 }
 
 
-
+#if 0
 //================================================================
 /*! setter - only append tail
 
@@ -307,7 +321,7 @@ int mrbc_kv_reorder(mrbc_kv_handle *kvh)
 
   return 0;
 }
-
+#endif
 
 
 //================================================================

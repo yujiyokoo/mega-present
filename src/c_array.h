@@ -16,8 +16,9 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
-#include "vm_config.h"
+//@cond
 #include <stdint.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "alloc.h"
@@ -32,13 +33,15 @@ extern "C" {
 /***** Typedefs *************************************************************/
 //================================================================
 /*!@brief
-  Define Array handle.
+  Array object.
+
+  @extends RBasic
 */
 typedef struct RArray {
   MRBC_OBJECT_HEADER;
 
   uint16_t data_size;	//!< data buffer size.
-  uint16_t n_stored;	//!< # of stored.
+  uint16_t n_stored;	//!< num of stored.
   mrbc_value *data;	//!< pointer to allocated memory.
 
 } mrbc_array;

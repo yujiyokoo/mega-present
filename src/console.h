@@ -16,10 +16,12 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "value.h"
@@ -39,7 +41,8 @@ extern "C" {
 
 /***** Typedefs *************************************************************/
 //================================================================
-/*! printf tiny (mruby/c) version data container.
+/*!@brief
+  printf tiny (mruby/c) version format container.
 */
 struct RPrintfFormat {
   char type;			//!< format char. (e.g. 'd','f','x'...)
@@ -50,6 +53,12 @@ struct RPrintfFormat {
   int16_t width;		//!< display width. (e.g. %10d as 10)
   int16_t precision;		//!< precision (e.g. %5.2f as 2)
 };
+
+
+//================================================================
+/*!@brief
+  printf tiny (mruby/c) version data container.
+*/
 typedef struct RPrintf {
   char *buf;			//!< output buffer.
   const char *buf_end;		//!< output buffer end point.

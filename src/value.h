@@ -17,9 +17,11 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include <stdint.h>
 #include <assert.h>
 #include "vm_config.h"
+//@endcond
 
 /***** Local headers ********************************************************/
 
@@ -130,13 +132,18 @@ typedef enum {
 #define MRBC_OBJECT_HEADER  uint16_t ref_count
 #endif
 
+//================================================================
+/*!@brief
+  Base class for some objects.
+*/
 struct RBasic {
   MRBC_OBJECT_HEADER;
 };
 
 
 //================================================================
-/*! mruby/c value object.
+/*!@brief
+  Value object.
 */
 struct RObject {
   mrbc_vtype tt : 8;
