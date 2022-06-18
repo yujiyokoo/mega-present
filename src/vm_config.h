@@ -33,7 +33,7 @@
 
 // memory management
 //  MRBC_ALLOC_16BIT or MRBC_ALLOC_24BIT
-#define MRBC_ALLOC_24BIT
+#define MRBC_ALLOC_16BIT
 
 
 // Console new-line mode.
@@ -48,7 +48,7 @@
 */
 // USE Float. Support Float class.
 #if !defined(MRBC_USE_FLOAT)
-#define MRBC_USE_FLOAT 2
+#define MRBC_USE_FLOAT 0
 #endif
 
 // Use math. Support Math class.
@@ -77,14 +77,14 @@
    Define either MRBC_BIG_ENDIAN or MRBC_LITTLE_ENDIAN.
 */
 #if !defined(MRBC_BIG_ENDIAN) && !defined(MRBC_LITTLE_ENDIAN)
-# define MRBC_LITTLE_ENDIAN
+# define MRBC_BIG_ENDIAN
 #endif
 
 /* Word alignment
    If 32bit and/or 64bit alignment is required, enable the following line.
 */
-// #define MRBC_REQUIRE_32BIT_ALIGNMENT
-#define MRBC_REQUIRE_64BIT_ALIGNMENT
+#define MRBC_REQUIRE_32BIT_ALIGNMENT
+// #define MRBC_REQUIRE_64BIT_ALIGNMENT
 
 // Debug code.
 #if !defined(NDEBUG)

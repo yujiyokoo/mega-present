@@ -15,8 +15,10 @@
 /***** System headers *******************************************************/
 //@cond
 #include "vm_config.h"
+#include <types.h>
 #include <stdlib.h>
 #include <string.h>
+#include <memory.h>
 //@endcond
 
 /***** Local headers ********************************************************/

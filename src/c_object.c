@@ -16,10 +16,12 @@
 /***** System headers *******************************************************/
 //@cond
 #include "vm_config.h"
+#include <types.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
+#include <memory.h>
 //@endcond
 
 /***** Local headers ********************************************************/
@@ -375,6 +377,7 @@ static void c_object_instance_variables(struct VM *vm, mrbc_value v[], int argc)
  */
 static void c_object_memory_statistics(struct VM *vm, mrbc_value v[], int argc)
 {
+  /*
   struct MRBC_ALLOC_STATISTICS mem;
 
   mrbc_alloc_statistics( &mem );
@@ -398,6 +401,7 @@ static void c_object_memory_statistics(struct VM *vm, mrbc_value v[], int argc)
 		      &mrbc_integer_value( mem.fragmentation ));
 
   SET_RETURN(ret);
+  */
 }
 #endif  // MRBC_ALLOC_LIBC
 #endif  // MRBC_DEBUG

@@ -16,9 +16,11 @@
 //@cond
 #include "vm_config.h"
 #include <stdlib.h>
+#include <types.h>
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
+#include <memory.h>
 //@endcond
 
 /***** Local headers ********************************************************/

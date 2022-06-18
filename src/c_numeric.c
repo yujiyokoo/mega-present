@@ -16,7 +16,8 @@
 /***** System headers *******************************************************/
 //@cond
 #include "vm_config.h"
-#include <stdio.h>
+#include <types.h>
+// #include <stdio.h>
 #include <limits.h>
 #if MRBC_USE_FLOAT
 #include <math.h>
@@ -371,4 +372,16 @@ static void c_float_to_s(struct VM *vm, mrbc_value v[], int argc)
 */
 #include "_autogen_class_float.h"
 
+#else // MRBC_USE_FLOAT
+// Define empty class, since this is still referenced from MRBC_CLASS
+static const mrbc_sym method_symbols_Float[] = {};
+static const mrbc_func_t method_functions_Float[] = {};
+struct RBuiltinClass mrbc_class_Float = {
+  .sym_id = MRBC_SYM(Float),
+  .num_builtin_method = sizeof(method_symbols_Float) / sizeof(mrbc_sym),
+  .super = MRBC_CLASS(Object),
+  .method_link = 0,
+  .method_symbols = method_symbols_Float,
+  .method_functions = method_functions_Float,
+};
 #endif  // MRBC_USE_FLOAT

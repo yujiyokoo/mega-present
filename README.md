@@ -1,40 +1,37 @@
-# mruby/c
+# Meaa-mruby/c
+This is a fork of mruby/c to port mruby/c to Sega Megadrive.
 
-[![Ruby](https://github.com/mrubyc/mrubyc/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/mrubyc/mrubyc/actions/workflows/c-cpp.yml)
+This README focuses on information specific to this fork.
+For information that relates to the original mruby/c, please refer to the [original mruby/c](https://github.com/mrubyc/mrubyc) project.
 
-[![Join the chat at https://gitter.im/mrubyc/mrubyc](https://badges.gitter.im/mrubyc/mrubyc.svg)](https://gitter.im/mrubyc/mrubyc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+## Demo
 
-mruby/c is an another implementation of mruby.
+Here is a video of the demo game running on a real Megadrive unit:
 
-- Small memory consumption
-- Limited class libraries
-- Small size rather than execution speed
+[![#mruby/c running on Sega Megadrive](https://i.vimeocdn.com/video/1453390338-a007888517ab48bcb2e363ea488930e2e3bfd5693bbba92354d93d72e56b957d-d_640](https://vimeo.com/721690388)
 
-### Comparison between mruby and mruby/c
+## Build
 
-||mruby/c|mruby|
-|----|----|----|
-|memory size| < 40KB | < 400KB |
-|main target| one-chip microprocessors | general embedded software|
+1. Ensure gendev is installed and patched
+I have used [Gendev 0.71](https://github.com/kubilus1/gendev/releases/tag/0.7.1) on a Debian machine. The .deb package installs under /opt/gendev. Change the command accordingly, but in my case, I patched gendev dir with:
 
+```
+> sudo cp gendev-mega-mrubyc.patch /opt
+> cd /opt
+> sudo patch -p1 < ./gendev-mega-mrubyc.patch
+```
 
-## Documents
+2. Run build command
+```
+export GENDEV=/opt/gendev
+mrbc -B mrbsrc src/game.rb && make -f $GENDEV/sgdk/mkfiles/Makefile.rom clean all
+```
 
-[How to compile?](doc/compile.md)
+## Execute
+Afetr the above building step, you should end up with `out/rom.bin`, which you can use with most emulators.
+If you have a way of runnig your own code on the real Megadrive unit, it should work there too. I use Mega EverDrive X7 and it works for me.
 
-[How to run tests?](doc/test.md)
-
-
-## Developer team
-
-- [Shimane IT Open-Innovation Center](http://www.s-itoc.jp/)
-- [Kyushu Institute of Technology](http://www.kyutech.ac.jp/)
 
 ## License
 
-mruby/c is released under the Revised BSD License(aka 3-clause license).
-
-## Related work
-
-- Device classes for mruby/c (https://github.com/mrubyc/dev)
-- Some sample programs that mainly control sensors. (https://github.com/mrubyc/devkit02/tree/main/samples)
+This fork of mruby/c is released under the same licence as the orginal - Revised BSD License(aka 3-clause license).

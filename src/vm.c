@@ -18,8 +18,10 @@
 //@cond
 #include "vm_config.h"
 #include <stddef.h>
+#include <types.h>
 #include <string.h>
 #include <assert.h>
+#include <memory.h>
 //@endcond
 
 /***** Local headers ********************************************************/

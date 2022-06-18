@@ -15,6 +15,7 @@
 /***** System headers *******************************************************/
 //@cond
 #include "vm_config.h"
+#include <types.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -152,18 +153,22 @@ static mrbc_irep * load_irep_1(struct VM *vm, const uint8_t *bin, int *len, int 
   irep.ilen = bin_to_uint32(p);		p += 4;
   irep.inst = p;
 
+  // VDP_drawText("load_irep_1 03", 10, 13);
   // POOL block
   p += irep.ilen + SIZE_RITE_CATCH_HANDLER * irep.clen;
   irep.pool = p;
   irep.plen = bin_to_uint16(p);		p += 2;
 
+  // VDP_drawText("load_irep_1 03.0", 10, 13);
   // skip pool
   for( i = 0; i < irep.plen; i++ ) {
     int siz = 0;
+  // char foo[64];
     switch( *p++ ) {
     case IREP_TT_STR:
     case IREP_TT_SSTR:	siz = bin_to_uint16(p) + 3;	break;
-    case IREP_TT_INT32:	siz = 4;	break;
+    case IREP_TT_INT32:	siz = 4;
+    break;
     case IREP_TT_INT64:
 #if !defined(MRBC_INT64)
       mrbc_raise(vm, MRBC_CLASS(NotImplementedError), "Unsuported int64 (set MRBC_INT64 in vm_config)");

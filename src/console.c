@@ -17,6 +17,7 @@
 #include "vm_config.h"
 #include <stdint.h>
 #include <stdarg.h>
+#include <types.h>
 #include <string.h>
 #include <assert.h>
 #if MRBC_USE_FLOAT
@@ -25,6 +26,7 @@
 //@endcond
 
 /***** Local headers ********************************************************/
+#include "compat.h"
 #include "hal_selector.h"
 #include "alloc.h"
 #include "value.h"

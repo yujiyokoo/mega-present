@@ -19,10 +19,11 @@
 //@cond
 #include "vm_config.h"
 #include <stdint.h>
-#include <string.h>
+// #include <string.h> causes conflict?
 //@endcond
 
 /***** Local headers ********************************************************/
+#include "compat.h"
 #include "value.h"
 
 #ifdef __cplusplus
