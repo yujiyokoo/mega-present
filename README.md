@@ -4,16 +4,21 @@ This is a fork of mruby/c to port mruby/c to Sega Megadrive.
 This README focuses on information specific to this fork.
 For information that relates to the original mruby/c, please refer to the [original mruby/c](https://github.com/mrubyc/mrubyc) project.
 
+## Demo
+
+Here is a video of the demo game running on a real Megadrive unit:
+
+[![#mruby/c running on Sega Megadrive](https://i.vimeocdn.com/video/1453390338-a007888517ab48bcb2e363ea488930e2e3bfd5693bbba92354d93d72e56b957d-d_640](https://vimeo.com/721690388)
+
 ## Build
 
 1. Ensure gendev is installed and patched
 I have used [Gendev 0.71](https://github.com/kubilus1/gendev/releases/tag/0.7.1) on a Debian machine. The .deb package installs under /opt/gendev. Change the command accordingly, but in my case, I patched gendev dir with:
 
 ```
-sudo su
-cp gendev-mega-mrubyc.patch /opt
-cd /opt
-patch -p1 < ./gendev-mega-mrubyc.patch
+> sudo cp gendev-mega-mrubyc.patch /opt
+> cd /opt
+> sudo patch -p1 < ./gendev-mega-mrubyc.patch
 ```
 
 2. Run build command
