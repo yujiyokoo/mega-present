@@ -8,7 +8,7 @@ For information that relates to the original mruby/c, please refer to the [origi
 
 Here is a video of the demo game running on a real Megadrive unit:
 
-[![#mruby/c running on Sega Megadrive](https://i.vimeocdn.com/video/1453390338-a007888517ab48bcb2e363ea488930e2e3bfd5693bbba92354d93d72e56b957d-d_640](https://vimeo.com/721690388)
+[![#mruby/c running on Sega Megadrive](https://i.vimeocdn.com/video/1453390338-a007888517ab48bcb2e363ea488930e2e3bfd5693bbba92354d93d72e56b957d-d_640)](https://vimeo.com/721690388)
 
 ## Build
 
