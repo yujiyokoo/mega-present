@@ -1,14 +1,14 @@
 # Mega-mruby/c
-This is a fork of mruby/c to port mruby/c to Sega Megadrive.
+This is a fork of mruby/c to port mruby/c to Sega Mega Drive.
 
 This README focuses on information specific to this fork.
 For information that relates to the original mruby/c, please refer to the [original mruby/c](https://github.com/mrubyc/mrubyc) project.
 
 ## Demo
 
-Here is a video of the demo game running on a real Megadrive unit:
+Here is a video of the demo game running on a real Mega Drive unit:
 
-[![#mruby/c running on Sega Megadrive](https://i.vimeocdn.com/video/1453390338-a007888517ab48bcb2e363ea488930e2e3bfd5693bbba92354d93d72e56b957d-d_640)](https://vimeo.com/721690388)
+[![#mruby/c running on Sega Mega Drive](https://i.vimeocdn.com/video/1453390338-a007888517ab48bcb2e363ea488930e2e3bfd5693bbba92354d93d72e56b957d-d_640)](https://vimeo.com/721690388)
 
 ## Build
 
@@ -29,7 +29,7 @@ mrbc -B mrbsrc src/game.rb && make -f $GENDEV/sgdk/mkfiles/Makefile.rom clean al
 
 ## Execute
 Afetr the above building step, you should end up with `out/rom.bin`, which you can use with most emulators.
-If you have a way of runnig your own code on the real Megadrive unit, it should work there too. I use Mega EverDrive X7 and it works for me.
+If you have a way of runnig your own code on the real Mega Drive unit, it should work there too. I use Mega EverDrive X7 and it works for me.
 
 
 ## License
