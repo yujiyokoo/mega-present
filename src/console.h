@@ -16,11 +16,13 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <types.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "value.h"
@@ -40,7 +42,8 @@ extern "C" {
 
 /***** Typedefs *************************************************************/
 //================================================================
-/*! printf tiny (mruby/c) version data container.
+/*!@brief
+  printf tiny (mruby/c) version format container.
 */
 struct RPrintfFormat {
   char type;			//!< format char. (e.g. 'd','f','x'...)
@@ -51,6 +54,12 @@ struct RPrintfFormat {
   int16_t width;		//!< display width. (e.g. %10d as 10)
   int16_t precision;		//!< precision (e.g. %5.2f as 2)
 };
+
+
+//================================================================
+/*!@brief
+  printf tiny (mruby/c) version data container.
+*/
 typedef struct RPrintf {
   char *buf;			//!< output buffer.
   const char *buf_end;		//!< output buffer end point.
@@ -64,8 +73,16 @@ typedef struct RPrintf {
 /***** Function prototypes **************************************************/
 void mrbc_putchar(char c);
 void mrbc_nprint(const char *str, int size);
-void mrbc_snprintf(char *buf, int bufsiz, const char *fstr, ...);
 void mrbc_printf(const char *fstr, ...);
+void mrbc_asprintf(char **buf, int bufsiz, const char *fstr, ...);
+void mrbc_snprintf(char *buf, int bufsiz, const char *fstr, ...);
+void mrbc_vprintf(const char *fstr, va_list ap);
+void mrbc_vasprintf(char **buf, int bufsiz, const char *fstr, va_list ap);
+void mrbc_p(const mrbc_value *v);
+int mrbc_p_sub(const mrbc_value *v);
+int mrbc_puts_sub(const mrbc_value *v);
+int mrbc_print_sub(const mrbc_value *v);
+void mrbc_printf_replace_buffer(mrbc_printf_t *pf, char *buf, int size);
 int mrbc_printf_main(mrbc_printf_t *pf);
 int mrbc_printf_char(mrbc_printf_t *pf, int ch);
 int mrbc_printf_bstr(mrbc_printf_t *pf, const char *str, int len, int pad);
@@ -73,11 +90,6 @@ int mrbc_printf_int(mrbc_printf_t *pf, mrbc_int value, unsigned int base);
 int mrbc_printf_bit(mrbc_printf_t *pf, mrbc_int value, int bit);
 int mrbc_printf_float(mrbc_printf_t *pf, double value);
 int mrbc_printf_pointer(mrbc_printf_t *pf, void *ptr);
-void mrbc_printf_replace_buffer(mrbc_printf_t *pf, char *buf, int size);
-int mrbc_p_sub(const mrbc_value *v);
-int mrbc_print_sub(const mrbc_value *v);
-int mrbc_puts_sub(const mrbc_value *v);
-void mrbc_p(const mrbc_value *v);
 
 
 /***** Inline functions *****************************************************/

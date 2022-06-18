@@ -15,7 +15,9 @@
 #ifndef MRBC_SRC_OPCODE_H_
 #define MRBC_SRC_OPCODE_H_
 
+//@cond
 #include <stdint.h>
+//@endcond
 
 #ifdef __cplusplus
 extern "C" {

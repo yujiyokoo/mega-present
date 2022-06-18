@@ -22,7 +22,7 @@
 
 // maximum size of registers
 #if !defined(MAX_REGS_SIZE)
-#define MAX_REGS_SIZE 100
+#define MAX_REGS_SIZE 110
 #endif
 
 // maximum number of symbols
@@ -94,5 +94,9 @@
 // #define MRBC_NO_TIMER
 // #define MRBC_INT64
 // #define MRBC_SUPPORT_OP_EXT
+
+// #define MRBC_OUT_OF_MEMORY() mrbc_alloc_print_memory_pool(); hal_abort(0)
+// #define MRBC_ABORT_BY_EXCEPTION(vm) mrbc_p( &vm->exception ); hal_abort(0)
+
 
 #endif

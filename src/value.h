@@ -17,9 +17,11 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include <stdint.h>
 #include <assert.h>
 #include "vm_config.h"
+//@endcond
 
 /***** Local headers ********************************************************/
 
@@ -49,21 +51,21 @@ typedef mrbc_int mrb_int;
 
 #if MRBC_USE_FLOAT == 1
 typedef float mrbc_float;
-typedef float mrb_float;
 #elif MRBC_USE_FLOAT == 2
 typedef double mrbc_float;
-typedef double mrb_float;
 #endif
-typedef int16_t mrbc_sym;
+typedef mrbc_float mrb_float;
+
+typedef int16_t mrbc_sym;	//!< mruby/c symbol ID
 typedef void (*mrbc_func_t)(struct VM *vm, struct RObject *v, int argc);
 
 
 //================================================================
-/*! define the value type.
-
-  @note  Must be same order as mrbc_class_tbl[], mrbc_delfunc[].
+/*! value type in mrbc_value.
 */
 typedef enum {
+  /* (note) Must be same order as mrbc_class_tbl[], mrbc_delfunc[]. */
+
   /* internal use */
   MRBC_TT_JMPUW		= -5,  // use in OP_JMPUW...
   MRBC_TT_BREAK		= -4,
@@ -73,31 +75,33 @@ typedef enum {
 
   /* primitive */
   MRBC_TT_EMPTY	  = 0,
-  MRBC_TT_NIL	  = 1,
-  MRBC_TT_FALSE	  = 2,	// (note) true/false threshold. see op_jmpif
+  MRBC_TT_NIL	  = 1,		//!< NilClass
+  MRBC_TT_FALSE	  = 2,		//!< FalseClass
+  // (note) true/false threshold. see op_jmpif
 
-  MRBC_TT_TRUE	  = 3,
-  MRBC_TT_INTEGER = 4,
+  MRBC_TT_TRUE	  = 3,		//!< TrueClass
+  MRBC_TT_INTEGER = 4,		//!< Integer
   MRBC_TT_FIXNUM  = 4,
-  MRBC_TT_FLOAT	  = 5,
-  MRBC_TT_SYMBOL  = 6,
-  MRBC_TT_CLASS	  = 7,	// (note) inc/dec ref threshold.
+  MRBC_TT_FLOAT	  = 5,		//!< Float
+  MRBC_TT_SYMBOL  = 6,		//!< Symbol
+  MRBC_TT_CLASS	  = 7,		//!< Class
+  // (note) inc/dec ref threshold.
 
   /* non-primitive */
-  MRBC_TT_OBJECT    = 8,
-  MRBC_TT_PROC	    = 9,
-  MRBC_TT_ARRAY	    = 10,
-  MRBC_TT_STRING    = 11,
-  MRBC_TT_RANGE	    = 12,
-  MRBC_TT_HASH	    = 13,
-  MRBC_TT_EXCEPTION = 14,
+  MRBC_TT_OBJECT    = 8,	//!< General instance
+  MRBC_TT_PROC	    = 9,	//!< Proc
+  MRBC_TT_ARRAY	    = 10,	//!< Array
+  MRBC_TT_STRING    = 11,	//!< String
+  MRBC_TT_RANGE	    = 12,	//!< Range
+  MRBC_TT_HASH	    = 13,	//!< Hash
+  MRBC_TT_EXCEPTION = 14,	//!< Exception
 } mrbc_vtype;
 #define	MRBC_TT_INC_DEC_THRESHOLD MRBC_TT_CLASS
 #define	MRBC_TT_MAXVAL MRBC_TT_EXCEPTION
 
 
 //================================================================
-/*! define the error code. (BETA TEST)
+/*! error code for internal use. (BETA TEST)
 */
 typedef enum {
   E_NOMEMORY_ERROR = 1,
@@ -122,7 +126,7 @@ typedef enum {
 
 
 //================================================================
-/*! Define the object structure having reference counter.
+/* Define the object structure having reference counter.
 */
 #if defined(MRBC_DEBUG)
 #define MRBC_OBJECT_HEADER  uint8_t type[2]; uint16_t ref_count
@@ -130,13 +134,18 @@ typedef enum {
 #define MRBC_OBJECT_HEADER  uint16_t ref_count
 #endif
 
+//================================================================
+/*!@brief
+  Base class for some objects.
+*/
 struct RBasic {
   MRBC_OBJECT_HEADER;
 };
 
 
 //================================================================
-/*! mruby/c value object.
+/*!@brief
+  Value object.
 */
 struct RObject {
   mrbc_vtype tt : 8;
@@ -166,6 +175,19 @@ typedef struct RObject mrbc_value;
 /***** Macros ***************************************************************/
 
 // getters
+/**
+  @def mrbc_type(o)
+  get the type (#mrbc_vtype) from mrbc_value.
+
+  @def mrbc_integer(o)
+  get int value from mrbc_value.
+
+  @def mrbc_float(o)
+  get float(double) value from mrbc_value.
+
+  @def mrbc_symbol(o)
+  get symbol value (#mrbc_sym) from mrbc_value.
+*/
 #define mrbc_type(o)		((o).tt)
 #define mrbc_integer(o)		((o).i)
 #define mrbc_float(o)		((o).d)
@@ -212,6 +234,28 @@ typedef struct RObject mrbc_value;
 
 
 // for C call
+/**
+  @def SET_RETURN(n)
+  set a return value when writing a method by C.
+
+  @def SET_NIL_RETURN()
+  set a return value to nil when writing a method by C.
+
+  @def SET_FALSE_RETURN()
+  set a return value to false when writing a method by C.
+
+  @def SET_TRUE_RETURN()
+  set a return value to true when writing a method by C.
+
+  @def SET_BOOL_RETURN(n)
+  set a return value to true or false when writing a method by C.
+
+  @def SET_INT_RETURN(n)
+  set an integer return value when writing a method by C.
+
+  @def SET_FLOAT_RETURN(n)
+  set a float return value when writing a method by C.
+*/
 #define SET_RETURN(n) do {	\
     mrbc_value nnn = (n);	\
     mrbc_decref(v);		\

@@ -16,8 +16,10 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <stdint.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "value.h"
@@ -30,7 +32,8 @@ extern "C" {
 /***** Constant values ******************************************************/
 /***** Typedefs *************************************************************/
 //================================================================
-/*! Define Key-Value data.
+/*!@brief
+  Key-Value data.
 */
 typedef struct RKeyValue {
 #if defined(MRBC_DEBUG)
@@ -43,11 +46,12 @@ typedef struct RKeyValue {
 
 
 //================================================================
-/*! Define Key-Value handle.
+/*!@brief
+  Key-Value handle.
 */
 typedef struct RKeyValueHandle {
   uint16_t data_size;	//!< data buffer size.
-  uint16_t n_stored;	//!< # of stored.
+  uint16_t n_stored;	//!< num of stored.
   union {
     mrbc_kv *data;	//!< pointer to allocated memory.
     struct VM *vm;	//!< pointer to VM (if data_size == 0)
@@ -57,7 +61,8 @@ typedef struct RKeyValueHandle {
 
 
 //================================================================
-/*! Define Key-Value iterator.
+/*!@brief
+  Key-Value iterator.
 */
 typedef struct RKeyValueIterator {
   const mrbc_kv_handle *target;

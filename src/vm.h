@@ -18,8 +18,10 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <stdint.h>
+//@endcond
 
 
 /***** Local headers ********************************************************/
@@ -41,13 +43,13 @@ typedef struct IREP {
   uint8_t type[2];		//!< set "RP" for debug.
 #endif
 
-  uint16_t nlocals;		//!< # of local variables
-  uint16_t nregs;		//!< # of register variables
-  uint16_t rlen;		//!< # of child IREP blocks
-  uint16_t clen;		//!< # of catch handlers
-  uint32_t ilen;		//!< # of bytes in OpCode
-  uint16_t plen;		//!< # of pools
-  uint16_t slen;		//!< # of symbols
+  uint16_t nlocals;		//!< num of local variables
+  uint16_t nregs;		//!< num of register variables
+  uint16_t rlen;		//!< num of child IREP blocks
+  uint16_t clen;		//!< num of catch handlers
+  uint32_t ilen;		//!< num of bytes in OpCode
+  uint16_t plen;		//!< num of pools
+  uint16_t slen;		//!< num of symbols
   uint16_t ofs_ireps;		//!< offset of data->tbl_ireps. (32bit aligned)
 
   const uint8_t *inst;		//!< pointer to instruction in RITE binary
@@ -116,7 +118,7 @@ typedef struct CALLINFO {
   mrbc_class *own_class;	//!< class that owns method.
   mrbc_sym method_id;		//!< called method ID.
   uint8_t reg_offset;		//!< register offset after call.
-  uint8_t n_args;		//!< # of arguments.
+  uint8_t n_args;		//!< num of arguments.
   uint8_t is_called_super;	//!< this is called by op_super.
 
 } mrbc_callinfo;

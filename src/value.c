@@ -14,10 +14,12 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <types.h>
 #include <string.h>
 #include <assert.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "value.h"

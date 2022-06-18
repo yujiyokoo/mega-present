@@ -13,10 +13,13 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <types.h>
 #include <string.h>
 #include <memory.h>
+#include <stdarg.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "alloc.h"
@@ -26,6 +29,7 @@
 #include "class.h"
 #include "c_string.h"
 #include "vm.h"
+#include "console.h"
 
 
 /***** Constat values *******************************************************/
@@ -41,7 +45,7 @@
   @param  vm		pointer to VM.
   @param  exc_cls	pointer to Exception class.
   @param  message	message.
-  @param  len		message length.
+  @param  len		message length or zero.
   @return		exception object.
 */
 mrbc_value mrbc_exception_new(struct VM *vm, struct RClass *exc_cls, const void *message, int len )
@@ -54,22 +58,67 @@ mrbc_value mrbc_exception_new(struct VM *vm, struct RClass *exc_cls, const void 
 
   MRBC_INIT_OBJECT_HEADER( ex, "EX" );
   ex->cls = exc_cls;
-  if( !message ) goto NO_MESSAGE;
 
-  ex->message = mrbc_alloc( vm, len+1 );
-  if( !ex->message ) goto NO_MESSAGE;
-
-  // copy source string.
-  memcpy( ex->message, message, len );
-  ex->message[len] = '\0';
-  ex->message_size = len;
-  return (mrbc_value){.tt = MRBC_TT_EXCEPTION, .exception = ex};
-
-
- NO_MESSAGE:
+  // in case of no message.
+  if( !message ) {
     ex->message = 0;
     ex->message_size = 0;
-    return (mrbc_value){.tt = MRBC_TT_EXCEPTION, .exception = ex};
+    goto RETURN;
+  }
+
+  // in case of message is ""
+  if( *(const char *)message == 0 ) {
+    ex->message = (const uint8_t *)"";
+    ex->message_size = 0;
+    goto RETURN;
+  }
+
+  // in case of message in ROM.
+  if( len == 0 ) {
+    ex->message = message;
+    ex->message_size = 0;
+    goto RETURN;
+  }
+
+  // else, copy the message.
+  uint8_t *buf = mrbc_alloc( vm, len+1 );
+  if( buf ) {
+    memcpy( buf, message, len );
+    buf[len] = 0;
+    ex->message_size = len;
+  } else {
+    ex->message_size = 0;
+  }
+  ex->message = buf;
+
+ RETURN:
+  return (mrbc_value){.tt = MRBC_TT_EXCEPTION, .exception = ex};
+}
+
+
+//================================================================
+/*! constructor with allocated message buffer.
+
+  @param  vm		pointer to VM.
+  @param  exc_cls	pointer to Exception class.
+  @param  message	message buffer.
+  @param  len		message length.
+  @return		exception object.
+*/
+mrbc_value mrbc_exception_new_alloc(struct VM *vm, struct RClass *exc_cls, const void *message, int len )
+{
+  // allocate memory.
+  mrbc_exception *ex = mrbc_alloc( vm, sizeof(mrbc_exception) );
+  if( !ex ) {		// ENOMEM
+    return mrbc_nil_value();
+  }
+
+  MRBC_INIT_OBJECT_HEADER( ex, "EX" );
+  ex->cls = exc_cls;
+  ex->message = message;
+  ex->message_size = len;
+
+  return (mrbc_value){.tt = MRBC_TT_EXCEPTION, .exception = ex};
 }
 
 
@@ -80,39 +129,10 @@ mrbc_value mrbc_exception_new(struct VM *vm, struct RClass *exc_cls, const void 
 */
 void mrbc_exception_delete(mrbc_value *value)
 {
-  if( value->exception->message ) mrbc_raw_free( value->exception->message );
+  if( value->exception->message_size ) {
+    mrbc_raw_free( (void *)value->exception->message );
+  }
   mrbc_raw_free( value->exception );
-}
-
-
-//================================================================
-/*! message setter.
-
-  @param  vm		pointer to VM.
-  @param  value		target.
-  @param  message	message.
-  @param  len		message length.
-*/
-void mrbc_exception_set_message(struct VM *vm, mrbc_value *value, const void *message, int len)
-{
-  mrbc_exception *ex = value->exception;
-
-  if( ex->message ) {
-    mrbc_raw_free( ex->message );
-    ex->message = NULL;
-    ex->message_size = 0;
-  }
-
-  if( message ) {
-    ex->message = mrbc_alloc( vm, len+1 );
-    if( !ex->message ) return;	// ENOMEM
-
-    // copy source string.
-    memcpy( ex->message, message, len );
-    ex->message[len] = '\0';
-
-    ex->message_size = len;
-  }
 }
 
 
@@ -126,11 +146,64 @@ void mrbc_exception_set_message(struct VM *vm, mrbc_value *value, const void *me
 */
 void mrbc_raise( struct VM *vm, struct RClass *exc_cls, const char *msg )
 {
-  vm->exception = mrbc_exception_new( vm,
+  if( vm ) {
+    vm->exception = mrbc_exception_new( vm, exc_cls ? exc_cls : MRBC_CLASS(RuntimeError), msg, 0 );
+    vm->flag_preemption = 2;
+
+  } else {
+    mrbc_printf("Exception: %s (%s)\n", msg ? msg : mrbc_symid_to_str(exc_cls->sym_id), mrbc_symid_to_str(exc_cls->sym_id));
+  }
+}
+
+
+//================================================================
+/*! raise exception like printf
+
+  @param  vm		pointer to VM.
+  @param  exc_cls	pointer to Exception class.
+  @param  fstr		format string.
+*/
+void mrbc_raisef( struct VM *vm, struct RClass *exc_cls, const char *fstr, ... )
+{
+  static const int MESSAGE_INI_LEN = 32;
+  va_list ap;
+  va_start( ap, fstr );
+
+  char *buf = 0;
+  if( vm ) buf = mrbc_alloc( vm, MESSAGE_INI_LEN );
+
+  if( buf ) {
+    mrbc_vasprintf( &buf, MESSAGE_INI_LEN, fstr, ap );
+    vm->exception = mrbc_exception_new_alloc( vm,
 			exc_cls ? exc_cls : MRBC_CLASS(RuntimeError),
-			msg,
-			msg ? strlen(msg) : 0 );
-  vm->flag_preemption = 2;
+			buf, strlen(buf) );
+    vm->flag_preemption = 2;
+
+  } else {
+    // VM == NULL or ENOMEM
+    mrbc_print("Exception: ");
+    mrbc_vprintf( fstr, ap );
+    mrbc_printf(" (%s)\n", exc_cls ? mrbc_symid_to_str(exc_cls->sym_id) : "RuntimeError");
+  }
+
+  va_end( ap );
+}
+
+
+//================================================================
+/*! display exception
+
+  @param  v	pointer to Exception object.
+*/
+void mrbc_print_exception( const mrbc_value *v )
+{
+  if( mrbc_type(*v) != MRBC_TT_EXCEPTION ) return;
+
+  const mrbc_exception *exc = v->exception;
+  const char *clsname = mrbc_symid_to_str(exc->cls->sym_id);
+
+  mrbc_printf("Exception: %s (%s)\n",
+	      exc->message ? (const char *)exc->message : clsname, clsname );
 }
 
 
@@ -177,6 +250,7 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
 
     Exception
       NoMemoryError
+      NotImplementedError
       StandardError
         ArgumentError
         IndexError
@@ -196,6 +270,9 @@ static void c_exception_message(struct VM *vm, mrbc_value v[], int argc)
   METHOD("message", c_exception_message )
 
   CLASS("NoMemoryError")
+  SUPER("Exception")
+
+  CLASS("NotImplementedError")
   SUPER("Exception")
 
   CLASS("StandardError")

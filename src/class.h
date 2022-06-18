@@ -16,8 +16,10 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <stdint.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "value.h"
@@ -35,25 +37,26 @@ extern "C" {
 
 /***** Typedefs *************************************************************/
 //================================================================
-/*! mruby/c class object.
+/*!@brief
+  Class object.
 */
 typedef struct RClass {
   mrbc_sym sym_id;		//!< class name's symbol ID
   int16_t num_builtin_method;	//!< num of built-in method.
-#ifdef MRBC_DEBUG
-  const char *names;		// for debug. delete soon.
-#endif
   struct RClass *super;		//!< pointer to super class.
   struct RMethod *method_link;	//!< pointer to method link.
 } mrbc_class;
 typedef struct RClass mrb_class;
 
+//================================================================
+/*!@brief
+  Built-in class object.
+
+  @extends RClass
+*/
 struct RBuiltinClass {
   mrbc_sym sym_id;		//!< class name's symbol ID
   int16_t num_builtin_method;	//!< num of built-in method.
-#ifdef MRBC_DEBUG
-  const char *names;		// for debug. delete soon.
-#endif
   struct RClass *super;		//!< pointer to super class.
   struct RMethod *method_link;	//!< pointer to method link.
 
@@ -63,7 +66,10 @@ struct RBuiltinClass {
 
 
 //================================================================
-/*! mruby/c instance object.
+/*!@brief
+  Instance object.
+
+  @extends RBasic
 */
 typedef struct RInstance {
   MRBC_OBJECT_HEADER;
@@ -77,7 +83,10 @@ typedef struct RInstance mrb_instance;
 
 
 //================================================================
-/*! mruby/c proc object.
+/*!@brief
+  Proc object.
+
+  @extends RBasic
 */
 typedef struct RProc {
   MRBC_OBJECT_HEADER;
@@ -92,7 +101,8 @@ typedef struct RProc mrb_proc;
 
 
 //================================================================
-/*! Method management structure.
+/*!@brief
+  Method management structure.
 */
 typedef struct RMethod {
   uint8_t type;		//!< M:OP_DEF or OP_ALIAS, m:mrblib or define_method()
@@ -126,6 +136,7 @@ extern struct RBuiltinClass mrbc_class_Hash;
 extern struct RBuiltinClass mrbc_class_Math;
 extern struct RBuiltinClass mrbc_class_Exception;
 extern struct RClass mrbc_class_NoMemoryError;
+extern struct RClass mrbc_class_NotImplementedError;
 extern struct RClass mrbc_class_StandardError;
 extern struct RClass mrbc_class_ArgumentError;
 extern struct RClass mrbc_class_IndexError;
@@ -156,6 +167,7 @@ mrbc_method *mrbc_find_method(mrbc_method *r_method, mrbc_class *cls, mrbc_sym s
 mrbc_class *mrbc_get_class_by_name(const char *name);
 mrbc_value mrbc_send(struct VM *vm, mrbc_value *v, int reg_ofs, mrbc_value *recv, const char *method_name, int argc, ...);
 void c_ineffect(struct VM *vm, mrbc_value v[], int argc);
+int mrbc_run_mrblib(const void *bytecode);
 void mrbc_init_class(void);
 
 

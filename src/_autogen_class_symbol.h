@@ -33,9 +33,6 @@ static const mrbc_func_t method_functions_Symbol[] = {
 struct RBuiltinClass mrbc_class_Symbol = {
   .sym_id = MRBC_SYM(Symbol),
   .num_builtin_method = sizeof(method_symbols_Symbol) / sizeof(mrbc_sym),
-#if defined(MRBC_DEBUG)
-  .names = "Symbol",
-#endif
   .super = MRBC_CLASS(Object),
   .method_link = 0,
   .method_symbols = method_symbols_Symbol,

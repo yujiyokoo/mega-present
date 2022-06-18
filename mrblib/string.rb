@@ -15,7 +15,7 @@ class String
   def each_byte
     idx = 0
     while idx < length
-      yield self[idx].ord
+      yield self.getbyte(idx)
       idx += 1
     end
     self

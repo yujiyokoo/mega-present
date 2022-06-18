@@ -45,12 +45,14 @@
 
 /***** Feature test switches ************************************************/
 /***** System headers *******************************************************/
+//@cond
 #include "vm_config.h"
 #include <stdint.h>
 #include <types.h>
 #include <string.h>
 #include <assert.h>
 #include <memory.h>
+//@endcond
 
 /***** Local headers ********************************************************/
 #include "alloc.h"
@@ -429,8 +431,12 @@ void mrbc_init_alloc(void *ptr, unsigned int size)
   VDP_drawText("in init alloc0", 1, 1);
   assert( MRBC_MIN_MEMORY_BLOCK_SIZE >= sizeof(FREE_BLOCK) );
   assert( MRBC_MIN_MEMORY_BLOCK_SIZE >= (1 << MRBC_ALLOC_IGNORE_LSBS) );
-  sprintf(buf, "size mem is %d", (sizeof(MEMORY_POOL)));
-  VDP_drawText(buf, 1, 2);
+  /*
+    If you get this assertion, you can change minimum memory block size
+    parameter to `MRBC_MIN_MEMORY_BLOCK_SIZE (1 << MRBC_ALLOC_IGNORE_LSBS)`
+    and #define MRBC_ALLOC_16BIT.
+  */
+/*
   assert( (sizeof(MEMORY_POOL) & 0x03) == 0 );
   VDP_drawText("in init alloc3", 1, 4);
   assert( size != 0 );
@@ -549,10 +555,11 @@ void * mrbc_raw_alloc(unsigned int size)
   }
 
   // else out of memory
-  static const char msg[] = "Fatal error: Out of memory.\n";
-  hal_write(1, msg, sizeof(msg)-1);
 #if defined(MRBC_OUT_OF_MEMORY)
   MRBC_OUT_OF_MEMORY();
+#else
+  static const char msg[] = "Fatal error: Out of memory.\n";
+  hal_write(1, msg, sizeof(msg)-1);
 #endif
   return NULL;  // ENOMEM
 
