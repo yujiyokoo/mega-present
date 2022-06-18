@@ -1,0 +1,60 @@
+diff --git b/gendev/sgdkv1.62/inc/memory.h a/gendev-patched/sgdkv1.62/inc/memory.h
+index 1459cd9..8d7c79a 100644
+--- b/gendev/sgdkv1.62/inc/memory.h
++++ a/gendev-patched/sgdkv1.62/inc/memory.h
+@@ -189,7 +189,7 @@ u16  MEM_getLargestFreeBlock();
+  * A block of memory previously allocated using a call to Mem_alloc is deallocated, making it available again for further allocations.
+  * Notice that this function leaves the value of ptr unchanged, hence it still points to the same (now invalid) location, and not to the null pointer.
+  */
+-void MEM_free(void *ptr);
++// void MEM_free(void *ptr); // commented out for mega-mruby/c compatibility
+ /**
+  *  \brief
+  *      Allocate memory block
+@@ -204,7 +204,7 @@ void MEM_free(void *ptr);
+  * Allocates a block of size bytes of memory, returning a pointer to the beginning of the block.
+  * The content of the newly allocated block of memory is not initialized, remaining with indeterminate values.
+  */
+-void* MEM_alloc(u16 size);
++// void* MEM_alloc(u16 size); // commented out for mega-mruby/c compatibility
+ 
+ /**
+  *  \brief
+diff --git b/gendev/sgdkv1.62/inc/types.h a/gendev-patched/sgdkv1.62/inc/types.h
+index 50daf50..b88cb7f 100644
+--- b/gendev/sgdkv1.62/inc/types.h
++++ a/gendev-patched/sgdkv1.62/inc/types.h
+@@ -152,7 +152,7 @@ typedef volatile u32 vu32;
+ 
+ #if !defined(uint8_t) && !defined(__int8_t_defined)
+ #define uint8_t     u8
+-#define int8_t      s8
++// #define int8_t      s8 // commented out for mega-mruby/c compatibility
+ #endif
+ #if !defined(uint16_t) && !defined(__int16_t_defined)
+ #define uint16_t    u16
+diff --git b/gendev/sgdkv1.62/md.ld a/gendev-patched/sgdkv1.62/md.ld
+index 103f6da..00a7c63 100644
+--- b/gendev/sgdkv1.62/md.ld
++++ a/gendev-patched/sgdkv1.62/md.ld
+@@ -100,6 +100,7 @@ SECTIONS
+     *(.bss .bss.*)
+     *(COMMON)
+     _bend = . ;
++    end = _bend ; /* added for mega-mruby/c compatibility */
+   } > ram
+ 
+   .stab 0 (NOLOAD) :
+diff --git b/gendev/sgdkv1.62/mkfiles/makefile.gen a/gendev-patched/sgdkv1.62/mkfiles/makefile.gen
+index 709b276..f665685 100644
+--- b/gendev/sgdkv1.62/mkfiles/makefile.gen
++++ a/gendev-patchepatched/mkfiles/makefile.gen
+@@ -150,7 +150,7 @@ out/symbol.txt: out/rom.out
+ 	$(NM) --plugin=liblto_plugin-0.dll -n out/rom.out > out/symbol.txt
+ 
+ out/rom.out: out/sega.o out/cmd_ $(LIBMD)
+-	$(CC) -B$(BIN) -n -T $(GDK)/md.ld -nostdlib out/sega.o @out/cmd_ $(LIBMD) $(LIB)/libgcc.a -o out/rom.out -Wl,--gc-sections
++	$(CC) -B$(BIN) -n -T $(GDK)/md.ld -nostdlib out/sega.o @out/cmd_ $(LIBMD) $(LIB)/libgcc.a /opt/gendev/m68k-elf/lib/libnosys.a /opt/gendev/m68k-elf/lib/libc.a -o out/rom.out -Wl,--gc-sections
+ 	$(RM) out/cmd_
+ 
+ out/cmd_: $(OBJS)
