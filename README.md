@@ -1,4 +1,4 @@
-# Meaa-mruby/c
+# Mega-mruby/c
 This is a fork of mruby/c to port mruby/c to Sega Megadrive.
 
 This README focuses on information specific to this fork.
