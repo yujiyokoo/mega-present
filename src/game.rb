@@ -1,5 +1,3 @@
-# MegaMrbc.draw_text("Hello, Megadrive from ruby/c")
-
 def draw_text(str, x, y)
   MegaMrbc.draw_text(str, x, y)
 end

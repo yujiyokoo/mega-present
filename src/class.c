@@ -470,7 +470,6 @@ int mrbc_run_mrblib(const void *bytecode)
   mrbc_vm_begin(vm);
   int ret = mrbc_vm_run(vm);
   mrbc_vm_end(vm);
-  // VDP_drawText("in run mrblib4", 10, 8);
 
   // instead of mrbc_vm_close()
   mrbc_raw_free( vm->top_irep );	// free only top-level mrbc_irep.
@@ -569,6 +568,5 @@ void mrbc_init_class(void)
   cls.cls = MRBC_CLASS(ZeroDivisionError);
   mrbc_set_const( MRBC_SYM(ZeroDivisionError), &cls );
 
-  // VDP_drawText("before run mrblib.", 10, 5);
   mrbc_run_mrblib(mrblib_bytecode);
 }
