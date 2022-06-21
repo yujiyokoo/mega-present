@@ -496,8 +496,8 @@ void mrbc_cleanup_alloc(void)
 */
 void * mrbc_raw_alloc(unsigned int size)
 {
-  // can I just use platform's malloc?
   MRBC_ALLOC_MEMSIZE_T alloc_size = size + (-size & 3);	// align 4 byte
+  alloc_size = alloc_size > MRBC_MIN_MEMORY_BLOCK_SIZE ? alloc_size : MRBC_MIN_MEMORY_BLOCK_SIZE;
   return malloc(alloc_size);
 /*
   MEMORY_POOL *pool = memory_pool;
@@ -617,9 +617,8 @@ void * mrbc_raw_alloc(unsigned int size)
 
 void * mrbc_raw_alloc_no_free(unsigned int size)
 {
-  // let's just try the regular malloc and see what happens...
-  MRBC_ALLOC_MEMSIZE_T alloc_size = size + (-size & 3);	// align 4 byte
-  return mrbc_raw_alloc(alloc_size);
+  // let's just try the regular mrbc_raw_alloc and see what happens...
+  return mrbc_raw_alloc(size);
   /*
   MEMORY_POOL *pool = memory_pool;
   MRBC_ALLOC_MEMSIZE_T alloc_size = size + (-size & 3);	// align 4 byte
@@ -716,10 +715,10 @@ void * mrbc_raw_realloc(void *ptr, unsigned int size)
 {
   // platform realloc causes address error? Let's try a naive implementation for now...
   MRBC_ALLOC_MEMSIZE_T alloc_size = size + (-size & 3);	// align 4 byte
+  alloc_size = alloc_size > MRBC_MIN_MEMORY_BLOCK_SIZE ? alloc_size : MRBC_MIN_MEMORY_BLOCK_SIZE;
   void *newptr =  malloc(alloc_size);
   if( newptr == NULL ) return NULL;  // ENOMEM
   memcpy(newptr, ptr, size);
-  char buf[48];
   free(ptr);
   return newptr;
   //return ptr;

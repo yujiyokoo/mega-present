@@ -9,7 +9,7 @@
 
 // hal_write implementation for now...
 int hal_write(int fd, const void *buf, int nbytes) {
-  static int8_t line = 20;
+  static int8_t line = 15;
   static char str[38];
   int len = 37;
   int remaining = nbytes+1;
@@ -20,7 +20,7 @@ int hal_write(int fd, const void *buf, int nbytes) {
   do {
     start = bufcpy;
     len = 37;
-    if(line > 26) line = 20;
+    if(line > 27) line = 15;
     if(remaining < 38) len = remaining;
 
     // fd values are just ignored
