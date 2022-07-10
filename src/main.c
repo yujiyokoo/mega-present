@@ -210,12 +210,6 @@ static void c_megamrbc_draw_bottom_right(mrb_vm *vm, mrb_value *v, int argc)
   VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(0,HIPRIO,VFLIP,HFLIP, TILE_USERINDEX+tl), x, y);
 }
 
-static void c_megamrbc_read_joypad(mrb_vm *vm, mrb_value *v, int argc) {
-  uint16_t pad_num = mrbc_integer(v[1]);
-  uint16_t value = JOY_readJoypad(pad_num);
-  SET_INT_RETURN(value);
-}
-
 static void c_megamrbc_wait_vblank(mrb_vm *vm, mrb_value *v, int argc) {
   SYS_doVBlankProcess();
 }
@@ -311,6 +305,13 @@ static void c_megamrbc_call_rand(mrb_vm *vm, mrb_value *v, int argc) {
   rand();
 }
 
+// globals for joypad input
+u16 joy_pressed = 0;
+
+static void c_megamrbc_read_joypad(mrb_vm *vm, mrb_value *v, int argc) {
+  SET_INT_RETURN(joy_pressed);
+}
+
 
 void make_class(mrb_vm *vm)
 {
@@ -382,8 +383,15 @@ void set_up_colours() {
   VDP_setPaletteColor(3, RGB24_TO_VDPCOLOR(0x2222AA)); // blue
 }
 
+static void joy_event_handler(u16 pad_num, u16 changed, u16 state) {
+  if(pad_num == JOY_1) joy_pressed = changed & state;
+  else joy_pressed = 0;
+}
+
 int main(void) {
   init_screen();
+  JOY_init();
+  JOY_setEventHandler(&joy_event_handler);
 
   set_up_colours();
   load_tiles();
