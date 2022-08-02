@@ -59,7 +59,7 @@ class GameRound
     draw_grid(12, 0)
     draw_kb(5, 19)
     draw_tick
-    
+
     prev_state = 0
     pad_state = 0
     running = true
@@ -68,6 +68,7 @@ class GameRound
       pad_state = joypad_state(0)
       render_guess
       move_cursor(pad_state, prev_state)
+      delete_letter(pad_state, prev_state)
       won = accept_letter(pad_state, prev_state)
       if won
         render_you_win
@@ -90,6 +91,14 @@ class GameRound
     draw_text("GAME OVER!", 1, 3)
     draw_text("Anwser is:", 1, 5)
     draw_text("  #{@answer}", 1, 7)
+  end
+
+  def delete_letter(state, prev)
+    if (state & 0x10 & ~prev) != 0
+      len = @curr_buf.strip.length
+      clear_invalid_word
+      @curr_buf[len-1] = " " if len > 0
+    end
   end
 
   def accept_letter(state, prev)
@@ -184,7 +193,7 @@ class GameRound
   end
 
   def reset_buf
-    [0, 1, 2, 3, 4].each do |i| 
+    [0, 1, 2, 3, 4].each do |i|
       @curr_buf[i] = " "
     end
   end
