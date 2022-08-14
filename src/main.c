@@ -1,6 +1,7 @@
 #include "mrubyc.h"
 #include <stdint.h>
 #include <genesis.h>
+#include "resources.h"
 #include <bmp.h> // drawline
 
 #define int8_t s8
@@ -290,19 +291,47 @@ static void c_megamrbc_is_word(mrb_vm *vm, mrb_value *v, int argc)
 }
 
 static void c_megamrbc_random_answer(mrb_vm *vm, mrb_value *v, int argc) {
-  char **answers = answerlist;
   uint16_t len = 686; // hardcoded answer list size for now
 
   uint16_t idx = rand() % len;
 
   // Uncomment if you want to show answer
-  // VDP_drawText(answers[idx], 0, 11);
+  // VDP_drawText(answerlist[idx], 0, 11);
 
   SET_RETURN( mrbc_string_new_cstr( vm, answerlist[idx] ) );
 }
 
 static void c_megamrbc_call_rand(mrb_vm *vm, mrb_value *v, int argc) {
   rand();
+}
+
+static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
+  VDP_drawText("writing tile", 1, 1);
+  VDP_loadTileSet(bgtile.tileset,1,DMA);
+  VDP_setPalette(PAL1, bgtile.palette->data);
+  VDP_setTileMapXY(BG_B,TILE_ATTR_FULL(PAL1,0,FALSE,FALSE,1),2,2);
+}
+
+static void c_megamrbc_read_content_line(mrb_vm *vm, mrb_value *v, int argc) {
+  char buf[201];
+  char *buf_cpy = buf;
+  static char *content_ptr = content;
+  static int turn = 0;
+
+  // FIXME: currently line is limited to 200 chars max
+  memcpy(buf, content_ptr, 200);
+  while(*content_ptr != '\0' && *content_ptr != '\r' && *content_ptr != '\n') {
+    content_ptr++;
+    buf_cpy++;
+  }
+  if(*content_ptr != '\0') content_ptr++; // advance pointer if line break
+
+  *buf_cpy = '\0';
+  VDP_drawText(buf, 1, 4+turn);
+  VDP_drawText("done", 1, 8+turn);
+  turn++;
+
+  SET_RETURN( mrbc_string_new_cstr( vm, buf ) );
 }
 
 // globals for joypad input
@@ -334,6 +363,8 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "is_word?", c_megamrbc_is_word);
   mrbc_define_method(vm, cls, "random_answer", c_megamrbc_random_answer);
   mrbc_define_method(vm, cls, "call_rand", c_megamrbc_call_rand);
+  mrbc_define_method(vm, cls, "test_func", c_test_func);
+  mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);
 }
 
 void mrubyc(const uint8_t *mrbbuf)
@@ -366,9 +397,9 @@ void init_screen() {
   VDP_setScreenWidth320();
   VDP_setHInterrupt(0);
   VDP_setHilightShadow(0);
-  PAL_setColor(15, 0x0000); // default text colour
+  PAL_setColor(15, 0x0FFF); // default text colour
   VDP_setTextPalette(0);
-  PAL_setColor(0, 0x0EEE);
+  PAL_setColor(0, 0x0000);
   VDP_resetSprites();
 }
 
@@ -384,6 +415,9 @@ void set_up_colours() {
 }
 
 static void joy_event_handler(u16 pad_num, u16 changed, u16 state) {
+  char buf[40];
+  static int count = 0;
+  // VDP_drawText(buf, 1, 18);
   if(pad_num == JOY_1) joy_pressed = changed & state;
   else joy_pressed = 0;
 }

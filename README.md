@@ -1,16 +1,11 @@
-# Mega-mruby/c
-This is a fork of mruby/c to port mruby/c to Sega Mega Drive.
+# Mega-present
+This is a presentation tool for Sega Mega Drive. It is a fork (of a fork) of mruby/c.
 
 This is still work in progress, and experimental.
 
-This README focuses on information specific to this fork.
-For information that relates to the original mruby/c, please refer to the [original mruby/c](https://github.com/mrubyc/mrubyc) project.
-
 ## Demo
 
-Here is a video of the demo game running on a real Mega Drive unit:
-
-[![#mruby/c running on Sega Mega Drive](https://i.vimeocdn.com/video/1453390338-a007888517ab48bcb2e363ea488930e2e3bfd5693bbba92354d93d72e56b957d-d_640)](https://vimeo.com/721690388)
+TBD
 
 ## Build
 

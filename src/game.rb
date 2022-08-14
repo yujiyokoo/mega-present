@@ -10,12 +10,13 @@ def wait_vblank
   MegaMrbc.wait_vblank
 end
 
+=begin
 class Game
   def main
     while true do
       wait_start
       MegaMrbc.clear_screen
-      GameRound.new.game_loop
+      Presentation.new.main_loop
     end
   end
 
@@ -23,12 +24,13 @@ class Game
     state = 0
     prev = 0
     count = 0
+    draw_text("MegaRuby-Present", 12, 10)
     while true do
       MegaMrbc.call_rand # help random seem more random
       if count / 30 >= 1 # switch every 0.5s
-        draw_text("Press start", 1, 10)
+        draw_text("Press start", 14, 18)
       else
-        draw_text("           ", 1, 10)
+        draw_text("           ", 14, 18)
       end
       state = joypad_state(0)
       break if (state & 0x80 & ~prev) != 0
@@ -39,7 +41,52 @@ class Game
     draw_text("           ", 0, 10)
   end
 end
+=end
 
+class Presentation
+  def self.start
+    MegaMrbc.draw_text("Megaruby-present", 1, 2)
+    while true do
+      wait_start
+      # MegaMrbc.clear_screen
+      self.new.main_loop
+    end
+  end
+
+  def main_loop
+    MegaMrbc.draw_text("main loop", 1, 3)
+    running = true
+    while running do
+      MegaMrbc.clear_screen
+      line = MegaMrbc.read_content_line
+      MegaMrbc.draw_text(line, 12, 10)
+
+      wait_start
+    end
+  end
+
+  def wait_start
+    prev = joypad_state(0)
+    state = 0
+    while true do
+      MegaMrbc.draw_text("reading joy", 25, 25)
+      MegaMrbc.call_rand # help random seem more random
+      state = joypad_state(0)
+      MegaMrbc.draw_text("state: #{state}, prev: #{prev}", 10, 23)
+      MegaMrbc.draw_text("break if nonzero: #{(state & 0x80 & ~prev)}", 10, 24)
+      if (state & 0x80 & ~prev) != 0
+        wait_vblank
+        break
+      end
+      MegaMrbc.draw_text("not pressed", 25, 26)
+      prev = state
+      wait_vblank
+    end
+  end
+
+end
+
+=begin
 class GameRound
   KEYBOARD = [
     ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -278,5 +325,6 @@ class GameRound
     end
   end
 end
+=end
 
-Game.main
+Presentation.start
