@@ -312,6 +312,11 @@ static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
   VDP_setTileMapXY(BG_B,TILE_ATTR_FULL(PAL1,0,FALSE,FALSE,1),2,2);
 }
 
+static void c_megamrbc_read_content(mrb_vm *vm, mrb_value *v, int argc) {
+  SET_RETURN( mrbc_string_new_cstr( vm, content ) );
+}
+
+
 static void c_megamrbc_read_content_line(mrb_vm *vm, mrb_value *v, int argc) {
   char buf[201];
   char *buf_cpy = buf;
@@ -364,7 +369,9 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "random_answer", c_megamrbc_random_answer);
   mrbc_define_method(vm, cls, "call_rand", c_megamrbc_call_rand);
   mrbc_define_method(vm, cls, "test_func", c_test_func);
+  // Maybe not needed???
   mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);
+  mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content);
 }
 
 void mrubyc(const uint8_t *mrbbuf)
