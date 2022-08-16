@@ -316,6 +316,16 @@ static void c_megamrbc_read_content(mrb_vm *vm, mrb_value *v, int argc) {
   SET_RETURN( mrbc_string_new_cstr( vm, content ) );
 }
 
+static void c_megamrbc_set_pal_colour(mrb_vm *vm, mrb_value *v, int argc) {
+  uint8_t colour_id = mrbc_integer(v[1]);
+  uint8_t colour_val = mrbc_integer(v[2]);
+  PAL_setColor(colour_id, colour_val);
+}
+
+static void c_megamrbc_set_txt_pal(mrb_vm *vm, mrb_value *v, int argc) {
+  uint8_t pal = mrbc_integer(v[1]);
+  VDP_setTextPalette(pal);
+}
 
 static void c_megamrbc_read_content_line(mrb_vm *vm, mrb_value *v, int argc) {
   char buf[201];
@@ -372,6 +382,8 @@ void make_class(mrb_vm *vm)
   // Maybe not needed???
   mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);
   mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content);
+  mrbc_define_method(vm, cls, "set_pal_colour", c_megamrbc_set_pal_colour);
+  mrbc_define_method(vm, cls, "set_txt_pal", c_megamrbc_set_txt_pal);
 }
 
 void mrubyc(const uint8_t *mrbbuf)

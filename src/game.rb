@@ -75,13 +75,23 @@ class Page
       if line.start_with? "-title:"
         title = line.split("-title:")[1].strip
         text_centre(title, 0)
-      elsif line.start_with? "-txt"
+      elsif line.start_with? "-txt,"
         cmd = line.split(":")[0].split(",")
         x = cmd[1]
         y = cmd[2]
         idx = 0
         idx += 1 while(line[idx] != ":") # FIXME: this will break if ':' is not present
         draw_text(line.slice!(idx + 1, line.length).strip, x.to_i, y.to_i)
+      elsif line.start_with? "-setcolour,"
+        cmd = line.split(":")[0].split(",")
+        colour_id = cmd[1]
+        colour_val = cmd[2]
+        MegaMrbc.set_pal_colour(colour_id, colour_val)
+      elsif line.start_with? "-txtpal,"
+        cmd = line.split(":")[0].split(",")
+        pal = cmd[1]
+        draw_text("setting pal: #{pal}", 1, 27)
+        MegaMrbc.set_txt_pal(pal)
       elsif line.start_with? "-pause:"
         wait_start
       end
