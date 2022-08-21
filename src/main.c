@@ -164,6 +164,7 @@ static void c_megamrbc_draw_text(mrb_vm *vm, mrb_value *v, int argc)
   char *ptr = mrbc_string_cstr(&v[1]);
   char x = mrbc_integer(v[2]);
   char y = mrbc_integer(v[3]);
+  char col = mrbc_integer(v[4]);
   char buf[32];
   snprintf(buf, 31, "%s", ptr);
   VDP_drawText(buf, x, y);
@@ -317,7 +318,6 @@ static void c_megamrbc_call_rand(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
-  // same palette used for both
   PAL_setPaletteDMA(PAL0, sky_bg.palette->data);
   VDP_drawImageEx(
     BG_B, &sky_bg,
@@ -332,6 +332,7 @@ static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
     5, 10, FALSE, TRUE
   );
 
+  // reset_text_colours();
 
 /*
   PAL_setPaletteDMA(PAL2, main_logo.palette->data);
@@ -341,12 +342,14 @@ static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 // currently unused
+/*
 static void c_draw_tile(mrb_vm *vm, mrb_value *v, int argc) {
   VDP_drawText("writing tile", 1, 1);
   VDP_loadTileSet(bgtile.tileset,1,DMA);
   VDP_setPalette(PAL1, bgtile.palette->data);
   VDP_setTileMapXY(BG_B,TILE_ATTR_FULL(PAL1,0,FALSE,FALSE,1),2,2);
 }
+*/
 
 static void c_megamrbc_read_content(mrb_vm *vm, mrb_value *v, int argc) {
   SET_RETURN( mrbc_string_new_cstr( vm, content ) );
@@ -456,18 +459,26 @@ void mrubyc(const uint8_t *mrbbuf)
 
 extern const uint8_t mrbsrc[];
 
+void reset_text_colours() {
+  PAL_setColor(15, 0x0FFF);
+  PAL_setColor(31, 0x02F2);
+  PAL_setColor(47, 0x022F);
+  PAL_setColor(63, 0x0FF2);
+}
+
 void init_screen() {
   // Initialise screen
   // SPR_init(0,0,0); // this causes background mountains not to show?
   VDP_setScreenWidth320();
   VDP_setHInterrupt(0);
   VDP_setHilightShadow(0);
-  PAL_setColor(15, 0x0FFF); // default text colour
+  reset_text_colours();
   VDP_setTextPalette(0);
   PAL_setColor(0, 0x0000);
   VDP_resetSprites();
 }
 
+/*
 void set_up_colours() {
   VDP_setPaletteColor(1, RGB24_TO_VDPCOLOR(0x222222)); // dark grey
 
@@ -478,6 +489,7 @@ void set_up_colours() {
 
   VDP_setPaletteColor(3, RGB24_TO_VDPCOLOR(0x2222AA)); // blue
 }
+*/
 
 static void joy_event_handler(u16 pad_num, u16 changed, u16 state) {
   char buf[40];
@@ -492,7 +504,7 @@ int main(void) {
   JOY_init();
   JOY_setEventHandler(&joy_event_handler);
 
-  set_up_colours();
+  // set_up_colours();
   load_tiles();
 
   if( mrbsrc == 0 ) return 1;
