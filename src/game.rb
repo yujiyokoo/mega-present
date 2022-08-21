@@ -105,6 +105,7 @@ end
 
 class Presentation
   def self.start
+    MegaMrbc.test_func
     wait_start_with_message
     self.new.main_loop
   end
@@ -131,8 +132,9 @@ class Presentation
   def wait_start_with_message
     state = 0
     count = 0
-    draw_text("MegaRuby-Present", 12, 10)
+    # draw_text("MegaRuby-Present", 12, 10)
     while true do
+      MegaMrbc.scroll_one_step
       MegaMrbc.call_rand # help random seem more random
       if count / 30 >= 1 # switch every 0.5s
         draw_text("Press start", 14, 18)

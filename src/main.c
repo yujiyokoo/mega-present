@@ -212,6 +212,7 @@ static void c_megamrbc_draw_bottom_right(mrb_vm *vm, mrb_value *v, int argc)
 }
 
 static void c_megamrbc_wait_vblank(mrb_vm *vm, mrb_value *v, int argc) {
+  // SPR_update();
   SYS_doVBlankProcess();
 }
 
@@ -266,6 +267,16 @@ static void c_megamrbc_draw_grey_square(mrb_vm *vm, mrb_value *v, int argc) {
 static void c_megamrbc_clear_screen(mrb_vm *vm, mrb_value *v, int argc) {
   uint8_t x = 0;
   uint8_t y = 0;
+
+// some "base" colours
+  PAL_setColor(15, 0x0FFF); // default text colour
+  VDP_setTextPalette(0);
+  PAL_setColor(0, 0x0000);
+
+  // also reset scroll offset
+  VDP_setHorizontalScroll(BG_B, 0);
+  VDP_setHorizontalScroll(BG_A, 0);
+
   for(y = 0; y < 28; y++) {
     for(x = 0; x < 40; x++) {
       VDP_setTileMapXY(BG_B, TILE_USERINDEX + vert + 1 + blnk, x, y);
@@ -306,6 +317,31 @@ static void c_megamrbc_call_rand(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
+  // same palette used for both
+  PAL_setPaletteDMA(PAL0, sky_bg.palette->data);
+  VDP_drawImageEx(
+    BG_B, &sky_bg,
+    TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, TILE_USERINDEX + vert + blnk + 2),
+    0, 0, FALSE, TRUE
+  );
+
+  PAL_setPaletteDMA(PAL1, main_logo.palette->data);
+  VDP_drawImageEx(
+    BG_A, &main_logo,
+    TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_USERINDEX + vert + blnk + 2 + sky_bg.tileset->numTile),
+    5, 10, FALSE, TRUE
+  );
+
+
+/*
+  PAL_setPaletteDMA(PAL2, main_logo.palette->data);
+  Sprite* logo0 = SPR_addSprite(&main_logo,0,0,TILE_ATTR(PAL2,0, FALSE, FALSE));
+  Sprite* logo1 = SPR_addSprite(&main_logo,40,0,TILE_ATTR(PAL2,0, FALSE, FALSE));
+  */
+}
+
+// currently unused
+static void c_draw_tile(mrb_vm *vm, mrb_value *v, int argc) {
   VDP_drawText("writing tile", 1, 1);
   VDP_loadTileSet(bgtile.tileset,1,DMA);
   VDP_setPalette(PAL1, bgtile.palette->data);
@@ -356,6 +392,14 @@ static void c_megamrbc_read_joypad(mrb_vm *vm, mrb_value *v, int argc) {
   SET_INT_RETURN(joy_pressed);
 }
 
+static void c_megamrbc_scroll_one_step(mrb_vm *vm, mrb_value *v, int argc) {
+  static int offset_a = 0;
+  static int offset_b = 0;
+  static uint8_t scrollspeed_a = 2;
+  static uint8_t scrollspeed_b = 1;
+  VDP_setHorizontalScroll(BG_B, offset_b -= scrollspeed_b);
+  // VDP_setHorizontalScroll(BG_A, offset_a -= scrollspeed_a);
+}
 
 void make_class(mrb_vm *vm)
 {
@@ -384,6 +428,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content);
   mrbc_define_method(vm, cls, "set_pal_colour", c_megamrbc_set_pal_colour);
   mrbc_define_method(vm, cls, "set_txt_pal", c_megamrbc_set_txt_pal);
+  mrbc_define_method(vm, cls, "scroll_one_step", c_megamrbc_scroll_one_step);
 }
 
 void mrubyc(const uint8_t *mrbbuf)
@@ -413,6 +458,7 @@ extern const uint8_t mrbsrc[];
 
 void init_screen() {
   // Initialise screen
+  // SPR_init(0,0,0); // this causes background mountains not to show?
   VDP_setScreenWidth320();
   VDP_setHInterrupt(0);
   VDP_setHilightShadow(0);
