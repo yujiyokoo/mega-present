@@ -3,7 +3,7 @@
 # 0x0FF0 = 4080
 -setcolour,31,4080:
 -txtpal,1:
--txt,2,4: on Sega Mega Drive
+-txt,2,4,bg0: on Sega Mega Drive
 # comment line
 -pause:
 -txt,10,11: let's go!
@@ -15,3 +15,6 @@
 -pause:
 -txt,10,13: Adelaide, AU
 
+=
+-title: Adelaide
+-image,6,4,australia:

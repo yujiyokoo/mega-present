@@ -77,11 +77,15 @@ class Page
         text_centre(title, 0)
       elsif line.start_with? "-txt,"
         cmd = line.split(":")[0].split(",")
-        x = cmd[1]
-        y = cmd[2]
+        x = cmd[1].to_i
+        y = cmd[2].to_i
+        bg = cmd[3]
         idx = 0
         idx += 1 while(line[idx] != ":") # FIXME: this will break if ':' is not present
-        draw_text(line.slice!(idx + 1, line.length).strip, x.to_i, y.to_i)
+        content = line.slice!(idx + 1, line.length).strip
+        #draw_text("abcd", x, y)
+        MegaMrbc.draw_bg(content, bg[2].to_i, x, y) if bg != nil #content, bg[2].to_i, x, y) if bg[0..1] == "bg"
+        draw_text(content, x, y)
       elsif line.start_with? "-setcolour,"
         cmd = line.split(":")[0].split(",")
         colour_id = cmd[1]
@@ -94,6 +98,9 @@ class Page
         MegaMrbc.set_txt_pal(pal)
       elsif line.start_with? "-pause:"
         wait_start
+      elsif line.start_with? "-image,"
+        cmd = line.split(":")[0].split(",")
+        MegaMrbc.draw_image(cmd[1].to_i, cmd[2].to_i, cmd[3]) # x, y, image name
       end
     end
   end

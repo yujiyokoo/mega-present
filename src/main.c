@@ -15,7 +15,7 @@
 
 typedef char s8;
 
-extern const char *wordlist[];
+// extern const char *wordlist[];
 extern const char *answerlist[];
 
 // Sprites in code
@@ -286,6 +286,7 @@ static void c_megamrbc_clear_screen(mrb_vm *vm, mrb_value *v, int argc) {
   }
 }
 
+/*
 static void c_megamrbc_is_word(mrb_vm *vm, mrb_value *v, int argc)
 {
   char *word = mrbc_string_cstr(&v[1]);
@@ -301,6 +302,7 @@ static void c_megamrbc_is_word(mrb_vm *vm, mrb_value *v, int argc)
   }
   SET_BOOL_RETURN(value);
 }
+*/
 
 static void c_megamrbc_random_answer(mrb_vm *vm, mrb_value *v, int argc) {
   uint16_t len = 686; // hardcoded answer list size for now
@@ -404,6 +406,43 @@ static void c_megamrbc_scroll_one_step(mrb_vm *vm, mrb_value *v, int argc) {
   // VDP_setHorizontalScroll(BG_A, offset_a -= scrollspeed_a);
 }
 
+static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
+  uint8_t x = mrbc_integer(v[1]);
+  uint8_t y = mrbc_integer(v[2]);
+  char *img_name = mrbc_string_cstr(&v[3]);
+
+  VDP_drawText("rendering stuff", 2, 2);
+  char buf[40];
+  sprintf(buf, "name: %s, at %d, %d", img_name, x, y);
+  VDP_drawText(buf, 2, 3);
+
+  Image *image;
+
+  if(strcmp(img_name, "australia") == 0) {
+    image = &australia;
+  }
+
+  VDP_drawImageEx(
+    BG_A, image,
+    // TODO: how do I manage tile index?
+    TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, TILE_USERINDEX + vert + blnk + 2),
+    x, y, FALSE, TRUE
+  );
+}
+
+static void c_megamrbc_draw_bg(mrb_vm *vm, mrb_value *v, int argc) {
+  char *ptr = mrbc_string_cstr(&v[1]);
+  char bgpal_num = mrbc_integer(v[2]);
+  char x = mrbc_integer(v[3]);
+  char y = mrbc_integer(v[4]);
+  int len = strlen(ptr);
+
+  // do loop for ptr len
+  for(int i = 0; i < len; i++) {
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bgpal_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgfull), x + i, y);
+  }
+}
+
 void make_class(mrb_vm *vm)
 {
   mrb_class *cls = mrbc_define_class(vm, "MegaMrbc", mrbc_class_object);
@@ -422,7 +461,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "draw_yellow_square", c_megamrbc_draw_yellow_square);
   mrbc_define_method(vm, cls, "draw_grey_square", c_megamrbc_draw_grey_square);
   mrbc_define_method(vm, cls, "clear_screen", c_megamrbc_clear_screen);
-  mrbc_define_method(vm, cls, "is_word?", c_megamrbc_is_word);
+  // mrbc_define_method(vm, cls, "is_word?", c_megamrbc_is_word);
   mrbc_define_method(vm, cls, "random_answer", c_megamrbc_random_answer);
   mrbc_define_method(vm, cls, "call_rand", c_megamrbc_call_rand);
   mrbc_define_method(vm, cls, "test_func", c_test_func);
@@ -432,6 +471,8 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "set_pal_colour", c_megamrbc_set_pal_colour);
   mrbc_define_method(vm, cls, "set_txt_pal", c_megamrbc_set_txt_pal);
   mrbc_define_method(vm, cls, "scroll_one_step", c_megamrbc_scroll_one_step);
+  mrbc_define_method(vm, cls, "draw_image", c_megamrbc_draw_image);
+  mrbc_define_method(vm, cls, "draw_bg", c_megamrbc_draw_bg);
 }
 
 void mrubyc(const uint8_t *mrbbuf)
