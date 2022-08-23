@@ -10,10 +10,10 @@
 
 =
 -title: About me
+-txt,10,5: Yuji Yokoo
+-txt,10,6: In Adelaide, AU
 -pause:
--txt,10,12: Yuji Yokoo
--pause:
--txt,10,13: Adelaide, AU
+-image,16,10,yuji:
 
 =
 -title: Adelaide

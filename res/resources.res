@@ -4,3 +4,4 @@ IMAGE   sky_bg    "backgrounds/sky-background.png" BEST ALL
 IMAGE   mountains_bg "backgrounds/mountains-background.png" BEST ALL
 IMAGE   main_logo "backgrounds/main_logo.png" BEST ALL
 IMAGE   australia "backgrounds/australia.png" BEST ALL
+IMAGE   yuji      "backgrounds/pixel_yuji.png" BEST ALL

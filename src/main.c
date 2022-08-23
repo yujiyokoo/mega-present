@@ -411,21 +411,21 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
   uint8_t y = mrbc_integer(v[2]);
   char *img_name = mrbc_string_cstr(&v[3]);
 
-  VDP_drawText("rendering stuff", 2, 2);
   char buf[40];
-  sprintf(buf, "name: %s, at %d, %d", img_name, x, y);
   VDP_drawText(buf, 2, 3);
 
   Image *image;
 
   if(strcmp(img_name, "australia") == 0) {
     image = &australia;
+  } else if(strcmp(img_name, "yuji") == 0) {
+    image = &yuji;
   }
 
+  PAL_setPaletteDMA(PAL3, image->palette->data);
   VDP_drawImageEx(
     BG_A, image,
-    // TODO: how do I manage tile index?
-    TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, TILE_USERINDEX + vert + blnk + 2),
+    TILE_ATTR_FULL(PAL3, FALSE, FALSE, FALSE, TILE_USERINDEX + vert + blnk + 2),
     x, y, FALSE, TRUE
   );
 }
