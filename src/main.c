@@ -431,16 +431,22 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void c_megamrbc_draw_bg(mrb_vm *vm, mrb_value *v, int argc) {
-  char *ptr = mrbc_string_cstr(&v[1]);
+  char *str = mrbc_string_cstr(&v[1]);
   char bgpal_num = mrbc_integer(v[2]);
   char x = mrbc_integer(v[3]);
   char y = mrbc_integer(v[4]);
-  int len = strlen(ptr);
+  int len = strlen(str);
 
-  // do loop for ptr len
+  // do loop for str len
   for(int i = 0; i < len; i++) {
     VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bgpal_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgfull), x + i, y);
   }
+}
+
+static void c_megamrbc_klog(mrb_vm *vm, mrb_value *v, int argc) {
+  char *str = mrbc_string_cstr(&v[1]);
+
+  KLog(str);
 }
 
 void make_class(mrb_vm *vm)
@@ -473,6 +479,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "scroll_one_step", c_megamrbc_scroll_one_step);
   mrbc_define_method(vm, cls, "draw_image", c_megamrbc_draw_image);
   mrbc_define_method(vm, cls, "draw_bg", c_megamrbc_draw_bg);
+  mrbc_define_method(vm, cls, "klog", c_megamrbc_klog);
 }
 
 void mrubyc(const uint8_t *mrbbuf)
