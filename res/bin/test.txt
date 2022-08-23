@@ -18,3 +18,30 @@
 =
 -title: Adelaide
 -image,6,4,australia:
+
+=
+-title: What is Mega Drive?
+
+=
+-title: What is mruby/c?
+
+=
+-title: Why Mega Drive?
+
+# Compatible hardware
+# Good emulators
+
+=
+-title: Why mruby/c on Mega Drive?
+
+=
+-title: How to develop: overview
+
+=
+-title: How to develop
+
+=
+-title: Emulators vs real hardware
+
+=
+-title: Interesting issues
