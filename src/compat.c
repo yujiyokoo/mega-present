@@ -9,6 +9,8 @@
 
 // hal_write implementation for now...
 int hal_write(int fd, const void *buf, int nbytes) {
+  KLog(buf); // this may just be sufficient
+
   static int8_t line = 15;
   static char str[38];
   int len = 37;
