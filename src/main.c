@@ -449,6 +449,27 @@ static void c_megamrbc_klog(mrb_vm *vm, mrb_value *v, int argc) {
   KLog(str);
 }
 
+static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
+  int pos = mrbc_integer(v[1]);
+  int size = mrbc_integer(v[2]);
+
+  int x = ((float)pos / (float)size * 304) + 8;
+  char buf[40];
+  sprintf(buf, "pos:%d, size:%d, x:%d", pos, size, x);
+  KLog(buf);
+
+  VDP_setSpriteFull(0, x, 220, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + vert ), 1);
+  VDP_updateSprites(4, 1);
+}
+
+static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
+  char buf[8];
+  int x = getTick() / 300;
+  sprintf(buf, "%d", x);
+  // KLog(buf);
+  VDP_drawText(buf,  35, 26);
+}
+
 void make_class(mrb_vm *vm)
 {
   mrb_class *cls = mrbc_define_class(vm, "MegaMrbc", mrbc_class_object);
@@ -480,6 +501,8 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "draw_image", c_megamrbc_draw_image);
   mrbc_define_method(vm, cls, "draw_bg", c_megamrbc_draw_bg);
   mrbc_define_method(vm, cls, "klog", c_megamrbc_klog);
+  mrbc_define_method(vm, cls, "show_progress", c_megamrbc_show_progress);
+  mrbc_define_method(vm, cls, "show_timer", c_megamrbc_show_timer);
 }
 
 void mrubyc(const uint8_t *mrbbuf)

@@ -99,9 +99,18 @@ end
 
 class Presentation
   def self.start
+    self.new.begin_presentation
+  end
+
+  def initialize
+    @pages ||= MegaMrbc.read_content.split("\n=")
+    MegaMrbc.show_progress(0, @pages.size)
+  end
+
+  def begin_presentation
     MegaMrbc.test_func
     wait_start_with_message
-    self.new.main_loop
+    main_loop
   end
 
   def main_loop
@@ -118,22 +127,23 @@ class Presentation
       page.render
 
       cmd = wait_cmd
+      MegaMrbc.show_timer()
     end
   end
 
   def next_page
-    @pages ||= MegaMrbc.read_content.split("\n=")
     @index ||= -1
     @index += 1
     @page = @pages[@index]
+    MegaMrbc.show_progress(@index, @pages.size)
     return Page.new(@page)
   end
 
   def prev_page
-    @pages ||= MegaMrbc.read_content.split("\n=")
     @index ||= 0
     @index -= 1 unless @index < 1
     @page = @pages[@index]
+    MegaMrbc.show_progress(@index, @pages.size)
     return Page.new(@page)
   end
 
