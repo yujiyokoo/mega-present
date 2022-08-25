@@ -271,6 +271,7 @@ static void c_megamrbc_clear_screen(mrb_vm *vm, mrb_value *v, int argc) {
 
 // some "base" colours
   PAL_setColor(15, 0x0FFF); // default text colour
+  PAL_setColor(31, 0x02F2); // TODO: sort out colour setting
   VDP_setTextPalette(0);
   PAL_setColor(0, 0x0000);
 
