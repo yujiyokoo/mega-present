@@ -10,21 +10,6 @@ def wait_vblank
   MegaMrbc.wait_vblank
 end
 
-def wait_start
-  prev = joypad_state(0)
-  state = 0
-  while true do
-    MegaMrbc.call_rand # help random seem more random
-    state = joypad_state(0)
-    if (state & 0x80 & ~prev) != 0
-      wait_vblank
-      break
-    end
-    prev = state
-    wait_vblank
-  end
-end
-
 def wait_cmd
   prev = joypad_state(0)
   state = 0
@@ -204,14 +189,15 @@ class Presentation
       MegaMrbc.clear_screen
       wait_vblank
       if cmd == :fwd
-        page = next_page
+        page = next_page unless @index >= (@pages.size - 1)
       elsif cmd == :back
         page = prev_page
       end
       page.render
+      MegaMrbc.show_timer()
+      wait_vblank
 
       cmd = wait_cmd
-      MegaMrbc.show_timer()
     end
   end
 
