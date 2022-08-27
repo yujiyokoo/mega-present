@@ -88,10 +88,36 @@ class Page
         idx += 1 while(line[idx] != ":") # FIXME: this will break if ':' is not present
         code = line.slice!(idx + 1, line.length)
         render_code_line(code, @x, @y)
+      elsif line.start_with? "-rect,"
+        cmd = line.split(":")[0].split(",")
+        x = cmd[1].to_i
+        y = cmd[2].to_i
+        w = cmd[3].to_i
+        h = cmd[4].to_i
+        render_rect(x, y, w, h)
       elsif @is_code
         render_code_line(line, @x, @y+=1)
       end
     end
+  end
+
+  def render_rect(x, y, w, h)
+    MegaMrbc.draw_top_left(x, y)
+    curr_x = x + 1
+    while(curr_x < x + w)
+      MegaMrbc.draw_horizontal(curr_x, y)
+      MegaMrbc.draw_horizontal(curr_x, y+h)
+      curr_x += 1
+    end
+    curr_y = y + 1
+    while(curr_y < y + h)
+      MegaMrbc.draw_vertical(x, curr_y)
+      MegaMrbc.draw_vertical(x+w, curr_y)
+      curr_y += 1
+    end
+    MegaMrbc.draw_top_right(x+w, y)
+    MegaMrbc.draw_bottom_left(x, y+h)
+    MegaMrbc.draw_bottom_right(x+w, y+h)
   end
 
   def render_code_line(txt, x, y)

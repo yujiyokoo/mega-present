@@ -455,9 +455,6 @@ static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
   int size = mrbc_integer(v[2]);
 
   int x = ((float)pos / (float)size * 304) + 8;
-  char buf[40];
-  sprintf(buf, "pos:%d, size:%d, x:%d", pos, size, x);
-  KLog(buf);
 
   VDP_setSpriteFull(0, x, 220, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + vert ), 1);
   VDP_updateSprites(4, 1);
