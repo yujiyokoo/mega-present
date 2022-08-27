@@ -99,28 +99,53 @@ class Page
         y = cmd[2].to_i
         dir = cmd[3]
         len = cmd[4].to_i
-        draw_arrow(x, y, dir, len)
+        draw_arrow(x, y, dir, len, false)
+      elsif line.start_with? "-tarrow,"
+        cmd = line.split(":")[0].split(",")
+        x = cmd[1].to_i
+        y = cmd[2].to_i
+        dir = cmd[3]
+        len = cmd[4].to_i
+        draw_arrow(x, y, dir, len, true)
       elsif @is_code
         render_code_line(line, @x, @y+=1)
       end
     end
   end
 
-  def draw_arrow(x, y, direction, length)
+  def draw_t_horzontal(curr_x, x, y, direction, start_t)
+    if curr_x == x && start_t && direction == 'r'
+      MegaMrbc.draw_right_t(curr_x, y)
+    elsif curr_x == x && start_t && direction == 'l'
+      MegaMrbc.draw_left_t(curr_x, y)
+    else
+      MegaMrbc.draw_horizontal(curr_x, y)
+    end
+  end
+
+  def draw_t_vertical(curr_y, x, y, direction, start_t)
+    if curr_y == y && start_t && direction == 'd'
+      MegaMrbc.draw_upright_t(x, curr_y)
+    elsif curr_y == y && start_t && direction == 'u'
+      MegaMrbc.draw_flipped_t(x, curr_y)
+    else
+      MegaMrbc.draw_vertical(x, curr_y)
+    end
+  end
+
+  def draw_arrow(x, y, direction, length, start_t)
     MegaMrbc.klog("x, y, direction: #{x}, #{y}, #{direction}")
     if direction == 'r'
       i = x
       while(i < x + length - 1)
-        MegaMrbc.klog("drawing on #{i}, #{y}")
-        MegaMrbc.draw_horizontal(i, y)
+        draw_t_horzontal(i, x, y, direction, start_t)
         i += 1
       end
       MegaMrbc.draw_arrow_r(i, y)
     elsif direction == 'l'
       i = x
       while(i > x - (length - 1))
-        MegaMrbc.klog("drawing on #{i}, #{y}")
-        MegaMrbc.draw_horizontal(i, y)
+        draw_t_horzontal(i, x, y, direction, start_t)
         i -= 1
       end
       MegaMrbc.draw_arrow_l(i, y)
@@ -128,7 +153,8 @@ class Page
       i = y
       while(i > y - (length - 1))
         MegaMrbc.klog("drawing on #{x}, #{i}")
-        MegaMrbc.draw_vertical(x, i)
+        #MegaMrbc.draw_vertical(x, i)
+        draw_t_vertical(i, x, y, direction, start_t)
         i -= 1
       end
       MegaMrbc.draw_arrow_u(x, i)
@@ -136,7 +162,8 @@ class Page
       i = y
       while(i < y + length - 1)
         MegaMrbc.klog("drawing on #{x}, #{i}")
-        MegaMrbc.draw_vertical(x, i)
+        #MegaMrbc.draw_vertical(x, i)
+        draw_t_vertical(i, x, y, direction, start_t)
         i += 1
       end
       MegaMrbc.draw_arrow_d(x, i)

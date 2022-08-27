@@ -164,7 +164,31 @@ const u32 arrow_u[8] =
     0x00011000
   };
 
-enum in_code_tiles { tl, horiz, vert, csr, tck, bgfull, bgl, bgtl, bgt, blnk, arwr, arwu, last = arwu };
+const u32 t_right[8] =
+  {
+    0x00011000,
+    0x00011000,
+    0x00011000,
+    0x00011111,
+    0x00011111,
+    0x00011000,
+    0x00011000,
+    0x00011000
+  };
+
+const u32 t_upright[8] =
+  {
+    0x00000000,
+    0x00000000,
+    0x00000000,
+    0x11111111,
+    0x11111111,
+    0x00011000,
+    0x00011000,
+    0x00011000
+  };
+
+enum in_code_tiles { tl, horiz, vert, csr, tck, bgfull, bgl, bgtl, bgt, blnk, arwr, arwu, trght, t, last = t };
 
 void load_tiles() {
   VDP_loadTileData(top_left, TILE_USERINDEX + tl, 1, 0);
@@ -180,6 +204,8 @@ void load_tiles() {
   VDP_loadTileData(blank, TILE_USERINDEX + blnk, 1, 0);
   VDP_loadTileData(arrow_r, TILE_USERINDEX + arwr, 1, 0);
   VDP_loadTileData(arrow_u, TILE_USERINDEX + arwu, 1, 0);
+  VDP_loadTileData(t_right, TILE_USERINDEX + trght, 1, 0);
+  VDP_loadTileData(t_upright, TILE_USERINDEX + t, 1, 0);
 }
 
 // C functions to be called from mruby
@@ -546,6 +572,30 @@ static void c_megamrbc_draw_arrow_d(mrb_vm *vm, mrb_value *v, int argc) {
   VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL0, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + arwu), x, y);
 }
 
+static void c_megamrbc_draw_right_t(mrb_vm *vm, mrb_value *v, int argc) {
+  char x = mrbc_integer(v[1]);
+  char y = mrbc_integer(v[2]);
+  VDP_setTileMapXY(BG_A, TILE_USERINDEX + trght, x, y);
+}
+
+static void c_megamrbc_draw_left_t(mrb_vm *vm, mrb_value *v, int argc) {
+  char x = mrbc_integer(v[1]);
+  char y = mrbc_integer(v[2]);
+  VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL0, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + trght), x, y);
+}
+
+static void c_megamrbc_draw_upright_t(mrb_vm *vm, mrb_value *v, int argc) {
+  char x = mrbc_integer(v[1]);
+  char y = mrbc_integer(v[2]);
+  VDP_setTileMapXY(BG_A, TILE_USERINDEX + t, x, y);
+}
+
+static void c_megamrbc_draw_flipped_t(mrb_vm *vm, mrb_value *v, int argc) {
+  char x = mrbc_integer(v[1]);
+  char y = mrbc_integer(v[2]);
+  VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL0, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + t), x, y);
+}
+
 void make_class(mrb_vm *vm)
 {
   mrb_class *cls = mrbc_define_class(vm, "MegaMrbc", mrbc_class_object);
@@ -584,6 +634,10 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "draw_arrow_l", c_megamrbc_draw_arrow_l);
   mrbc_define_method(vm, cls, "draw_arrow_u", c_megamrbc_draw_arrow_u);
   mrbc_define_method(vm, cls, "draw_arrow_d", c_megamrbc_draw_arrow_d);
+  mrbc_define_method(vm, cls, "draw_right_t", c_megamrbc_draw_right_t);
+  mrbc_define_method(vm, cls, "draw_left_t", c_megamrbc_draw_left_t);
+  mrbc_define_method(vm, cls, "draw_upright_t", c_megamrbc_draw_upright_t);
+  mrbc_define_method(vm, cls, "draw_flipped_t", c_megamrbc_draw_flipped_t);
 }
 
 void mrubyc(const uint8_t *mrbbuf)
