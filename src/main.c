@@ -468,6 +468,34 @@ static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
   VDP_drawText(buf,  35, 26);
 }
 
+static void c_megamrbc_set_bg_colour(mrb_vm *vm, mrb_value *v, int argc) {
+  char x = mrbc_integer(v[1]);
+  char y = mrbc_integer(v[2]);
+  char bg_pal = mrbc_integer(v[3]);
+  char *bg_region = mrbc_symbol_cstr(&v[4]);
+
+  // TODO: improve readability
+  if(strncmp(bg_region, "bottom", sizeof("bottom")) == 0) {
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgt), x, y);
+  } else if(strncmp(bg_region, "top", sizeof("top")) == 0) {
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgt), x, y);
+  } else if(strncmp(bg_region, "left", sizeof("left")) == 0) {
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + vert + 1 + bgl), x, y);
+  } else if(strncmp(bg_region, "right", sizeof("right")) == 0) {
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgl), x, y);
+  } else if(strncmp(bg_region, "top_left", sizeof("top_left")) == 0) {
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgtl), x, y);
+  } else if(strncmp(bg_region, "top_right", sizeof("top_right")) == 0) {
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + vert + 1 + bgtl), x, y);
+  } else if(strncmp(bg_region, "bottom_left", sizeof("bottom_left")) == 0) {
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgtl), x, y);
+  } else if(strncmp(bg_region, "bottom_right", sizeof("bottom_right")) == 0) {
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VFLIP, HFLIP, TILE_USERINDEX + vert + 1 + bgtl), x, y);
+  } else if(strncmp(bg_region, "full", sizeof("full")) == 0) {
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgfull), x, y);
+  }
+}
+
 void make_class(mrb_vm *vm)
 {
   mrb_class *cls = mrbc_define_class(vm, "MegaMrbc", mrbc_class_object);
@@ -501,6 +529,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "klog", c_megamrbc_klog);
   mrbc_define_method(vm, cls, "show_progress", c_megamrbc_show_progress);
   mrbc_define_method(vm, cls, "show_timer", c_megamrbc_show_timer);
+  mrbc_define_method(vm, cls, "set_bg_colour", c_megamrbc_set_bg_colour);
 }
 
 void mrubyc(const uint8_t *mrbbuf)

@@ -16,7 +16,7 @@ end
 
 =
 -title: Rectangle test
--rect,5,4,8,8:
+-rect,5,4,8,8,0:
 
 =
 -title: Megaruby:
@@ -42,6 +42,9 @@ end
 
 =
 -title: What is Mega Drive?
+
+=
+-title: What is mruby?
 
 =
 -title: What is mruby/c?

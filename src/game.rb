@@ -17,15 +17,12 @@ def wait_cmd
     MegaMrbc.call_rand # help random seem more random
     state = joypad_state(0)
     if (state & 0x80 & ~prev) != 0 # start
-      MegaMrbc.klog("0x80")
       wait_vblank
       return :fwd
     elsif (state & 0x40 & ~prev) != 0 # a
-      MegaMrbc.klog("0x40")
       wait_vblank
       return :fwd
     elsif (state & 0x10 & ~prev) != 0 # b
-      MegaMrbc.klog("0x10")
       wait_vblank
       return :back
     end
@@ -94,30 +91,50 @@ class Page
         y = cmd[2].to_i
         w = cmd[3].to_i
         h = cmd[4].to_i
-        render_rect(x, y, w, h)
+        bg_pal = cmd[5].to_i
+        render_rect(x, y, w, h, bg_pal)
       elsif @is_code
         render_code_line(line, @x, @y+=1)
       end
     end
   end
 
-  def render_rect(x, y, w, h)
-    MegaMrbc.draw_top_left(x, y)
+  def render_rect(x, y, w, h, bg_pal = nil)
     curr_x = x + 1
     while(curr_x < x + w)
       MegaMrbc.draw_horizontal(curr_x, y)
       MegaMrbc.draw_horizontal(curr_x, y+h)
+      if bg_pal
+        MegaMrbc.set_bg_colour(curr_x, y, bg_pal, :bottom)
+        MegaMrbc.set_bg_colour(curr_x, y+h, bg_pal, :top)
+      end
       curr_x += 1
     end
     curr_y = y + 1
     while(curr_y < y + h)
       MegaMrbc.draw_vertical(x, curr_y)
       MegaMrbc.draw_vertical(x+w, curr_y)
+      if bg_pal
+        MegaMrbc.set_bg_colour(x, curr_y, bg_pal, :right)
+        fill_x = x + 1
+        while(fill_x < x+w)
+          MegaMrbc.set_bg_colour(fill_x, curr_y, bg_pal, :full)
+          fill_x += 1
+        end
+        MegaMrbc.set_bg_colour(x+w, curr_y, bg_pal, :left)
+      end
       curr_y += 1
     end
+
+    # corners
+    MegaMrbc.draw_top_left(x, y)
+    MegaMrbc.set_bg_colour(x, y, bg_pal, :top_left)
     MegaMrbc.draw_top_right(x+w, y)
+    MegaMrbc.set_bg_colour(x+w, y, bg_pal, :top_right)
     MegaMrbc.draw_bottom_left(x, y+h)
+    MegaMrbc.set_bg_colour(x, y+h, bg_pal, :bottom_left)
     MegaMrbc.draw_bottom_right(x+w, y+h)
+    MegaMrbc.set_bg_colour(x+w, y+h, bg_pal, :bottom_right)
   end
 
   def render_code_line(txt, x, y)
@@ -126,11 +143,11 @@ class Page
     # 0 => white
     curr_offset = 0
     fragments.each_with_index { |f, i|
-      MegaMrbc.klog("f is '#{f}'")
+      # MegaMrbc.klog("f is '#{f}'")
       if i % 2 == 0
         terms = break_line(f)
         terms.each { |t|
-          MegaMrbc.klog("t is '#{t}'")
+          # MegaMrbc.klog("t is '#{t}'")
           render_term(t, x + curr_offset, y)
           curr_offset += t.length
         }
@@ -160,7 +177,7 @@ class Page
       if (curr_mode == :space && line[i] != ' ') || (curr_mode == :word && line[i] == ' ') || i == line.length-1
         i += 1 if i == line.length-1 # special handling for end of line
         term = line[start_i, i-start_i]
-        MegaMrbc.klog(term)
+        # MegaMrbc.klog(term)
         terms << term
         start_i = i
         curr_mode = if curr_mode == :space
