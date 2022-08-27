@@ -140,20 +140,46 @@ const u32 blank[8] =
     0x00000000
   };
 
-enum in_code_tiles { tl, horiz, vert, csr, tck, bgfull, bgl, bgtl, bgt, blnk };
+const u32 arrow_r[8] =
+  {
+    0x00000000,
+    0x00001100,
+    0x00000110,
+    0x11111111,
+    0x11111111,
+    0x00000110,
+    0x00001100,
+    0x00000000
+  };
+
+const u32 arrow_u[8] =
+  {
+    0x00011000,
+    0x00111100,
+    0x01111110,
+    0x01011010,
+    0x00011000,
+    0x00011000,
+    0x00011000,
+    0x00011000
+  };
+
+enum in_code_tiles { tl, horiz, vert, csr, tck, bgfull, bgl, bgtl, bgt, blnk, arwr, arwu, last = arwu };
 
 void load_tiles() {
   VDP_loadTileData(top_left, TILE_USERINDEX + tl, 1, 0);
   VDP_loadTileData(horizontal, TILE_USERINDEX + horiz, 1, 0);
   VDP_loadTileData(vertical, TILE_USERINDEX + vert, 1, 0);
 
-  VDP_loadTileData( cursor, TILE_USERINDEX + csr, 1, 0);
-  VDP_loadTileData( tick, TILE_USERINDEX + tck, 1, 0);
-  VDP_loadTileData( bg_full, TILE_USERINDEX + bgfull, 1, 0);
-  VDP_loadTileData( bg_left, TILE_USERINDEX + bgl, 1, 0);
-  VDP_loadTileData( bg_top_left, TILE_USERINDEX + bgtl, 1, 0);
-  VDP_loadTileData( bg_top, TILE_USERINDEX + bgt, 1, 0);
-  VDP_loadTileData( blank, TILE_USERINDEX + blnk, 1, 0);
+  VDP_loadTileData(cursor, TILE_USERINDEX + csr, 1, 0);
+  VDP_loadTileData(tick, TILE_USERINDEX + tck, 1, 0);
+  VDP_loadTileData(bg_full, TILE_USERINDEX + bgfull, 1, 0);
+  VDP_loadTileData(bg_left, TILE_USERINDEX + bgl, 1, 0);
+  VDP_loadTileData(bg_top_left, TILE_USERINDEX + bgtl, 1, 0);
+  VDP_loadTileData(bg_top, TILE_USERINDEX + bgt, 1, 0);
+  VDP_loadTileData(blank, TILE_USERINDEX + blnk, 1, 0);
+  VDP_loadTileData(arrow_r, TILE_USERINDEX + arwr, 1, 0);
+  VDP_loadTileData(arrow_u, TILE_USERINDEX + arwu, 1, 0);
 }
 
 // C functions to be called from mruby
@@ -322,14 +348,14 @@ static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
   PAL_setPaletteDMA(PAL0, sky_bg.palette->data);
   VDP_drawImageEx(
     BG_B, &sky_bg,
-    TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, TILE_USERINDEX + blnk + 1),
+    TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, TILE_USERINDEX + last + 1),
     0, 0, FALSE, TRUE
   );
 
   PAL_setPaletteDMA(PAL1, main_logo.palette->data);
   VDP_drawImageEx(
     BG_A, &main_logo,
-    TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_USERINDEX + blnk + 1 + sky_bg.tileset->numTile),
+    TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_USERINDEX + last + 1 + sky_bg.tileset->numTile),
     5, 10, FALSE, TRUE
   );
 
@@ -424,7 +450,7 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
   PAL_setPaletteDMA(PAL3, image->palette->data);
   VDP_drawImageEx(
     BG_A, image,
-    TILE_ATTR_FULL(PAL3, FALSE, FALSE, FALSE, TILE_USERINDEX + blnk + 1),
+    TILE_ATTR_FULL(PAL3, FALSE, FALSE, FALSE, TILE_USERINDEX + last + 1),
     x, y, FALSE, TRUE
   );
 }
@@ -494,6 +520,32 @@ static void c_megamrbc_set_bg_colour(mrb_vm *vm, mrb_value *v, int argc) {
   }
 }
 
+static void c_megamrbc_draw_arrow_r(mrb_vm *vm, mrb_value *v, int argc) {
+  char x = mrbc_integer(v[1]);
+  char y = mrbc_integer(v[2]);
+  VDP_setTileMapXY(BG_A, TILE_USERINDEX + arwr, x, y);
+}
+
+// TODO: refactor with above
+static void c_megamrbc_draw_arrow_l(mrb_vm *vm, mrb_value *v, int argc) {
+  char x = mrbc_integer(v[1]);
+  char y = mrbc_integer(v[2]);
+  // TODO: Is PAL0 okay?
+  VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL0, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + arwr), x, y);
+}
+
+static void c_megamrbc_draw_arrow_u(mrb_vm *vm, mrb_value *v, int argc) {
+  char x = mrbc_integer(v[1]);
+  char y = mrbc_integer(v[2]);
+  VDP_setTileMapXY(BG_A, TILE_USERINDEX + arwu, x, y);
+}
+
+static void c_megamrbc_draw_arrow_d(mrb_vm *vm, mrb_value *v, int argc) {
+  char x = mrbc_integer(v[1]);
+  char y = mrbc_integer(v[2]);
+  VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL0, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + arwu), x, y);
+}
+
 void make_class(mrb_vm *vm)
 {
   mrb_class *cls = mrbc_define_class(vm, "MegaMrbc", mrbc_class_object);
@@ -528,6 +580,10 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "show_progress", c_megamrbc_show_progress);
   mrbc_define_method(vm, cls, "show_timer", c_megamrbc_show_timer);
   mrbc_define_method(vm, cls, "set_bg_colour", c_megamrbc_set_bg_colour);
+  mrbc_define_method(vm, cls, "draw_arrow_r", c_megamrbc_draw_arrow_r);
+  mrbc_define_method(vm, cls, "draw_arrow_l", c_megamrbc_draw_arrow_l);
+  mrbc_define_method(vm, cls, "draw_arrow_u", c_megamrbc_draw_arrow_u);
+  mrbc_define_method(vm, cls, "draw_arrow_d", c_megamrbc_draw_arrow_d);
 }
 
 void mrubyc(const uint8_t *mrbbuf)

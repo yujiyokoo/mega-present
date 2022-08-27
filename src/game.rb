@@ -93,10 +93,56 @@ class Page
         h = cmd[4].to_i
         bg_pal = cmd[5] ? cmd[5].to_i : nil
         render_rect(x, y, w, h, bg_pal)
+      elsif line.start_with? "-arrow,"
+        cmd = line.split(":")[0].split(",")
+        x = cmd[1].to_i
+        y = cmd[2].to_i
+        dir = cmd[3]
+        len = cmd[4].to_i
+        draw_arrow(x, y, dir, len)
       elsif @is_code
         render_code_line(line, @x, @y+=1)
       end
     end
+  end
+
+  def draw_arrow(x, y, direction, length)
+    MegaMrbc.klog("x, y, direction: #{x}, #{y}, #{direction}")
+    if direction == 'r'
+      i = x
+      while(i < x + length - 1)
+        MegaMrbc.klog("drawing on #{i}, #{y}")
+        MegaMrbc.draw_horizontal(i, y)
+        i += 1
+      end
+      MegaMrbc.draw_arrow_r(i, y)
+    elsif direction == 'l'
+      i = x
+      while(i > x - (length - 1))
+        MegaMrbc.klog("drawing on #{i}, #{y}")
+        MegaMrbc.draw_horizontal(i, y)
+        i -= 1
+      end
+      MegaMrbc.draw_arrow_l(i, y)
+    elsif direction == 'u'
+      i = y
+      while(i > y - (length - 1))
+        MegaMrbc.klog("drawing on #{x}, #{i}")
+        MegaMrbc.draw_vertical(x, i)
+        i -= 1
+      end
+      MegaMrbc.draw_arrow_u(x, i)
+    elsif direction == 'd'
+      i = y
+      while(i < y + length - 1)
+        MegaMrbc.klog("drawing on #{x}, #{i}")
+        MegaMrbc.draw_vertical(x, i)
+        i += 1
+      end
+      MegaMrbc.draw_arrow_d(x, i)
+    end
+
+
   end
 
   def render_rect(x, y, w, h, bg_pal = nil)
