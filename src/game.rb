@@ -91,7 +91,7 @@ class Page
         y = cmd[2].to_i
         w = cmd[3].to_i
         h = cmd[4].to_i
-        bg_pal = cmd[5].to_i
+        bg_pal = cmd[5] ? cmd[5].to_i : nil
         render_rect(x, y, w, h, bg_pal)
       elsif @is_code
         render_code_line(line, @x, @y+=1)
@@ -128,13 +128,16 @@ class Page
 
     # corners
     MegaMrbc.draw_top_left(x, y)
-    MegaMrbc.set_bg_colour(x, y, bg_pal, :top_left)
     MegaMrbc.draw_top_right(x+w, y)
-    MegaMrbc.set_bg_colour(x+w, y, bg_pal, :top_right)
     MegaMrbc.draw_bottom_left(x, y+h)
-    MegaMrbc.set_bg_colour(x, y+h, bg_pal, :bottom_left)
     MegaMrbc.draw_bottom_right(x+w, y+h)
-    MegaMrbc.set_bg_colour(x+w, y+h, bg_pal, :bottom_right)
+
+    if bg_pal
+      MegaMrbc.set_bg_colour(x, y, bg_pal, :top_left)
+      MegaMrbc.set_bg_colour(x+w, y, bg_pal, :top_right)
+      MegaMrbc.set_bg_colour(x, y+h, bg_pal, :bottom_left)
+      MegaMrbc.set_bg_colour(x+w, y+h, bg_pal, :bottom_right)
+    end
   end
 
   def render_code_line(txt, x, y)

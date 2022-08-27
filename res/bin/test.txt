@@ -17,6 +17,7 @@ end
 =
 -title: Rectangle test
 -rect,5,4,8,8,0:
+-rect,10,14,6,3:
 
 =
 -title: Megaruby:
