@@ -20,8 +20,6 @@ extern const char *answerlist[];
 
 // Sprites in code
 
-enum rect_parts { tl, horiz, vert };
-
 const u32 top_left[8] =
   {
     0x00000000,
@@ -142,20 +140,20 @@ const u32 blank[8] =
     0x00000000
   };
 
-enum other_sprites_enum { csr, tck, bgfull, bgl, bgtl, bgt, blnk };
+enum in_code_tiles { tl, horiz, vert, csr, tck, bgfull, bgl, bgtl, bgt, blnk };
 
 void load_tiles() {
   VDP_loadTileData(top_left, TILE_USERINDEX + tl, 1, 0);
   VDP_loadTileData(horizontal, TILE_USERINDEX + horiz, 1, 0);
   VDP_loadTileData(vertical, TILE_USERINDEX + vert, 1, 0);
 
-  VDP_loadTileData( cursor, TILE_USERINDEX + vert + 1 + csr, 1, 0);
-  VDP_loadTileData( tick, TILE_USERINDEX + vert + 1 + tck, 1, 0);
-  VDP_loadTileData( bg_full, TILE_USERINDEX + vert + 1 + bgfull, 1, 0);
-  VDP_loadTileData( bg_left, TILE_USERINDEX + vert + 1 + bgl, 1, 0);
-  VDP_loadTileData( bg_top_left, TILE_USERINDEX + vert + 1 + bgtl, 1, 0);
-  VDP_loadTileData( bg_top, TILE_USERINDEX + vert + 1 + bgt, 1, 0);
-  VDP_loadTileData( blank, TILE_USERINDEX + vert + 1 + blnk, 1, 0);
+  VDP_loadTileData( cursor, TILE_USERINDEX + csr, 1, 0);
+  VDP_loadTileData( tick, TILE_USERINDEX + tck, 1, 0);
+  VDP_loadTileData( bg_full, TILE_USERINDEX + bgfull, 1, 0);
+  VDP_loadTileData( bg_left, TILE_USERINDEX + bgl, 1, 0);
+  VDP_loadTileData( bg_top_left, TILE_USERINDEX + bgtl, 1, 0);
+  VDP_loadTileData( bg_top, TILE_USERINDEX + bgt, 1, 0);
+  VDP_loadTileData( blank, TILE_USERINDEX + blnk, 1, 0);
 }
 
 // C functions to be called from mruby
@@ -174,42 +172,42 @@ static void c_megamrbc_draw_top_left(mrb_vm *vm, mrb_value *v, int argc)
 {
   char x = mrbc_integer(v[1]);
   char y = mrbc_integer(v[2]);
-  VDP_setTileMapXY(BG_A, TILE_USERINDEX+tl, x, y);
+  VDP_setTileMapXY(BG_A, TILE_USERINDEX + tl, x, y);
 }
 
 static void c_megamrbc_draw_horizontal(mrb_vm *vm, mrb_value *v, int argc)
 {
   char x = mrbc_integer(v[1]);
   char y = mrbc_integer(v[2]);
-  VDP_setTileMapXY(BG_A, TILE_USERINDEX+horiz, x, y);
+  VDP_setTileMapXY(BG_A, TILE_USERINDEX + horiz, x, y);
 }
 
 static void c_megamrbc_draw_top_right(mrb_vm *vm, mrb_value *v, int argc)
 {
   char x = mrbc_integer(v[1]);
   char y = mrbc_integer(v[2]);
-  VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HFLIP, TILE_USERINDEX+tl), x, y);
+  VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HFLIP, TILE_USERINDEX + tl), x, y);
 }
 
 static void c_megamrbc_draw_vertical(mrb_vm *vm, mrb_value *v, int argc)
 {
   char x = mrbc_integer(v[1]);
   char y = mrbc_integer(v[2]);
-  VDP_setTileMapXY(BG_A, TILE_USERINDEX+vert, x, y);
+  VDP_setTileMapXY(BG_A, TILE_USERINDEX + vert, x, y);
 }
 
 static void c_megamrbc_draw_bottom_left(mrb_vm *vm, mrb_value *v, int argc)
 {
   char x = mrbc_integer(v[1]);
   char y = mrbc_integer(v[2]);
-  VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(0,HIPRIO,VFLIP,HNOFLIP, TILE_USERINDEX+tl), x, y);
+  VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(0,HIPRIO,VFLIP,HNOFLIP, TILE_USERINDEX + tl), x, y);
 }
 
 static void c_megamrbc_draw_bottom_right(mrb_vm *vm, mrb_value *v, int argc)
 {
   char x = mrbc_integer(v[1]);
   char y = mrbc_integer(v[2]);
-  VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(0,HIPRIO,VFLIP,HFLIP, TILE_USERINDEX+tl), x, y);
+  VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(0,HIPRIO,VFLIP,HFLIP, TILE_USERINDEX + tl), x, y);
 }
 
 static void c_megamrbc_wait_vblank(mrb_vm *vm, mrb_value *v, int argc) {
@@ -222,10 +220,10 @@ static void c_megamrbc_show_cursor(mrb_vm *vm, mrb_value *v, int argc) {
   uint8_t y = mrbc_integer(v[2]);
   uint16_t x_px = x * 8;
   uint16_t y_px = y * 8;
-  VDP_setSpriteFull(0, x_px, y_px, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + vert + 1), 1);
-  VDP_setSpriteFull(1, x_px+16, y_px, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HFLIP,TILE_USERINDEX + vert + 1), 2);
+  VDP_setSpriteFull(0, x_px, y_px, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + csr), 1);
+  VDP_setSpriteFull(1, x_px+16, y_px, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HFLIP,TILE_USERINDEX + csr), 2);
   VDP_setSpriteFull(2, x_px, y_px+16, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VFLIP,HNOFLIP,TILE_USERINDEX + vert + 1), 3);
-  VDP_setSprite(3, x_px+16, y_px+16, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VFLIP,HFLIP,TILE_USERINDEX + vert + 1));
+  VDP_setSprite(3, x_px+16, y_px+16, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VFLIP,HFLIP,TILE_USERINDEX + csr));
   VDP_updateSprites(4, 1);
 }
 
@@ -234,7 +232,7 @@ static void c_megamrbc_show_tick(mrb_vm *vm, mrb_value *v, int argc) {
   uint8_t y = mrbc_integer(v[2]);
   uint16_t x_px = (x + 1) * 8;
   uint16_t y_px = (y + 1) * 8;
-  VDP_setTileMapXY(BG_B, TILE_USERINDEX + vert + 1 + tck, x, y);
+  VDP_setTileMapXY(BG_B, TILE_USERINDEX + tck, x, y);
 }
 
 static void draw_colour_square(uint8_t palette_num, mrb_vm *vm, mrb_value *v, int argc) {
@@ -242,15 +240,15 @@ static void draw_colour_square(uint8_t palette_num, mrb_vm *vm, mrb_value *v, in
   uint8_t y = mrbc_integer(v[2]);
   uint16_t x_px = (x + 1) * 8;
   uint16_t y_px = (y + 1) * 8;
-  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgtl), x-1, y-1);
-  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgt), x, y-1);
-  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + vert + 1 + bgtl), x+1, y-1);
-  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgl), x-1, y);
-  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgfull), x, y);
-  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + vert + 1 + bgl), x+1, y);
-  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgtl), x-1, y+1);
-  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgt), x, y+1);
-  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VFLIP, HFLIP, TILE_USERINDEX + vert + 1 + bgtl), x+1, y+1);
+  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + bgtl), x-1, y-1);
+  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + bgt), x, y-1);
+  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + bgtl), x+1, y-1);
+  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + bgl), x-1, y);
+  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + bgfull), x, y);
+  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + bgl), x+1, y);
+  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + bgtl), x-1, y+1);
+  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + bgt), x, y+1);
+  VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VFLIP, HFLIP, TILE_USERINDEX + bgtl), x+1, y+1);
 }
 
 static void c_megamrbc_draw_green_square(mrb_vm *vm, mrb_value *v, int argc) {
@@ -281,8 +279,8 @@ static void c_megamrbc_clear_screen(mrb_vm *vm, mrb_value *v, int argc) {
 
   for(y = 0; y < 28; y++) {
     for(x = 0; x < 40; x++) {
-      VDP_setTileMapXY(BG_B, TILE_USERINDEX + vert + 1 + blnk, x, y);
-      VDP_setTileMapXY(BG_A, TILE_USERINDEX + vert + 1 + blnk, x, y);
+      VDP_setTileMapXY(BG_B, TILE_USERINDEX + blnk, x, y);
+      VDP_setTileMapXY(BG_A, TILE_USERINDEX + blnk, x, y);
     }
   }
 }
@@ -324,14 +322,14 @@ static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
   PAL_setPaletteDMA(PAL0, sky_bg.palette->data);
   VDP_drawImageEx(
     BG_B, &sky_bg,
-    TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, TILE_USERINDEX + vert + blnk + 2),
+    TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, TILE_USERINDEX + blnk + 1),
     0, 0, FALSE, TRUE
   );
 
   PAL_setPaletteDMA(PAL1, main_logo.palette->data);
   VDP_drawImageEx(
     BG_A, &main_logo,
-    TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_USERINDEX + vert + blnk + 2 + sky_bg.tileset->numTile),
+    TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_USERINDEX + blnk + 1 + sky_bg.tileset->numTile),
     5, 10, FALSE, TRUE
   );
 
@@ -426,7 +424,7 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
   PAL_setPaletteDMA(PAL3, image->palette->data);
   VDP_drawImageEx(
     BG_A, image,
-    TILE_ATTR_FULL(PAL3, FALSE, FALSE, FALSE, TILE_USERINDEX + vert + blnk + 2),
+    TILE_ATTR_FULL(PAL3, FALSE, FALSE, FALSE, TILE_USERINDEX + blnk + 1),
     x, y, FALSE, TRUE
   );
 }
@@ -440,7 +438,7 @@ static void c_megamrbc_draw_bg(mrb_vm *vm, mrb_value *v, int argc) {
 
   // do loop for str len
   for(int i = 0; i < len; i++) {
-    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bgpal_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgfull), x + i, y);
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bgpal_num, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + bgfull), x + i, y);
   }
 }
 
@@ -456,7 +454,7 @@ static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
 
   int x = ((float)pos / (float)size * 304) + 8;
 
-  VDP_setSpriteFull(0, x, 220, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + vert ), 1);
+  VDP_setSpriteFull(0, x, 220, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + vert), 1);
   VDP_updateSprites(4, 1);
 }
 
@@ -476,23 +474,23 @@ static void c_megamrbc_set_bg_colour(mrb_vm *vm, mrb_value *v, int argc) {
 
   // TODO: improve readability
   if(strncmp(bg_region, "bottom", sizeof("bottom")) == 0) {
-    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgt), x, y);
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + bgt), x, y);
   } else if(strncmp(bg_region, "top", sizeof("top")) == 0) {
-    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgt), x, y);
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + bgt), x, y);
   } else if(strncmp(bg_region, "left", sizeof("left")) == 0) {
-    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + vert + 1 + bgl), x, y);
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + bgl), x, y);
   } else if(strncmp(bg_region, "right", sizeof("right")) == 0) {
-    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgl), x, y);
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + bgl), x, y);
   } else if(strncmp(bg_region, "top_left", sizeof("top_left")) == 0) {
-    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgtl), x, y);
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + bgtl), x, y);
   } else if(strncmp(bg_region, "top_right", sizeof("top_right")) == 0) {
-    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + vert + 1 + bgtl), x, y);
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HFLIP, TILE_USERINDEX + bgtl), x, y);
   } else if(strncmp(bg_region, "bottom_left", sizeof("bottom_left")) == 0) {
-    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgtl), x, y);
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + bgtl), x, y);
   } else if(strncmp(bg_region, "bottom_right", sizeof("bottom_right")) == 0) {
-    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VFLIP, HFLIP, TILE_USERINDEX + vert + 1 + bgtl), x, y);
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VFLIP, HFLIP, TILE_USERINDEX + bgtl), x, y);
   } else if(strncmp(bg_region, "full", sizeof("full")) == 0) {
-    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + vert + 1 + bgfull), x, y);
+    VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(bg_pal, LOPRIO, VNOFLIP, HNOFLIP, TILE_USERINDEX + bgfull), x, y);
   }
 }
 
