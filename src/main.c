@@ -13,6 +13,9 @@
 #define HIPRIO 1
 #define LOPRIO 0
 
+// sound effects
+#define SE_TEST 64
+
 typedef char s8;
 
 // extern const char *wordlist[];
@@ -211,13 +214,11 @@ void load_tiles() {
 // C functions to be called from mruby
 static void c_megamrbc_draw_text(mrb_vm *vm, mrb_value *v, int argc)
 {
-  char *ptr = mrbc_string_cstr(&v[1]);
+  char *str = mrbc_string_cstr(&v[1]);
   char x = mrbc_integer(v[2]);
   char y = mrbc_integer(v[3]);
-  char col = mrbc_integer(v[4]);
-  char buf[32];
-  snprintf(buf, 31, "%s", ptr);
-  VDP_drawText(buf, x, y);
+  KLog(str);
+  VDP_drawText(str, x, y);
 }
 
 static void c_megamrbc_draw_top_left(mrb_vm *vm, mrb_value *v, int argc)
@@ -409,8 +410,11 @@ static void c_megamrbc_read_content(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void c_megamrbc_set_pal_colour(mrb_vm *vm, mrb_value *v, int argc) {
-  uint8_t colour_id = mrbc_integer(v[1]);
-  uint8_t colour_val = mrbc_integer(v[2]);
+  uint16_t colour_id = mrbc_integer(v[1]);
+  uint16_t colour_val = mrbc_integer(v[2]);
+  char buf[40];
+  // sprintf(buf, "colour_id: %d, colour_val: %d", colour_id, colour_val);
+  // KLog(buf);
   PAL_setColor(colour_id, colour_val);
 }
 
@@ -467,10 +471,15 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
 
   Image *image;
 
-  if(strcmp(img_name, "australia") == 0) {
+  // TODO: some sort of auto mapping here would be great...
+  if(strncmp(img_name, "australia", sizeof("australia")) == 0) {
     image = &australia;
-  } else if(strcmp(img_name, "yuji") == 0) {
+  } else if(strncmp(img_name, "yuji", sizeof("yuji")) == 0) {
     image = &yuji;
+  } else if(strncmp(img_name, "ruby", sizeof("ruby")) == 0) {
+    image = &ruby;
+  } else if(strncmp(img_name, "rubykaigi", sizeof("rubykaigi")) == 0) {
+    image = &rubykaigi;
   }
 
   PAL_setPaletteDMA(PAL3, image->palette->data);
@@ -596,6 +605,16 @@ static void c_megamrbc_draw_flipped_t(mrb_vm *vm, mrb_value *v, int argc) {
   VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL0, LOPRIO, VFLIP, HNOFLIP, TILE_USERINDEX + t), x, y);
 }
 
+static void c_megamrbc_play_se(mrb_vm *vm, mrb_value *v, int argc) {
+  XGM_startPlayPCM(SE_TEST,1,SOUND_PCM_CH2);
+}
+
+static void c_megamrbc_set_bg_num(mrb_vm *vm, mrb_value *v, int argc) {
+  char bg_num = mrbc_integer(v[1]);
+  KLog("setting bg colour");
+  PAL_setColor(0, bg_num);
+}
+
 void make_class(mrb_vm *vm)
 {
   mrb_class *cls = mrbc_define_class(vm, "MegaMrbc", mrbc_class_object);
@@ -638,6 +657,8 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "draw_left_t", c_megamrbc_draw_left_t);
   mrbc_define_method(vm, cls, "draw_upright_t", c_megamrbc_draw_upright_t);
   mrbc_define_method(vm, cls, "draw_flipped_t", c_megamrbc_draw_flipped_t);
+  mrbc_define_method(vm, cls, "play_se", c_megamrbc_play_se);
+  mrbc_define_method(vm, cls, "set_bg_num", c_megamrbc_set_bg_num);
 }
 
 void mrubyc(const uint8_t *mrbbuf)
@@ -709,6 +730,7 @@ int main(void) {
   init_screen();
   JOY_init();
   JOY_setEventHandler(&joy_event_handler);
+  XGM_setPCM(SE_TEST, se_test, sizeof(se_test));
 
   // set_up_colours();
   load_tiles();

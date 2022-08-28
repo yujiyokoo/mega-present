@@ -60,9 +60,10 @@ class Page
       elsif line.start_with? "-setcolour,"
         @is_code = false
         cmd = line.split(":")[0].split(",")
-        colour_id = cmd[1]
-        colour_val = cmd[2]
-        MegaMrbc.set_pal_colour(colour_id, colour_val.to_i(16))
+        colour_id = cmd[1].to_i
+        colour_val = cmd[2].to_i(16)
+        MegaMrbc.klog("setting colour #{colour_id} to #{colour_val}")
+        MegaMrbc.set_pal_colour(colour_id, colour_val)
       elsif line.start_with? "-txtpal,"
         @is_code = false
         cmd = line.split(":")[0].split(",")
@@ -75,6 +76,7 @@ class Page
       elsif line.start_with? "-image,"
         @is_code = false
         cmd = line.split(":")[0].split(",")
+        MegaMrbc.klog("drawing " + cmd[3])
         MegaMrbc.draw_image(cmd[1].to_i, cmd[2].to_i, cmd[3]) # x, y, image name
       elsif line.start_with? "-code,"
         @is_code = true
@@ -107,6 +109,11 @@ class Page
         dir = cmd[3]
         len = cmd[4].to_i
         draw_arrow(x, y, dir, len, true)
+      elsif line.start_with? "-bgcol,"
+        cmd = line.split(":")[0].split(",")
+        bgnum = cmd[1].to_i(16)
+        MegaMrbc.klog("bgnum is #{bgnum}")
+        MegaMrbc.set_bg_num(bgnum)
       elsif @is_code
         render_code_line(line, @x, @y+=1)
       end
@@ -354,6 +361,7 @@ class Presentation
       count += 1
       wait_vblank
     end
+    MegaMrbc.play_se
   end
 end
 
