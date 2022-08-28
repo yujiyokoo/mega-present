@@ -43,43 +43,43 @@ class Page
       next if line[0] == '#'
 
       if line.start_with? "-title:"
-        @is_code = false
+        @curr_mode = nil
         title = line.split("-title:")[1].strip
         text_centre(title, 0)
       elsif line.start_with? "-txt,"
-        @is_code = false
+        @curr_mode = :text
         cmd = line.split(":")[0].split(",")
-        x = cmd[1].to_i
-        y = cmd[2].to_i
+        @x = cmd[1].to_i
+        @y = cmd[2].to_i
         bg = cmd[3]
         idx = 0
         idx += 1 while(line[idx] != ":") # FIXME: this will break if ':' is not present
-        content = line.slice!(idx + 1, line.length).strip
-        MegaMrbc.draw_bg(content, bg[2].to_i, x, y) if bg != nil
-        draw_text(content, x, y)
+        content = line.slice!(idx + 1, line.length)
+        MegaMrbc.draw_bg(content, bg[2].to_i, @x, @y) if bg != nil
+        draw_text(content, @x, @y)
       elsif line.start_with? "-setcolour,"
-        @is_code = false
+        @curr_mode = nil
         cmd = line.split(":")[0].split(",")
         colour_id = cmd[1].to_i
         colour_val = cmd[2].to_i(16)
         MegaMrbc.klog("setting colour #{colour_id} to #{colour_val}")
         MegaMrbc.set_pal_colour(colour_id, colour_val)
       elsif line.start_with? "-txtpal,"
-        @is_code = false
+        @curr_mode = nil
         cmd = line.split(":")[0].split(",")
         pal = cmd[1]
         draw_text("setting pal: #{pal}", 1, 27)
         MegaMrbc.set_txt_pal(pal)
       elsif line.start_with? "-pause:"
-        @is_code = false
+        @curr_mode = nil
         wait_cmd # do not care about which button
       elsif line.start_with? "-image,"
-        @is_code = false
+        @curr_mode = nil
         cmd = line.split(":")[0].split(",")
         MegaMrbc.klog("drawing " + cmd[3])
         MegaMrbc.draw_image(cmd[1].to_i, cmd[2].to_i, cmd[3]) # x, y, image name
       elsif line.start_with? "-code,"
-        @is_code = true
+        @curr_mode = :code
         cmd = line.split(":")[0].split(",")
         @x = cmd[1].to_i
         @y = cmd[2].to_i
@@ -118,7 +118,9 @@ class Page
         cmd = line.split(":")[0].split(",")
         len = cmd[1].to_i
         MegaMrbc.sleep_raw(len)
-      elsif @is_code
+      elsif @curr_mode == :text
+        draw_text(line, @x, @y+=1)
+      elsif @curr_mode == :code
         render_code_line(line, @x, @y+=1)
       end
     end

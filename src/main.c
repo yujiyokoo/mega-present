@@ -523,7 +523,6 @@ static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
   char buf[8];
   int x = getTick() / 300;
   sprintf(buf, "%d", x);
-  // KLog(buf);
   VDP_drawText(buf,  35, 26);
 }
 
