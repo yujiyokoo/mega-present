@@ -114,6 +114,10 @@ class Page
         bgnum = cmd[1].to_i(16)
         MegaMrbc.klog("bgnum is #{bgnum}")
         MegaMrbc.set_bg_num(bgnum)
+      elsif line.start_with? "-sleep_raw,"
+        cmd = line.split(":")[0].split(",")
+        len = cmd[1].to_i
+        MegaMrbc.sleep_raw(len)
       elsif @is_code
         render_code_line(line, @x, @y+=1)
       end

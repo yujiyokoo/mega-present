@@ -527,6 +527,17 @@ static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
   VDP_drawText(buf,  35, 26);
 }
 
+// sleep, but time is specificed in 1/300s
+static void c_megamrbc_sleep(mrb_vm *vm, mrb_value *v, int argc) {
+  int s = mrbc_integer(v[1]);
+  int start = getTick();
+
+  // FIXME: wrap-around not supported
+  while( getTick() - start < s) {
+    SYS_doVBlankProcess();
+  }
+}
+
 static void c_megamrbc_set_bg_colour(mrb_vm *vm, mrb_value *v, int argc) {
   char x = mrbc_integer(v[1]);
   char y = mrbc_integer(v[2]);
@@ -648,6 +659,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "klog", c_megamrbc_klog);
   mrbc_define_method(vm, cls, "show_progress", c_megamrbc_show_progress);
   mrbc_define_method(vm, cls, "show_timer", c_megamrbc_show_timer);
+  mrbc_define_method(vm, cls, "sleep_raw", c_megamrbc_sleep);
   mrbc_define_method(vm, cls, "set_bg_colour", c_megamrbc_set_bg_colour);
   mrbc_define_method(vm, cls, "draw_arrow_r", c_megamrbc_draw_arrow_r);
   mrbc_define_method(vm, cls, "draw_arrow_l", c_megamrbc_draw_arrow_l);
