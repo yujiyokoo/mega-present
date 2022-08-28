@@ -2,6 +2,28 @@
 -image,5,6,ruby:
 
 =
+-title: How to develop: overview
+
+-rect,5,4,10,2:
+-txt,6,5:C source
+-pause:
+-tarrow,10,6,d,3:
+-txt,12,7:compile
+-pause:
+-rect,5,9,10,2:
+-txt,6,10:obj files
+-pause:
+-rect,20,11,14,2:
+-txt,21,12:SGDK library
+-tarrow,20,12,l,10:
+-tarrow,10,11,d,5:
+-txt,12,14:link
+-rect,5,16,10,2:
+-txt,6,17:rom.bin
+-pause:
+-txt,10,19:executable on Meaga Drive
+
+=
 -bgcol,FFF:
 -image,5,6,rubykaigi:
 
@@ -44,20 +66,25 @@ end
 
 =
 -title: Megaruby:
--txt,1,3: Running mruby/c programs
+-txt,1,3:Running mruby/c programs
 -setcolour,31,FF0:
 -txtpal,1:
--txt,2,4,bg0: on Sega Mega Drive
+-txt,2,4,bg0:on Sega Mega Drive
 # comment line
 -pause:
--txt,10,11: let's go!
+-txt,10,11:let's go!
 
 =
 -title: About me
--txt,10,5: Yuji Yokoo
--txt,10,6: In Adelaide, AU
+-txt,10,5:Yuji Yokoo
+
+In Adelaide, AU
+
+@yujiyokoo
+
+github.com/yujiyokoo
 -pause:
--image,16,10,yuji:
+-image,16,14,yuji:
 
 =
 -title: Adelaide
@@ -65,24 +92,61 @@ end
 
 =
 -title: What is Mega Drive?
+-pause:
+-txt,5,5:* Sega Mega Drive
+R* eleased in 1989
+"16-BIT"
+-pause:
+-txt,5,9:* 30M units sold worldwide
 
 =
 -title: What is mruby?
+-pause:
+-txt,3,5:* Another implementation of Ruby
+* 'm' for embedded
+-pause:
+-txt,3,7:* Integrates well with C
+  (or other languages)
+* Great for calling Ruby from C
 
 =
 -title: What is mruby/c?
+-pause:
+-txt,3,5:A project that makes a compact VM
+
+ from
+  Shimane IT Open-Innovation Center
+ and
+  Kyushu Institute of Technology
 
 =
 -title: Why Mega Drive?
-
-# Compatible hardware
-# Good emulators
+-pause:
+-txt,5,5:* Open source dev kits
+  (I use one called SGDK)
+-pause:
+-txt,5,7:* Great emulators
+-pause:
+-txt,5,8:* Many units sold
+-pause:
+-txt,5,9:* Compatile models available
 
 =
 -title: Why mruby/c on Mega Drive?
+-pause:
+-txt,5,5:* Ruby!
+-pause:
+-txt,5,6:* Fun/happiness/productivity
+-pause:
+-txt,5,7:* Main logic in Ruby
 
 =
 -title: How to develop: overview
+
+-rect,5,4,10,3,0:
+-txt,6,5:C source
+-pause:
+-tarrow:10,6,d,3:
 
 =
 -title: How to develop
