@@ -16,6 +16,9 @@
 // sound effects
 #define SE_TEST 64
 
+// sprite test
+#define ANIM_WALK 2
+
 typedef char s8;
 
 // extern const char *wordlist[];
@@ -217,7 +220,6 @@ static void c_megamrbc_draw_text(mrb_vm *vm, mrb_value *v, int argc)
   char *str = mrbc_string_cstr(&v[1]);
   char x = mrbc_integer(v[2]);
   char y = mrbc_integer(v[3]);
-  KLog(str);
   VDP_drawText(str, x, y);
 }
 
@@ -264,20 +266,8 @@ static void c_megamrbc_draw_bottom_right(mrb_vm *vm, mrb_value *v, int argc)
 }
 
 static void c_megamrbc_wait_vblank(mrb_vm *vm, mrb_value *v, int argc) {
-  // SPR_update();
+  SPR_update();
   SYS_doVBlankProcess();
-}
-
-static void c_megamrbc_show_cursor(mrb_vm *vm, mrb_value *v, int argc) {
-  uint8_t x = mrbc_integer(v[1]);
-  uint8_t y = mrbc_integer(v[2]);
-  uint16_t x_px = x * 8;
-  uint16_t y_px = y * 8;
-  VDP_setSpriteFull(0, x_px, y_px, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + csr), 1);
-  VDP_setSpriteFull(1, x_px+16, y_px, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HFLIP,TILE_USERINDEX + csr), 2);
-  VDP_setSpriteFull(2, x_px, y_px+16, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VFLIP,HNOFLIP,TILE_USERINDEX + vert + 1), 3);
-  VDP_setSprite(3, x_px+16, y_px+16, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VFLIP,HFLIP,TILE_USERINDEX + csr));
-  VDP_updateSprites(4, 1);
 }
 
 static void c_megamrbc_show_tick(mrb_vm *vm, mrb_value *v, int argc) {
@@ -371,6 +361,9 @@ static void c_megamrbc_call_rand(mrb_vm *vm, mrb_value *v, int argc) {
   rand();
 }
 
+Sprite* ninja32khaki_obj;
+Sprite* ninja32red_obj;
+
 static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
   PAL_setPaletteDMA(PAL0, sky_bg.palette->data);
   VDP_drawImageEx(
@@ -379,20 +372,20 @@ static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
     0, 0, FALSE, TRUE
   );
 
-  PAL_setPaletteDMA(PAL1, main_logo.palette->data);
+  // use red ninja palette which includes main logo palette
+  VDP_setPalette(PAL1, ninja32x32red.palette->data);
   VDP_drawImageEx(
     BG_A, &main_logo,
     TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_USERINDEX + last + 1 + sky_bg.tileset->numTile),
     5, 10, FALSE, TRUE
   );
 
-  // reset_text_colours();
+  ninja32khaki_obj = SPR_addSprite(&ninja32x32khaki, 80, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
 
-/*
-  PAL_setPaletteDMA(PAL2, main_logo.palette->data);
-  Sprite* logo0 = SPR_addSprite(&main_logo,0,0,TILE_ATTR(PAL2,0, FALSE, FALSE));
-  Sprite* logo1 = SPR_addSprite(&main_logo,40,0,TILE_ATTR(PAL2,0, FALSE, FALSE));
-  */
+  ninja32red_obj = SPR_addSprite(&ninja32x32red, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
+
+  // VDP_updateSprites(highestVDPSpriteIndex + 2, 1);
+  // reset_text_colours();
 }
 
 // currently unused
@@ -515,15 +508,19 @@ static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
 
   int x = ((float)pos / (float)size * 304) + 8;
 
-  VDP_setSpriteFull(0, x, 220, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + vert), 1);
-  VDP_updateSprites(4, 1);
+  SPR_setPosition(ninja32red_obj, x, 192);
+  // VDP_setSpriteFull(0, x, 220, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + vert), 1);
+  // VDP_updateSprites(4, 1);
 }
 
 static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
   char buf[8];
-  int x = getTick() / 300;
-  sprintf(buf, "%d", x);
-  VDP_drawText(buf,  35, 26);
+  int s = getTick() / 300;
+  int max = 300; // 5min
+
+  int x = (float)s / (float)max * 308;
+
+  SPR_setPosition(ninja32khaki_obj, x, 192);
 }
 
 // sleep, but time is specificed in 1/300s
@@ -637,7 +634,6 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "draw_bottom_right", c_megamrbc_draw_bottom_right);
   mrbc_define_method(vm, cls, "read_joypad", c_megamrbc_read_joypad);
   mrbc_define_method(vm, cls, "wait_vblank", c_megamrbc_wait_vblank);
-  mrbc_define_method(vm, cls, "show_cursor", c_megamrbc_show_cursor);
   mrbc_define_method(vm, cls, "show_tick", c_megamrbc_show_tick);
   mrbc_define_method(vm, cls, "draw_green_square", c_megamrbc_draw_green_square);
   mrbc_define_method(vm, cls, "draw_yellow_square", c_megamrbc_draw_yellow_square);
@@ -706,14 +702,13 @@ void reset_text_colours() {
 
 void init_screen() {
   // Initialise screen
-  // SPR_init(0,0,0); // this causes background mountains not to show?
+  SPR_init();
   VDP_setScreenWidth320();
   VDP_setHInterrupt(0);
   VDP_setHilightShadow(0);
   reset_text_colours();
   VDP_setTextPalette(0);
   PAL_setColor(0, 0x0000);
-  VDP_resetSprites();
 }
 
 /*
