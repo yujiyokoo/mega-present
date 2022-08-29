@@ -34,4 +34,7 @@ If you have a way of runnig your own code on the real Mega Drive unit, it should
 
 ## License
 
-This fork of mruby/c is released under the same licence as the orginal - Revised BSD License(aka 3-clause license).
+This fork of mruby/c is released under the same licence as the orginal - Revised BSD License (aka 3-clause license).
+
+The RubyKaigi logo has been imported from https://rubykaigi.org/2022/novelties/
+
