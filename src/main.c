@@ -506,7 +506,7 @@ static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
   int pos = mrbc_integer(v[1]);
   int size = mrbc_integer(v[2]);
 
-  int x = ((float)pos / (float)size * 304) + 8;
+  int x = ((float)pos / (float)size * 288);
 
   SPR_setPosition(ninja32red_obj, x, 192);
   // VDP_setSpriteFull(0, x, 220, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + vert), 1);
@@ -518,7 +518,7 @@ static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
   int s = getTick() / 300;
   int max = 300; // 5min
 
-  int x = (float)s / (float)max * 308;
+  int x = (float)s / (float)max * 288;
 
   SPR_setPosition(ninja32khaki_obj, x, 192);
 }
