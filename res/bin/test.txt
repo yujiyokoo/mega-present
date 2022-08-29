@@ -2,44 +2,8 @@
 -image,5,6,ruby:
 
 =
--title: How to develop: overview
-
--rect,5,4,10,2:
--txt,6,5:C source
--pause:
--tarrow,10,6,d,3:
--txt,12,7:compile
--pause:
--rect,5,9,10,2:
--txt,6,10:obj files
--pause:
--rect,20,11,14,2:
--txt,21,12:SGDK library
--tarrow,20,12,l,10:
--tarrow,10,11,d,5:
--txt,12,14:link
--rect,5,16,10,2:
--txt,6,17:rom.bin
--pause:
--txt,10,19:executable on Meaga Drive
-
-=
 -bgcol,FFF:
 -image,5,6,rubykaigi:
-
-=
--title: Arrow test
--tarrow,10,10,r,8:
--tarrow,10,11,l,8:
--tarrow,10,12,d,8:
--tarrow,11,20,u,8:
-
-=
--title: Arrow test
--arrow,10,10,r,8:
--arrow,10,11,l,8:
--arrow,10,12,d,8:
--arrow,11,20,u,8:
 
 =
 # 0x0FF0 = 4080
@@ -83,7 +47,6 @@ In Adelaide, AU
 @yujiyokoo
 
 github.com/yujiyokoo
--pause:
 -image,16,14,yuji:
 
 =
@@ -93,11 +56,11 @@ github.com/yujiyokoo
 =
 -title: What is Mega Drive?
 -pause:
--txt,5,5:* Sega Mega Drive
-R* eleased in 1989
-"16-BIT"
--pause:
--txt,5,9:* 30M units sold worldwide
+-txt,5,5:* Sega Mega Drive aka Genesis
+* Released in 1988
+* Motorola 68000
+* "16-BIT"
+* Over 30M units sold worldwide
 
 =
 -title: What is mruby?
@@ -143,16 +106,54 @@ R* eleased in 1989
 =
 -title: How to develop: overview
 
--rect,5,4,10,3,0:
+-rect,5,4,10,2:
 -txt,6,5:C source
 -pause:
--tarrow:10,6,d,3:
+-tarrow,10,6,d,3:
+-txt,12,7:compile
+-pause:
+-rect,5,9,10,2:
+-txt,6,10:obj files
+-pause:
+-rect,20,11,14,2:
+-txt,21,12:SGDK library
+-tarrow,20,12,l,10:
+-tarrow,10,11,d,5:
+-txt,12,14:link
+-rect,5,16,10,2:
+-txt,6,17:rom.bin
+-pause:
+-txt,10,19:executable on Meaga Drive
 
 =
 -title: How to develop
 
 =
+-title: SGDK
+-txt,3,5:Excellent Development Kit
+-txt,3,7:Provides C API
+-txt,3,9:* Many features
+-pause:
+-txt,5,11:* tiles, sprites, assets
+* scroll
+* sound
+* much more
+
+=
+-title: Mega Drive characteristics
+# Tiles
+# sprites
+# VDP
+# Sound
+# VSync
+=
 -title: Emulators vs real hardware
+-txt,3,5:Emulators are fantastic!
+-pause:
+-txt,3,6:Amazing debug features on
+Gens KMod
+-pause:
+-txt,3,8:BUT! It's not "real" Mega Drive
 
 =
 -title: Interesting issues
