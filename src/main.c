@@ -505,16 +505,14 @@ static void c_megamrbc_klog(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
-  uint16_t pos = mrbc_integer(v[1]);
+  uint16_t curr_page = mrbc_integer(v[1]);
   uint16_t start = mrbc_integer(v[2]);
-  uint16_t size = mrbc_integer(v[3]);
+  uint16_t last_page = mrbc_integer(v[3]);
 
-  uint16_t x = ((float)(pos - start) / (float)(size - start) * 288);
+  uint16_t x = ((float)(curr_page - start) / (float)(last_page - start) * 288);
 
   SPR_setPosition(ninja32red_obj, x, 192);
   SPR_setVisibility(ninja32red_obj, VISIBLE);
-  // VDP_setSpriteFull(0, x, 220, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + vert), 1);
-  // VDP_updateSprites(4, 1);
 }
 
 static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
@@ -523,6 +521,7 @@ static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
   uint16_t max = 300; // 5min
 
   uint16_t x = (float)s / (float)max * 288;
+  if(x > 288) x = 288;
 
   SPR_setPosition(ninja32khaki_obj, x, 192);
   SPR_setVisibility(ninja32khaki_obj, VISIBLE);

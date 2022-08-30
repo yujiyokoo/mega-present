@@ -7,6 +7,8 @@ def joypad_state(pad_num)
 end
 
 class Page
+  attr_reader :no_wait # if true, presentation won't wait for button press
+
   def initialize(content, presentation)
     @content = content
     @presentation = presentation
@@ -97,10 +99,11 @@ class Page
         len = cmd[1].to_i
         MegaMrbc.sleep_raw(len)
       elsif line.start_with? "-titlescreen:"
+        @no_wait = true
         @presentation.title_screen
       elsif line.start_with? "-initprogress:"
         @presentation.set_start_page
-      elsif line.start_with? "-inittimer:"
+      elsif line.start_with? "-resettimer:"
         @presentation.set_timer_start
       elsif @curr_mode == :text
         draw_text(line, @x, @y+=1)
@@ -311,7 +314,7 @@ class Presentation
       page.render
       wait_vblank(@show_timer)
 
-      cmd = wait_cmd
+      cmd = wait_cmd unless page.no_wait
     end
   end
 
@@ -361,7 +364,7 @@ class Presentation
 
   def wait_vblank(show_timer = true)
     if show_timer
-      MegaMrbc.show_progress(@index, @start_idx.to_i, @pages.size) if @index && @pages
+      MegaMrbc.show_progress(@index, @start_idx.to_i, @pages.size - 1) if @index && @pages
       MegaMrbc.show_timer(@start_tick || 0)
     else
       MegaMrbc.hide_progress

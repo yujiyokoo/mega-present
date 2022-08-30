@@ -7,12 +7,12 @@
 -image,5,6,rubykaigi:
 
 =
--hidetimer:
+-sethidetimer:
 -titlescreen:
 
 =
 -initprogress:
--inittimer:
+-resettimer:
 -setshowtimer:
 -setcolour,15,FFF:
 -setcolour,31,2F2:
