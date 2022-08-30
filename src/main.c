@@ -509,6 +509,7 @@ static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
   int x = ((float)pos / (float)size * 288);
 
   SPR_setPosition(ninja32red_obj, x, 192);
+  SPR_setVisibility(ninja32red_obj, VISIBLE);
   // VDP_setSpriteFull(0, x, 220, SPRITE_SIZE(1,1), TILE_ATTR_FULL(0,HIPRIO,VNOFLIP,HNOFLIP,TILE_USERINDEX + vert), 1);
   // VDP_updateSprites(4, 1);
 }
@@ -521,6 +522,15 @@ static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
   int x = (float)s / (float)max * 288;
 
   SPR_setPosition(ninja32khaki_obj, x, 192);
+  SPR_setVisibility(ninja32khaki_obj, VISIBLE);
+}
+
+static void c_megamrbc_hide_timer(mrb_vm *vm, mrb_value *v, int argc) {
+  SPR_setVisibility(ninja32khaki_obj, HIDDEN);
+}
+
+static void c_megamrbc_hide_progress(mrb_vm *vm, mrb_value *v, int argc) {
+  SPR_setVisibility(ninja32red_obj, HIDDEN);
 }
 
 // sleep, but time is specificed in 1/300s
@@ -654,6 +664,8 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "klog", c_megamrbc_klog);
   mrbc_define_method(vm, cls, "show_progress", c_megamrbc_show_progress);
   mrbc_define_method(vm, cls, "show_timer", c_megamrbc_show_timer);
+  mrbc_define_method(vm, cls, "hide_progress", c_megamrbc_hide_progress);
+  mrbc_define_method(vm, cls, "hide_timer", c_megamrbc_hide_timer);
   mrbc_define_method(vm, cls, "sleep_raw", c_megamrbc_sleep);
   mrbc_define_method(vm, cls, "set_bg_colour", c_megamrbc_set_bg_colour);
   mrbc_define_method(vm, cls, "draw_arrow_r", c_megamrbc_draw_arrow_r);

@@ -6,35 +6,10 @@ def joypad_state(pad_num)
   MegaMrbc.read_joypad(pad_num)
 end
 
-def wait_vblank
-  MegaMrbc.wait_vblank
-end
-
-def wait_cmd
-  prev = joypad_state(0)
-  state = 0
-  while true do
-    MegaMrbc.call_rand # help random seem more random
-    state = joypad_state(0)
-    if (state & 0x80 & ~prev) != 0 # start
-      wait_vblank
-      return :fwd
-    elsif (state & 0x40 & ~prev) != 0 # a
-      wait_vblank
-      return :fwd
-    elsif (state & 0x10 & ~prev) != 0 # b
-      wait_vblank
-      return :back
-    end
-    # also c is 0x20
-    prev = state
-    wait_vblank
-  end
-end
-
 class Page
-  def initialize(content)
+  def initialize(content, presentation)
     @content = content
+    @presentation = presentation
   end
 
   def render
@@ -72,7 +47,7 @@ class Page
         MegaMrbc.set_txt_pal(pal)
       elsif line.start_with? "-pause:"
         @curr_mode = nil
-        wait_cmd # do not care about which button
+        @presentation.wait_cmd # do not care about which button
       elsif line.start_with? "-image,"
         @curr_mode = nil
         cmd = line.split(":")[0].split(",")
@@ -305,7 +280,6 @@ class Presentation
 
   def initialize
     @pages ||= MegaMrbc.read_content.split("\n=")
-    MegaMrbc.show_progress(0, @pages.size)
   end
 
   def begin_presentation
@@ -326,7 +300,6 @@ class Presentation
         page = prev_page
       end
       page.render
-      MegaMrbc.show_timer()
       wait_vblank
 
       cmd = wait_cmd
@@ -337,16 +310,47 @@ class Presentation
     @index ||= -1
     @index += 1
     @page = @pages[@index]
-    MegaMrbc.show_progress(@index, @pages.size)
-    return Page.new(@page)
+    return Page.new(@page, self)
   end
 
   def prev_page
     @index ||= 0
     @index -= 1 unless @index < 1
     @page = @pages[@index]
-    MegaMrbc.show_progress(@index, @pages.size)
-    return Page.new(@page)
+    return Page.new(@page, self)
+  end
+
+  def wait_cmd
+    prev = joypad_state(0)
+    state = 0
+    returning = nil
+    while true do
+      MegaMrbc.call_rand # help random seem more random
+      state = joypad_state(0)
+      if (state & 0x80 & ~prev) != 0 # start
+        returning = :fwd
+      elsif (state & 0x40 & ~prev) != 0 # a
+        returning = :fwd
+      elsif (state & 0x10 & ~prev) != 0 # b
+        returning = :back
+      end
+      # also c is 0x20
+      prev = state
+      wait_vblank
+      break if returning
+    end
+    return returning
+  end
+
+  def wait_vblank(show_timer = true)
+    if show_timer
+      MegaMrbc.show_progress(@index, @pages.size) if @index && @pages
+      MegaMrbc.show_timer
+    else
+      MegaMrbc.hide_progress
+      MegaMrbc.hide_timer
+    end
+    MegaMrbc.wait_vblank
   end
 
   def wait_start_with_message
@@ -365,7 +369,7 @@ class Presentation
       break if (state & 0x80) != 0
       count = 0 if count > 60 # count resets at 60
       count += 1
-      wait_vblank
+      wait_vblank(false)
     end
     MegaMrbc.play_se
   end
