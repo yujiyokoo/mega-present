@@ -43,7 +43,6 @@ class Page
         @curr_mode = nil
         cmd = line.split(":")[0].split(",")
         pal = cmd[1]
-        draw_text("setting pal: #{pal}", 1, 27)
         MegaMrbc.set_txt_pal(pal)
       elsif line.start_with? "-pause:"
         @curr_mode = nil
@@ -362,11 +361,9 @@ class Presentation
 
   def wait_vblank(show_timer = true)
     if show_timer
-      MegaMrbc.klog("showing")
-      MegaMrbc.show_progress(@index - @start_idx.to_i, @pages.size) if @index && @pages
+      MegaMrbc.show_progress(@index, @start_idx.to_i, @pages.size) if @index && @pages
       MegaMrbc.show_timer(@start_tick || 0)
     else
-      MegaMrbc.klog("hiding")
       MegaMrbc.hide_progress
       MegaMrbc.hide_timer
     end

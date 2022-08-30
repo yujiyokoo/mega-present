@@ -505,10 +505,11 @@ static void c_megamrbc_klog(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
-  int pos = mrbc_integer(v[1]);
-  int size = mrbc_integer(v[2]);
+  uint16_t pos = mrbc_integer(v[1]);
+  uint16_t start = mrbc_integer(v[2]);
+  uint16_t size = mrbc_integer(v[3]);
 
-  int x = ((float)pos / (float)size * 288);
+  uint16_t x = ((float)(pos - start) / (float)(size - start) * 288);
 
   SPR_setPosition(ninja32red_obj, x, 192);
   SPR_setVisibility(ninja32red_obj, VISIBLE);
