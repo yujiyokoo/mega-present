@@ -379,7 +379,9 @@ static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
     TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_USERINDEX + last + 1 + sky_bg.tileset->numTile),
     5, 10, FALSE, TRUE
   );
+}
 
+static void init_ninjas() {
   ninja32khaki_obj = SPR_addSprite(&ninja32x32khaki, 80, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
 
   ninja32red_obj = SPR_addSprite(&ninja32x32red, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
@@ -515,14 +517,18 @@ static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
-  char buf[8];
-  int s = getTick() / 300;
-  int max = 300; // 5min
+  uint16_t start_tick = mrbc_integer(v[1]);
+  uint16_t s = (getTick() - start_tick) / 300;
+  uint16_t max = 300; // 5min
 
-  int x = (float)s / (float)max * 288;
+  uint16_t x = (float)s / (float)max * 288;
 
   SPR_setPosition(ninja32khaki_obj, x, 192);
   SPR_setVisibility(ninja32khaki_obj, VISIBLE);
+}
+
+static void c_megamrbc_get_current_tick(mrb_vm *vm, mrb_value *v, int argc) {
+  SET_INT_RETURN( getTick() );
 }
 
 static void c_megamrbc_hide_timer(mrb_vm *vm, mrb_value *v, int argc) {
@@ -664,6 +670,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "klog", c_megamrbc_klog);
   mrbc_define_method(vm, cls, "show_progress", c_megamrbc_show_progress);
   mrbc_define_method(vm, cls, "show_timer", c_megamrbc_show_timer);
+  mrbc_define_method(vm, cls, "get_current_tick", c_megamrbc_get_current_tick);
   mrbc_define_method(vm, cls, "hide_progress", c_megamrbc_hide_progress);
   mrbc_define_method(vm, cls, "hide_timer", c_megamrbc_hide_timer);
   mrbc_define_method(vm, cls, "sleep_raw", c_megamrbc_sleep);
@@ -746,6 +753,7 @@ static void joy_event_handler(u16 pad_num, u16 changed, u16 state) {
 
 int main(void) {
   init_screen();
+  init_ninjas();
   JOY_init();
   JOY_setEventHandler(&joy_event_handler);
   XGM_setPCM(SE_TEST, se_test, sizeof(se_test));

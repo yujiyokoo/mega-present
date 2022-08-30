@@ -1,3 +1,4 @@
+-sethidetimer:
 -sleep_raw,300:
 -image,5,6,ruby:
 
@@ -6,8 +7,13 @@
 -image,5,6,rubykaigi:
 
 =
-# 0x0FF0 = 4080
-# TODO: setcolour not working?
+-hidetimer:
+-titlescreen:
+
+=
+-initprogress:
+-inittimer:
+-setshowtimer:
 -setcolour,15,FFF:
 -setcolour,31,2F2:
 -setcolour,47,22F:

@@ -48,6 +48,10 @@ class Page
       elsif line.start_with? "-pause:"
         @curr_mode = nil
         @presentation.wait_cmd # do not care about which button
+      elsif line.start_with? "-setshowtimer:"
+        @presentation.show_timer = true
+      elsif line.start_with? "-sethidetimer:"
+        @presentation.show_timer = false
       elsif line.start_with? "-image,"
         @curr_mode = nil
         cmd = line.split(":")[0].split(",")
@@ -93,6 +97,12 @@ class Page
         cmd = line.split(":")[0].split(",")
         len = cmd[1].to_i
         MegaMrbc.sleep_raw(len)
+      elsif line.start_with? "-titlescreen:"
+        @presentation.title_screen
+      elsif line.start_with? "-initprogress:"
+        @presentation.set_start_page
+      elsif line.start_with? "-inittimer:"
+        @presentation.set_timer_start
       elsif @curr_mode == :text
         draw_text(line, @x, @y+=1)
       elsif @curr_mode == :code
@@ -274,6 +284,8 @@ class Page
 end
 
 class Presentation
+  attr_accessor :show_timer
+
   def self.start
     self.new.begin_presentation
   end
@@ -283,8 +295,6 @@ class Presentation
   end
 
   def begin_presentation
-    MegaMrbc.test_func
-    wait_start_with_message
     main_loop
   end
 
@@ -293,14 +303,14 @@ class Presentation
     cmd = :fwd
     while running do
       MegaMrbc.clear_screen
-      wait_vblank
+      wait_vblank(@show_timer)
       if cmd == :fwd
         page = next_page unless @index >= (@pages.size - 1)
       elsif cmd == :back
         page = prev_page
       end
       page.render
-      wait_vblank
+      wait_vblank(@show_timer)
 
       cmd = wait_cmd
     end
@@ -320,6 +330,10 @@ class Presentation
     return Page.new(@page, self)
   end
 
+  def set_start_page
+    @start_idx = @index
+  end
+
   def wait_cmd
     prev = joypad_state(0)
     state = 0
@@ -336,26 +350,33 @@ class Presentation
       end
       # also c is 0x20
       prev = state
-      wait_vblank
+      wait_vblank(@show_timer)
       break if returning
     end
     return returning
   end
 
+  def set_timer_start
+    @start_tick = MegaMrbc.get_current_tick
+  end
+
   def wait_vblank(show_timer = true)
     if show_timer
-      MegaMrbc.show_progress(@index, @pages.size) if @index && @pages
-      MegaMrbc.show_timer
+      MegaMrbc.klog("showing")
+      MegaMrbc.show_progress(@index - @start_idx.to_i, @pages.size) if @index && @pages
+      MegaMrbc.show_timer(@start_tick || 0)
     else
+      MegaMrbc.klog("hiding")
       MegaMrbc.hide_progress
       MegaMrbc.hide_timer
     end
     MegaMrbc.wait_vblank
   end
 
-  def wait_start_with_message
+  def title_screen
     state = 0
     count = 0
+    MegaMrbc.test_func
     # draw_text("MegaRuby-Present", 12, 10)
     while true do
       MegaMrbc.scroll_one_step
