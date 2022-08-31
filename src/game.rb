@@ -314,7 +314,11 @@ class Presentation
       page.render
       wait_vblank(@show_timer)
 
-      cmd = wait_cmd unless page.no_wait
+      if page.no_wait
+        cmd = :fwd # you cannot go back past the no_wait page (title screen)
+      else
+        cmd = wait_cmd
+      end
     end
   end
 
@@ -322,6 +326,7 @@ class Presentation
     @index ||= -1
     @index += 1
     @page = @pages[@index]
+    MegaMrbc.klog("next, index is #{@index}")
     return Page.new(@page, self)
   end
 
@@ -329,6 +334,7 @@ class Presentation
     @index ||= 0
     @index -= 1 unless @index < 1
     @page = @pages[@index]
+    MegaMrbc.klog("prev, index is #{@index}")
     return Page.new(@page, self)
   end
 
@@ -377,7 +383,7 @@ class Presentation
     state = 0
     count = 0
     MegaMrbc.test_func
-    # draw_text("MegaRuby-Present", 12, 10)
+    prev = joypad_state(0)
     while true do
       MegaMrbc.scroll_one_step
       MegaMrbc.call_rand # help random seem more random
@@ -387,9 +393,10 @@ class Presentation
         draw_text("           ", 14, 18)
       end
       state = joypad_state(0)
-      break if (state & 0x80) != 0
+      break if (state & 0x80 & ~prev) != 0 # start
       count = 0 if count > 60 # count resets at 60
       count += 1
+      prev = state
       wait_vblank(false)
     end
     MegaMrbc.play_se
