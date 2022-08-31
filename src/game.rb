@@ -21,7 +21,7 @@ class Page
 
       if line.start_with? "-title:"
         @curr_mode = nil
-        title = line.split("-title:")[1].strip
+        title = line.split("-title:")[1]
         text_centre(title, 0)
       elsif line.start_with? "-txt,"
         @curr_mode = :text
@@ -293,7 +293,7 @@ class Presentation
   end
 
   def initialize
-    @pages ||= MegaMrbc.read_content.split("\n=")
+    @pages ||= MegaMrbc.read_content.split("\n=\n")
   end
 
   def begin_presentation
@@ -304,8 +304,8 @@ class Presentation
     running = true
     cmd = :fwd
     while running do
-      MegaMrbc.clear_screen
       wait_vblank(@show_timer)
+      MegaMrbc.clear_screen
       if cmd == :fwd
         page = next_page unless @index >= (@pages.size - 1)
       elsif cmd == :back
