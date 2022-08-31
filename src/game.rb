@@ -7,8 +7,6 @@ def joypad_state(pad_num)
 end
 
 class Page
-  attr_reader :no_wait # if true, presentation won't wait for button press
-
   def initialize(content, presentation)
     @content = content
     @presentation = presentation
@@ -48,7 +46,9 @@ class Page
         MegaMrbc.set_txt_pal(pal)
       elsif line.start_with? "-pause:"
         @curr_mode = nil
-        @presentation.wait_cmd # do not care about which button
+        if @presentation.wait_cmd == :reload
+          return :reload
+        end
       elsif line.start_with? "-setshowtimer:"
         @presentation.show_timer = true
       elsif line.start_with? "-sethidetimer:"
@@ -99,8 +99,8 @@ class Page
         len = cmd[1].to_i
         MegaMrbc.sleep_raw(len)
       elsif line.start_with? "-titlescreen:"
-        @no_wait = true
         @presentation.title_screen
+        return :fwd
       elsif line.start_with? "-initprogress:"
         @presentation.set_start_page
       elsif line.start_with? "-resettimer:"
@@ -111,6 +111,7 @@ class Page
         render_code_line(line, @x, @y+=1)
       end
     end
+    return nil
   end
 
   def draw_t_horzontal(curr_x, x, y, direction, start_t)
@@ -311,11 +312,12 @@ class Presentation
       elsif cmd == :back
         page = prev_page
       end
-      page.render
+      page_cmd = page.render
       wait_vblank(@show_timer)
 
-      if page.no_wait
-        cmd = :fwd # you cannot go back past the no_wait page (title screen)
+      # if render returns cmd, use it. Otherwise wait for cmd
+      if page_cmd
+        cmd = page_cmd
       else
         cmd = wait_cmd
       end
@@ -355,8 +357,9 @@ class Presentation
         returning = :fwd
       elsif (state & 0x10 & ~prev) != 0 # b
         returning = :back
+      elsif (state & 0x20 & ~prev) != 0 # b
+        returning = :reload
       end
-      # also c is 0x20
       prev = state
       wait_vblank(@show_timer)
       break if returning
