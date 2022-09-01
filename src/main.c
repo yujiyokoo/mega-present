@@ -475,6 +475,8 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
     image = &ruby;
   } else if(strncmp(img_name, "rubykaigi", sizeof("rubykaigi")) == 0) {
     image = &rubykaigi;
+  } else if(strncmp(img_name, "mrubykaigi", sizeof("mrubykaigi")) == 0) {
+    image = &mrubykaigi;
   }
 
   PAL_setPaletteDMA(PAL3, image->palette->data);
@@ -757,6 +759,7 @@ int main(void) {
   JOY_init();
   JOY_setEventHandler(&joy_event_handler);
   XGM_setPCM(SE_TEST, se_test, sizeof(se_test));
+  VDP_loadFont(custom_font.tileset, DMA);
 
   // set_up_colours();
   load_tiles();

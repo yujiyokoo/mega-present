@@ -105,6 +105,8 @@ class Page
         @presentation.set_start_page
       elsif line.start_with? "-resettimer:"
         @presentation.set_timer_start
+      elsif line.start_with? "-playsound:"
+        MegaMrbc.play_se
       elsif @curr_mode == :text
         draw_text(line, @x, @y+=1)
       elsif @curr_mode == :code
@@ -402,7 +404,6 @@ class Presentation
       prev = state
       wait_vblank(false)
     end
-    MegaMrbc.play_se
   end
 end
 

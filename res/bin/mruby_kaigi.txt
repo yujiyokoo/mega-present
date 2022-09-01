@@ -1,0 +1,186 @@
+-title: Development overview
+
+-rect,5,4,10,2:
+-txt,6,5:C source
+-pause:
+-rect,24,4,10,2:
+-txt,25,5:resource
+-tarrow,29,6,d,3:
+-txt,31,7: compile
+-pause:
+-tarrow,10,6,d,3:
+-txt,12,7:cross compile
+-pause:
+-rect,5,9,10,2:
+-txt,6,10:obj files
+-pause:
+-rect,20,14,14,2:
+-txt,21,15:SGDK library
+-tarrow,20,15,l,10:
+-tarrow,10,11,d,8:
+-txt,12,17:link and other SGDK things
+-rect,5,19,10,2:
+-txt,6,20:rom.bin
+-pause:
+-txt,10,19:executable on Meaga Drive
+
+
+=
+-sethidetimer:
+-sleep_raw,300:
+-image,5,6,ruby:
+
+=
+-bgcol,FFF:
+-image,6,6,mrubykaigi:
+
+=
+-sethidetimer:
+-titlescreen:
+
+=
+-initprogress:
+-resettimer:
+
+#=
+#-setshowtimer:
+#-setcolour,15,FFF:
+#-setcolour,31,2F2:
+#-setcolour,47,22F:
+#-setcolour,63,FF2:
+#-title: Log function example
+#-code,1,3:
+#static void c_klog(
+#  mrb_vm *vm, mrb_value *v, int argc
+#) {
+#  char *str = mrbc_string_cstr(&v[1]);
+#
+#  KLog(str);
+#}
+#
+#=
+#-title: Define callable method
+#-code,1,3:
+#mrb_class *cls =
+#   mrbc_define_class(
+#     vm, "TestClass", mrbc_class_object
+#   );
+#
+#mrbc_define_method(
+#  vm, cls, "klog", c_klog
+#);
+#
+#=
+#-title: Calling the method
+#-code,1,3:
+#TestClass.klog("str #{v}")
+
+#=
+#-title: Megaruby:
+#-txt,1,3:Running mruby/c programs
+#-setcolour,31,FF0:
+#-txtpal,1:
+#-txt,2,4,bg0:on Sega Mega Drive
+## comment line
+#-pause:
+#-txt,10,11:let's go!
+
+=
+-title: This app
+-txt,10,5:Mega Present
+
+* Another presentation app
+
+* Runs on Mega Drive
+
+-image,16,15,yuji:
+
+
+#=
+#-title: Adelaide
+#-image,6,4,australia:
+
+=
+-title: What is Mega Drive?
+-pause:
+-txt,5,5:* Sega Mega Drive aka Genesis
+
+* Released in 1988
+
+* Motorola 68000
+
+* "16-BIT"
+
+* Over 30M units sold worldwide
+
+=
+-title: SGDK
+-txt,3,5:Sega Genesis Development Kit
+-txt,3,7:Provides C API
+-txt,3,9:* Many features
+-pause:
+-txt,5,11:* tiles, sprites, assets
+* scroll
+* sound
+-pause:
+-playsound:
+-pause:
+-playsound:
+-pause:
+-playsound:
+-pause:
+-txt,5,14:
+* much more
+
+=
+-title: What is mruby/c?
+-pause:
+-txt,3,5:A project that makes a compact VM
+
+ from
+  Shimane IT Open-Innovation Center
+
+ and
+  Kyushu Institute of Technology
+
+=
+-title: Development overview
+
+-rect,5,4,10,2:
+-txt,6,5:C source
+-pause:
+-tarrow,10,6,d,3:
+-txt,12,7:cross compile
+-pause:
+-rect,5,9,10,2:
+-txt,6,10:obj files
+-pause:
+-rect,20,11,14,2:
+-txt,21,12:SGDK library
+-tarrow,20,12,l,10:
+-tarrow,10,11,d,5:
+-txt,12,14:link and other SGDK things
+-rect,5,16,10,2:
+-txt,6,17:rom.bin
+-pause:
+-txt,10,19:executable on Meaga Drive
+
+
+#=
+#-title: Mega Drive characteristics
+# Tiles
+# sprites
+# VDP
+# Sound
+# VSync
+#=
+#-title: Emulators vs real hardware
+#-txt,3,5:Emulators are fantastic!
+#-pause:
+#-txt,3,6:Amazing debug features on
+#Gens KMod
+#-pause:
+#-txt,3,8:BUT! It's not "real" Mega Drive
+
+=
+-title: Interesting issues
