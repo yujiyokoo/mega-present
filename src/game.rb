@@ -20,7 +20,7 @@ class Page
       if line.start_with? "-title:"
         @curr_mode = nil
         title = line.split("-title:")[1]
-        text_centre(title, 0)
+        draw_text(title, 2, 0)
       elsif line.start_with? "-txt,"
         @curr_mode = :text
         cmd = line.split(":")[0].split(",")
@@ -281,10 +281,6 @@ class Page
     end
 
     draw_text(term, x, y)
-  end
-
-  def text_centre(txt, row)
-    draw_text(txt, 20 - (txt.length / 2), row)
   end
 end
 

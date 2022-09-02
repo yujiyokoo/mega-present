@@ -1,46 +1,13 @@
--title: Development overview
-
--rect,5,4,10,2:
--txt,6,5:C source
--pause:
--rect,24,4,10,2:
--txt,25,5:resource
--tarrow,29,6,d,3:
--txt,31,7: compile
--pause:
--tarrow,10,6,d,3:
--txt,12,7:cross compile
--pause:
--rect,5,9,10,2:
--txt,6,10:obj files
--pause:
--rect,20,14,14,2:
--txt,21,15:SGDK library
--tarrow,20,15,l,10:
--tarrow,10,11,d,8:
--txt,12,17:link and other SGDK things
--rect,5,19,10,2:
--txt,6,20:rom.bin
--pause:
--txt,10,19:executable on Meaga Drive
-
-
-=
 -sethidetimer:
--sleep_raw,300:
 -image,5,6,ruby:
 
 =
 -bgcol,FFF:
--image,6,6,mrubykaigi:
+-image,6,6,rubykaigi:
 
 =
 -sethidetimer:
 -titlescreen:
-
-=
--initprogress:
--resettimer:
 
 #=
 #-setshowtimer:
@@ -86,14 +53,29 @@
 #-txt,10,11:let's go!
 
 =
+-initprogress:
+-resettimer:
+-setshowtimer:
+
+-title: About me
+-txt,10,5:Yuji Yokoo
+
+Adelaide, AU
+
+Programmer
+
+GitHub/Twitter
+@yujiyokoo
+
+-image,16,14,yuji:
+
+=
 -title: This app
 -txt,10,5:Mega Present
 
 * Another presentation app
 
 * Runs on Mega Drive
-
--image,16,15,yuji:
 
 
 #=
@@ -127,8 +109,6 @@
 -pause:
 -playsound:
 -pause:
--playsound:
--pause:
 -txt,5,14:
 * much more
 
@@ -146,8 +126,15 @@
 =
 -title: Development overview
 
--rect,5,4,10,2:
--txt,6,5:C source
+-rect,1,2,18,4:
+-txt,2,3:C source
+-pause:
+-txt,2,4:mruby/c source
+-pause:
+-txt,2,5:compiled bytecode
+-pause:
+-rect,24,4,10,2:
+-txt,25,5:resource
 -pause:
 -tarrow,10,6,d,3:
 -txt,12,7:cross compile
@@ -155,32 +142,44 @@
 -rect,5,9,10,2:
 -txt,6,10:obj files
 -pause:
--rect,20,11,14,2:
--txt,21,12:SGDK library
--tarrow,20,12,l,10:
--tarrow,10,11,d,5:
--txt,12,14:link and other SGDK things
--rect,5,16,10,2:
--txt,6,17:rom.bin
+-tarrow,29,6,d,5:
+-txt,30,7: compile
 -pause:
--txt,10,19:executable on Meaga Drive
+-rect,20,11,18,2:
+-txt,21,12:compiled resource
+-pause:
+-tarrow,20,12,l,10:
+-pause:
+-rect,20,14,14,2:
+-txt,21,15:SGDK library
+-tarrow,20,15,l,10:
+-tarrow,10,11,d,8:
+-txt,12,17:link and other SGDK things
+-rect,5,19,10,2:
+-txt,6,20:rom.bin
+-pause:
+-txt,10,22:executable on Meaga Drive
 
-
-#=
-#-title: Mega Drive characteristics
-# Tiles
-# sprites
-# VDP
-# Sound
-# VSync
-#=
-#-title: Emulators vs real hardware
-#-txt,3,5:Emulators are fantastic!
-#-pause:
-#-txt,3,6:Amazing debug features on
-#Gens KMod
-#-pause:
-#-txt,3,8:BUT! It's not "real" Mega Drive
 
 =
--title: Interesting issues
+-title: Links
+-txt,5,7:
+
+Demo game:
+github.com/yujiyokoo/mega-mrubyc
+
+
+This presentation tool:
+github.com/yujiyokoo/mega-present
+
+=
+-title: Thanks
+-txt,5,7:
+* mruby developrs
+
+* mruby/c developrs
+
+* SGDK developers
+
+* Gendev developers
+
