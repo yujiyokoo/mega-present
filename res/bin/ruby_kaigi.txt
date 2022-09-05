@@ -1,5 +1,40 @@
 -sethidetimer:
--sleep_raw,300:
+-demogame:
+
+=
+-txt,3,2:
+* main.c - Entry point.
+    Loads mruby/c vm and mruby byte code
+
+* game.rb - Ruby source.
+    Main logic is in here
+
+* game.c - Bytecode (in C)
+    Generated from game.rb above
+
+* res/resource.h - resource header file
+    Compiled from resource.res
+
+=
+-title: Define callable method
+-code,1,3:
+mrb_class *cls =
+   mrbc_define_class(
+     vm, "TestClass", mrbc_class_object
+   );
+
+mrbc_define_method(
+  vm, cls, "klog", c_klog
+);
+
+=
+-title: Calling the method
+-code,1,3:
+TestClass.klog("str #{v}")
+
+=
+
+-sethidetimer:
 -image,5,6,ruby:
 
 =

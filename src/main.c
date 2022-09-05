@@ -363,6 +363,7 @@ static void c_megamrbc_call_rand(mrb_vm *vm, mrb_value *v, int argc) {
 
 Sprite* ninja32khaki_obj;
 Sprite* ninja32red_obj;
+Sprite* ninja32black_obj;
 
 static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
   PAL_setPaletteDMA(PAL0, sky_bg.palette->data);
@@ -372,8 +373,8 @@ static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
     0, 0, FALSE, TRUE
   );
 
-  // use red ninja palette which includes main logo palette
-  VDP_setPalette(PAL1, ninja32x32red.palette->data);
+  // use black ninja palette which includes main logo palette
+  VDP_setPalette(PAL1, ninja32x32black.palette->data);
   VDP_drawImageEx(
     BG_A, &main_logo,
     TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_USERINDEX + last + 1 + sky_bg.tileset->numTile),
@@ -386,8 +387,32 @@ static void init_ninjas() {
 
   ninja32red_obj = SPR_addSprite(&ninja32x32red, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
 
+  ninja32black_obj = SPR_addSprite(&ninja32x32black, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
   // VDP_updateSprites(highestVDPSpriteIndex + 2, 1);
   // reset_text_colours();
+}
+
+static void c_megamrbc_show_game_bg(mrb_vm *vm, mrb_value *v, int argc) {
+  PAL_setPaletteDMA(PAL0, sky_bg.palette->data);
+  VDP_drawImageEx(
+    BG_B, &sky_bg,
+    TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, TILE_USERINDEX + last + 1),
+    0, 0, FALSE, TRUE
+  );
+
+  VDP_drawImageEx(
+    BG_A, &mountains_bg,
+    TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, TILE_USERINDEX + last + 1 + sky_bg.tileset->numTile),
+    0, 28, FALSE, TRUE
+  );
+}
+
+static void c_megamrbc_show_runner(mrb_vm *vm, mrb_value *v, int argc) {
+  uint16_t v_pos = mrbc_integer(v[1]);
+  // let's set ninjas' pallette
+  VDP_setPalette(PAL1, ninja32x32black.palette->data);
+  SPR_setPosition(ninja32black_obj, 130, 180 + v_pos);
+  SPR_setVisibility(ninja32black_obj, VISIBLE);
 }
 
 // currently unused
@@ -447,13 +472,21 @@ static void c_megamrbc_read_joypad(mrb_vm *vm, mrb_value *v, int argc) {
   SET_INT_RETURN(joy_pressed);
 }
 
-static void c_megamrbc_scroll_one_step(mrb_vm *vm, mrb_value *v, int argc) {
+static void c_megamrbc_scroll_title(mrb_vm *vm, mrb_value *v, int argc) {
   static int offset_a = 0;
   static int offset_b = 0;
   static uint8_t scrollspeed_a = 2;
   static uint8_t scrollspeed_b = 1;
   VDP_setHorizontalScroll(BG_B, offset_b -= scrollspeed_b);
-  // VDP_setHorizontalScroll(BG_A, offset_a -= scrollspeed_a);
+}
+
+static void c_megamrbc_scroll_game(mrb_vm *vm, mrb_value *v, int argc) {
+  static int offset_a = 0;
+  static int offset_b = 0;
+  static uint8_t scrollspeed_a = 4;
+  static uint8_t scrollspeed_b = 2;
+  VDP_setHorizontalScroll(BG_B, offset_b -= scrollspeed_b);
+  VDP_setHorizontalScroll(BG_A, offset_a -= scrollspeed_a);
 }
 
 static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
@@ -520,7 +553,7 @@ static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
 static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
   uint16_t start_tick = mrbc_integer(v[1]);
   uint16_t s = (getTick() - start_tick) / 300;
-  uint16_t max = 300; // 5min
+  uint16_t max = 1500; // 25min
 
   uint16_t x = (float)s / (float)max * 288;
   if(x > 288) x = 288;
@@ -661,12 +694,15 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "random_answer", c_megamrbc_random_answer);
   mrbc_define_method(vm, cls, "call_rand", c_megamrbc_call_rand);
   mrbc_define_method(vm, cls, "test_func", c_test_func);
+  mrbc_define_method(vm, cls, "show_game_bg", c_megamrbc_show_game_bg);
+  mrbc_define_method(vm, cls, "show_runner", c_megamrbc_show_runner);
   // Maybe not needed???
   mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);
   mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content);
   mrbc_define_method(vm, cls, "set_pal_colour", c_megamrbc_set_pal_colour);
   mrbc_define_method(vm, cls, "set_txt_pal", c_megamrbc_set_txt_pal);
-  mrbc_define_method(vm, cls, "scroll_one_step", c_megamrbc_scroll_one_step);
+  mrbc_define_method(vm, cls, "scroll_title", c_megamrbc_scroll_title);
+  mrbc_define_method(vm, cls, "scroll_game", c_megamrbc_scroll_game);
   mrbc_define_method(vm, cls, "draw_image", c_megamrbc_draw_image);
   mrbc_define_method(vm, cls, "draw_bg", c_megamrbc_draw_bg);
   mrbc_define_method(vm, cls, "klog", c_megamrbc_klog);

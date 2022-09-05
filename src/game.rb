@@ -101,6 +101,9 @@ class Page
       elsif line.start_with? "-titlescreen:"
         @presentation.title_screen
         return :fwd
+      elsif line.start_with? "-demogame:"
+        @presentation.demo_game
+        return :fwd
       elsif line.start_with? "-initprogress:"
         @presentation.set_start_page
       elsif line.start_with? "-resettimer:"
@@ -380,13 +383,45 @@ class Presentation
     MegaMrbc.wait_vblank
   end
 
+  def demo_game
+    MegaMrbc.show_game_bg
+    self.show_timer = true
+    MegaMrbc.show_timer(0)
+    # show sky scrolling
+    # show mountains scrolling
+    # show sprite
+    pad_state = 0
+    v_pos = 0
+    v_vel = 0
+    prev = joypad_state(0)
+    while true do
+      MegaMrbc.scroll_game
+      MegaMrbc.call_rand # help random seem more random
+      pad_state = joypad_state(0)
+      break if (pad_state & 0x80 & ~prev) != 0 # start
+      MegaMrbc.klog("v_pos: #{v_pos}, v_vel: #{v_vel}")
+      if v_pos == 0 && (pad_state & 0x40 & ~prev) != 0 # a
+        MegaMrbc.klog("A pressed")
+        v_vel = -20
+      else
+        v_vel += 2
+        v_vel = 0 if v_vel > 20
+      end
+      v_pos += v_vel
+      v_pos = v_vel = 0 if v_pos >= 0
+      prev = pad_state
+      MegaMrbc.show_runner(v_pos)
+      wait_vblank(false)
+    end
+  end
+
   def title_screen
     state = 0
     count = 0
     MegaMrbc.test_func
     prev = joypad_state(0)
     while true do
-      MegaMrbc.scroll_one_step
+      MegaMrbc.scroll_title
       MegaMrbc.call_rand # help random seem more random
       if count / 30 >= 1 # switch every 0.5s
         draw_text("Press start", 14, 18)
