@@ -48,7 +48,7 @@ index 103f6da..00a7c63 100644
 diff --git b/gendev/sgdkv1.62/mkfiles/makefile.gen a/gendev-patched/sgdkv1.62/mkfiles/makefile.gen
 index 709b276..f665685 100644
 --- b/gendev/sgdkv1.62/mkfiles/makefile.gen
-+++ a/gendev-patchepatched/mkfiles/makefile.gen
++++ a/gendev-patched/sgdkv1.62/mkfiles/makefile.gen
 @@ -150,7 +150,7 @@ out/symbol.txt: out/rom.out
  	$(NM) --plugin=liblto_plugin-0.dll -n out/rom.out > out/symbol.txt
  
