@@ -3,7 +3,7 @@
 
 =
 -bgcol,FFF:
--image,6,6,rubykaigi:
+-image,6,6,mrubykaigi:
 
 =
 -sethidetimer:
