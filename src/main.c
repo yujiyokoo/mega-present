@@ -364,6 +364,7 @@ static void c_megamrbc_call_rand(mrb_vm *vm, mrb_value *v, int argc) {
 Sprite* ninja32khaki_obj;
 Sprite* ninja32red_obj;
 Sprite* ninja32black_obj;
+Sprite* spikes_obj;
 
 static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
   PAL_setPaletteDMA(PAL0, sky_bg.palette->data);
@@ -388,10 +389,12 @@ static void init_ninjas() {
   ninja32red_obj = SPR_addSprite(&ninja32x32red, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
 
   ninja32black_obj = SPR_addSprite(&ninja32x32black, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
+  spikes_obj = SPR_addSprite(&spikes, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
 
   SPR_setVisibility(ninja32khaki_obj, HIDDEN);
   SPR_setVisibility(ninja32red_obj, HIDDEN);
   SPR_setVisibility(ninja32black_obj, HIDDEN);
+  SPR_setVisibility(spikes_obj, HIDDEN);
 }
 
 static void c_megamrbc_show_game_bg(mrb_vm *vm, mrb_value *v, int argc) {
@@ -416,6 +419,15 @@ static void c_megamrbc_show_runner(mrb_vm *vm, mrb_value *v, int argc) {
   SPR_setPosition(ninja32black_obj, 130, 180 + v_pos);
   SPR_setVisibility(ninja32black_obj, VISIBLE);
 }
+
+static void c_megamrbc_show_spikes(mrb_vm *vm, mrb_value *v, int argc) {
+  uint16_t spike_location = mrbc_integer(v[1]);
+  // ninjas' shared pallette
+  VDP_setPalette(PAL1, ninja32x32black.palette->data);
+  SPR_setPosition(spikes_obj, 320 + spike_location, 200);
+  SPR_setVisibility(spikes_obj, VISIBLE);
+}
+
 
 static void c_megamrbc_hide_runner(mrb_vm *vm, mrb_value *v, int argc) {
   SPR_setVisibility(ninja32black_obj, HIDDEN);
@@ -701,6 +713,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "show_game_bg", c_megamrbc_show_game_bg);
   mrbc_define_method(vm, cls, "show_runner", c_megamrbc_show_runner);
   mrbc_define_method(vm, cls, "hide_runner", c_megamrbc_hide_runner);
+  mrbc_define_method(vm, cls, "show_spikes", c_megamrbc_show_spikes);
   // Maybe not needed???
   mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);
   mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content);

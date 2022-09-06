@@ -389,9 +389,11 @@ class Presentation
     v_pos = 0
     v_vel = 0
     prev = joypad_state
+    spike_pos = 0
     while true do
       MegaMrbc.scroll_game
-      MegaMrbc.call_rand # help random seem more random
+      spike_pos -= 6
+      spike_pos = 0 if spike_pos < -336
       pad_state = joypad_state
       break if (pad_state & 0x80 & ~prev) != 0 # start
       if v_pos == 0 && (pad_state & 0x40 & ~prev) != 0 # a
@@ -402,6 +404,7 @@ class Presentation
       v_pos += v_vel
       v_pos = v_vel = 0 if v_pos >= 0
       prev = pad_state
+      MegaMrbc.show_spikes(spike_pos)
       MegaMrbc.show_runner(v_pos)
       wait_vblank(false)
     end
