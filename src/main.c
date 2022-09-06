@@ -388,8 +388,10 @@ static void init_ninjas() {
   ninja32red_obj = SPR_addSprite(&ninja32x32red, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
 
   ninja32black_obj = SPR_addSprite(&ninja32x32black, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
-  // VDP_updateSprites(highestVDPSpriteIndex + 2, 1);
-  // reset_text_colours();
+
+  SPR_setVisibility(ninja32khaki_obj, HIDDEN);
+  SPR_setVisibility(ninja32red_obj, HIDDEN);
+  SPR_setVisibility(ninja32black_obj, HIDDEN);
 }
 
 static void c_megamrbc_show_game_bg(mrb_vm *vm, mrb_value *v, int argc) {
@@ -413,6 +415,10 @@ static void c_megamrbc_show_runner(mrb_vm *vm, mrb_value *v, int argc) {
   VDP_setPalette(PAL1, ninja32x32black.palette->data);
   SPR_setPosition(ninja32black_obj, 130, 180 + v_pos);
   SPR_setVisibility(ninja32black_obj, VISIBLE);
+}
+
+static void c_megamrbc_hide_runner(mrb_vm *vm, mrb_value *v, int argc) {
+  SPR_setVisibility(ninja32black_obj, HIDDEN);
 }
 
 // currently unused
@@ -473,9 +479,7 @@ static void c_megamrbc_read_joypad(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void c_megamrbc_scroll_title(mrb_vm *vm, mrb_value *v, int argc) {
-  static int offset_a = 0;
   static int offset_b = 0;
-  static uint8_t scrollspeed_a = 2;
   static uint8_t scrollspeed_b = 1;
   VDP_setHorizontalScroll(BG_B, offset_b -= scrollspeed_b);
 }
@@ -483,7 +487,7 @@ static void c_megamrbc_scroll_title(mrb_vm *vm, mrb_value *v, int argc) {
 static void c_megamrbc_scroll_game(mrb_vm *vm, mrb_value *v, int argc) {
   static int offset_a = 0;
   static int offset_b = 0;
-  static uint8_t scrollspeed_a = 4;
+  static uint8_t scrollspeed_a = 6;
   static uint8_t scrollspeed_b = 2;
   VDP_setHorizontalScroll(BG_B, offset_b -= scrollspeed_b);
   VDP_setHorizontalScroll(BG_A, offset_a -= scrollspeed_a);
@@ -696,6 +700,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "test_func", c_test_func);
   mrbc_define_method(vm, cls, "show_game_bg", c_megamrbc_show_game_bg);
   mrbc_define_method(vm, cls, "show_runner", c_megamrbc_show_runner);
+  mrbc_define_method(vm, cls, "hide_runner", c_megamrbc_hide_runner);
   // Maybe not needed???
   mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);
   mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content);

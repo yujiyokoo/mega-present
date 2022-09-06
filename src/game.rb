@@ -405,6 +405,7 @@ class Presentation
       MegaMrbc.show_runner(v_pos)
       wait_vblank(false)
     end
+    MegaMrbc.hide_runner
   end
 
   def title_screen
