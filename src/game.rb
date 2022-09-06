@@ -2,8 +2,8 @@ def draw_text(str, x, y)
   MegaMrbc.draw_text(str, x, y)
 end
 
-def joypad_state(pad_num)
-  MegaMrbc.read_joypad(pad_num)
+def joypad_state
+  MegaMrbc.read_joypad
 end
 
 class Page
@@ -346,12 +346,12 @@ class Presentation
   end
 
   def wait_cmd
-    prev = joypad_state(0)
+    prev = joypad_state
     state = 0
     returning = nil
     while true do
       MegaMrbc.call_rand # help random seem more random
-      state = joypad_state(0)
+      state = joypad_state
       if (state & 0x80 & ~prev) != 0 # start
         returning = :fwd
       elsif (state & 0x40 & ~prev) != 0 # a
@@ -385,27 +385,19 @@ class Presentation
 
   def demo_game
     MegaMrbc.show_game_bg
-    self.show_timer = true
-    MegaMrbc.show_timer(0)
-    # show sky scrolling
-    # show mountains scrolling
-    # show sprite
     pad_state = 0
     v_pos = 0
     v_vel = 0
-    prev = joypad_state(0)
+    prev = joypad_state
     while true do
       MegaMrbc.scroll_game
       MegaMrbc.call_rand # help random seem more random
-      pad_state = joypad_state(0)
+      pad_state = joypad_state
       break if (pad_state & 0x80 & ~prev) != 0 # start
-      MegaMrbc.klog("v_pos: #{v_pos}, v_vel: #{v_vel}")
       if v_pos == 0 && (pad_state & 0x40 & ~prev) != 0 # a
-        MegaMrbc.klog("A pressed")
-        v_vel = -20
+        v_vel = -16
       else
         v_vel += 2
-        v_vel = 0 if v_vel > 20
       end
       v_pos += v_vel
       v_pos = v_vel = 0 if v_pos >= 0
@@ -419,7 +411,7 @@ class Presentation
     state = 0
     count = 0
     MegaMrbc.test_func
-    prev = joypad_state(0)
+    prev = joypad_state
     while true do
       MegaMrbc.scroll_title
       MegaMrbc.call_rand # help random seem more random
@@ -428,7 +420,7 @@ class Presentation
       else
         draw_text("           ", 14, 18)
       end
-      state = joypad_state(0)
+      state = joypad_state
       break if (state & 0x80 & ~prev) != 0 # start
       count = 0 if count > 60 # count resets at 60
       count += 1
