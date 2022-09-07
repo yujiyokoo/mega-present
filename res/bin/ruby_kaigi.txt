@@ -1,5 +1,65 @@
+# Dev process
+-img,0,0,dev_proc_000:
+#-pause:
+-img,0,0,dev_proc_001:
+#-pause:
+-img,0,0,dev_proc_002:
+#-pause:
+-img,0,0,dev_proc_003:
+#-pause:
+-img,0,0,dev_proc_004:
+#-pause:
+-img,0,0,dev_proc_005:
+#-pause:
+-img,0,0,dev_proc_006:
+#-pause:
+-img,0,0,dev_proc_007:
+#-pause:
+-img,0,0,dev_proc_008:
+
+=
+# Dev process with mruby/c
+-img,0,0,m000:
+#-pause:
+-img,0,0,m001:
+#-pause:
+-img,0,0,m002:
+#-pause:
+-img,0,0,m003:
+#-pause:
+-img,0,0,m004:
+#-pause:
+-img,0,0,m005:
+#-pause:
+-img,0,0,m006:
+#-pause:
+-img,0,0,m007:
+#-pause:
+-img,0,0,m008:
+#-pause:
+-img,0,0,m009:
+#-pause:
+-img,0,0,m010:
+#-pause:
+-img,0,0,m011:
+#-pause:
+-img,0,0,m012:
+
+=
 -sethidetimer:
 -demogame:
+
+=
+# c_klog in C
+-img,0,0,c_klog:
+
+=
+# defining ruby methosd from C
+-img,0,0,define_ruby_methods:
+
+=
+# calling from ruby
+-img,0,0,calling_from_ruby:
 
 =
 -txt,3,2:
@@ -16,70 +76,6 @@
     Compiled from resource.res
 
 =
--title: Define callable method
--code,1,3:
-mrb_class *cls =
-   mrbc_define_class(
-     vm, "TestClass", mrbc_class_object
-   );
-
-mrbc_define_method(
-  vm, cls, "klog", c_klog
-);
-
-=
--title: Calling the method
--code,1,3:
-TestClass.klog("str #{v}")
-
-=
-
--sethidetimer:
--image,5,6,ruby:
-
-=
--bgcol,FFF:
--image,5,6,rubykaigi:
-
-=
--sethidetimer:
--titlescreen:
-
-=
--initprogress:
--resettimer:
--setshowtimer:
--setcolour,15,FFF:
--setcolour,31,2F2:
--setcolour,47,22F:
--setcolour,63,FF2:
--title: test page
--code,1,3:class Example
-  def some_method
-    puts "hello!"
-
-    something do
-      do_stuff
-    end
-  end
-end
-
-=
--title: Rectangle test
--rect,5,4,8,8,0:
--rect,10,14,6,3:
-
-=
--title: Megaruby:
--txt,1,3:Running mruby/c programs
--setcolour,31,FF0:
--txtpal,1:
--txt,2,4,bg0:on Sega Mega Drive
-# comment line
--pause:
--txt,10,11:let's go!
-
-=
 -title: About me
 -txt,10,5:Yuji Yokoo
 
@@ -88,15 +84,11 @@ In Adelaide, AU
 @yujiyokoo
 
 github.com/yujiyokoo
--image,16,14,yuji:
-
-=
--title: Adelaide
--image,6,4,australia:
+-img,16,14,yuji:
 
 =
 -title: What is Mega Drive?
--pause:
+#-pause:
 -txt,5,5:* Sega Mega Drive aka Genesis
 * Released in 1988
 * Motorola 68000
@@ -105,17 +97,17 @@ github.com/yujiyokoo
 
 =
 -title: What is mruby?
--pause:
+#-pause:
 -txt,3,5:* Another implementation of Ruby
 * 'm' for embedded
--pause:
+#-pause:
 -txt,3,7:* Integrates well with C
   (or other languages)
 * Great for calling Ruby from C
 
 =
 -title: What is mruby/c?
--pause:
+#-pause:
 -txt,3,5:A project that makes a compact VM
 
  from
@@ -125,76 +117,72 @@ github.com/yujiyokoo
 
 =
 -title: Why Mega Drive?
--pause:
+#-pause:
 -txt,5,5:* Open source dev kits
   (I use one called SGDK)
--pause:
+#-pause:
 -txt,5,7:* Great emulators
--pause:
+#-pause:
 -txt,5,8:* Many units sold
--pause:
+#-pause:
 -txt,5,9:* Compatile models available
 
 =
 -title: Why mruby/c on Mega Drive?
--pause:
+#-pause:
 -txt,5,5:* Ruby!
--pause:
+#-pause:
 -txt,5,6:* Fun/happiness/productivity
--pause:
+#-pause:
 -txt,5,7:* Main logic in Ruby
-
-=
--title: How to develop: overview
-
--rect,5,4,10,2:
--txt,6,5:C source
--pause:
--tarrow,10,6,d,3:
--txt,12,7:compile
--pause:
--rect,5,9,10,2:
--txt,6,10:obj files
--pause:
--rect,20,11,14,2:
--txt,21,12:SGDK library
--tarrow,20,12,l,10:
--tarrow,10,11,d,5:
--txt,12,14:link
--rect,5,16,10,2:
--txt,6,17:rom.bin
--pause:
--txt,10,19:executable on Meaga Drive
-
-=
--title: How to develop
 
 =
 -title: SGDK
 -txt,3,5:Excellent Development Kit
 -txt,3,7:Provides C API
 -txt,3,9:* Many features
--pause:
--txt,5,11:* tiles, sprites, assets
+-txt,5,11:* memory
+* tiles & sprites
 * scroll
-* sound
+* sound (Z80)
 * much more
 
 =
--title: Mega Drive characteristics
-# Tiles
-# sprites
-# VDP
-# Sound
-# VSync
-=
--title: Emulators vs real hardware
--txt,3,5:Emulators are fantastic!
--pause:
--txt,3,6:Amazing debug features on
-Gens KMod
--pause:
--txt,3,8:BUT! It's not "real" Mega Drive
+-title: Mega Drive Graphics
+-txt,5,7:
+* Tiles
+* sprites
+* VDP
 
 =
--title: Interesting issues
+-title: Links
+-txt,5,7:
+
+Demo game:
+github.com/yujiyokoo/mega-mrubyc
+
+
+This presentation tool:
+github.com/yujiyokoo/mega-present
+
+=
+-title: Thanks
+-txt,5,7:
+* mruby developrs
+
+* mruby/c developrs
+
+* SGDK developers
+
+* Gendev developers
+
+=
+-title: Links
+-txt,5,7:
+
+Demo game:
+github.com/yujiyokoo/mega-mrubyc
+
+
+This presentation tool:
+github.com/yujiyokoo/mega-present

@@ -541,6 +541,48 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
     image = &calling_from_ruby;
   } else if(strncmp(img_name, "dev_proc_000", sizeof("dev_proc_000")) == 0) {
     image = &dev_proc_000;
+  } else if(strncmp(img_name, "dev_proc_001", sizeof("dev_proc_000")) == 0) {
+    image = &dev_proc_001;
+  } else if(strncmp(img_name, "dev_proc_002", sizeof("dev_proc_000")) == 0) {
+    image = &dev_proc_002;
+  } else if(strncmp(img_name, "dev_proc_003", sizeof("dev_proc_000")) == 0) {
+    image = &dev_proc_003;
+  } else if(strncmp(img_name, "dev_proc_004", sizeof("dev_proc_000")) == 0) {
+    image = &dev_proc_004;
+  } else if(strncmp(img_name, "dev_proc_005", sizeof("dev_proc_000")) == 0) {
+    image = &dev_proc_005;
+  } else if(strncmp(img_name, "dev_proc_006", sizeof("dev_proc_000")) == 0) {
+    image = &dev_proc_006;
+  } else if(strncmp(img_name, "dev_proc_007", sizeof("dev_proc_000")) == 0) {
+    image = &dev_proc_007;
+  } else if(strncmp(img_name, "dev_proc_008", sizeof("dev_proc_000")) == 0) {
+    image = &dev_proc_008;
+  } else if(strncmp(img_name, "m000", sizeof("m000")) == 0) {
+    image = &dev_w_mrubyc_000;
+  } else if(strncmp(img_name, "m001", sizeof("m001")) == 0) {
+    image = &dev_w_mrubyc_001;
+  } else if(strncmp(img_name, "m002", sizeof("m002")) == 0) {
+    image = &dev_w_mrubyc_002;
+  } else if(strncmp(img_name, "m003", sizeof("m003")) == 0) {
+    image = &dev_w_mrubyc_003;
+  } else if(strncmp(img_name, "m004", sizeof("m004")) == 0) {
+    image = &dev_w_mrubyc_004;
+  } else if(strncmp(img_name, "m005", sizeof("m005")) == 0) {
+    image = &dev_w_mrubyc_005;
+  } else if(strncmp(img_name, "m006", sizeof("m006")) == 0) {
+    image = &dev_w_mrubyc_006;
+  } else if(strncmp(img_name, "m007", sizeof("m007")) == 0) {
+    image = &dev_w_mrubyc_007;
+  } else if(strncmp(img_name, "m008", sizeof("m008")) == 0) {
+    image = &dev_w_mrubyc_008;
+  } else if(strncmp(img_name, "m009", sizeof("m009")) == 0) {
+    image = &dev_w_mrubyc_009;
+  } else if(strncmp(img_name, "m010", sizeof("m010")) == 0) {
+    image = &dev_w_mrubyc_010;
+  } else if(strncmp(img_name, "m011", sizeof("m011")) == 0) {
+    image = &dev_w_mrubyc_011;
+  } else if(strncmp(img_name, "m012", sizeof("m012")) == 0) {
+    image = &dev_w_mrubyc_012;
   }
 
   PAL_setPaletteDMA(PAL3, image->palette->data);

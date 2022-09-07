@@ -296,7 +296,6 @@ class Presentation
 
   def initialize
     @pages ||= MegaMrbc.read_content
-    MegaMrbc.klog(@pages[0])
   end
 
   def begin_presentation
