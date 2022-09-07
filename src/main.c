@@ -15,6 +15,8 @@
 
 // sound effects
 #define SE_TEST 64
+#define SE_JUMP 65
+#define SE_DEATH 66
 
 // sprite test
 #define ANIM_WALK 2
@@ -499,8 +501,8 @@ static void c_megamrbc_scroll_title(mrb_vm *vm, mrb_value *v, int argc) {
 static void c_megamrbc_scroll_game(mrb_vm *vm, mrb_value *v, int argc) {
   static int offset_a = 0;
   static int offset_b = 0;
-  static uint8_t scrollspeed_a = 6;
-  static uint8_t scrollspeed_b = 2;
+  static uint8_t scrollspeed_a = 4;
+  static uint8_t scrollspeed_b = 1;
   VDP_setHorizontalScroll(BG_B, offset_b -= scrollspeed_b);
   VDP_setHorizontalScroll(BG_A, offset_a -= scrollspeed_a);
 }
@@ -526,6 +528,14 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
     image = &rubykaigi;
   } else if(strncmp(img_name, "mrubykaigi", sizeof("mrubykaigi")) == 0) {
     image = &mrubykaigi;
+  } else if(strncmp(img_name, "c_klog", sizeof("c_klog")) == 0) {
+    image = &c_klog;
+  } else if(strncmp(img_name, "define_ruby_methods", sizeof("define_ruby_methods")) == 0) {
+    image = &define_ruby_methods;
+  } else if(strncmp(img_name, "calling_from_ruby", sizeof("calling_from_ruby")) == 0) {
+    image = &calling_from_ruby;
+  } else if(strncmp(img_name, "dev_proc_000", sizeof("dev_proc_000")) == 0) {
+    image = &dev_proc_000;
   }
 
   PAL_setPaletteDMA(PAL3, image->palette->data);
@@ -683,6 +693,14 @@ static void c_megamrbc_play_se(mrb_vm *vm, mrb_value *v, int argc) {
   XGM_startPlayPCM(SE_TEST,1,SOUND_PCM_CH2);
 }
 
+static void c_megamrbc_play_jump_se(mrb_vm *vm, mrb_value *v, int argc) {
+  XGM_startPlayPCM(SE_JUMP,1,SOUND_PCM_CH2);
+}
+
+static void c_megamrbc_play_death_se(mrb_vm *vm, mrb_value *v, int argc) {
+  XGM_startPlayPCM(SE_DEATH,1,SOUND_PCM_CH2);
+}
+
 static void c_megamrbc_set_bg_num(mrb_vm *vm, mrb_value *v, int argc) {
   char bg_num = mrbc_integer(v[1]);
   KLog("setting bg colour");
@@ -740,6 +758,8 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "draw_upright_t", c_megamrbc_draw_upright_t);
   mrbc_define_method(vm, cls, "draw_flipped_t", c_megamrbc_draw_flipped_t);
   mrbc_define_method(vm, cls, "play_se", c_megamrbc_play_se);
+  mrbc_define_method(vm, cls, "play_jump_se", c_megamrbc_play_jump_se);
+  mrbc_define_method(vm, cls, "play_death_se", c_megamrbc_play_death_se);
   mrbc_define_method(vm, cls, "set_bg_num", c_megamrbc_set_bg_num);
 }
 
@@ -813,6 +833,8 @@ int main(void) {
   JOY_init();
   JOY_setEventHandler(&joy_event_handler);
   XGM_setPCM(SE_TEST, se_test, sizeof(se_test));
+  XGM_setPCM(SE_JUMP, se_jump, sizeof(se_jump));
+  XGM_setPCM(SE_DEATH, se_death, sizeof(se_death));
   VDP_loadFont(custom_font.tileset, DMA);
 
   // set_up_colours();

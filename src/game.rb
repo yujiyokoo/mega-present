@@ -398,6 +398,7 @@ class Presentation
       break if (pad_state & 0x80 & ~prev) != 0 # start
       if v_pos == 0 && (pad_state & 0x40 & ~prev) != 0 # a
         v_vel = -16
+        MegaMrbc.play_jump_se
       else
         v_vel += 2
       end
@@ -406,9 +407,30 @@ class Presentation
       prev = pad_state
       MegaMrbc.show_spikes(spike_pos)
       MegaMrbc.show_runner(v_pos)
+      if collided?(v_pos, spike_pos)
+        MegaMrbc.sleep_raw(150)
+        game_over
+        spike_pos = 0
+      end
       wait_vblank(false)
     end
     MegaMrbc.hide_runner
+  end
+
+  def game_over
+    i = 0
+    v_pos = 0
+    MegaMrbc.play_death_se
+    while i < 30 do
+      v_pos += 2
+      MegaMrbc.show_runner(v_pos)
+      wait_vblank(false)
+      i += 1
+    end
+  end
+
+  def collided?(v_pos, spike_pos)
+    v_pos > -4 && spike_pos > -196 && spike_pos < -188
   end
 
   def title_screen
