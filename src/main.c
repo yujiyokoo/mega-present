@@ -296,18 +296,6 @@ static void draw_colour_square(uint8_t palette_num, mrb_vm *vm, mrb_value *v, in
   VDP_setTileMapXY(BG_B, TILE_ATTR_FULL(palette_num, LOPRIO, VFLIP, HFLIP, TILE_USERINDEX + bgtl), x+1, y+1);
 }
 
-static void c_megamrbc_draw_green_square(mrb_vm *vm, mrb_value *v, int argc) {
-  draw_colour_square(0, vm, v, argc);
-}
-
-static void c_megamrbc_draw_yellow_square(mrb_vm *vm, mrb_value *v, int argc) {
-  draw_colour_square(1, vm, v, argc);
-}
-
-static void c_megamrbc_draw_grey_square(mrb_vm *vm, mrb_value *v, int argc) {
-  draw_colour_square(2, vm, v, argc);
-}
-
 static void c_megamrbc_clear_screen(mrb_vm *vm, mrb_value *v, int argc) {
   uint8_t x = 0;
   uint8_t y = 0;
@@ -347,17 +335,6 @@ static void c_megamrbc_is_word(mrb_vm *vm, mrb_value *v, int argc)
   SET_BOOL_RETURN(value);
 }
 */
-
-static void c_megamrbc_random_answer(mrb_vm *vm, mrb_value *v, int argc) {
-  uint16_t len = 686; // hardcoded answer list size for now
-
-  uint16_t idx = rand() % len;
-
-  // Uncomment if you want to show answer
-  // VDP_drawText(answerlist[idx], 0, 11);
-
-  SET_RETURN( mrbc_string_new_cstr( vm, answerlist[idx] ) );
-}
 
 static void c_megamrbc_call_rand(mrb_vm *vm, mrb_value *v, int argc) {
   rand();
@@ -435,15 +412,43 @@ static void c_megamrbc_hide_runner(mrb_vm *vm, mrb_value *v, int argc) {
   SPR_setVisibility(ninja32black_obj, HIDDEN);
 }
 
-// currently unused
-/*
-static void c_draw_tile(mrb_vm *vm, mrb_value *v, int argc) {
-  VDP_drawText("writing tile", 1, 1);
-  VDP_loadTileSet(bgtile.tileset,1,DMA);
-  VDP_setPalette(PAL1, bgtile.palette->data);
-  VDP_setTileMapXY(BG_B,TILE_ATTR_FULL(PAL1,0,FALSE,FALSE,1),2,2);
+// Reads content, returns a list of pages, and frees content(!)
+static void c_megamrbc_read_content_unsafe(mrb_vm *vm, mrb_value *v, int argc) {
+  uint16_t length = strlen(content);
+  uint16_t idx = 0;
+  uint16_t size = 1;
+  while(content[idx]) {
+    if(content[idx] == '=' && idx != 0 && content[idx-1] == '\n' && idx < length && content[idx+1] == '\n') {
+      size++;
+    }
+    idx++;
+  }
+
+  char buf[40];
+  sprintf(buf, "size: %d", size);
+  KLog(buf);
+
+  mrbc_value ret = mrbc_array_new(vm, size);
+
+  const u8* page_start = content;
+  uint16_t count = 0;
+  idx = 0;
+  uint16_t len = 0;
+  while(count < size) {
+    if(content[idx] == '=' && idx != 0 && content[idx-1] == '\n' && idx < length && content[idx+1] == '\n') {
+      mrbc_value new_elem = mrbc_string_new(vm, page_start, content + idx - page_start);
+      mrbc_array_push(&ret, &new_elem);
+      page_start = content + idx + 2;
+      count++;
+      len = 0;
+    }
+    len++;
+    idx++;
+  }
+  free(content); // is this okay?
+
+  SET_RETURN(ret);
 }
-*/
 
 static void c_megamrbc_read_content(mrb_vm *vm, mrb_value *v, int argc) {
   SET_RETURN( mrbc_string_new_cstr( vm, content ) );
@@ -452,7 +457,7 @@ static void c_megamrbc_read_content(mrb_vm *vm, mrb_value *v, int argc) {
 static void c_megamrbc_set_pal_colour(mrb_vm *vm, mrb_value *v, int argc) {
   uint16_t colour_id = mrbc_integer(v[1]);
   uint16_t colour_val = mrbc_integer(v[2]);
-  char buf[40];
+  // char buf[40];
   // sprintf(buf, "colour_id: %d, colour_val: %d", colour_id, colour_val);
   // KLog(buf);
   PAL_setColor(colour_id, colour_val);
@@ -720,12 +725,8 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "read_joypad", c_megamrbc_read_joypad);
   mrbc_define_method(vm, cls, "wait_vblank", c_megamrbc_wait_vblank);
   mrbc_define_method(vm, cls, "show_tick", c_megamrbc_show_tick);
-  mrbc_define_method(vm, cls, "draw_green_square", c_megamrbc_draw_green_square);
-  mrbc_define_method(vm, cls, "draw_yellow_square", c_megamrbc_draw_yellow_square);
-  mrbc_define_method(vm, cls, "draw_grey_square", c_megamrbc_draw_grey_square);
   mrbc_define_method(vm, cls, "clear_screen", c_megamrbc_clear_screen);
   // mrbc_define_method(vm, cls, "is_word?", c_megamrbc_is_word);
-  mrbc_define_method(vm, cls, "random_answer", c_megamrbc_random_answer);
   mrbc_define_method(vm, cls, "call_rand", c_megamrbc_call_rand);
   mrbc_define_method(vm, cls, "test_func", c_test_func);
   mrbc_define_method(vm, cls, "show_game_bg", c_megamrbc_show_game_bg);
@@ -734,7 +735,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "show_spikes", c_megamrbc_show_spikes);
   // Maybe not needed???
   mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);
-  mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content);
+  mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content_unsafe);
   mrbc_define_method(vm, cls, "set_pal_colour", c_megamrbc_set_pal_colour);
   mrbc_define_method(vm, cls, "set_txt_pal", c_megamrbc_set_txt_pal);
   mrbc_define_method(vm, cls, "scroll_title", c_megamrbc_scroll_title);

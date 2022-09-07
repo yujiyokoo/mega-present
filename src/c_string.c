@@ -78,10 +78,14 @@ mrbc_value mrbc_string_new(struct VM *vm, const void *src, int len)
     Allocate handle and string buffer.
   */
   mrbc_string *h = mrbc_alloc(vm, sizeof(mrbc_string));
-  if( !h ) return value;		// ENOMEM
+  if( !h ) {
+    KLog("out of memory for h"); KLog((char*)src);
+    return value;		// ENOMEM
+  }
 
   uint8_t *str = mrbc_alloc(vm, len+1);
   if( !str ) {				// ENOMEM
+    KLog("out of memory for str"); KLog((char*)src);
     mrbc_raw_free( h );
     return value;
   }

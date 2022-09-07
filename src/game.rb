@@ -44,7 +44,7 @@ class Page
         cmd = line.split(":")[0].split(",")
         pal = cmd[1]
         MegaMrbc.set_txt_pal(pal)
-      elsif line.start_with? "-pause:"
+      elsif line.start_with? "-pz:"
         @curr_mode = nil
         if @presentation.wait_cmd == :reload
           return :reload
@@ -53,7 +53,7 @@ class Page
         @presentation.show_timer = true
       elsif line.start_with? "-sethidetimer:"
         @presentation.show_timer = false
-      elsif line.start_with? "-image,"
+      elsif line.start_with? "-img,"
         @curr_mode = nil
         cmd = line.split(":")[0].split(",")
         MegaMrbc.klog("drawing " + cmd[3])
@@ -295,7 +295,8 @@ class Presentation
   end
 
   def initialize
-    @pages ||= MegaMrbc.read_content.split("\n=\n")
+    @pages ||= MegaMrbc.read_content
+    MegaMrbc.klog(@pages[0])
   end
 
   def begin_presentation
@@ -309,7 +310,7 @@ class Presentation
       wait_vblank(@show_timer)
       MegaMrbc.clear_screen
       if cmd == :fwd
-        page = next_page unless @index >= (@pages.size - 1)
+        page = next_page unless @index > @pages.size
       elsif cmd == :back
         page = prev_page
       end
