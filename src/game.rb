@@ -1,11 +1,3 @@
-def draw_text(str, x, y)
-  MegaMrbc.draw_text(str, x, y)
-end
-
-def joypad_state
-  MegaMrbc.read_joypad
-end
-
 class Page
   def initialize(content, presentation)
     @content = content
@@ -20,7 +12,7 @@ class Page
       if line.start_with? "-title:"
         @curr_mode = nil
         title = line.split("-title:")[1]
-        draw_text(title, 2, 0)
+        MegaMrbc.draw_text(title, 2, 0)
       elsif line.start_with? "-txt,"
         @curr_mode = :text
         cmd = line.split(":")[0].split(",")
@@ -31,7 +23,7 @@ class Page
         idx += 1 while(line[idx] != ":") # FIXME: this will break if ':' is not present
         content = line.slice!(idx + 1, line.length)
         MegaMrbc.draw_bg(content, bg[2].to_i, @x, @y) if bg != nil
-        draw_text(content, @x, @y)
+        MegaMrbc.draw_text(content, @x, @y)
       elsif line.start_with? "-setcolour,"
         @curr_mode = nil
         cmd = line.split(":")[0].split(",")
@@ -111,7 +103,7 @@ class Page
       elsif line.start_with? "-playsound:"
         MegaMrbc.play_se
       elsif @curr_mode == :text
-        draw_text(line, @x, @y+=1)
+        MegaMrbc.draw_text(line, @x, @y+=1)
       elsif @curr_mode == :code
         render_code_line(line, @x, @y+=1)
       end
@@ -234,13 +226,13 @@ class Page
           curr_offset += t.length
         }
         #MegaMrbc.set_txt_pal(0)
-        #draw_text(f, x + curr_offset, y)
+        #MegaMrbc.draw_text(f, x + curr_offset, y)
         #curr_offset += f.length
       else
         MegaMrbc.set_txt_pal(2)
-        draw_text('"', x + curr_offset, y)
-        draw_text(f, x + curr_offset + 1, y)
-        draw_text('"', x + curr_offset + 1 + f.length, y)
+        MegaMrbc.draw_text('"', x + curr_offset, y)
+        MegaMrbc.draw_text(f, x + curr_offset + 1, y)
+        MegaMrbc.draw_text('"', x + curr_offset + 1 + f.length, y)
         curr_offset += f.length + 2
       end
     }
@@ -283,7 +275,7 @@ class Page
       MegaMrbc.set_txt_pal(0)
     end
 
-    draw_text(term, x, y)
+    MegaMrbc.draw_text(term, x, y)
   end
 end
 
@@ -296,6 +288,9 @@ class Presentation
 
   def initialize
     @pages ||= MegaMrbc.read_content
+    @pages.each { |pg|
+      MegaMrbc.klog(pg)
+    }
   end
 
   def begin_presentation
@@ -327,9 +322,9 @@ class Presentation
 
   def next_page
     @index ||= -1
-    @index += 1
+    @index += 1 unless @index == @pages.size - 1
     @page = @pages[@index]
-    MegaMrbc.klog("next, index is #{@index}")
+    # MegaMrbc.klog("next, index is #{@index}")
     return Page.new(@page, self)
   end
 
@@ -337,7 +332,7 @@ class Presentation
     @index ||= 0
     @index -= 1 unless @index < 1
     @page = @pages[@index]
-    MegaMrbc.klog("prev, index is #{@index}")
+    # MegaMrbc.klog("prev, index is #{@index}")
     return Page.new(@page, self)
   end
 
@@ -346,12 +341,12 @@ class Presentation
   end
 
   def wait_cmd
-    prev = joypad_state
+    prev = MegaMrbc.read_joypad
     state = 0
     returning = nil
     while true do
       MegaMrbc.call_rand # help random seem more random
-      state = joypad_state
+      state = MegaMrbc.read_joypad
       if (state & 0x80 & ~prev) != 0 # start
         returning = :fwd
       elsif (state & 0x40 & ~prev) != 0 # a
@@ -388,13 +383,13 @@ class Presentation
     pad_state = 0
     v_pos = 0
     v_vel = 0
-    prev = joypad_state
+    prev = MegaMrbc.read_joypad
     spike_pos = 0
     while true do
       MegaMrbc.scroll_game
       spike_pos -= 6
       spike_pos = 0 if spike_pos < -336
-      pad_state = joypad_state
+      pad_state = MegaMrbc.read_joypad
       break if (pad_state & 0x80 & ~prev) != 0 # start
       if v_pos == 0 && (pad_state & 0x40 & ~prev) != 0 # a
         v_vel = -16
@@ -415,6 +410,7 @@ class Presentation
       wait_vblank(false)
     end
     MegaMrbc.hide_runner
+    MegaMrbc.hide_spikes
   end
 
   def game_over
@@ -437,16 +433,16 @@ class Presentation
     state = 0
     count = 0
     MegaMrbc.test_func
-    prev = joypad_state
+    prev = MegaMrbc.read_joypad
     while true do
       MegaMrbc.scroll_title
       MegaMrbc.call_rand # help random seem more random
       if count / 30 >= 1 # switch every 0.5s
-        draw_text("Press start", 14, 18)
+        MegaMrbc.draw_text("Press start", 14, 18)
       else
-        draw_text("           ", 14, 18)
+        MegaMrbc.draw_text("           ", 14, 18)
       end
-      state = joypad_state
+      state = MegaMrbc.read_joypad
       break if (state & 0x80 & ~prev) != 0 # start
       count = 0 if count > 60 # count resets at 60
       count += 1

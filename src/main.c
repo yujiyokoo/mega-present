@@ -407,6 +407,9 @@ static void c_megamrbc_show_spikes(mrb_vm *vm, mrb_value *v, int argc) {
   SPR_setVisibility(spikes_obj, VISIBLE);
 }
 
+static void c_megamrbc_hide_spikes(mrb_vm *vm, mrb_value *v, int argc) {
+  SPR_setVisibility(spikes_obj, HIDDEN);
+}
 
 static void c_megamrbc_hide_runner(mrb_vm *vm, mrb_value *v, int argc) {
   SPR_setVisibility(ninja32black_obj, HIDDEN);
@@ -424,10 +427,6 @@ static void c_megamrbc_read_content_unsafe(mrb_vm *vm, mrb_value *v, int argc) {
     idx++;
   }
 
-  char buf[40];
-  sprintf(buf, "size: %d", size);
-  KLog(buf);
-
   mrbc_value ret = mrbc_array_new(vm, size);
 
   const u8* page_start = content;
@@ -435,13 +434,21 @@ static void c_megamrbc_read_content_unsafe(mrb_vm *vm, mrb_value *v, int argc) {
   idx = 0;
   uint16_t len = 0;
   while(count < size) {
-    if(content[idx] == '=' && idx != 0 && content[idx-1] == '\n' && idx < length && content[idx+1] == '\n') {
+    bool input_ended = content[idx] == '\0';
+    bool page_ended = content[idx] == '=' && idx != 0 &&
+      content[idx-1] == '\n' && idx < length && content[idx+1] == '\n';
+
+    if (input_ended || page_ended) {
       mrbc_value new_elem = mrbc_string_new(vm, page_start, content + idx - page_start);
       mrbc_array_push(&ret, &new_elem);
-      page_start = content + idx + 2;
       count++;
       len = 0;
     }
+
+    if (page_ended) {
+      page_start = content + idx + 2;
+    }
+
     len++;
     idx++;
   }
@@ -539,23 +546,23 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
     image = &define_ruby_methods;
   } else if(strncmp(img_name, "calling_from_ruby", sizeof("calling_from_ruby")) == 0) {
     image = &calling_from_ruby;
-  } else if(strncmp(img_name, "dev_proc_000", sizeof("dev_proc_000")) == 0) {
+  } else if(strncmp(img_name, "d000", sizeof("d000")) == 0) {
     image = &dev_proc_000;
-  } else if(strncmp(img_name, "dev_proc_001", sizeof("dev_proc_000")) == 0) {
+  } else if(strncmp(img_name, "d001", sizeof("d000")) == 0) {
     image = &dev_proc_001;
-  } else if(strncmp(img_name, "dev_proc_002", sizeof("dev_proc_000")) == 0) {
+  } else if(strncmp(img_name, "d002", sizeof("d000")) == 0) {
     image = &dev_proc_002;
-  } else if(strncmp(img_name, "dev_proc_003", sizeof("dev_proc_000")) == 0) {
+  } else if(strncmp(img_name, "d003", sizeof("d000")) == 0) {
     image = &dev_proc_003;
-  } else if(strncmp(img_name, "dev_proc_004", sizeof("dev_proc_000")) == 0) {
+  } else if(strncmp(img_name, "d004", sizeof("d000")) == 0) {
     image = &dev_proc_004;
-  } else if(strncmp(img_name, "dev_proc_005", sizeof("dev_proc_000")) == 0) {
+  } else if(strncmp(img_name, "d005", sizeof("d000")) == 0) {
     image = &dev_proc_005;
-  } else if(strncmp(img_name, "dev_proc_006", sizeof("dev_proc_000")) == 0) {
+  } else if(strncmp(img_name, "d006", sizeof("d000")) == 0) {
     image = &dev_proc_006;
-  } else if(strncmp(img_name, "dev_proc_007", sizeof("dev_proc_000")) == 0) {
+  } else if(strncmp(img_name, "d007", sizeof("d000")) == 0) {
     image = &dev_proc_007;
-  } else if(strncmp(img_name, "dev_proc_008", sizeof("dev_proc_000")) == 0) {
+  } else if(strncmp(img_name, "d008", sizeof("d000")) == 0) {
     image = &dev_proc_008;
   } else if(strncmp(img_name, "m000", sizeof("m000")) == 0) {
     image = &dev_w_mrubyc_000;
@@ -775,6 +782,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "show_runner", c_megamrbc_show_runner);
   mrbc_define_method(vm, cls, "hide_runner", c_megamrbc_hide_runner);
   mrbc_define_method(vm, cls, "show_spikes", c_megamrbc_show_spikes);
+  mrbc_define_method(vm, cls, "hide_spikes", c_megamrbc_hide_spikes);
   // Maybe not needed???
   mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);
   mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content_unsafe);
