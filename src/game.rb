@@ -96,6 +96,10 @@ class Page
       elsif line.start_with? "-demogame:"
         @presentation.demo_game
         return :fwd
+      elsif line.start_with? "-rendersky:"
+        @presentation.render_sky
+      elsif line.start_with? "-scroll:"
+        @presentation.scroll_wait
       elsif line.start_with? "-initprogress:"
         @presentation.set_start_page
       elsif line.start_with? "-resettimer:"
@@ -288,9 +292,6 @@ class Presentation
 
   def initialize
     @pages ||= MegaMrbc.read_content
-    @pages.each { |pg|
-      MegaMrbc.klog(pg)
-    }
   end
 
   def begin_presentation
@@ -378,6 +379,15 @@ class Presentation
     MegaMrbc.wait_vblank
   end
 
+  def scroll_wait
+    while true do
+      MegaMrbc.scroll_game
+      break if (pad_state & 0x80 & ~prev) != 0 # start
+      break if (pad_state & 0x40 & ~prev) != 0 # a
+      wait_vblank(false)
+    end
+  end
+
   def demo_game
     MegaMrbc.show_game_bg
     pad_state = 0
@@ -432,7 +442,7 @@ class Presentation
   def title_screen
     state = 0
     count = 0
-    MegaMrbc.test_func
+    MegaMrbc.render_start
     prev = MegaMrbc.read_joypad
     while true do
       MegaMrbc.scroll_title

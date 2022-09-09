@@ -46,3 +46,7 @@ IMAGE   resource_usage001 "backgrounds/resource_usage001.png" NONE ALL
 IMAGE   resource_usage002 "backgrounds/resource_usage002.png" NONE ALL
 IMAGE   resource_usage003 "backgrounds/resource_usage003.png" NONE ALL
 IMAGE   resource_usage004 "backgrounds/resource_usage004.png" NONE ALL
+IMAGE   aboutme "backgrounds/aboutme.png" NONE NONE
+IMAGE   whatsmd "backgrounds/whatsmd.bmp" NONE ALL
+IMAGE   whatsmruby "backgrounds/whatsmruby.bmp" NONE ALL
+IMAGE   whatsmrubyc "backgrounds/whatsmrubyc.bmp" NONE ALL

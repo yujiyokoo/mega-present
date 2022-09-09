@@ -1,4 +1,5 @@
 -sethidetimer:
+-bgcol,FFF:
 -img,5,6,ruby:
 
 =
@@ -10,13 +11,27 @@
 -titlescreen:
 
 =
--sethidetimer:
--demogame:
-
-=
 -setshowtimer:
 -initprogress:
 -resettimer:
+-title: Table of contents
+-txt,3,5:* About me
+
+* About Sega Mega Drive
+
+* About mruby and mruby/c
+
+* Why mruby on Mega Drive
+
+* About SGDK
+
+* More on Mega Drive
+
+* Some examples
+
+* Demo game
+
+=
 -title:About me
 -txt,10,5:Yuji Yokoo
 
@@ -32,38 +47,17 @@ Twitter/GitHub
 =
 -title:What is Mega Drive?
 -pz:
--txt,5,5:` Sega Mega Drive aka Genesis
-
-` Released in 1988
-
-` Motorola 68000
-
-` "16-BIT"
-
-` Over 30M units sold worldwide
+-img,0,0,whatsmd:
 
 =
 -title:What is mruby?
 -pz:
--txt,3,5:` Another implementation of Ruby
-
-` embedded
--pz:
--txt,3,9:` Integrates well with C
-  (or other languages)
-
-` Great for calling Ruby from C
+-img,0,0,whatsmruby:
 
 =
 -title:What is mruby/c?
 -pz:
--txt,3,5:A project that makes a compact VM
-
- from
-  Shimane IT Open-Innovation Center
-
- and
-  Kyushu Institute of Technology
+-img,0,0,whatsmrubyc:
 
 =
 -title:Why Mega Drive?
@@ -75,7 +69,9 @@ Twitter/GitHub
 -pz:
 -txt,5,10:` Compatile hardware available
 -pz:
--txt,5,14:` Many good emulators
+-txt,5,12:` Many good emulators
+-pz:
+-txt,5,14:` Lots of active projects
 
 =
 -title:Why mruby/c on Mega Drive?
@@ -94,14 +90,14 @@ Twitter/GitHub
 
 ` tiles, sprites & palettes
 
+` fonts & text
+
 ` sound (Z80)
 -pz:
--playsound:
 
+-txt,5,21:` a lot more
 -pz:
--playsound:
-
--txt,5,19:` much more
+-txt,3,23:Also I use Gendev with SGDK
 
 =
 -title:Mega Drive Graphics
@@ -116,8 +112,6 @@ Twitter/GitHub
 
 ` 16-colours per palette
 
-  (15 + transparency ) x 4 + 1 BG
-
 ` Tile-based
 
 ` 2 Layers of background
@@ -125,18 +119,33 @@ Twitter/GitHub
 ` sprites
 
 =
+-title: Tiles
+
+-img,16,10,yuji:
+
+=
+-title: Tiles
+
+-img,12,10,yuji_br:
+
+=
+-sethidetimer:
+-demogame:
+
+=
+-setshowtimer:
 -title:Mega Drive Challenges
 
 -txt,3,5:` Memory (64KB)
 -txt,3,7:  ` Transient memory issues
 -pz:
--txt,3,9:  ` String ops
+-txt,3,9:  ` Manual optimisation
 -pz:
 -txt,3,11:` No console text output
 -pz:
 -txt,3,13:  ` No printf debugging
 -pz:
--txt,3,15:  ` General low visibility
+-txt,3,15:  ` No "logging"
 
 =
 -title:Emulators
@@ -200,12 +209,22 @@ Twitter/GitHub
 -img,0,0,m012:
 
 =
--title:Resource decleration
-# TODO
+-img,0,0,ru000:
 
 =
+-img,0,0,ru001:
+
+=
+-img,0,0,ru002:
+
+=
+-img,0,0,ru003:
+
+=
+-img,0,0,ru004:
+-pz:
 -title:Resource usage
-# TODO
+-img,6,10,rubykaigi:
 
 =
 # c_klog in C
@@ -218,6 +237,18 @@ Twitter/GitHub
 =
 # calling from ruby
 -img,0,0,calling_from_ruby:
+
+=
+-ttile:Final thoughts
+
+=
+-title:TODOs
+-pz:
+-txt5,7:` Stability
+
+` Separate from mruby/c
+
+` Automation of manual opitmisation
 
 =
 -title:Links

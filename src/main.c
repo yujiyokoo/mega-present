@@ -345,14 +345,13 @@ Sprite* ninja32red_obj;
 Sprite* ninja32black_obj;
 Sprite* spikes_obj;
 
-static void c_test_func(mrb_vm *vm, mrb_value *v, int argc) {
+static void c_megamrbc_render_start_screen(mrb_vm *vm, mrb_value *v, int argc) {
   PAL_setPaletteDMA(PAL0, sky_bg.palette->data);
   VDP_drawImageEx(
     BG_B, &sky_bg,
     TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, TILE_USERINDEX + last + 1),
     0, 0, FALSE, TRUE
   );
-
   // use black ninja palette which includes main logo palette
   VDP_setPalette(PAL1, ninja32x32black.palette->data);
   VDP_drawImageEx(
@@ -519,6 +518,11 @@ static void c_megamrbc_scroll_game(mrb_vm *vm, mrb_value *v, int argc) {
   VDP_setHorizontalScroll(BG_A, offset_a -= scrollspeed_a);
 }
 
+static bool name_match(const char* str0, const char* str1) {
+  // TODO: check the lengths and use longer one with strncmp
+  return strcmp(str0, str1) == 0;
+}
+
 static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
   uint8_t x = mrbc_integer(v[1]);
   uint8_t y = mrbc_integer(v[2]);
@@ -530,66 +534,86 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
   Image *image;
 
   // TODO: some sort of auto mapping here would be great...
-  if(strncmp(img_name, "australia", sizeof("australia")) == 0) {
+  if(name_match(img_name, "australia")) {
     image = &australia;
-  } else if(strncmp(img_name, "yuji", sizeof("yuji")) == 0) {
+  } else if(name_match(img_name, "yuji")) {
     image = &yuji;
-  } else if(strncmp(img_name, "ruby", sizeof("ruby")) == 0) {
+  } else if(name_match(img_name, "yuji_br")) {
+    image = &yuji_br;
+  } else if(name_match(img_name, "ruby")) {
     image = &ruby;
-  } else if(strncmp(img_name, "rubykaigi", sizeof("rubykaigi")) == 0) {
+  } else if(name_match(img_name, "rubykaigi")) {
     image = &rubykaigi;
-  } else if(strncmp(img_name, "mrubykaigi", sizeof("mrubykaigi")) == 0) {
+  } else if(name_match(img_name, "mrubykaigi")) {
     image = &mrubykaigi;
-  } else if(strncmp(img_name, "c_klog", sizeof("c_klog")) == 0) {
+  } else if(name_match(img_name, "c_klog")) {
     image = &c_klog;
-  } else if(strncmp(img_name, "define_ruby_methods", sizeof("define_ruby_methods")) == 0) {
+  } else if(name_match(img_name, "define_ruby_methods")) {
     image = &define_ruby_methods;
-  } else if(strncmp(img_name, "calling_from_ruby", sizeof("calling_from_ruby")) == 0) {
+  } else if(name_match(img_name, "calling_from_ruby")) {
     image = &calling_from_ruby;
-  } else if(strncmp(img_name, "d000", sizeof("d000")) == 0) {
+  } else if(name_match(img_name, "d000")) {
     image = &dev_proc_000;
-  } else if(strncmp(img_name, "d001", sizeof("d000")) == 0) {
+  } else if(name_match(img_name, "d001")) {
     image = &dev_proc_001;
-  } else if(strncmp(img_name, "d002", sizeof("d000")) == 0) {
+  } else if(name_match(img_name, "d002")) {
     image = &dev_proc_002;
-  } else if(strncmp(img_name, "d003", sizeof("d000")) == 0) {
+  } else if(name_match(img_name, "d003")) {
     image = &dev_proc_003;
-  } else if(strncmp(img_name, "d004", sizeof("d000")) == 0) {
+  } else if(name_match(img_name, "d004")) {
     image = &dev_proc_004;
-  } else if(strncmp(img_name, "d005", sizeof("d000")) == 0) {
+  } else if(name_match(img_name, "d005")) {
     image = &dev_proc_005;
-  } else if(strncmp(img_name, "d006", sizeof("d000")) == 0) {
+  } else if(name_match(img_name, "d006")) {
     image = &dev_proc_006;
-  } else if(strncmp(img_name, "d007", sizeof("d000")) == 0) {
+  } else if(name_match(img_name, "d007")) {
     image = &dev_proc_007;
-  } else if(strncmp(img_name, "d008", sizeof("d000")) == 0) {
+  } else if(name_match(img_name, "d008")) {
     image = &dev_proc_008;
-  } else if(strncmp(img_name, "m000", sizeof("m000")) == 0) {
+  } else if(name_match(img_name, "m000")) {
     image = &dev_w_mrubyc_000;
-  } else if(strncmp(img_name, "m001", sizeof("m001")) == 0) {
+  } else if(name_match(img_name, "m001")) {
     image = &dev_w_mrubyc_001;
-  } else if(strncmp(img_name, "m002", sizeof("m002")) == 0) {
+  } else if(name_match(img_name, "m002")) {
     image = &dev_w_mrubyc_002;
-  } else if(strncmp(img_name, "m003", sizeof("m003")) == 0) {
+  } else if(name_match(img_name, "m003")) {
     image = &dev_w_mrubyc_003;
-  } else if(strncmp(img_name, "m004", sizeof("m004")) == 0) {
+  } else if(name_match(img_name, "m004")) {
     image = &dev_w_mrubyc_004;
-  } else if(strncmp(img_name, "m005", sizeof("m005")) == 0) {
+  } else if(name_match(img_name, "m005")) {
     image = &dev_w_mrubyc_005;
-  } else if(strncmp(img_name, "m006", sizeof("m006")) == 0) {
+  } else if(name_match(img_name, "m006")) {
     image = &dev_w_mrubyc_006;
-  } else if(strncmp(img_name, "m007", sizeof("m007")) == 0) {
+  } else if(name_match(img_name, "m007")) {
     image = &dev_w_mrubyc_007;
-  } else if(strncmp(img_name, "m008", sizeof("m008")) == 0) {
+  } else if(name_match(img_name, "m008")) {
     image = &dev_w_mrubyc_008;
-  } else if(strncmp(img_name, "m009", sizeof("m009")) == 0) {
+  } else if(name_match(img_name, "m009")) {
     image = &dev_w_mrubyc_009;
-  } else if(strncmp(img_name, "m010", sizeof("m010")) == 0) {
+  } else if(name_match(img_name, "m010")) {
     image = &dev_w_mrubyc_010;
-  } else if(strncmp(img_name, "m011", sizeof("m011")) == 0) {
+  } else if(name_match(img_name, "m011")) {
     image = &dev_w_mrubyc_011;
-  } else if(strncmp(img_name, "m012", sizeof("m012")) == 0) {
+  } else if(name_match(img_name, "m012")) {
     image = &dev_w_mrubyc_012;
+  } else if(name_match(img_name, "ru000")) {
+    image = &resource_usage000;
+  } else if(name_match(img_name, "ru001")) {
+    image = &resource_usage001;
+  } else if(name_match(img_name, "ru002")) {
+    image = &resource_usage002;
+  } else if(name_match(img_name, "ru003")) {
+    image = &resource_usage003;
+  } else if(name_match(img_name, "ru004")) {
+    image = &resource_usage004;
+  } else if(name_match(img_name, "aboutme")) {
+    image = &aboutme;
+  } else if(name_match(img_name, "whatsmd")) {
+    image = &whatsmd;
+  } else if(name_match(img_name, "whatsmruby")) {
+    image = &whatsmruby;
+  } else if(name_match(img_name, "whatsmrubyc")) {
+    image = &whatsmrubyc;
   }
 
   PAL_setPaletteDMA(PAL3, image->palette->data);
@@ -777,7 +801,7 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "clear_screen", c_megamrbc_clear_screen);
   // mrbc_define_method(vm, cls, "is_word?", c_megamrbc_is_word);
   mrbc_define_method(vm, cls, "call_rand", c_megamrbc_call_rand);
-  mrbc_define_method(vm, cls, "test_func", c_test_func);
+  mrbc_define_method(vm, cls, "render_start", c_megamrbc_render_start_screen);
   mrbc_define_method(vm, cls, "show_game_bg", c_megamrbc_show_game_bg);
   mrbc_define_method(vm, cls, "show_runner", c_megamrbc_show_runner);
   mrbc_define_method(vm, cls, "hide_runner", c_megamrbc_hide_runner);
