@@ -4,6 +4,7 @@ IMAGE   mountains_bg "backgrounds/mountains-background.png" NONE ALL
 IMAGE   main_logo "backgrounds/main_logo.png" NONE ALL
 IMAGE   australia "backgrounds/australia.png" NONE ALL
 IMAGE   yuji      "backgrounds/pixel_yuji.png" NONE ALL
+IMAGE   yuji_br   "backgrounds/pixel_yuji_broken.png" NONE ALL
 WAV     se_test   "se/button01a.wav" 5
 WAV     se_jump   "se/jump06.wav" 5
 WAV     se_death   "se/powerup02.wav" 5
@@ -40,3 +41,8 @@ IMAGE   dev_w_mrubyc_009 "backgrounds/dev_w_mrubyc_009.png" NONE ALL
 IMAGE   dev_w_mrubyc_010 "backgrounds/dev_w_mrubyc_010.png" NONE ALL
 IMAGE   dev_w_mrubyc_011 "backgrounds/dev_w_mrubyc_011.png" NONE ALL
 IMAGE   dev_w_mrubyc_012 "backgrounds/dev_w_mrubyc_012.png" NONE ALL
+IMAGE   resource_usage000 "backgrounds/resource_usage000.png" NONE ALL
+IMAGE   resource_usage001 "backgrounds/resource_usage001.png" NONE ALL
+IMAGE   resource_usage002 "backgrounds/resource_usage002.png" NONE ALL
+IMAGE   resource_usage003 "backgrounds/resource_usage003.png" NONE ALL
+IMAGE   resource_usage004 "backgrounds/resource_usage004.png" NONE ALL
