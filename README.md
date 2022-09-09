@@ -9,17 +9,23 @@ TBD
 
 ## Build
 
+NOTE: You will get this warning message even when the build is successful:
+
+```
+/opt/gendev/sgdk/bin/nm: liblto_plugin-0.dll: cannot open shared object file: No such file or directory
+```
+
 ### Using Docker
 
-You can use the local Dockerfile:
-```
-docker build -t yujiyokoo/gendev_mrubyc --platform linux/amd64 .
-```
-
-Then use the build command:
+You can use the command:
 
 ```
 docker run -i -t --rm --platform linux/amd64 -v $(pwd):/mnt -w /mnt yujiyokoo/gendev_mrubyc bash -c 'mrbc -B mrbsrc src/game.rb && make -f /opt/gendev/sgdk/mkfiles/Makefile.rom clean all'
+```
+
+You can also use the local Dockerfile to build instead of pulling with the above command:
+```
+docker build -t yujiyokoo/gendev_mrubyc --platform linux/amd64 .
 ```
 
 ### Using local environment
