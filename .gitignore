@@ -27,3 +27,7 @@ out/
 
 # doxygen output
 html
+
+# generated files
+res/resources.h
+src/game.c
