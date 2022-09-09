@@ -62,61 +62,22 @@ Twitter/GitHub
 =
 -title:Why Mega Drive?
 -pz:
--txt,5,5:` Open source dev kits
-  (I use SGDK)
--pz:
--txt,5,8:` Many units sold
--pz:
--txt,5,10:` Compatile hardware available
--pz:
--txt,5,12:` Many good emulators
--pz:
--txt,5,14:` Lots of active projects
+-img,0,0,whymd:
 
 =
 -title:Why mruby/c on Mega Drive?
 -pz:
--txt,5,5:` It's Ruby!
--pz:
--txt,5,7:` Main logic in Ruby
--txt,5,9:` Platform interface code in C
+-img,0,0,whymrubyconmd:
 
 =
 -title:SGDK
--txt,3,5:Sega Genesis Development Kit
--txt,3,9:Provides C API
--txt,3,11:Many features
--txt,5,13:` memory
-
-` tiles, sprites & palettes
-
-` fonts & text
-
-` sound (Z80)
 -pz:
-
--txt,5,21:` a lot more
--pz:
--txt,3,23:Also I use Gendev with SGDK
+-img,0,0,SGDK:
 
 =
 -title:Mega Drive Graphics
--txt,3,5:Video Display Processor (VDP)
--txt,3,7:` runs at about 13Mhz
-
-` 320x224 (NTSC) or 320x240px (PAL)
-
-` 512 colours to choose from
-
-` 61 colours at a time
-
-` 16-colours per palette
-
-` Tile-based
-
-` 2 Layers of background
-
-` sprites
+-pz:
+-img,0,0,mdgraphic:
 
 =
 -title: Tiles
@@ -135,30 +96,13 @@ Twitter/GitHub
 =
 -setshowtimer:
 -title:Mega Drive Challenges
-
--txt,3,5:` Memory (64KB)
--txt,3,7:  ` Transient memory issues
 -pz:
--txt,3,9:  ` Manual optimisation
--pz:
--txt,3,11:` No console text output
--pz:
--txt,3,13:  ` No printf debugging
--pz:
--txt,3,15:  ` No "logging"
+-img,0,0,mdchallenges:
 
 =
 -title:Emulators
--txt,3,5:Emulators bring extra features
--txt,3,9:Gens Kmod:
-
-` GDB connection
-
-` Console messages
-
-` VDP view
-
-` more
+-pz:
+-img,0,0,emulators:
 
 =
 # Dev process
@@ -239,27 +183,29 @@ Twitter/GitHub
 -img,0,0,calling_from_ruby:
 
 =
--ttile:Final thoughts
-
-=
 -title:TODOs
 -pz:
--txt5,7:` Stability
+-txt,3,7:` Stability
 
 ` Separate from mruby/c
 
 ` Automation of manual opitmisation
 
 =
--title:Links
+-title:URLs
 -txt,5,7:
 
 Demo game:
 github.com/yujiyokoo/mega-mrubyc
 
-
 This presentation tool:
 github.com/yujiyokoo/mega-present
+
+SGDK:
+github.com/Stephane-D/SGDK
+
+Gendev:
+github.com/kubilus1/gendev
 
 =
 -title:Thanks

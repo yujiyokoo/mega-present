@@ -614,6 +614,18 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
     image = &whatsmruby;
   } else if(name_match(img_name, "whatsmrubyc")) {
     image = &whatsmrubyc;
+  } else if(name_match(img_name, "whymd")) {
+    image = &whymd;
+  } else if(name_match(img_name, "whymrubyconmd")) {
+    image = &whymrubyconmd;
+  } else if(name_match(img_name, "SGDK")) {
+    image = &SGDK;
+  } else if(name_match(img_name, "mdgraphic")) {
+    image = &mdgraphic;
+  } else if(name_match(img_name, "mdchallenges")) {
+    image = &mdchallenges;
+  } else if(name_match(img_name, "emulators")) {
+    image = &emulators;
   }
 
   PAL_setPaletteDMA(PAL3, image->palette->data);

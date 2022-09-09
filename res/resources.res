@@ -46,7 +46,13 @@ IMAGE   resource_usage001 "backgrounds/resource_usage001.png" NONE ALL
 IMAGE   resource_usage002 "backgrounds/resource_usage002.png" NONE ALL
 IMAGE   resource_usage003 "backgrounds/resource_usage003.png" NONE ALL
 IMAGE   resource_usage004 "backgrounds/resource_usage004.png" NONE ALL
-IMAGE   aboutme "backgrounds/aboutme.png" NONE NONE
+IMAGE   aboutme "backgrounds/aboutme.bmp" NONE NONE
 IMAGE   whatsmd "backgrounds/whatsmd.bmp" NONE ALL
 IMAGE   whatsmruby "backgrounds/whatsmruby.bmp" NONE ALL
 IMAGE   whatsmrubyc "backgrounds/whatsmrubyc.bmp" NONE ALL
+IMAGE   whymd "backgrounds/whymd.bmp" NONE ALL
+IMAGE   whymrubyconmd "backgrounds/whymrubyconmd.bmp" NONE ALL
+IMAGE   SGDK "backgrounds/SGDK.bmp" NONE ALL
+IMAGE   mdgraphic "backgrounds/mdgraphic.bmp" NONE ALL
+IMAGE   mdchallenges "backgrounds/mdchallenges.bmp" NONE ALL
+IMAGE   emulators "backgrounds/emulators.bmp" NONE ALL
