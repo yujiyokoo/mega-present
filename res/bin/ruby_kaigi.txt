@@ -75,6 +75,9 @@ Twitter/GitHub
 -img,0,0,SGDK:
 
 =
+-img,0,0,sgdkmrbc:
+
+=
 -title:Mega Drive Graphics
 -pz:
 -img,0,0,mdgraphic:
@@ -90,8 +93,11 @@ Twitter/GitHub
 -img,12,10,yuji_br:
 
 =
--sethidetimer:
--demogame:
+-title: Scroll
+-pz:
+-renderbg:
+-pz:
+-scroll:
 
 =
 -setshowtimer:
@@ -166,7 +172,8 @@ Twitter/GitHub
 
 =
 -img,0,0,ru004:
--pz:
+
+=
 -title:Resource usage
 -img,6,10,rubykaigi:
 
@@ -183,6 +190,18 @@ Twitter/GitHub
 -img,0,0,calling_from_ruby:
 
 =
+-title:Main loop (simplified)
+-img,0,0,mainloop:
+
+=
+-title:Demo game
+
+=
+-sethidetimer:
+-demogame:
+
+=
+-setshowtimer:
 -title:TODOs
 -pz:
 -txt,3,7:` Stability
@@ -198,22 +217,22 @@ Twitter/GitHub
 Demo game:
 github.com/yujiyokoo/mega-mrubyc
 
+
+
 This presentation tool:
 github.com/yujiyokoo/mega-present
-
-SGDK:
-github.com/Stephane-D/SGDK
-
-Gendev:
-github.com/kubilus1/gendev
 
 =
 -title:Thanks
 -txt,5,7:
 ` mruby developrs
+  github.com/mruby/mruby
 
 ` mruby/c developrs
+  github.com/mrubyc/mrubyc
 
 ` SGDK developers
+  github.com/Stephane-D/SGDK
 
 ` Gendev developers
+  github.com/kubilus1/gendev

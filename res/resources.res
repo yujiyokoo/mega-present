@@ -56,3 +56,5 @@ IMAGE   SGDK "backgrounds/SGDK.bmp" NONE ALL
 IMAGE   mdgraphic "backgrounds/mdgraphic.bmp" NONE ALL
 IMAGE   mdchallenges "backgrounds/mdchallenges.bmp" NONE ALL
 IMAGE   emulators "backgrounds/emulators.bmp" NONE ALL
+IMAGE   mainloop "backgrounds/mainloop.bmp" NONE ALL
+IMAGE   sgdkmrbc "backgrounds/sgdkmrbc.bmp" NONE ALL

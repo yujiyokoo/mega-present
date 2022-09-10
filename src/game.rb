@@ -96,8 +96,8 @@ class Page
       elsif line.start_with? "-demogame:"
         @presentation.demo_game
         return :fwd
-      elsif line.start_with? "-rendersky:"
-        @presentation.render_sky
+      elsif line.start_with? "-renderbg:"
+        MegaMrbc.show_game_bg
       elsif line.start_with? "-scroll:"
         @presentation.scroll_wait
       elsif line.start_with? "-initprogress:"
@@ -302,7 +302,6 @@ class Presentation
     running = true
     cmd = :fwd
     while running do
-      wait_vblank(@show_timer)
       MegaMrbc.clear_screen
       if cmd == :fwd
         page = next_page unless @index > @pages.size
@@ -380,10 +379,13 @@ class Presentation
   end
 
   def scroll_wait
+    prev = MegaMrbc.read_joypad
     while true do
-      MegaMrbc.scroll_game
+      MegaMrbc.scroll_weird
+      pad_state = MegaMrbc.read_joypad
       break if (pad_state & 0x80 & ~prev) != 0 # start
       break if (pad_state & 0x40 & ~prev) != 0 # a
+      prev = pad_state
       wait_vblank(false)
     end
   end
