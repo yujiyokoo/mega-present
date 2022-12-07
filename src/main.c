@@ -355,11 +355,21 @@ static void render_sky_bg() {
 }
 
 static void c_megamrbc_render_start_screen(mrb_vm *vm, mrb_value *v, int argc) {
+  bool render_dash = mrbc_integer(v[1]);
+  Image logo_image = main_logo;
+
+  // sprintf(buf, "colour_id: %d, colour_val: %d", colour_id, colour_val);
+  char str[40];
+  sprintf(str, "value: %d\n", render_dash);
+  KLog(str);
   render_sky_bg();
   // use black ninja palette which includes main logo palette
   VDP_setPalette(PAL1, ninja32x32black.palette->data);
+  if(render_dash) {
+    logo_image = main_logo_dash;
+  }
   VDP_drawImageEx(
-    BG_A, &main_logo,
+    BG_A, &logo_image,
     TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_USERINDEX + last + 1 + sky_bg.tileset->numTile),
     5, 10, FALSE, TRUE
   );

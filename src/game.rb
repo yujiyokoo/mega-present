@@ -444,22 +444,27 @@ class Presentation
   def title_screen
     state = 0
     count = 0
-    MegaMrbc.render_start
     prev = MegaMrbc.read_joypad
-    while true do
-      MegaMrbc.scroll_title
-      MegaMrbc.call_rand # help random seem more random
-      if count / 30 >= 1 # switch every 0.5s
-        MegaMrbc.draw_text("Press start", 14, 18)
-      else
-        MegaMrbc.draw_text("           ", 14, 18)
+    [0, 1].each do |dash|
+      MegaMrbc.render_start(dash)
+      while true do
+        MegaMrbc.scroll_title
+        MegaMrbc.call_rand # help random seem more random
+        if count / 30 >= 1 # switch every 0.5s
+          MegaMrbc.draw_text("Press start", 14, 18)
+        else
+          MegaMrbc.draw_text("           ", 14, 18)
+        end
+        state = MegaMrbc.read_joypad
+        if (state & 0x80 & ~prev) != 0 # start
+          prev = state # do this so loop won't exit immediately after 1st butotn press
+          break
+        end
+        count = 0 if count > 60 # count resets at 60
+        count += 1
+        prev = state
+        wait_vblank(false)
       end
-      state = MegaMrbc.read_joypad
-      break if (state & 0x80 & ~prev) != 0 # start
-      count = 0 if count > 60 # count resets at 60
-      count += 1
-      prev = state
-      wait_vblank(false)
     end
   end
 end

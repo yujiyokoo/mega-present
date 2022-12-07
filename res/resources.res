@@ -2,6 +2,7 @@ BIN     content   "bin/ruby_kaigi.txt" NONE
 IMAGE   sky_bg    "backgrounds/sky-background.png" NONE ALL
 IMAGE   mountains_bg "backgrounds/mountains-background.png" NONE ALL
 IMAGE   main_logo "backgrounds/main_logo.png" NONE ALL
+IMAGE   main_logo_dash "backgrounds/main_logo_dash.png" NONE ALL
 IMAGE   australia "backgrounds/australia.png" NONE ALL
 IMAGE   yuji      "backgrounds/pixel_yuji.png" NONE ALL
 IMAGE   yuji_br   "backgrounds/pixel_yuji_broken.png" NONE ALL
