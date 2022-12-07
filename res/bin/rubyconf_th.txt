@@ -41,8 +41,10 @@ Adelaide, AU
 
 Twitter/GitHub
 @yujiyokoo
--pz:
--img,16,16,yuji:
+
+@yujiyokoo@ruby.social
+
+-img,16,18,yuji:
 
 =
 -title:What is Mega Drive?
