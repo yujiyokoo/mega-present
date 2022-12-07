@@ -569,6 +569,8 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
     image = &rubykaigi;
   } else if(name_match(img_name, "mrubykaigi")) {
     image = &mrubykaigi;
+  } else if(name_match(img_name, "rubyconfth")) {
+    image = &rubyconfth;
   } else if(name_match(img_name, "c_klog")) {
     image = &c_klog;
   } else if(name_match(img_name, "define_ruby_methods")) {

@@ -1,4 +1,4 @@
-BIN     content   "bin/ruby_kaigi.txt" NONE
+BIN     content   "bin/rubyconf_th.txt" NONE
 IMAGE   sky_bg    "backgrounds/sky-background.png" NONE ALL
 IMAGE   mountains_bg "backgrounds/mountains-background.png" NONE ALL
 IMAGE   main_logo "backgrounds/main_logo.png" NONE ALL
@@ -16,6 +16,7 @@ SPRITE  ninja32x32red   "sprites/ninja32x32red.png" 4 4 BEST 0
 SPRITE  ninja32x32black   "sprites/ninja32x32black.png" 4 4 BEST 0
 SPRITE  spikes   "sprites/spikes.png" 2 2 BEST 0
 IMAGE   mrubykaigi "backgrounds/mruby_kaigi.png" NONE ALL
+IMAGE   rubyconfth "backgrounds/rubyconf_th_logo.png" NONE ALL
 IMAGE   custom_font "fonts/font_custom.png" BEST NONE
 IMAGE   c_klog "backgrounds/c_klog.png" NONE ALL
 IMAGE   define_ruby_methods "backgrounds/define_ruby_methods.png" NONE ALL

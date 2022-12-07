@@ -1,0 +1,238 @@
+-sethidetimer:
+-bgcol,FFF:
+-img,5,6,ruby:
+
+=
+-bgcol,FFF:
+-img,4,6,rubyconfth:
+
+=
+-sethidetimer:
+-titlescreen:
+
+=
+-setshowtimer:
+-initprogress:
+-resettimer:
+-title: Table of contents
+-txt,3,5:* About me
+
+* About Sega Mega Drive
+
+* About mruby and mruby/c
+
+* Why mruby on Mega Drive
+
+* About SGDK
+
+* More on Mega Drive
+
+* Some examples
+
+* Demo game
+
+=
+-title:About me
+-txt,10,5:Yuji Yokoo
+
+Programmer
+
+Adelaide, AU
+
+Twitter/GitHub
+@yujiyokoo
+-pz:
+-img,16,16,yuji:
+
+=
+-title:What is Mega Drive?
+-pz:
+-img,0,0,whatsmd:
+
+=
+-title:What is mruby?
+-pz:
+-img,0,0,whatsmruby:
+
+=
+-title:What is mruby/c?
+-pz:
+-img,0,0,whatsmrubyc:
+
+=
+-title:Why Mega Drive?
+-pz:
+-img,0,0,whymd:
+
+=
+-title:Why mruby/c on Mega Drive?
+-pz:
+-img,0,0,whymrubyconmd:
+
+=
+-title:SGDK
+-pz:
+-img,0,0,SGDK:
+
+=
+-img,0,0,sgdkmrbc:
+
+=
+-title:Mega Drive Graphics
+-pz:
+-img,0,0,mdgraphic:
+
+=
+-title: Tiles
+
+-img,16,10,yuji:
+
+=
+-title: Tiles
+
+-img,12,10,yuji_br:
+
+=
+-title: Scroll
+-pz:
+-renderbg:
+-pz:
+-scroll:
+
+=
+-setshowtimer:
+-title:Mega Drive Challenges
+-pz:
+-img,0,0,mdchallenges:
+
+=
+-title:Emulators
+-pz:
+-img,0,0,emulators:
+
+=
+# Dev process
+-img,0,0,d000:
+-pz:
+-img,0,0,d001:
+-pz:
+-img,0,0,d002:
+-pz:
+-img,0,0,d003:
+-pz:
+-img,0,0,d004:
+-pz:
+-img,0,0,d005:
+-pz:
+-img,0,0,d006:
+-pz:
+-img,0,0,d007:
+-pz:
+-img,0,0,d008:
+
+=
+# Dev process with mruby/c
+-img,0,0,m000:
+-pz:
+-img,0,0,m001:
+-pz:
+-img,0,0,m002:
+-pz:
+-img,0,0,m003:
+-pz:
+-img,0,0,m004:
+-pz:
+-img,0,0,m005:
+-pz:
+-img,0,0,m006:
+-pz:
+-img,0,0,m007:
+-pz:
+-img,0,0,m008:
+-pz:
+-img,0,0,m009:
+-pz:
+-img,0,0,m010:
+-pz:
+-img,0,0,m011:
+-pz:
+-img,0,0,m012:
+
+=
+-img,0,0,ru000:
+
+=
+-img,0,0,ru001:
+
+=
+-img,0,0,ru002:
+
+=
+-img,0,0,ru003:
+
+=
+-img,0,0,ru004:
+
+=
+-title:Resource usage
+-img,6,10,rubykaigi:
+
+=
+# c_klog in C
+-img,0,0,c_klog:
+
+=
+# defining ruby methosd from C
+-img,0,0,define_ruby_methods:
+
+=
+# calling from ruby
+-img,0,0,calling_from_ruby:
+
+=
+-title:Main loop (simplified)
+-img,0,0,mainloop:
+
+=
+-title:Demo game
+
+=
+-sethidetimer:
+-demogame:
+
+=
+-setshowtimer:
+-title:TODOs
+-pz:
+-txt,3,7:` Stability
+
+` Separate from mruby/c
+
+` Automation of manual opitmisation
+
+=
+-title:URLs
+-txt,5,7:
+
+Demo game:
+github.com/yujiyokoo/mega-mrubyc
+
+
+
+This presentation tool:
+github.com/yujiyokoo/mega-present
+
+=
+-title:Thanks
+-txt,5,7:
+` mruby developrs
+  github.com/mruby/mruby
+
+` mruby/c developrs
+  github.com/mrubyc/mrubyc
+
+` SGDK developers
+  github.com/Stephane-D/SGDK
+
+` Gendev developers
+  github.com/kubilus1/gendev
