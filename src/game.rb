@@ -345,7 +345,6 @@ class Presentation
     state = 0
     returning = nil
     while true do
-      MegaMrbc.call_rand # help random seem more random
       state = MegaMrbc.read_joypad
       if (state & 0x80 & ~prev) != 0 # start
         returning = :fwd
@@ -449,7 +448,6 @@ class Presentation
       MegaMrbc.render_start(dash)
       while true do
         MegaMrbc.scroll_title
-        MegaMrbc.call_rand # help random seem more random
         if count / 30 >= 1 # switch every 0.5s
           MegaMrbc.draw_text("Press start", 14, 18)
         else
