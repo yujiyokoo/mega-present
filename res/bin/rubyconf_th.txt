@@ -177,7 +177,7 @@ Twitter/GitHub
 
 =
 -title:Resource usage
--img,6,10,rubykaigi:
+-img,4,10,rubyconfth:
 
 =
 # c_klog in C
