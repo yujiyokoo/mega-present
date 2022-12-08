@@ -318,31 +318,13 @@ static void c_megamrbc_clear_screen(mrb_vm *vm, mrb_value *v, int argc) {
   }
 }
 
-/*
-static void c_megamrbc_is_word(mrb_vm *vm, mrb_value *v, int argc)
-{
-  char *word = mrbc_string_cstr(&v[1]);
-  char **words = wordlist;
-  int isWord = 0;
-  uint8_t value = 0;
-
-  while(*words != NULL) {
-    if(strncmp(*words, word, 5) == 0) {
-      value = 1;
-    }
-    words++;
-  }
-  SET_BOOL_RETURN(value);
-}
-*/
-
 static void c_megamrbc_call_rand(mrb_vm *vm, mrb_value *v, int argc) {
   rand();
 }
 
-Sprite* ninja32khaki_obj;
-Sprite* ninja32red_obj;
 Sprite* ninja32black_obj;
+Sprite* elephant0_obj;
+Sprite* elephant1_obj;
 Sprite* spikes_obj;
 
 static void render_sky_bg() {
@@ -363,8 +345,8 @@ static void c_megamrbc_render_start_screen(mrb_vm *vm, mrb_value *v, int argc) {
   sprintf(str, "value: %d\n", render_dash);
   KLog(str);
   render_sky_bg();
-  // use black ninja palette which includes main logo palette
-  VDP_setPalette(PAL1, ninja32x32black.palette->data);
+  // use elephant palette which includes main logo palette
+  VDP_setPalette(PAL1, elephant0.palette->data);
   if(render_dash) {
     logo_image = main_logo_dash;
   }
@@ -376,15 +358,15 @@ static void c_megamrbc_render_start_screen(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void init_ninjas() {
-  ninja32khaki_obj = SPR_addSprite(&ninja32x32khaki, 80, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
+  elephant0_obj = SPR_addSprite(&elephant0, 80, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
 
-  ninja32red_obj = SPR_addSprite(&ninja32x32red, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
+  elephant1_obj = SPR_addSprite(&elephant1, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
 
   ninja32black_obj = SPR_addSprite(&ninja32x32black, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
   spikes_obj = SPR_addSprite(&spikes, 130, 180, TILE_ATTR(PAL1, 0, FALSE, FALSE));
 
-  SPR_setVisibility(ninja32khaki_obj, HIDDEN);
-  SPR_setVisibility(ninja32red_obj, HIDDEN);
+  SPR_setVisibility(elephant0_obj, HIDDEN);
+  SPR_setVisibility(elephant1_obj, HIDDEN);
   SPR_setVisibility(ninja32black_obj, HIDDEN);
   SPR_setVisibility(spikes_obj, HIDDEN);
 }
@@ -407,7 +389,7 @@ static void c_megamrbc_show_game_bg(mrb_vm *vm, mrb_value *v, int argc) {
 static void c_megamrbc_show_runner(mrb_vm *vm, mrb_value *v, int argc) {
   uint16_t v_pos = mrbc_integer(v[1]);
   // let's set ninjas' pallette
-  VDP_setPalette(PAL1, ninja32x32black.palette->data);
+  VDP_setPalette(PAL1, elephant0.palette->data);
   SPR_setPosition(ninja32black_obj, 130, 180 + v_pos);
   SPR_setVisibility(ninja32black_obj, VISIBLE);
 }
@@ -415,7 +397,7 @@ static void c_megamrbc_show_runner(mrb_vm *vm, mrb_value *v, int argc) {
 static void c_megamrbc_show_spikes(mrb_vm *vm, mrb_value *v, int argc) {
   uint16_t spike_location = mrbc_integer(v[1]);
   // ninjas' shared pallette
-  VDP_setPalette(PAL1, ninja32x32black.palette->data);
+  VDP_setPalette(PAL1, elephant0.palette->data);
   SPR_setPosition(spikes_obj, 320 + spike_location, 200);
   SPR_setVisibility(spikes_obj, VISIBLE);
 }
@@ -691,8 +673,8 @@ static void c_megamrbc_show_progress(mrb_vm *vm, mrb_value *v, int argc) {
 
   uint16_t x = ((float)(curr_page - start) / (float)(last_page - start) * 288);
 
-  SPR_setPosition(ninja32red_obj, x, 192);
-  SPR_setVisibility(ninja32red_obj, VISIBLE);
+  SPR_setPosition(elephant1_obj, x, 192);
+  SPR_setVisibility(elephant1_obj, VISIBLE);
 }
 
 static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
@@ -703,8 +685,8 @@ static void c_megamrbc_show_timer(mrb_vm *vm, mrb_value *v, int argc) {
   uint16_t x = (float)s / (float)max * 288;
   if(x > 288) x = 288;
 
-  SPR_setPosition(ninja32khaki_obj, x, 192);
-  SPR_setVisibility(ninja32khaki_obj, VISIBLE);
+  SPR_setPosition(elephant0_obj, x, 192);
+  SPR_setVisibility(elephant0_obj, VISIBLE);
 }
 
 static void c_megamrbc_get_current_tick(mrb_vm *vm, mrb_value *v, int argc) {
@@ -712,11 +694,11 @@ static void c_megamrbc_get_current_tick(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void c_megamrbc_hide_timer(mrb_vm *vm, mrb_value *v, int argc) {
-  SPR_setVisibility(ninja32khaki_obj, HIDDEN);
+  SPR_setVisibility(elephant0_obj, HIDDEN);
 }
 
 static void c_megamrbc_hide_progress(mrb_vm *vm, mrb_value *v, int argc) {
-  SPR_setVisibility(ninja32red_obj, HIDDEN);
+  SPR_setVisibility(elephant1_obj, HIDDEN);
 }
 
 // sleep, but time is specificed in 1/300s

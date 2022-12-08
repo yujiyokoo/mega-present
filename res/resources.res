@@ -14,6 +14,8 @@ IMAGE   rubykaigi "backgrounds/ruby_kaigi_2022.png" NONE ALL
 SPRITE  ninja32x32khaki "sprites/ninja32x32khaki.png" 4 4 BEST 0
 SPRITE  ninja32x32red   "sprites/ninja32x32red.png" 4 4 BEST 0
 SPRITE  ninja32x32black   "sprites/ninja32x32black.png" 4 4 BEST 0
+SPRITE  elephant0   "sprites/elephant0.png" 4 4 BEST 0
+SPRITE  elephant1   "sprites/elephant1.png" 4 4 BEST 0
 SPRITE  spikes   "sprites/spikes.png" 2 2 BEST 0
 IMAGE   mrubykaigi "backgrounds/mruby_kaigi.png" NONE ALL
 IMAGE   rubyconfth "backgrounds/rubyconf_th_logo.png" NONE ALL
