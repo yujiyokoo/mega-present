@@ -1,0 +1,109 @@
+=
+-title: Development overview (txt)
+-setcolour,1,FFF:
+
+-rect,5,4,10,2:
+-txt,6,5:C source
+-pause:
+-rect,24,4,10,2:
+-txt,25,5:resource
+-pause:
+-tarrow,10,6,d,3:
+-txt,12,7:cross compile
+-pause:
+-rect,5,9,10,2:
+-txt,6,10:obj files
+-pause:
+-tarrow,29,6,d,5:
+-txt,30,7: compile
+-pause:
+-rect,20,11,18,2:
+-txt,21,12:compiled resource
+-pause:
+-tarrow,20,12,l,10:
+-pause:
+-rect,20,14,14,2:
+-txt,21,15:SGDK library
+-tarrow,20,15,l,10:
+-tarrow,10,11,d,8:
+-txt,12,17:link and other SGDK things
+-rect,5,19,10,2:
+-txt,6,20:rom.bin
+-pause:
+-txt,10,22:executable on Meaga Drive
+
+=
+-title:Resource decleration
+-pz:
+-txt,2,5:In resource.res:
+
+IMAGE rk "img/rubykaigi.png" NONE ALL
+
+=
+-title:Resource usage
+-txt,2,5:In C:
+
+  VDP_drawImageEx(
+    BG_A, rk,
+    TILE_ATTR_FULL(
+      PAL3, FALSE, FALSE, FALSE,
+      TILE_USERINDEX + 1
+    ),
+    6, 6, FALSE, TRUE
+  );
+
+=
+-title:Resource usage
+-txt,2,5:In C:
+
+static void c_draw_img(
+  mrb_vm *vm, mrb_value *v, int argc
+  ) {
+  uint8_t x = mrbc_integer(v[1]);
+  uint8_t y = mrbc_integer(v[2]);
+
+  VDP_drawImage( ...
+}
+
+=
+-title:Make method callable from mruby
+-txt,2,5:In C:
+
+mrb_class *cls =
+  mrbc_define_class(
+    vm, "MegaMrbc", mrbc_class_object
+);
+
+mrbc_define_method(
+  vm, cls, "draw_image", c_draw_img
+);
+
+=
+-title:Calling from ruby
+
+-txt,2,5:In Ruby:
+
+MegaMrbc.draw_image
+
+
+=
+-title:Main loop (simplified)
+-txt,3,3:
+def main_loop
+  running = true
+  cmd = :fwd
+
+  while running do
+    if cmd == :fwd
+      page = next_page(@index)
+      MegaMrbc.klog(
+        "next_page: #{page}"
+      )
+    end
+
+    MegaMrbc.wait_vblank
+
+    cmd = MegaMrbc.wait_cmd
+  end
+end
+
