@@ -107,3 +107,39 @@ def main_loop
   end
 end
 
+=
+-title:What is mruby?
+-txt,3,5:` Another implementation of Ruby
+
+` For embedded environments
+
+` Integrates well with C
+      (or other langs)
+
+` Great for calling Ruby from C
+
+` No require, no eval, no gem
+
+` mrbgem to add features
+      (at compile time)
+
+=
+-title:What is mruby/c?
+-pz:
+-txt,3,5:A project that makes a compact VM
+
+ from
+  Shimane IT Open-Innovation Center
+
+ and
+  Kyushu Institute of Technology
+
+
+
+` Small, less memory over speed
+
+` Limited class libraries
+
+` Better concurrency support
+
+` no mrbgem
