@@ -87,12 +87,12 @@ Twitter/GitHub
 =
 -title: Tiles
 
--img,16,10,yuji:
+-img,4,2,adl_bkk:
 
 =
 -title: Tiles
 
--img,12,10,yuji_br:
+-img,4,2,adl_bkk_br:
 
 =
 -title: Scroll

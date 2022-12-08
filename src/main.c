@@ -539,8 +539,10 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
   Image *image;
 
   // TODO: some sort of auto mapping here would be great...
-  if(name_match(img_name, "australia")) {
-    image = &australia;
+  if(name_match(img_name, "adl_bkk")) {
+    image = &adl_bkk;
+  } else if(name_match(img_name, "adl_bkk_br")) {
+    image = &adl_bkk_br;
   } else if(name_match(img_name, "yuji")) {
     image = &yuji;
   } else if(name_match(img_name, "yuji_br")) {
