@@ -1,3 +1,4 @@
+=
 -sethidetimer:
 -bgcol,FFF:
 -img,5,6,ruby:
@@ -206,11 +207,11 @@ Twitter/GitHub
 -setshowtimer:
 -title:TODOs
 -pz:
--txt,3,7:` Stability
+-txt,3,7:` More games
 
-` Separate from mruby/c
+` Separate from mruby/c source
 
-` Automation of manual opitmisation
+` Better tooling
 
 =
 -title:URLs
