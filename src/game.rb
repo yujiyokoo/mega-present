@@ -385,7 +385,7 @@ class Presentation
       break if (pad_state & 0x80 & ~prev) != 0 # start
       break if (pad_state & 0x40 & ~prev) != 0 # a
       prev = pad_state
-      wait_vblank(@show_timer)
+      wait_vblank(false)
     end
   end
 
