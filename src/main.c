@@ -327,7 +327,7 @@ Sprite* elephant0_obj;
 Sprite* elephant1_obj;
 Sprite* spikes_obj;
 
-static void render_sky_bg() {
+static void c_megamrbc_render_start_bg(mrb_vm *vm, mrb_value *v, int argc) {
   PAL_setPaletteDMA(PAL0, sky_bg.palette->data);
   VDP_drawImageEx(
     BG_B, &sky_bg,
@@ -336,15 +336,10 @@ static void render_sky_bg() {
   );
 }
 
-static void c_megamrbc_render_start_screen(mrb_vm *vm, mrb_value *v, int argc) {
+static void c_megamrbc_render_start_logo(mrb_vm *vm, mrb_value *v, int argc) {
   bool render_dash = mrbc_integer(v[1]);
   Image logo_image = main_logo;
 
-  // sprintf(buf, "colour_id: %d, colour_val: %d", colour_id, colour_val);
-  char str[40];
-  sprintf(str, "value: %d\n", render_dash);
-  KLog(str);
-  render_sky_bg();
   // use elephant palette which includes main logo palette
   VDP_setPalette(PAL1, elephant0.palette->data);
   if(render_dash) {
@@ -394,12 +389,26 @@ static void c_megamrbc_show_runner(mrb_vm *vm, mrb_value *v, int argc) {
   SPR_setVisibility(ninja32black_obj, VISIBLE);
 }
 
+// This has been moved out because calling show_spikes and show_runner every frame causes flickering on the actual unit, but not emulator
+// TODO: remove position from show_spikes / show_runner
+static void c_megamrbc_set_runner_pos(mrb_vm *vm, mrb_value *v, int argc) {
+  uint16_t v_pos = mrbc_integer(v[1]);
+  SPR_setPosition(ninja32black_obj, 130, 180 + v_pos);
+}
+
 static void c_megamrbc_show_spikes(mrb_vm *vm, mrb_value *v, int argc) {
   uint16_t spike_location = mrbc_integer(v[1]);
   // ninjas' shared pallette
   VDP_setPalette(PAL1, elephant0.palette->data);
   SPR_setPosition(spikes_obj, 320 + spike_location, 200);
   SPR_setVisibility(spikes_obj, VISIBLE);
+}
+
+// This has been moved out because calling show_spikes and show_runner every frame causes flickering on the actual unit, but not emulator
+// TODO: remove position from show_spikes / show_runner
+static void c_megamrbc_set_spike_pos(mrb_vm *vm, mrb_value *v, int argc) {
+  uint16_t spike_location = mrbc_integer(v[1]);
+  SPR_setPosition(spikes_obj, 320 + spike_location, 200);
 }
 
 static void c_megamrbc_hide_spikes(mrb_vm *vm, mrb_value *v, int argc) {
@@ -826,11 +835,14 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "clear_screen", c_megamrbc_clear_screen);
   // mrbc_define_method(vm, cls, "is_word?", c_megamrbc_is_word);
   mrbc_define_method(vm, cls, "call_rand", c_megamrbc_call_rand);
-  mrbc_define_method(vm, cls, "render_start", c_megamrbc_render_start_screen);
+  mrbc_define_method(vm, cls, "render_start_bg", c_megamrbc_render_start_bg);
+  mrbc_define_method(vm, cls, "render_start_logo", c_megamrbc_render_start_logo);
   mrbc_define_method(vm, cls, "show_game_bg", c_megamrbc_show_game_bg);
   mrbc_define_method(vm, cls, "show_runner", c_megamrbc_show_runner);
+  mrbc_define_method(vm, cls, "set_runner_pos", c_megamrbc_set_runner_pos);
   mrbc_define_method(vm, cls, "hide_runner", c_megamrbc_hide_runner);
   mrbc_define_method(vm, cls, "show_spikes", c_megamrbc_show_spikes);
+  mrbc_define_method(vm, cls, "set_spike_pos", c_megamrbc_set_spike_pos);
   mrbc_define_method(vm, cls, "hide_spikes", c_megamrbc_hide_spikes);
   // Maybe not needed???
   mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);

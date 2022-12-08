@@ -385,7 +385,7 @@ class Presentation
       break if (pad_state & 0x80 & ~prev) != 0 # start
       break if (pad_state & 0x40 & ~prev) != 0 # a
       prev = pad_state
-      wait_vblank(false)
+      wait_vblank(@show_timer)
     end
   end
 
@@ -396,6 +396,8 @@ class Presentation
     v_vel = 0
     prev = MegaMrbc.read_joypad
     spike_pos = 0
+    MegaMrbc.show_spikes(spike_pos)
+    MegaMrbc.show_runner(v_pos)
     while true do
       MegaMrbc.scroll_game
       spike_pos -= 6
@@ -411,8 +413,8 @@ class Presentation
       v_pos += v_vel
       v_pos = v_vel = 0 if v_pos >= 0
       prev = pad_state
-      MegaMrbc.show_spikes(spike_pos)
-      MegaMrbc.show_runner(v_pos)
+      MegaMrbc.set_spike_pos(spike_pos)
+      MegaMrbc.set_runner_pos(v_pos)
       if collided?(v_pos, spike_pos)
         MegaMrbc.sleep_raw(150)
         game_over
@@ -430,7 +432,7 @@ class Presentation
     MegaMrbc.play_death_se
     while i < 30 do
       v_pos += 2
-      MegaMrbc.show_runner(v_pos)
+      MegaMrbc.set_runner_pos(v_pos)
       wait_vblank(false)
       i += 1
     end
@@ -444,8 +446,10 @@ class Presentation
     state = 0
     count = 0
     prev = MegaMrbc.read_joypad
+    MegaMrbc.render_start_bg
     [0, 1].each do |dash|
-      MegaMrbc.render_start(dash)
+      wait_vblank(false)
+      MegaMrbc.render_start_logo(dash)
       while true do
         MegaMrbc.scroll_title
         if count / 30 >= 1 # switch every 0.5s
