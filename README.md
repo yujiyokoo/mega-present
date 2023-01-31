@@ -5,7 +5,9 @@ This is still work in progress, and experimental.
 
 ## Demo
 
-TBD
+This is me presenting this app at RubyKaigi 2022, on a Sega Mega Drive unit.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/JuKYJ-G8heU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## Build
 
