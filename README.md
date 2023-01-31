@@ -7,7 +7,7 @@ This is still work in progress, and experimental.
 
 This is me presenting this app at RubyKaigi 2022, on a Sega Mega Drive unit.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/JuKYJ-G8heU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+[![#Megaruby - Running mruby/c programs on Sega Mega Drive / Yuji Yokoo @yujiyokoo](https://img.youtube.com/vi/JuKYJ-G8heU/0.jpg)](https://youtu.be/JuKYJ-G8heU)
 
 ## Build
 
