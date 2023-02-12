@@ -74,3 +74,6 @@ IMAGE   mrubyloading_003 "backgrounds/mrubyloading_003.png" NONE ALL
 IMAGE   mrubyloading_004 "backgrounds/mrubyloading_004.png" NONE ALL
 IMAGE   adl_mel "backgrounds/ADL_MEL.png" NONE ALL
 IMAGE   adl_mel_br "backgrounds/ADL_MEL_br.png" NONE ALL
+IMAGE   slide_ex000 "backgrounds/slide_example_000.png" NONE ALL
+IMAGE   slide_ex001 "backgrounds/slide_example_001.png" NONE ALL
+IMAGE   slide_ex002 "backgrounds/slide_example_002.png" NONE ALL

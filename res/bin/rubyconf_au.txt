@@ -181,6 +181,15 @@ Twitter/GitHub
 -img,0,0,mrbld_004:
 
 =
+-img,0,0,slide_ex000:
+
+=
+-img,0,0,slide_ex001:
+
+=
+-img,0,0,slide_ex002:
+
+=
 -img,0,0,ru000:
 
 =
@@ -236,9 +245,11 @@ Twitter/GitHub
 -title:URLs
 -txt,5,7:
 
+yujiyokoo.dev/mruby/megaruby
+
+
 This presentation:
 github.com/yujiyokoo/mega-present
-
 
 
 Demo game:

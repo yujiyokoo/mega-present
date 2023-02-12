@@ -666,6 +666,12 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
     image = &adl_mel;
   } else if(name_match(img_name, "adl_mel_br")) {
     image = &adl_mel_br;
+  } else if(name_match(img_name, "slide_ex000")) {
+    image = &slide_ex000;
+  } else if(name_match(img_name, "slide_ex001")) {
+    image = &slide_ex001;
+  } else if(name_match(img_name, "slide_ex002")) {
+    image = &slide_ex002;
   }
 
   PAL_setPaletteDMA(PAL3, image->palette->data);
