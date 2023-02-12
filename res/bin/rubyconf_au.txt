@@ -213,21 +213,21 @@ Twitter/GitHub
 -pz:
 -txt,3,7:` More games
 
-` Separate from mruby/c source
+` Make mruby/c upgradable
 
-` Better tooling
+` Better DX
 
 =
 -title:URLs
 -txt,5,7:
 
+This presentation:
+github.com/yujiyokoo/mega-present
+
+
+
 Demo game:
 github.com/yujiyokoo/mega-mrubyc
-
-
-
-This presentation tool:
-github.com/yujiyokoo/mega-present
 
 =
 -title:Thanks
