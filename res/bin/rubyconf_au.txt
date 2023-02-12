@@ -92,12 +92,12 @@ Twitter/GitHub
 =
 -title: Tiles
 
--img,4,2,adl_bkk:
+-img,4,2,adl_mel:
 
 =
 -title: Tiles
 
--img,4,2,adl_bkk_br:
+-img,4,2,adl_mel_br:
 
 =
 -title: Scroll

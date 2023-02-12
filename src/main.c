@@ -662,6 +662,10 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
     image = &mrubyloading_003;
   } else if(name_match(img_name, "mrbld_004")) {
     image = &mrubyloading_004;
+  } else if(name_match(img_name, "adl_mel")) {
+    image = &adl_mel;
+  } else if(name_match(img_name, "adl_mel_br")) {
+    image = &adl_mel_br;
   }
 
   PAL_setPaletteDMA(PAL3, image->palette->data);
