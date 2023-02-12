@@ -652,6 +652,16 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
     image = &cipherstash;
   } else if(name_match(img_name, "rubyconfau")) {
     image = &rubyconfau;
+  } else if(name_match(img_name, "mrbld_000")) {
+    image = &mrubyloading_000;
+  } else if(name_match(img_name, "mrbld_001")) {
+    image = &mrubyloading_001;
+  } else if(name_match(img_name, "mrbld_002")) {
+    image = &mrubyloading_002;
+  } else if(name_match(img_name, "mrbld_003")) {
+    image = &mrubyloading_003;
+  } else if(name_match(img_name, "mrbld_004")) {
+    image = &mrubyloading_004;
   }
 
   PAL_setPaletteDMA(PAL3, image->palette->data);

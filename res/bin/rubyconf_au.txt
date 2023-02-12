@@ -166,6 +166,21 @@ Twitter/GitHub
 -img,0,0,m012:
 
 =
+-img,0,0,mrbld_000:
+
+=
+-img,0,0,mrbld_001:
+
+=
+-img,0,0,mrbld_002:
+
+=
+-img,0,0,mrbld_003:
+
+=
+-img,0,0,mrbld_004:
+
+=
 -img,0,0,ru000:
 
 =

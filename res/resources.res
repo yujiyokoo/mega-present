@@ -67,3 +67,8 @@ IMAGE   cipherstash "backgrounds/CipherStashLogo.png" NONE ALL
 IMAGE   rubyconfau "backgrounds/RubyConfAu2023.png" NONE ALL
 SPRITE  wombat0   "sprites/wombat0.png" 4 4 BEST 0
 SPRITE  wombat1   "sprites/wombat1.png" 4 4 BEST 0
+IMAGE   mrubyloading_000 "backgrounds/mrubyloading_000.png" NONE ALL
+IMAGE   mrubyloading_001 "backgrounds/mrubyloading_001.png" NONE ALL
+IMAGE   mrubyloading_002 "backgrounds/mrubyloading_002.png" NONE ALL
+IMAGE   mrubyloading_003 "backgrounds/mrubyloading_003.png" NONE ALL
+IMAGE   mrubyloading_004 "backgrounds/mrubyloading_004.png" NONE ALL
