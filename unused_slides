@@ -143,3 +143,69 @@ end
 ` Better concurrency support
 
 ` no mrbgem
+
+=
+-title:Resource decleration
+-txt,1,5:In resource.res:
+
+IMAGE rca "img/RubyConfAu.png" NONE ALL
+
+=
+-title:Resource usage
+-txt,2,5:In C:
+
+  VDP_drawImageEx(
+    BG_A, rca,
+    TILE_ATTR_FULL(
+      PAL3, FALSE, FALSE, FALSE,
+      TILE_USERINDEX + 1
+    ),
+    12, 3, FALSE, TRUE
+  );
+
+=
+-title: Load and start Ruby code
+-txt,2,2:
+void mrubyc(const uint8_t *mrbbuf)
+{
+  mrbc_init_global();
+  mrbc_init_class();
+
+  mrbc_vm *vm = mrbc_vm_open(NULL);
+  if(vm == 0) {
+    return;
+  }
+
+  if(mrbc_load_mrb(vm, mrbbuf) != 0){
+    return;
+  }
+
+  mrbc_vm_begin(vm);
+
+  make_class(vm);
+
+  mrbc_vm_run(vm);
+  mrbc_vm_end(vm);
+  mrbc_vm_close(vm);
+}
+
+=
+-title: Slide example
+-txt,1,5: =
+
+ -title: Amazing Page Title
+
+ -txt,2,5: Here's some text content
+
+=
+-title: Slide example
+-txt,1,5: = <- new line
+
+ -title: Amazing Page Title <- title
+
+ -txt,2,5: Here's some text content
+
+=
+-title: Amazing Page Title
+-txt,2,5: Here's some text content
+
