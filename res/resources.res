@@ -1,4 +1,4 @@
-BIN     content   "bin/rubyconf_th.txt" NONE
+BIN     content   "bin/rubyconf_au.txt" NONE
 IMAGE   sky_bg    "backgrounds/sky-background.png" NONE ALL
 IMAGE   mountains_bg "backgrounds/mountains-background.png" NONE ALL
 IMAGE   main_logo "backgrounds/main_logo.png" NONE ALL
@@ -63,3 +63,5 @@ IMAGE   mdchallenges "backgrounds/mdchallenges.bmp" NONE ALL
 IMAGE   emulators "backgrounds/emulators.bmp" NONE ALL
 IMAGE   mainloop "backgrounds/mainloop.bmp" NONE ALL
 IMAGE   sgdkmrbc "backgrounds/sgdkmrbc.bmp" NONE ALL
+IMAGE   cipherstash "backgrounds/CipherStashLogo.png" NONE ALL
+IMAGE   rubyconfau "backgrounds/RubyConfAu2023.png" NONE ALL

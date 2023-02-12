@@ -648,6 +648,10 @@ static void c_megamrbc_draw_image(mrb_vm *vm, mrb_value *v, int argc) {
     image = &mainloop;
   } else if(name_match(img_name, "sgdkmrbc")) {
     image = &sgdkmrbc;
+  } else if(name_match(img_name, "cipherstash")) {
+    image = &cipherstash;
+  } else if(name_match(img_name, "rubyconfau")) {
+    image = &rubyconfau;
   }
 
   PAL_setPaletteDMA(PAL3, image->palette->data);
