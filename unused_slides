@@ -199,7 +199,7 @@ void mrubyc(const uint8_t *mrbbuf)
 
 =
 -title: Slide example
--txt,1,5: = <- new line
+-txt,1,5: = <- new page
 
  -title: Amazing Page Title <- title
 
