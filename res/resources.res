@@ -65,3 +65,5 @@ IMAGE   mainloop "backgrounds/mainloop.bmp" NONE ALL
 IMAGE   sgdkmrbc "backgrounds/sgdkmrbc.bmp" NONE ALL
 IMAGE   cipherstash "backgrounds/CipherStashLogo.png" NONE ALL
 IMAGE   rubyconfau "backgrounds/RubyConfAu2023.png" NONE ALL
+SPRITE  wombat0   "sprites/wombat0.png" 4 4 BEST 0
+SPRITE  wombat1   "sprites/wombat1.png" 4 4 BEST 0
