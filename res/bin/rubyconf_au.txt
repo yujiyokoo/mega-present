@@ -181,15 +181,6 @@ Twitter/GitHub
 -img,0,0,mrbld_004:
 
 =
--img,0,0,slide_ex000:
-
-=
--img,0,0,slide_ex001:
-
-=
--img,0,0,slide_ex002:
-
-=
 -img,0,0,ru000:
 
 =
@@ -223,6 +214,15 @@ Twitter/GitHub
 =
 -title:Main loop (simplified)
 -img,0,0,mainloop:
+
+=
+-img,0,0,slide_ex000:
+
+=
+-img,0,0,slide_ex001:
+
+=
+-img,0,0,slide_ex002:
 
 =
 -title:Demo game
