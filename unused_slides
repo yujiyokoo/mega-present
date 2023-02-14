@@ -33,7 +33,7 @@
 -txt,10,22:executable on Meaga Drive
 
 =
--title:Resource decleration
+-title:Resource declaration
 -pz:
 -txt,2,5:In resource.res:
 
@@ -209,3 +209,17 @@ void mrubyc(const uint8_t *mrbbuf)
 -title: Amazing Page Title
 -txt,2,5: Here's some text content
 
+=
+-bgcol,000:
+-title:What is Mega Drive?
+-txt,5,5:` Sega Mega Drive aka Genesis
+
+` Released in 1988
+
+` Motorola 68000 at 7.6MHz
+
+` "16-BIT"
+
+` 64KB main RAM + 64KB VRAM
+
+` Over 30M units sold worldwide
