@@ -150,6 +150,9 @@ end
 
 IMAGE rca "img/RubyConfAu.png" NONE ALL
 
+This makes 'rca' available in memory
+via ROM
+
 =
 -title:Resource usage
 -txt,2,5:In C:
