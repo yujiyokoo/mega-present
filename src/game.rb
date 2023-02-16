@@ -447,9 +447,9 @@ class Presentation
     count = 0
     prev = MegaMrbc.read_joypad
     MegaMrbc.render_start_bg
-    [0, 1].each do |dash|
+    [0, 1, 2].each do |dash_or_plus|
       wait_vblank(false)
-      MegaMrbc.render_start_logo(dash)
+      MegaMrbc.render_start_logo(dash_or_plus)
       while true do
         MegaMrbc.scroll_title
         if count / 30 >= 1 # switch every 0.5s

@@ -337,13 +337,15 @@ static void c_megamrbc_render_start_bg(mrb_vm *vm, mrb_value *v, int argc) {
 }
 
 static void c_megamrbc_render_start_logo(mrb_vm *vm, mrb_value *v, int argc) {
-  bool render_dash = mrbc_integer(v[1]);
+  bool dash_or_plus = mrbc_integer(v[1]);
   Image logo_image = main_logo;
 
   // use wombat palette which includes main logo palette
   VDP_setPalette(PAL1, wombat0.palette->data);
-  if(render_dash) {
+  if(dash_or_plus == 1) {
     logo_image = main_logo_dash;
+  } else if(dash_or_plus == 2) {
+    logo_image = main_logo_dashplus;
   }
   VDP_drawImageEx(
     BG_A, &logo_image,
