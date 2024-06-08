@@ -54,12 +54,17 @@ mrbc -B mrbsrc src/game.rb && make -f $GENDEV/sgdk/mkfiles/Makefile.rom clean al
 
 ## Execute
 After the above building step, you should end up with `out/rom.bin`, which you can use with most emulators.
-If you have a way of runnig your own code on the real Mega Drive unit, it should work there too. I use Mega EverDrive X7 and it works for me.
+If you have a way of running your own code on the real Mega Drive unit, it should work there too. I use Mega EverDrive X7 and it works for me.
 
+## Debugging
+Debugging is easier on the emulators than the actual Mega Drive unit.
+Gens Kmod is one of those emulators with debug logging features.
+To enable debug logging via KLog, enable Option -> Debug -> "Active Development Features".
+The window can be opened by selecting CPU->Debug->Messages.
 
 ## License
 
-This fork of mruby/c is released under the same licence as the orginal - Revised BSD License (aka 3-clause license).
+This fork of mruby/c is released under the same licence as the original - Revised BSD License (aka 3-clause license).
 
 The RubyKaigi logo and Ninjas have been imported and edited from https://rubykaigi.org/2022/novelties/
 
