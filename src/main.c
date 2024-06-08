@@ -475,52 +475,6 @@ static void c_megamrbc_page_count(mrb_vm *vm, mrb_value *v, int argc) {
   SET_RETURN(mrbc_integer_value(size));
 }
 
-// Reads content, returns a list of pages, and frees content(!)
-static void c_megamrbc_read_content_unsafe(mrb_vm *vm, mrb_value *v, int argc) {
-  uint16_t length = strlen(content);
-  uint16_t idx = 0;
-  uint16_t size = 1;
-  while(content[idx]) {
-    if(content[idx] == '=' && idx != 0 && content[idx-1] == '\n' && idx < length && content[idx+1] == '\n') {
-      size++;
-    }
-    idx++;
-  }
-
-  mrbc_value ret = mrbc_array_new(vm, size);
-
-  const u8* page_start = content;
-  uint16_t count = 0;
-  idx = 0;
-  uint16_t len = 0;
-  while(count < size) {
-    bool input_ended = content[idx] == '\0';
-    bool page_ended = content[idx] == '=' && idx != 0 &&
-      content[idx-1] == '\n' && idx < length && content[idx+1] == '\n';
-
-    if (input_ended || page_ended) {
-      mrbc_value new_elem = mrbc_string_new(vm, page_start, content + idx - page_start);
-      mrbc_array_push(&ret, &new_elem);
-      count++;
-      len = 0;
-    }
-
-    if (page_ended) {
-      page_start = content + idx + 2;
-    }
-
-    len++;
-    idx++;
-  }
-  free(content); // is this okay?
-
-  SET_RETURN(ret);
-}
-
-static void c_megamrbc_read_content(mrb_vm *vm, mrb_value *v, int argc) {
-  SET_RETURN( mrbc_string_new_cstr( vm, content ) );
-}
-
 static void c_megamrbc_set_pal_colour(mrb_vm *vm, mrb_value *v, int argc) {
   uint16_t colour_id = mrbc_integer(v[1]);
   uint16_t colour_val = mrbc_integer(v[2]);
@@ -533,28 +487,6 @@ static void c_megamrbc_set_pal_colour(mrb_vm *vm, mrb_value *v, int argc) {
 static void c_megamrbc_set_txt_pal(mrb_vm *vm, mrb_value *v, int argc) {
   uint8_t pal = mrbc_integer(v[1]);
   VDP_setTextPalette(pal);
-}
-
-static void c_megamrbc_read_content_line(mrb_vm *vm, mrb_value *v, int argc) {
-  char buf[201];
-  char *buf_cpy = buf;
-  static char *content_ptr = content;
-  static int turn = 0;
-
-  // FIXME: currently line is limited to 200 chars max
-  memcpy(buf, content_ptr, 200);
-  while(*content_ptr != '\0' && *content_ptr != '\r' && *content_ptr != '\n') {
-    content_ptr++;
-    buf_cpy++;
-  }
-  if(*content_ptr != '\0') content_ptr++; // advance pointer if line break
-
-  *buf_cpy = '\0';
-  VDP_drawText(buf, 1, 4+turn);
-  VDP_drawText("done", 1, 8+turn);
-  turn++;
-
-  SET_RETURN( mrbc_string_new_cstr( vm, buf ) );
 }
 
 // globals for joypad input
@@ -925,8 +857,6 @@ void make_class(mrb_vm *vm)
   mrbc_define_method(vm, cls, "set_spike_pos", c_megamrbc_set_spike_pos);
   mrbc_define_method(vm, cls, "hide_spikes", c_megamrbc_hide_spikes);
   // Maybe not needed???
-  mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);
-  mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content_unsafe);
   mrbc_define_method(vm, cls, "read_page_at", c_megamrbc_read_page_at);
   mrbc_define_method(vm, cls, "page_count", c_megamrbc_page_count);
   mrbc_define_method(vm, cls, "set_pal_colour", c_megamrbc_set_pal_colour);
