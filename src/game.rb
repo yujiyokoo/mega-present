@@ -290,10 +290,6 @@ class Presentation
     self.new.begin_presentation
   end
 
-  def initialize
-    @pages ||= MegaMrbc.read_content
-  end
-
   def begin_presentation
     main_loop
   end
@@ -301,10 +297,11 @@ class Presentation
   def main_loop
     running = true
     cmd = :fwd
+    @page_count = MegaMrbc.page_count
     while running do
       MegaMrbc.clear_screen
       if cmd == :fwd
-        page = next_page unless @index > @pages.size
+        page = next_page unless @index > @page_count
       elsif cmd == :back
         page = prev_page
       end
@@ -322,8 +319,9 @@ class Presentation
 
   def next_page
     @index ||= -1
-    @index += 1 unless @index == @pages.size - 1
-    @page = @pages[@index]
+    @index += 1 unless @index == @page_count
+    @page = MegaMrbc.read_page_at(@index)
+    MegaMrbc.klog("next page, content is #{@page}")
     # MegaMrbc.klog("next, index is #{@index}")
     return Page.new(@page, self)
   end
@@ -331,7 +329,7 @@ class Presentation
   def prev_page
     @index ||= 0
     @index -= 1 unless @index < 1
-    @page = @pages[@index]
+    @page = MegaMrbc.read_page_at(@index)
     # MegaMrbc.klog("prev, index is #{@index}")
     return Page.new(@page, self)
   end
@@ -368,7 +366,7 @@ class Presentation
 
   def wait_vblank(show_timer = true)
     if show_timer
-      MegaMrbc.show_progress(@index, @start_idx.to_i, @pages.size - 1) if @index && @pages
+      MegaMrbc.show_progress(@index, @start_idx.to_i, @page_count - 1) if @index && @page_count
       MegaMrbc.show_timer(@start_tick || 0)
     else
       MegaMrbc.hide_progress

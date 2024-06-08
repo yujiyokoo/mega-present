@@ -421,6 +421,60 @@ static void c_megamrbc_hide_runner(mrb_vm *vm, mrb_value *v, int argc) {
   SPR_setVisibility(ninja32black_obj, HIDDEN);
 }
 
+static void c_megamrbc_read_page_at(mrb_vm *vm, mrb_value *v, int argc) {
+  uint16_t target_idx = mrbc_integer(v[1]);
+
+  uint16_t length = strlen(content);
+  uint16_t idx = 0;
+  uint16_t count = 0;
+
+  while(content[idx] && count < target_idx) {
+    if(content[idx] == '=' && idx != 0 && content[idx-1] == '\n' && idx < length && content[idx+1] == '\n') {
+      count++;
+    }
+    idx++;
+  }
+
+  // reatched the end of content
+  if(!content[idx]) {
+    SET_RETURN(mrbc_nil_value());
+    return;
+  }
+
+  //idx += 2;
+  const u8* page_start = content + idx;
+  mrbc_value page_content = mrbc_nil_value();
+  while(content[idx]) {
+    bool input_ended = content[idx] == '\0';
+    bool page_ended = content[idx] == '=' &&
+      content[idx-1] == '\n' && idx < length && content[idx+1] == '\n';
+
+    if (input_ended || page_ended) {
+      page_content = mrbc_string_new(vm, page_start, content + idx - page_start);
+      break;
+    }
+
+    idx++;
+  }
+
+  SET_RETURN(page_content);
+}
+
+// Reads content and counts the page count. Does not cache so this is slow
+static void c_megamrbc_page_count(mrb_vm *vm, mrb_value *v, int argc) {
+  uint16_t length = strlen(content);
+  uint16_t idx = 0;
+  uint16_t size = 1;
+  while(content[idx]) {
+    if(content[idx] == '=' && idx != 0 && content[idx-1] == '\n' && idx < length && content[idx+1] == '\n') {
+      size++;
+    }
+    idx++;
+  }
+
+  SET_RETURN(mrbc_integer_value(size));
+}
+
 // Reads content, returns a list of pages, and frees content(!)
 static void c_megamrbc_read_content_unsafe(mrb_vm *vm, mrb_value *v, int argc) {
   uint16_t length = strlen(content);
@@ -873,6 +927,8 @@ void make_class(mrb_vm *vm)
   // Maybe not needed???
   mrbc_define_method(vm, cls, "read_content_line", c_megamrbc_read_content_line);
   mrbc_define_method(vm, cls, "read_content", c_megamrbc_read_content_unsafe);
+  mrbc_define_method(vm, cls, "read_page_at", c_megamrbc_read_page_at);
+  mrbc_define_method(vm, cls, "page_count", c_megamrbc_page_count);
   mrbc_define_method(vm, cls, "set_pal_colour", c_megamrbc_set_pal_colour);
   mrbc_define_method(vm, cls, "set_txt_pal", c_megamrbc_set_txt_pal);
   mrbc_define_method(vm, cls, "scroll_title", c_megamrbc_scroll_title);
