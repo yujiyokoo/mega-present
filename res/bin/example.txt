@@ -161,7 +161,13 @@ GitHub/Twitter
 -txt,10,22:executable on Meaga Drive
 
 
+# demogame is a special command that shows the demo game of ninja jumping over spikes
 =
+-sethidetimer:
+-demogame:
+
+=
+-setshowtimer:
 -title: Links
 -txt,5,7:
 
