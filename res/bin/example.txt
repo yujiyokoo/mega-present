@@ -123,6 +123,14 @@ GitHub/Twitter
  and
   Kyushu Institute of Technology
 
+# rect draws rectangle, same tile coodinates as everything else (8x8 tiles)
+# rect,x,y,width,height:
+
+# tarrow is an arrow starting from a "T" like |---->
+# arrow is an arrow without "T" like ----->
+# like -tarrow,x,y,direction,length:
+# or -arrow,x,y,direction,length:
+# the direction can be l, r, u, d for left, right, up and down
 =
 -title: Development overview
 
