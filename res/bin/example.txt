@@ -1,0 +1,185 @@
+# This is a sample file for mega-present
+# See https://github.com/yujiyokoo/mega-present
+
+# Comments - every line starting with a hash # is a comment.
+# There is currently no way of using # on the first character of a line in text contents.
+
+# sethidetimer hides the timer and progress at the bottom of the screen.
+# This is used on the title screen and other screens where I want to show only the image(s)
+
+# bgcol sets the background colour
+# Colours are specified as RGB in hexadecimal format.
+# So FFF is white, 000 is black, and so on.
+
+# img,x,y,image_name shows image at (x,y) position
+# image_name is the variable name in res/resources.h (e.g. "mountains_bg" of "extern const Image mountains_bg;")
+# image files are located in res/backgrounds/
+# x and y position is specified as a tile (8x8 pixels) position.
+# so, (5,6) would be 40,64 if it was specified in pixels
+
+-sethidetimer:
+-bgcol,FFF:
+-img,5,6,ruby:
+
+# Page separateor (=) starts a new page.
+
+# titlescreen shows the title screen.
+# This is a special page defined as Presentation#title_screen
+
+=
+-titlescreen:
+
+# setshowtimer shows the timer and progress at the bottom of the screen
+# setcolour,colour_id,rgb sets the palette colour specified by colour_id to the rgb value
+# code renders the text in 'code mode' which has limited colouring for words starting with capitals
+# and: "do", "end", "if", "unless", "else", "elsif", "while", "for", "class", "def"
+=
+-setshowtimer:
+-setcolour,15,FFF:
+-setcolour,31,2F2:
+-setcolour,47,22F:
+-setcolour,63,FF2:
+-title: Log function example
+-code,1,3:
+static void c_klog(
+  mrb_vm *vm, mrb_value *v, int argc
+) {
+  char *str = mrbc_string_cstr(&v[1]);
+
+  KLog(str);
+}
+
+=
+-title: Define callable method
+-code,1,3:
+mrb_class *cls =
+   mrbc_define_class(
+     vm, "TestClass", mrbc_class_object
+   );
+
+mrbc_define_method(
+  vm, cls, "klog", c_klog
+);
+
+=
+-title: Calling the method
+-code,1,3:
+TestClass.klog("str #{v}")
+
+# initprogress resets the progress bar at the bottom of the screen to zero
+# resettimer resets the timer progress at the bottom of the screen to zero
+=
+-initprogress:
+-resettimer:
+-setshowtimer:
+
+-title: About me
+-txt,10,5:Yuji Yokoo
+
+Adelaide, AU
+
+Programmer
+
+GitHub/Twitter
+@yujiyokoo
+
+-img,16,14,yuji:
+
+# The backtick (`) is rendered as a bullet
+=
+-title: This app
+-txt,10,5:Mega Present
+
+` Another presentation app
+
+` Runs on Mega Drive
+
+
+=
+-title: SGDK
+-txt,3,5:Sega Genesis Development Kit
+-txt,3,7:Provides C API
+-txt,3,9:* Many features
+-pause:
+-txt,5,11:* tiles, sprites, assets
+* scroll
+* sound
+-pause:
+-playsound:
+-pause:
+-playsound:
+-pause:
+-txt,5,14:
+* much more
+
+=
+-title: What is mruby/c?
+-pause:
+-txt,3,5:A project that makes a compact VM
+
+ from
+  Shimane IT Open-Innovation Center
+
+ and
+  Kyushu Institute of Technology
+
+=
+-title: Development overview
+
+-rect,1,2,18,4:
+-txt,2,3:C source
+-pause:
+-txt,2,4:mruby/c source
+-pause:
+-txt,2,5:compiled bytecode
+-pause:
+-rect,24,4,10,2:
+-txt,25,5:resource
+-pause:
+-tarrow,10,6,d,3:
+-txt,12,7:cross compile
+-pause:
+-rect,5,9,10,2:
+-txt,6,10:obj files
+-pause:
+-tarrow,29,6,d,5:
+-txt,30,7: compile
+-pause:
+-rect,20,11,18,2:
+-txt,21,12:compiled resource
+-pause:
+-tarrow,20,12,l,10:
+-pause:
+-rect,20,14,14,2:
+-txt,21,15:SGDK library
+-tarrow,20,15,l,10:
+-tarrow,10,11,d,8:
+-txt,12,17:link and other SGDK things
+-rect,5,19,10,2:
+-txt,6,20:rom.bin
+-pause:
+-txt,10,22:executable on Meaga Drive
+
+
+=
+-title: Links
+-txt,5,7:
+
+Demo game:
+github.com/yujiyokoo/mega-mrubyc
+
+
+This presentation tool:
+github.com/yujiyokoo/mega-present
+
+=
+-title: Thanks
+-txt,5,7:
+* mruby developrs
+
+* mruby/c developrs
+
+* SGDK developers
+
+* Gendev developers
+

@@ -1,4 +1,4 @@
-BIN     content   "bin/rubyconf_au.txt" NONE
+BIN     content   "bin/example.txt" NONE
 IMAGE   sky_bg    "backgrounds/sky-background.png" NONE ALL
 IMAGE   mountains_bg "backgrounds/mountains-background.png" NONE ALL
 IMAGE   main_logo "backgrounds/main_logo.png" NONE ALL
