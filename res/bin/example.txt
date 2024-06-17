@@ -94,27 +94,27 @@ GitHub/Twitter
 
 ` Runs on Mega Drive
 
-
+# pz is for pause. It pauses before moving on to the next command.
 =
 -title: SGDK
 -txt,3,5:Sega Genesis Development Kit
 -txt,3,7:Provides C API
--txt,3,9:* Many features
--pause:
--txt,5,11:* tiles, sprites, assets
-* scroll
-* sound
--pause:
+-txt,3,9:` Many features
+-pz:
+-txt,5,11:` tiles, sprites, assets
+` scroll
+` sound
+-pz:
 -playsound:
--pause:
+-pz:
 -playsound:
--pause:
+-pz:
 -txt,5,14:
-* much more
+` much more
 
 =
 -title: What is mruby/c?
--pause:
+-pz:
 -txt,3,5:A project that makes a compact VM
 
  from
@@ -128,28 +128,28 @@ GitHub/Twitter
 
 -rect,1,2,18,4:
 -txt,2,3:C source
--pause:
+-pz:
 -txt,2,4:mruby/c source
--pause:
+-pz:
 -txt,2,5:compiled bytecode
--pause:
+-pz:
 -rect,24,4,10,2:
 -txt,25,5:resource
--pause:
+-pz:
 -tarrow,10,6,d,3:
 -txt,12,7:cross compile
--pause:
+-pz:
 -rect,5,9,10,2:
 -txt,6,10:obj files
--pause:
+-pz:
 -tarrow,29,6,d,5:
 -txt,30,7: compile
--pause:
+-pz:
 -rect,20,11,18,2:
 -txt,21,12:compiled resource
--pause:
+-pz:
 -tarrow,20,12,l,10:
--pause:
+-pz:
 -rect,20,14,14,2:
 -txt,21,15:SGDK library
 -tarrow,20,15,l,10:
@@ -157,7 +157,7 @@ GitHub/Twitter
 -txt,12,17:link and other SGDK things
 -rect,5,19,10,2:
 -txt,6,20:rom.bin
--pause:
+-pz:
 -txt,10,22:executable on Meaga Drive
 
 
@@ -175,11 +175,11 @@ github.com/yujiyokoo/mega-present
 =
 -title: Thanks
 -txt,5,7:
-* mruby developrs
+` mruby developrs
 
-* mruby/c developrs
+` mruby/c developrs
 
-* SGDK developers
+` SGDK developers
 
-* Gendev developers
+` Gendev developers
 
