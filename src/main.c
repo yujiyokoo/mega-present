@@ -444,7 +444,7 @@ static void c_megamrbc_read_page_at(mrb_vm *vm, mrb_value *v, int argc) {
   //idx += 2;
   const u8* page_start = content + idx;
   mrbc_value page_content = mrbc_nil_value();
-  while(content[idx]) {
+  while(1) {
     bool input_ended = content[idx] == '\0';
     bool page_ended = content[idx] == '=' &&
       content[idx-1] == '\n' && idx < length && content[idx+1] == '\n';
